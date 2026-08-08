@@ -10,6 +10,30 @@ import { createInitialGameState, type GameState } from "./initialState";
 const TICK_MS = 100;
 const QUANTA_PER_TICK = 12;
 
+/**
+ * Structural guard so a corrupted or foreign save surfaces SIMULATION_ERROR
+ * instead of throwing outside the tick handler.
+ */
+function isRestorableState(value: unknown): value is GameState {
+  const s = value as GameState | null;
+  return Boolean(
+    s &&
+    typeof s === "object" &&
+    s.calendar &&
+    typeof s.calendar.dateKey === "string" &&
+    Number.isSafeInteger(s.calendar.minuteOfDay) &&
+    s.hotel &&
+    Array.isArray(s.hotel.rooms) &&
+    s.finance &&
+    Number.isSafeInteger(s.finance.cashMinor) &&
+    Array.isArray(s.finance.ledger) &&
+    s.finance.month &&
+    s.rngState &&
+    Number.isSafeInteger(s.rngState.guests) &&
+    Number.isSafeInteger(s.rngState.AI),
+  );
+}
+
 let simulation: GameSimulation | null = null;
 let speed: 0 | 1 | 2 | 4 | 16 = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -65,7 +89,15 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "LOAD_GAME": {
-      simulation = new GameSimulation(m.saveData as GameState);
+      if (!isRestorableState(m.saveData)) {
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "SIMULATION_ERROR",
+          message: "save data is not a restorable game state",
+        });
+        return;
+      }
+      simulation = new GameSimulation(m.saveData);
       ensureTimer();
       reply({
         protocolVersion: PROTOCOL_VERSION,
@@ -84,15 +116,26 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         });
         return;
       }
-      simulation.queueCommand(m.command as GameCommand);
+      const command = m.command as GameCommand;
+      const verdict = simulation.validateCommand(command);
+      if (!verdict.ok) {
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "COMMAND_REJECTED",
+          requestId: m.requestId,
+          reason: verdict.reason,
+        });
+        return;
+      }
+      simulation.queueCommand(command);
       reply({
         protocolVersion: PROTOCOL_VERSION,
         type: "COMMAND_ACCEPTED",
         requestId: m.requestId,
       });
-      // A paused game still applies commands so the player sees the effect.
+      // A paused game applies the command without advancing the calendar.
       if (speed === 0) {
-        simulation.advanceQuantum();
+        simulation.applyPendingCommands();
         reply({
           protocolVersion: PROTOCOL_VERSION,
           type: "STATE_DELTA",

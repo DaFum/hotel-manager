@@ -129,6 +129,101 @@ describe("simulated operations", () => {
     expect(s.finance.cashMinor).toBe(40_000_000 + ledgerNet);
   });
 
+  it("rejects an invalid command before it is queued", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    expect(
+      sim.validateCommand({
+        type: "SET_RATE",
+        dateKey: "1991-01-02",
+        category: "single",
+        rateMinor: 100,
+      }),
+    ).toEqual({ ok: false, reason: "rate outside slice bounds" });
+    expect(
+      sim.validateCommand({
+        type: "SET_RATE",
+        dateKey: "1991-01-02",
+        category: "single",
+        rateMinor: 9500,
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("applies a paused command without advancing the calendar", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    sim.queueCommand({
+      type: "SET_RATE",
+      dateKey: "1991-01-02",
+      category: "single",
+      rateMinor: 9500,
+    });
+    sim.applyPendingCommands();
+    const s = sim.snapshot();
+    expect(s.rates["1991-01-02/single"]).toBe(9500);
+    expect(s.calendar).toEqual({ dateKey: "1991-01-01", minuteOfDay: 0 });
+  });
+
+  it("keeps the hiring sequence stable across a save and load", () => {
+    const hire = {
+      type: "HIRE" as const,
+      role: "housekeeping",
+      shift: "morning",
+      monthlyWageMinor: 250_000,
+    };
+    const sim = new GameSimulation(createInitialGameState(42));
+    sim.queueCommand(hire);
+    sim.advanceQuantum();
+    const saved = sim.snapshot();
+
+    sim.queueCommand(hire);
+    sim.advanceQuantum();
+    const continued = sim.snapshot().staff.map((m) => m.id);
+
+    const reloaded = new GameSimulation(saved);
+    reloaded.queueCommand(hire);
+    reloaded.advanceQuantum();
+    expect(reloaded.snapshot().staff.map((m) => m.id)).toEqual(continued);
+    expect(new Set(continued).size).toBe(continued.length);
+  });
+
+  it("posts the final day into the month it belongs to", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 31);
+    const s = sim.snapshot();
+    const report = s.lastMonthlyClose!;
+    // 31 days of a 24 room hotel, and none of February's capacity.
+    expect(report.availableRoomNights).toBe(31 * 24);
+    expect(s.finance.month.availableRoomNights).toBe(24);
+  });
+
+  it("keeps renovation CapEx out of the operating expense line", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    const before = sim.snapshot().finance.month.operatingExpenseMinor;
+    sim.queueCommand({ type: "START_RENOVATION" });
+    sim.advanceQuantum();
+    const after = sim.snapshot();
+    expect(after.finance.month.operatingExpenseMinor).toBe(before);
+    expect(after.finance.cashMinor).toBe(40_000_000 - 6_000_000);
+  });
+
+  it("wears assets down over simulated days", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    const before = sim.snapshot().assets[0].condition;
+    runQuanta(sim, QUANTA_PER_DAY * 3);
+    expect(sim.snapshot().assets[0].condition).toBe(before - 30);
+  });
+
+  it("assigns the room category the guest actually booked", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 7);
+    const s = sim.snapshot();
+    for (const stay of s.stays) {
+      const booking = s.reservations.find((b) => b.id === stay.bookingId);
+      const room = s.hotel.rooms.find((r) => r.id === stay.roomId)!;
+      if (booking) expect(room.category).toBe(booking.category);
+    }
+  });
+
   it("converts the free module into two extra rooms", () => {
     const sim = new GameSimulation(createInitialGameState(424242));
     sim.queueCommand({ type: "START_RENOVATION" });

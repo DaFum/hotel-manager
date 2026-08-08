@@ -67,7 +67,7 @@ export class GameSimulation {
   private queued: GameCommand[] = [];
   private streams: ReturnType<typeof restoreRngStreams>;
   private dayRolled = false;
-  private hiredCount = 0;
+  private monthRolled = false;
 
   constructor(public state: GameState) {
     this.streams = restoreRngStreams(state.rngState);
@@ -79,6 +79,77 @@ export class GameSimulation {
 
   queueCommand(command: GameCommand): void {
     this.queued.push(command);
+  }
+
+  /**
+   * Pre-flight check so the worker can answer COMMAND_ACCEPTED or
+   * COMMAND_REJECTED truthfully; the command still mutates state only in the
+   * commands phase.
+   */
+  validateCommand(
+    command: GameCommand,
+  ): { ok: true } | { ok: false; reason: string } {
+    const s = this.state;
+    try {
+      switch (command.type) {
+        case "SET_RATE":
+          setRate(
+            s.rates,
+            command.dateKey,
+            command.category,
+            command.rateMinor,
+          );
+          return { ok: true };
+        case "ORDER_SUPPLIES": {
+          const supplier = supplierForSku(command.sku);
+          placeOrder(
+            { cashMinor: s.finance.cashMinor, nowMinutes: s.elapsedMinutes },
+            {
+              supplierId: supplier.id,
+              sku: supplier.sku,
+              quantity: command.quantity,
+              unitPriceMinor: supplier.unitPriceMinor,
+              leadMinutes: supplier.leadMinutes,
+            },
+          );
+          return { ok: true };
+        }
+        case "HIRE":
+          hireApplicant(
+            { id: "applicant", role: command.role, skill: 50 },
+            {
+              shift: command.shift as "morning" | "evening" | "night",
+              monthlyWageMinor: command.monthlyWageMinor,
+            },
+          );
+          return { ok: true };
+        case "START_RENOVATION": {
+          if (s.renovation)
+            return { ok: false, reason: "renovation already running" };
+          startRenovation(
+            "module.free.1",
+            s.elapsedMinutes,
+            s.finance.cashMinor,
+          );
+          return { ok: true };
+        }
+        default:
+          return { ok: false, reason: "unknown command" };
+      }
+    } catch (error) {
+      return { ok: false, reason: (error as Error).message };
+    }
+  }
+
+  /**
+   * Applies queued commands while the game is paused. This deliberately runs
+   * only the commands phase: a paused hotel must not advance time.
+   */
+  applyPendingCommands(): void {
+    this.applyCommands();
+    this.refreshMetrics();
+    this.state.rngState = captureRngState(this.streams);
+    assertInvariants(this.state);
   }
 
   advanceQuantum(): void {
@@ -174,7 +245,7 @@ export class GameSimulation {
       case "HIRE": {
         const hired = hireApplicant(
           {
-            id: `staff.${command.role}.${++this.hiredCount + 100}`,
+            id: this.nextStaffId(command.role),
             role: command.role,
             skill: 50 + (this.streams.staffing.nextUint32() % 40),
           },
@@ -217,11 +288,10 @@ export class GameSimulation {
     s.calendar = advanceClock(s.calendar);
     s.elapsedMinutes += QUANTUM_MINUTES;
     this.dayRolled = s.calendar.dateKey !== before;
-    if (!this.dayRolled) return;
-
-    s.finance.month.availableRoomNights += s.hotel.rooms.length;
-    if (before.slice(0, 7) !== s.calendar.dateKey.slice(0, 7))
-      this.closeMonth();
+    // The ended day's revenue and wages are posted in the finance phase, so
+    // both the close and the new day's room-night capacity wait for it.
+    this.monthRolled =
+      this.dayRolled && before.slice(0, 7) !== s.calendar.dateKey.slice(0, 7);
   }
 
   private arrivalsDepartures(): void {
@@ -315,12 +385,19 @@ export class GameSimulation {
 
     for (const bookingId of processed) {
       const booking = s.reservations.find((b) => b.id === bookingId);
+      if (!booking || booking.status !== "confirmed") {
+        s.receptionQueue = s.receptionQueue.filter(
+          (w) => w.bookingId !== bookingId,
+        );
+        continue;
+      }
+      // No clean room of the booked category yet: the party keeps waiting
+      // rather than silently vanishing into a no-show at midnight.
+      const room = assignRoom(s.hotel.rooms, booking.category);
+      if (!room) continue;
       s.receptionQueue = s.receptionQueue.filter(
         (w) => w.bookingId !== bookingId,
       );
-      if (!booking || booking.status !== "confirmed") continue;
-      const room = assignRoom(s.hotel.rooms, this.categoryFor(booking));
-      if (!room) continue;
       const target = s.hotel.rooms.find((r) => r.id === room.id) as RoomRecord;
       target.state = "Occupied";
       booking.status = "checkedIn";
@@ -388,8 +465,10 @@ export class GameSimulation {
 
   private runMaintenance(): void {
     const s = this.state;
+    // Wear is applied once a day: a five-minute quantum floors to zero decay.
+    const wearMinutes = this.dayRolled ? MINUTES_PER_DAY : 0;
     s.assets = s.assets.map((asset) => {
-      const degraded = { ...asset, ...degradeAsset(asset, QUANTUM_MINUTES) };
+      const degraded = { ...asset, ...degradeAsset(asset, wearMinutes) };
       if (degraded.status === "operational" && degraded.condition < 2000) {
         const roll = this.streams.failures.nextUint32() % 10000;
         if (roll < 50) return { ...degraded, status: "failed" as const };
@@ -445,6 +524,9 @@ export class GameSimulation {
       this.spend(interest, "interest", "loan interest");
     }
 
+    if (this.monthRolled) this.closeMonth();
+    s.finance.month.availableRoomNights += s.hotel.rooms.length;
+
     if (s.renovation) {
       const completion = completeRenovation(s.renovation, s.elapsedMinutes);
       if (completion.roomsAdded > 0) {
@@ -498,6 +580,7 @@ export class GameSimulation {
         );
         const reservation: ReservationRecord = {
           ...booking,
+          category,
           arrivalDateKey,
           nights: segment.averageNights,
           segmentId: segment.id,
@@ -555,14 +638,21 @@ export class GameSimulation {
       otherRevenueMinor: 0,
       operatingExpenseMinor: 0,
       soldRoomNights: 0,
+      // The first day of the new month is added right after this close.
       availableRoomNights: 0,
     };
   }
 
-  private categoryFor(booking: ReservationRecord): string {
-    return booking.rateMinor >= STARTER_HOTEL.defaultRateMinor.double
-      ? "double"
-      : "single";
+  private nextStaffId(role: string): string {
+    // Derived from authoritative state so a save/load round trip cannot reuse
+    // an id or diverge from an uninterrupted run.
+    const prefix = `staff.${role}.`;
+    const highest = this.state.staff
+      .filter((m) => m.id.startsWith(prefix))
+      .map((m) => Number(m.id.slice(prefix.length)))
+      .filter((n) => Number.isSafeInteger(n))
+      .reduce((max, n) => Math.max(max, n), 100);
+    return `${prefix}${highest + 1}`;
   }
 
   private availableRooms(dateKey: string, category: string): number {
@@ -605,7 +695,8 @@ export class GameSimulation {
     const s = this.state;
     const paid = Math.min(amountMinor, s.finance.cashMinor);
     s.finance.cashMinor -= paid;
-    s.finance.month.operatingExpenseMinor += paid;
+    // CapEx buys an asset; it is cash out but not an operating expense.
+    if (account !== "capex") s.finance.month.operatingExpenseMinor += paid;
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

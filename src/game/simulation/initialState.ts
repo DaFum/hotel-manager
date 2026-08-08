@@ -34,6 +34,8 @@ export interface StayRecord {
 }
 
 export interface ReservationRecord extends Booking {
+  /** The category the rooms were held against at booking time. */
+  category: string;
   arrivalDateKey: string;
   nights: number;
   segmentId: string;
@@ -126,7 +128,8 @@ export function createInitialGameState(seed: number): GameState {
         otherRevenueMinor: 0,
         operatingExpenseMinor: 0,
         soldRoomNights: 0,
-        availableRoomNights: 0,
+        // The opening day's capacity; later days are added as they begin.
+        availableRoomNights: STARTER_HOTEL.roomCount,
       },
     },
     loan: {

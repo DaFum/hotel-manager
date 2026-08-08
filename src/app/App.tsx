@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useGameStore } from "./gameStore";
+import type { GameState } from "../game/simulation/initialState";
 import { CITY } from "../game/content/1991/frankfurt";
 import { STARTER_HOTEL } from "../game/content/1991/starterHotel";
 import { getRate } from "../game/revenue/rates";
@@ -20,10 +21,18 @@ function seedFromLocation(): number {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 424242;
 }
 
+/** Identifies one monthly close report by the cash it opened with. */
+function closeKey(state: GameState): string {
+  const r = state.lastMonthlyClose;
+  return r ? `${r.openingCashMinor}/${r.availableRoomNights}` : "";
+}
+
 export function App() {
   const [seed] = useState(seedFromLocation);
   const game = useGameStore(seed);
-  const [closeDismissed, setCloseDismissed] = useState(false);
+  // Dismissal is tracked per report so February's close is not hidden by
+  // January's "Continue".
+  const [dismissedClose, setDismissedClose] = useState<string | null>(null);
   const s = game.snapshot;
 
   if (!s)
@@ -103,8 +112,12 @@ export function App() {
       />
       <AlertsPanel alerts={s.alerts} onOpen={() => {}} />
       <MonthlyCloseModal
-        report={closeDismissed ? null : s.lastMonthlyClose}
-        onDismiss={() => setCloseDismissed(true)}
+        report={
+          s.lastMonthlyClose && closeKey(s) !== dismissedClose
+            ? s.lastMonthlyClose
+            : null
+        }
+        onDismiss={() => setDismissedClose(closeKey(s))}
       />
     </main>
   );

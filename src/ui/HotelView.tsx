@@ -7,6 +7,11 @@ export interface HotelViewRoom {
   cleanliness: number;
 }
 
+interface PixiScene {
+  render: (rooms: readonly HotelViewRoom[]) => void;
+  destroy: () => void;
+}
+
 export function humanRoomState(state: string): string {
   return state.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
 }
@@ -18,11 +23,12 @@ export function HotelView(props: {
   const host = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
 
+  const scene = useRef<PixiScene | null>(null);
+  const [sceneReady, setSceneReady] = useState(false);
+
+  // Attach once. The worker republishes a snapshot ten times a second, so
+  // rebuilding the WebGL context per update would thrash the renderer.
   useEffect(() => {
-    let scene: {
-      render: (r: readonly HotelViewRoom[]) => void;
-      destroy: () => void;
-    } | null = null;
     let cancelled = false;
     // The canvas is decorative: the room list below is the accessible source
     // of truth, so a headless or WebGL-less environment degrades cleanly.
@@ -32,17 +38,23 @@ export function HotelView(props: {
         const created = new PixiHotelScene();
         await created.attach(host.current!);
         if (cancelled) return created.destroy();
-        scene = created;
-        scene.render(props.rooms);
+        scene.current = created;
+        setSceneReady(true);
       } catch {
         /* no renderer available */
       }
     })();
     return () => {
       cancelled = true;
-      scene?.destroy();
+      scene.current?.destroy();
+      scene.current = null;
+      setSceneReady(false);
     };
-  }, [props.rooms]);
+  }, []);
+
+  useEffect(() => {
+    if (sceneReady) scene.current?.render(props.rooms);
+  }, [props.rooms, sceneReady]);
 
   const detail = props.rooms.find((r) => r.id === selected);
 

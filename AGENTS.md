@@ -1,0 +1,1037 @@
+# AGENTS.md
+
+> Repository-wide instructions for coding agents working on the Hotel Management Simulator.
+> Place this file at the repository root. These rules apply recursively unless a deeper `AGENTS.md` explicitly narrows them for a subdirectory.
+
+## 1. Mission
+
+Build a browser-based, singleplayer hotel-management simulation that begins in 1991 and can grow from one hands-on hotel into an international hotel group across a systemically evolving alternative history.
+
+The product must combine two equally important experiences:
+
+- a living 2D-isometric hotel where operational consequences are visible, and
+- a deep management interface where the player can understand, control, automate, and optimize the business.
+
+The game must feel designed, not assembled. Simulation depth, explainability, visual craft, accessibility, determinism, and long-term maintainability are all first-class requirements.
+
+Do not optimize for the fastest code path to a demo if it breaks the architecture promised by the MASTER specification or the active implementation plan.
+
+---
+
+## 2. Authority and source-of-truth order
+
+When instructions conflict, resolve them in this order:
+
+1. The user's current explicit instruction.
+2. This `AGENTS.md`.
+3. `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`.
+4. The currently active implementation plan in `docs/superpowers/plans/`.
+5. Existing repository architecture, tests, and established conventions.
+6. Older design/reference documents.
+
+### Canonical design document
+
+The only canonical full design specification is:
+
+`docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`
+
+It defines the product, simulation rules, architecture, 54-point traceability matrix, original-parity policy, non-goals, and project decomposition.
+
+### Historical documents that are not canonical
+
+Do not use these as the current source of truth:
+
+- `docs/superpowers/specs/2026-08-08-hotel-management-simulator-design.md` — superseded short specification.
+- `docs/superpowers/specs/2026-08-08-hotel-management-simulator-completeness-check.md` — historical audit, useful as evidence only.
+- `docs/superpowers/plans/2026-08-08-1991-single-hotel-vertical-slice.md` — superseded by Plan 01 Revision 1.1.
+
+If a historical document disagrees with the MASTER spec, the MASTER spec wins.
+
+### Design changes
+
+If a user request intentionally changes a MASTER-spec rule, do not silently work around the conflict.
+
+Before implementation:
+
+1. identify the affected MASTER chapters,
+2. identify affected implementation plans,
+3. identify save/content/protocol migration impact,
+4. identify determinism and balancing impact,
+5. update the relevant specification/plan if the change is durable.
+
+---
+
+## 3. Implementation-plan sequence
+
+The project is implemented through ten gated plans. Treat them as a dependency chain, not a grab bag.
+
+| Plan | File                                                                               | Purpose                                                                                       |
+| ---- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 01   | `docs/superpowers/plans/2026-08-08-01-1991-single-hotel-vertical-slice-rev-1.1.md` | Prove the core architecture and one playable Frankfurt hotel in 1991.                         |
+| 02   | `docs/superpowers/plans/2026-08-08-02-hotel-depth-specialization.md`               | Deepen rooms, F&B, facilities, engineering, events, classification, and specialization.       |
+| 03   | `docs/superpowers/plans/2026-08-08-03-city-market-competitors.md`                  | Add city markets, labor, property, transport, external actors, and fair competitors.          |
+| 04   | `docs/superpowers/plans/2026-08-08-04-technology-alternative-history.md`           | Add systemic technology, trends, macroeconomics, regulation, crises, and currencies.          |
+| 05   | `docs/superpowers/plans/2026-08-08-05-multi-hotel-company-brands.md`               | Add portfolio management, brands, ownership models, managers, development, treasury, and M&A. |
+| 06   | `docs/superpowers/plans/2026-08-08-06-emergent-campaign-narrative.md`              | Add emergent milestones, rivals, careers, media, prestige, choices, and chronicle.            |
+| 07   | `docs/superpowers/plans/2026-08-08-07-content-authoring-pipeline.md`               | Convert content to validated versioned data packs and add authoring tools.                    |
+| 08   | `docs/superpowers/plans/2026-08-08-08-accessibility-localization-audio.md`         | Add localization, accessibility, onboarding, notification control, and audio.                 |
+| 09   | `docs/superpowers/plans/2026-08-08-09-scale-performance-balancing.md`              | Make decades-long simulations responsive, bounded, measurable, and economically stable.       |
+| 10   | `docs/superpowers/plans/2026-08-08-10-final-qa-release-hardening.md`               | Convert every critical promise into a reproducible release gate.                              |
+
+### Plan gate rule
+
+Do not begin Plan N+1 until Plan N's final verification gate is green, unless the user explicitly requests an isolated change that does not depend on unfinished work.
+
+When executing a plan:
+
+- work task-by-task in plan order,
+- honor the plan's exact file paths and contracts unless the repository has already evolved through a verified refactor,
+- keep plan task scope narrow,
+- do not pull future-plan gameplay into the current plan merely because it is attractive,
+- update all affected tests and references in the same commit when intentionally renaming a contract.
+
+---
+
+### Current repository state
+
+Plan 01 (1991 single-hotel vertical slice, rev 1.1) is implemented through Task 21 and its
+verification gate is green. Plan 02 is the next plan; do not start it before re-running the
+Plan 01 gate in a fresh session.
+
+Layout as built:
+
+```text
+src/app/         React shell, GameClient (worker handle), useGameStore
+src/game/domain/ money, calendar, ids, rng streams, protocol, commands, events, snapshot
+src/game/content/1991/  Frankfurt, starter hotel, guest segments, suppliers
+src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb,
+                        maintenance, finance, building, explanations, facilities
+src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
+src/game/persistence/   saveSchema, indexedDbSaveRepository
+src/render/      isoProjection, PixiHotelScene
+src/ui/          TopBar, HotelView, dashboards, AlertsPanel, MonthlyCloseModal
+e2e/, scripts/   Playwright slice spec, deterministic benchmark
+```
+
+Available scripts:
+
+```bash
+npm run test:run     # Vitest unit and system tests
+npm run typecheck    # tsc --noEmit
+npm run lint         # prettier --check . (docs/ and dist/ are prettier-ignored)
+npm run build        # vite build
+npm run test:e2e     # Playwright against the built preview server
+npm run benchmark    # one simulated year through the real simulation
+```
+
+In this container Playwright uses the preinstalled browser:
+`CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e`.
+
+---
+
+## 4. Before touching code
+
+Study the repository first. Never guess its current state from a plan written earlier.
+
+At the start of a work session, inspect at least:
+
+```bash
+pwd
+git status --short
+git branch --show-current
+git log --oneline -12
+find . -maxdepth 2 -type f | sort | sed -n '1,220p'
+cat package.json
+```
+
+Then read:
+
+- this `AGENTS.md`,
+- the relevant MASTER-spec chapter(s),
+- the active plan task,
+- the files and tests that the task will modify.
+
+If the repository already contains an implementation pattern for the same kind of feature, follow it unless the active plan explicitly replaces it.
+
+### Worktrees
+
+After the initial repository bootstrap, prefer isolated Git worktrees for substantial feature work so unfinished changes do not contaminate the main working tree.
+
+Never create a worktree before confirming the repository and branch state.
+
+---
+
+## 5. Work discipline
+
+### Complete exactly what was asked
+
+Do not broaden scope without a requirement.
+
+A useful feature idea is not permission to implement it early.
+
+### TDD is the default implementation loop
+
+For feature work and bug fixes:
+
+1. write the smallest meaningful failing test,
+2. run it and confirm the expected failure,
+3. implement the smallest production-shaped change,
+4. run the targeted test and typecheck,
+5. run the broader relevant verification,
+6. commit the coherent change.
+
+Do not write a test after the implementation merely to make coverage look complete.
+
+### Prefer small, focused files
+
+Each file should have one clear responsibility.
+
+Split by domain responsibility, not arbitrary technical layering.
+
+Avoid god objects, giant reducers, mega-hooks, and simulation modules that know about unrelated systems.
+
+### DRY and YAGNI
+
+- Share stable domain primitives.
+- Do not invent generic frameworks for hypothetical future needs.
+- Do not duplicate pricing, staffing, or investment rules into separate player and AI implementations when strategy primitives can be shared.
+
+---
+
+## 6. Non-negotiable architecture invariants
+
+### 6.1 React is not the simulation engine
+
+React owns presentation, interaction, local UI state, focus, accessibility behavior, and management surfaces.
+
+React must not own authoritative game rules or authoritative simulation state.
+
+### 6.2 The authoritative simulation runs in a Web Worker from the beginning
+
+The Worker owns:
+
+- authoritative game state,
+- simulation time,
+- bookings and guests,
+- hotel operations,
+- AI,
+- economy,
+- commands,
+- domain events,
+- save snapshot preparation.
+
+The main thread owns:
+
+- React,
+- Pixi rendering,
+- user input,
+- presentation state,
+- audio,
+- accessibility surfaces.
+
+Do not move simulation work back to the main thread as a shortcut.
+
+### 6.3 Versioned Worker protocol
+
+Use the MASTER protocol contract.
+
+UI -> Worker message families:
+
+- `INIT_GAME`
+- `LOAD_GAME`
+- `COMMAND`
+- `SET_SPEED`
+- `PAUSE`
+- `RESUME`
+- `REQUEST_SAVE`
+- `REQUEST_DETAILS`
+
+Worker -> UI message families:
+
+- `READY`
+- `COMMAND_ACCEPTED`
+- `COMMAND_REJECTED`
+- `STATE_DELTA`
+- `SNAPSHOT`
+- `DOMAIN_EVENTS`
+- `SAVE_DATA`
+- `SIMULATION_ERROR`
+- `PERF_SAMPLE`
+
+The protocol has an explicit version.
+
+Do not create ad-hoc postMessage payloads outside the typed protocol.
+
+### 6.4 Commands are the mutation boundary
+
+Player and manager actions that change the game state are typed commands.
+
+Each command includes at least:
+
+- `commandId`,
+- game time,
+- actor,
+- payload,
+- optional expected state version.
+
+Commands are validated before mutation.
+
+Rejected commands must not change state.
+
+High-impact actions such as acquisitions, loans, and major renovations are transactional.
+
+### 6.5 Domain events describe what happened
+
+Successful commands and simulation transitions emit typed domain events.
+
+Do not couple unrelated systems with direct callbacks if a domain event is the appropriate boundary.
+
+Example: a review can affect reputation, marketing, chronicle, and narrative without the guest subsystem importing all four systems.
+
+### 6.6 UI consumes snapshots or deltas
+
+React/Pixi render immutable snapshots or state deltas from the Worker.
+
+Never mutate Worker-owned state from a component, hook, Pixi scene, or client store.
+
+### 6.7 Stable processing order
+
+Within one simulation tick, preserve the deterministic phase order defined by the MASTER spec:
+
+1. apply commands,
+2. advance time,
+3. arrivals/departures,
+4. room state,
+5. staff service,
+6. facility throughput,
+7. consumption/inventory,
+8. maintenance/failures,
+9. satisfaction,
+10. financial postings,
+11. demand/booking updates,
+12. events,
+13. publish snapshot/delta.
+
+Entities processed within a phase use stable ID ordering where simultaneous ordering matters.
+
+Do not reorder phases casually. A phase-order change is a simulation-contract change and requires determinism/regression review.
+
+---
+
+## 7. Determinism rules
+
+The core promise is:
+
+**same state + same commands + same RNG states = same result.**
+
+### Required RNG discipline
+
+Use seeded, isolated subsystem streams. Canonical stream families include:
+
+- `guests`,
+- `staffing`,
+- `failures`,
+- `economy`,
+- `events`,
+- `weather`,
+- `AI`.
+
+A new cosmetic random choice must not alter guest demand, maintenance failures, macroeconomics, or another subsystem's future RNG sequence.
+
+All relevant RNG stream states are savegame state.
+
+### Forbidden nondeterminism in authoritative game code
+
+Under authoritative simulation/domain code, do not use:
+
+- `Math.random()`,
+- wall-clock time as game logic input,
+- `Date.now()` for deterministic outcomes,
+- browser DOM state,
+- unordered iteration whose result can change behavior,
+- implicit floating-point money accumulation.
+
+If real-world wall time is required for metadata such as a save timestamp, keep it outside deterministic state transitions.
+
+### Replayability
+
+Hard-to-reproduce bugs should be reproducible from:
+
+- a save,
+- protocol/save/content versions,
+- RNG states,
+- a command log.
+
+Prefer fixing the deterministic cause over adding random retries or state resets.
+
+---
+
+## 8. Numeric, money, and finance rules
+
+### Money
+
+Store money as integer minor units:
+
+- Pfennig for DEM,
+- cents for EUR-like currencies,
+- the appropriate declared minor unit for other currencies.
+
+Never store authoritative money as a JavaScript floating-point major-unit value.
+
+### Rates and percentages
+
+Use explicit fixed-point units where determinism matters, such as basis points for percentages.
+
+Do not mix `0.12`, `12`, and `1200` to represent the same percentage in different modules.
+
+Declare units in types and content schemas.
+
+### Rounding
+
+Rounding is a domain rule, not a UI accident.
+
+- Round prices to the currency minor unit.
+- Keep percentages unrounded internally where possible.
+- Use the declared rounding rule for tax/finance classes.
+- Format only at the presentation edge.
+
+### Financial consistency
+
+When touching accounting or finance:
+
+- preserve ledger integrity,
+- distinguish profit from cash flow,
+- distinguish CapEx from OpEx,
+- preserve debt schedules and payment timing,
+- test balance/invariant equations,
+- do not make cash the only financial state.
+
+---
+
+## 9. Time and game-calendar rules
+
+The career starts on 1 January 1991.
+
+Plan 01 uses a deterministic 5-simulated-minute quantum. Preserve that contract until a deliberately tested architecture change replaces it.
+
+Hotel operations use an actual game calendar with weekday, month, year, local holidays, seasons, trade fairs, and event calendars as systems are added.
+
+Booking date and stay date are different concepts.
+
+The present-day milestone in the MASTER spec is 2026; reaching it is not a hard stop. Endless continuation is supported by design.
+
+Do not implement historical events by hard-coding future dates after 1991 unless a specifically approved exception exists.
+
+---
+
+## 10. State, saves, migrations, and recovery
+
+### Version everything that affects compatibility
+
+Persist explicit versions for:
+
+- save schema,
+- content,
+- Worker protocol.
+
+### Save rules
+
+IndexedDB is the primary local browser store.
+
+Save state must include all authoritative state required for deterministic restore, including RNG streams.
+
+Maintain:
+
+- manual slots,
+- monthly autosaves,
+- yearly autosaves,
+- recovery saves as introduced by the active plan.
+
+### Migrations
+
+Every persistent schema change requires an explicit migration path and tests/fixtures.
+
+Never silently reinterpret an old field with a new meaning.
+
+When content values change, follow the content-compatibility semantics defined by the MASTER spec and Plan 07 rather than assuming old saves should always adopt new balance values.
+
+### Recovery
+
+Invalid saves are validated before play.
+
+A bad guest/event record must not corrupt the entire campaign.
+
+Worker and save failures must surface a recovery path rather than leaving the UI frozen.
+
+---
+
+## 11. Content architecture
+
+Content belongs in data, not UI conditionals.
+
+Use stable IDs such as:
+
+- `city.frankfurt.de`,
+- `room.standard.single`,
+- `tech.wifi`,
+- `facility.breakfast_room`.
+
+Content fields declare units explicitly.
+
+Defaults are centralized; do not duplicate hidden defaults across systems.
+
+Plan 07 introduces schema-first validated content packs and Zod-based validation. Before that plan lands, preserve compatibility with its intended registry boundaries rather than baking content into React components.
+
+After Plan 07, all content families must pass schema and cross-reference validation before build/release.
+
+Never use a localized display name as an authoritative ID.
+
+---
+
+## 12. Product invariants
+
+These are not optional flavor decisions.
+
+### Hotel management remains central
+
+Every major meta-system must eventually affect hotel operation, investment, demand, staffing, cost, service, or decision quality.
+
+Do not turn the project into a detached stock-market, city-builder, or grand-strategy game.
+
+### Singleplayer only
+
+Do not add networking, hotseat, competitive ladders, or multiplayer architecture without an explicit product change.
+
+### Real cities, fictional hotel world
+
+Real cities may be modeled.
+
+Hotels, chains, brands, direct competitors, characters, graphics, and text are fictional.
+
+Do not introduce real hotel brands or copyrighted original assets.
+
+### Alternative history after 1991
+
+The start state is historically plausible.
+
+The future is systemic.
+
+Technology, crises, platforms, market leaders, and business hubs may emerge earlier, later, differently, or not at all.
+
+Do not use fixed decade gates such as "2010 means smartphones".
+
+UI-era changes derive from actual simulated technology/adoption state.
+
+### Modular building, not free wall drawing
+
+Buildings have defined structural envelopes.
+
+Players can convert, combine, split, renovate, unlock, and extend modules where allowed.
+
+Do not turn building into a free-form architecture CAD system.
+
+### Fair AI economics
+
+Competitors may simulate at lower detail, but they use the same relevant economic constraints: demand, wages, rates, credit, property costs, and risk.
+
+Do not give AI hidden money or success bonuses merely because the player is doing well.
+
+### Easy to learn, hard to master
+
+Complex systems need:
+
+- good defaults,
+- optional automation,
+- clear causality,
+- deeper controls for experts.
+
+Do not remove depth to make a feature understandable; improve its explanation and delegation model.
+
+---
+
+## 13. UI and visual design standard
+
+UI work is product design work. Do not treat presentation as a final coat of CSS.
+
+### Required design-intent pass before coding a new major UI surface
+
+Write down, in implementation notes or the working task description:
+
+1. **Purpose** — what decision/problem this screen exists to support and who uses it.
+2. **Tone** — choose a deliberate visual direction, not neutral default UI.
+3. **Constraints** — performance, accessibility, information density, device/browser realities.
+4. **Differentiator** — the single memorable idea that makes this surface belong to this game.
+
+For the overall product, the default direction is:
+
+**Retro-Modern European hotel operations: tactile early-1990s business/hospitality character evolving into a sophisticated modern operating system, while preserving one coherent interaction language.**
+
+The memorable differentiator is:
+
+**the management interface and the living isometric hotel must feel like two views of the same operational reality, not a spreadsheet app placed beside a decorative game scene.**
+
+### Avoid generic SaaS aesthetics
+
+Do not default to:
+
+- uniform rounded cards everywhere,
+- dashboard-template grids with no hierarchy,
+- arbitrary glassmorphism,
+- purple-on-white gradients,
+- generic startup illustrations,
+- interchangeable admin-panel styling.
+
+Use hospitality, operations, finance, print, keys, ledgers, floorplans, signage, and era-specific business technology as contextual design inspiration without copying protected assets.
+
+### Typography
+
+Do not choose these as primary design typography:
+
+- Arial,
+- Inter,
+- Roboto,
+- system UI stacks,
+- Space Grotesk.
+
+Prefer a characterful display face paired with a highly readable body/interface face.
+
+Use fonts with appropriate licensing and robust fallbacks. Do not sacrifice readability or localization coverage for novelty.
+
+Numeric and tabular data need stable alignment and legible figures.
+
+### Color
+
+Define semantic color tokens with CSS variables.
+
+Use a controlled dominant palette with deliberate accents rather than distributing many equally loud colors.
+
+Status meaning must never rely on hue alone.
+
+Reputation, warning, profit/loss, occupancy, room state, and staff state each require consistent semantic treatment.
+
+### Spatial composition
+
+Prefer intentional hierarchy over predictable component repetition.
+
+Management screens may use controlled density; overview and narrative screens may use generous negative space.
+
+Use asymmetry, overlap, vertical rhythm, or grid breaks when they improve emphasis, not as decoration.
+
+The primary action and current operational problem should be visually obvious.
+
+### Motion
+
+Use motion to explain causality, focus, transition, and state change.
+
+Prefer a few orchestrated high-value transitions over constant micro-animation.
+
+Always support reduced-motion preferences.
+
+Animations must not alter simulation timing or block the Worker.
+
+### Micro-interactions
+
+Interactive elements require designed states:
+
+- default,
+- hover,
+- focus-visible,
+- pressed,
+- selected,
+- disabled,
+- loading/pending when applicable,
+- warning/error when applicable.
+
+A command awaiting Worker acceptance must not falsely appear committed.
+
+### Era evolution
+
+Visual evolution is driven by simulated adoption and world state, not only calendar year.
+
+The navigation model stays recognizable across decades.
+
+Do not force the player to relearn the information architecture every era.
+
+### Isometric world
+
+Operational problems should be visible in the world whenever reasonable:
+
+- queues,
+- dirty rooms,
+- out-of-order rooms,
+- failed elevators,
+- overloaded services,
+- absent/idle staff presence,
+- facility use.
+
+The isometric layer is not merely decorative telemetry.
+
+---
+
+## 14. Accessibility is architectural
+
+Accessibility is not postponed polish.
+
+Even before Plan 08, do not build UI patterns that make accessibility prohibitively expensive later.
+
+Player-critical actions must have a DOM-accessible path even if Pixi provides the visual representation.
+
+When Plan 08 lands, preserve:
+
+- keyboard navigation,
+- intentional focus management,
+- semantic DOM representation of hotel interactions,
+- text scaling,
+- high contrast,
+- reduced motion,
+- non-color-only cues,
+- contextual help,
+- notification preferences,
+- accessible alternatives for meaningful audio cues.
+
+Do not make a canvas-only control the sole way to perform an important management action.
+
+---
+
+## 15. Localization and text
+
+Authoritative game logic must not depend on localized strings.
+
+Use localization keys for player-facing text once the localization layer exists.
+
+Formatting of date, number, currency, and units is presentation-layer, locale-aware behavior.
+
+Code identifiers, protocol names, domain types, and tests should use clear English names unless an established repository convention says otherwise.
+
+The default seeded localization target in Plan 08 is German and English.
+
+---
+
+## 16. Explainability requirement
+
+The player should understand why important outcomes changed.
+
+For meaningful metrics and alerts, prefer data structures that can expose causal contributors rather than only final values.
+
+Bad:
+
+`Occupancy: 63% (-8%)`
+
+Better model support:
+
+- business demand down,
+- competitor room supply up,
+- own price above comparable market,
+- event uplift,
+- reputation effect.
+
+Do not calculate an important KPI through opaque side effects that cannot later explain themselves.
+
+Debug traces and player-facing explanations are different products, but both benefit from explicit causes.
+
+---
+
+## 17. Testing strategy
+
+Tests are part of the architecture.
+
+### Unit tests
+
+Use unit tests for isolated rules such as:
+
+- price elasticity,
+- room-state transitions,
+- fixed-point money,
+- inventory,
+- shift capacity,
+- technology prerequisites,
+- capacity/throughput,
+- manager authority.
+
+### System tests
+
+Test causal chains, not merely functions.
+
+Examples:
+
+- lower price -> higher conversion -> higher occupancy -> more housekeeping load,
+- low rates + strong demand + cheap land -> more investment,
+- overbooking + low no-show realization -> displaced guests -> compensation/reputation consequences.
+
+### Determinism tests
+
+Same seed/state/commands must produce the same state hash and relevant logs.
+
+When changing simulation order, RNG use, or domain iteration, determinism tests are mandatory.
+
+### Save/migration tests
+
+Every migration requires fixtures and a round-trip or expected-state assertion.
+
+### E2E tests
+
+Critical browser paths must prove actual player behavior, not only component rendering.
+
+At minimum, the evolving suite must cover starting a game, changing a price, bookings/check-in, staffing, monthly close, save/load, and the additional critical paths introduced by each plan.
+
+### Accessibility tests
+
+Use semantic assertions throughout; Plan 08 adds automated Axe/browser coverage.
+
+### Performance and long-run tests
+
+Measure before optimizing.
+
+Plan 09 converts long-run behavior into deterministic benchmark and stress gates.
+
+Do not "fix" a balancing issue by adding unexplained clamps without a domain rationale.
+
+### Release tests
+
+Plan 10 owns the final unified release gate. Do not tag a release while any required gate is failing.
+
+---
+
+## 18. Verification before any completion claim
+
+Never say "done", "fixed", "complete", "green", or equivalent based on confidence.
+
+Run fresh verification evidence in the same work session.
+
+### For a normal task
+
+Use the exact commands specified by the active plan. In addition, inspect available scripts with:
+
+```bash
+npm run
+```
+
+Typical gates, when present, include:
+
+```bash
+npm run test:run
+npm run typecheck
+npm run lint
+npm run build
+npm run test:e2e
+```
+
+Also run:
+
+```bash
+git diff --check
+git status --short
+```
+
+Do not invent a success result for a command that was not run.
+
+### Verification reporting
+
+Report:
+
+1. commands executed,
+2. exit status/result,
+3. failures if any,
+4. what remains unverified.
+
+If a gate fails, the task is not complete. Fix the failure or explicitly report the incomplete state.
+
+---
+
+## 19. Git and commit discipline
+
+Prefer one coherent commit per plan task unless the plan explicitly groups steps differently.
+
+Use descriptive conventional prefixes where they fit:
+
+- `feat:` new behavior,
+- `fix:` bug correction,
+- `test:` verification-only work,
+- `perf:` measured performance work,
+- `refactor:` behavior-preserving structure change,
+- `docs:` documentation,
+- `chore:` tooling/scaffolding.
+
+Before committing:
+
+- inspect `git diff`,
+- ensure no unrelated files are included,
+- run the task's verification,
+- confirm generated/debug files are not accidentally staged.
+
+Do not rewrite unrelated history.
+
+Do not tag a release or milestone if verification is failing.
+
+---
+
+## 20. Debugging and observability
+
+Use deterministic evidence before speculation.
+
+For simulation bugs, capture where relevant:
+
+- seed,
+- save/content/protocol versions,
+- game time,
+- command ID and payload,
+- domain event sequence,
+- RNG stream/draw index,
+- relevant state diff.
+
+Prefer root-cause fixes.
+
+Do not mask state corruption with broad try/catch, silent resets, random retries, or arbitrary clamping.
+
+Plan 10 diagnostics exports must remain privacy-safe and local unless the product explicitly adds telemetry later.
+
+---
+
+## 21. Performance budgets
+
+The simulation must never rely on the main thread for heavy computation.
+
+Architecture targets include:
+
+- 60 FPS for the normal hotel view on target hardware,
+- no long main-thread blocks caused by simulation,
+- normal command acknowledgement in a small double-digit millisecond budget when not fast-forwarding,
+- configured visible-agent budgets roughly in the 200-500 range depending on target hardware profile,
+- mature campaigns around 60 player hotels, 25+ active cities, 40 competitors, and decades of history,
+- bounded save/history growth.
+
+These are targets to measure, not excuses for premature optimization.
+
+Plan 09 defines executable budgets and benchmarks. Once those exist, they replace subjective performance claims.
+
+---
+
+## 22. Original-game parity and IP rules
+
+The project is a spiritual successor, not an asset clone.
+
+Verified original functional terms from the provided C64 material include:
+
+- `STELLEN`,
+- `SERVICE`,
+- `BANK`,
+- `WERBUNG`,
+- `HOTELS`,
+- `PREISE`,
+- `VERSICHERUNG`,
+- `VERTRAG`,
+- `ZEITUNG`,
+- `RENOV`,
+- `BANKROTT`,
+- a `POOL` reference.
+
+Use the MASTER parity chapters to preserve the strategic function of verified systems.
+
+Do not invent unverified original mechanics as historical fact.
+
+Do not copy protected original graphics, text, audio, hotel brands, or other assets.
+
+Feature parity means preserving meaningful decisions and trade-offs, not merely adding a menu label with the same name.
+
+---
+
+## 23. Scope guardrails and explicit non-goals
+
+Unless the user changes the product direction, do not add:
+
+- multiplayer or hotseat,
+- free-form wall-by-wall architecture editing,
+- simulation of every individual city resident,
+- a full government/political simulator,
+- real hotel-brand cloning,
+- protected original assets,
+- guaranteed post-1991 historical events,
+- hidden success-based AI cheats,
+- mandatory manual micromanagement of every hotel,
+- mandatory construction of every facility,
+- a full tax-law simulator,
+- an exact real-law database.
+
+A feature that adds complexity but no useful decision, causal feedback, operational consequence, delegation value, or strategic trade-off should be rejected.
+
+---
+
+## 24. Common implementation mistakes to avoid
+
+Do not:
+
+- store authoritative game state in React,
+- mutate simulation state directly from UI code,
+- bypass commands for convenience,
+- send untyped Worker messages,
+- use `Math.random()` in simulation/domain code,
+- use current wall-clock time to decide deterministic game outcomes,
+- store money in major-unit floats,
+- let object iteration order change simulation results,
+- create a second copy of the same economic rule for AI,
+- hard-code technology availability to future calendar years,
+- materialize visible guest agents in a way that creates extra demand,
+- let old history arrays grow forever,
+- perform expensive simulation loops on the main thread,
+- encode gameplay content in React component conditionals,
+- use display names as IDs,
+- make Pixi the only accessible control surface,
+- use color as the only state indicator,
+- fake a completed Worker command in the UI before acceptance,
+- hide failed verification,
+- add unexplained balancing clamps,
+- silently change save semantics,
+- pull Plan N+1 features into Plan N without necessity,
+- replace the game's visual identity with a generic admin dashboard.
+
+---
+
+## 25. Definition of done for a plan task
+
+A plan task is complete only when all applicable conditions are true:
+
+- the requested scope is implemented and no unrelated scope was added,
+- the planned failing test was observed before implementation when feasible,
+- targeted tests pass,
+- relevant broader tests pass,
+- typecheck passes,
+- lint passes if configured,
+- build passes when affected,
+- deterministic behavior remains reproducible,
+- save/content/protocol compatibility is handled when affected,
+- accessibility is not regressed,
+- visual implementation matches the game's design direction,
+- no unresolved placeholder or debug scaffolding remains,
+- documentation/plan checkboxes are updated if the workflow requires it,
+- `git diff --check` is clean,
+- the final status report names what was verified and any remaining risk.
+
+Plan completion additionally requires the plan's own final verification gate.
+
+Release completion requires Plan 10's unified release gate.
+
+---
+
+## 26. Handoff format
+
+When handing work back to the user or another agent, use this order:
+
+1. **Change summary** — what behavior or design changed.
+2. **Files changed** — the important paths, not every generated file.
+3. **Verification** — exact commands run and results.
+4. **Risks/manual checks** — anything not proven automatically.
+5. **Next plan/task** — only when the current gate is actually complete.
+
+Be transparent about failures. A partial, accurately reported implementation is better than a false completion claim.
+
+---
+
+## 27. Final principle
+
+The project succeeds when deep simulation and high design craft reinforce each other.
+
+A technically correct feature that is opaque, generic, visually careless, or disconnected from hotel operations is not finished.
+
+A beautiful interface that bypasses deterministic simulation, accessibility, or economic causality is not finished either.
+
+Build both halves as one product.

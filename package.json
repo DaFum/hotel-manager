@@ -6,7 +6,11 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:run": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "test:e2e": "playwright test",
+    "benchmark": "node --import tsx scripts/benchmark-slice.ts"
   },
   "dependencies": {
     "pixi.js": "^8.0.0",
@@ -22,6 +26,7 @@
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^24.0.0",
     "prettier": "^3.9.6",
+    "tsx": "^4.23.11",
     "typescript": "^5.0.0",
     "vite": "^5.0.0",
     "vitest": "^1.0.0"

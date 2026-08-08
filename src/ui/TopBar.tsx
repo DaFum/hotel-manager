@@ -17,7 +17,7 @@ export function TopBar(props: {
   const hours = String(Math.floor(props.minuteOfDay / 60)).padStart(2, "0");
   const minutes = String(props.minuteOfDay % 60).padStart(2, "0");
   return (
-    <header aria-label="Status bar">
+    <section aria-label="Status bar">
       <p>
         {props.city} · {props.dateKey} {hours}:{minutes} ·{" "}
         {formatDm(props.cashMinor)}
@@ -40,6 +40,6 @@ export function TopBar(props: {
       <button type="button" onClick={props.onLoad}>
         Load
       </button>
-    </header>
+    </section>
   );
 }

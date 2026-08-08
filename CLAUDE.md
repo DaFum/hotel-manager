@@ -14,8 +14,9 @@ Web Worker. Design authority, in order: the user, `AGENTS.md`,
 `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`, then the
 active plan in `docs/superpowers/plans/`.
 
-Plan 01 (vertical slice) is complete through Task 21. Plan 02 is next; don't start it
-without re-running Plan 01's gate first.
+Plan 01 (vertical slice) and Plan 02 (hotel depth and specialization) are complete and
+green. Plan 03 (city market and competitors) is next; don't start it without re-running
+Plan 02's gate first.
 
 ## Commands
 

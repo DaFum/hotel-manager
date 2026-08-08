@@ -322,10 +322,14 @@ describe("simulated operations", () => {
     expect(Math.abs(wages - monthly)).toBeLessThanOrEqual(31);
   });
 
-  it("converts the free module into two extra rooms", () => {
+  it("converts the free module into two extra rooms after the full lifecycle", () => {
     const sim = new GameSimulation(createInitialGameState(424242));
     sim.queueCommand({ type: "START_RENOVATION" });
+    // Planning and approval run before any building starts, so the rooms are
+    // still nine days away.
     runQuanta(sim, QUANTA_PER_DAY * 4);
+    expect(sim.snapshot().hotel.rooms).toHaveLength(24);
+    runQuanta(sim, QUANTA_PER_DAY * 6);
     expect(sim.snapshot().hotel.rooms).toHaveLength(26);
   });
 });

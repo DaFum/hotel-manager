@@ -25,7 +25,11 @@ import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
 import { accrueMonthlyInterestMinor } from "../finance/loans";
 import { closeMonth } from "../finance/monthlyClose";
-import { completeRenovation, startRenovation } from "../building/renovations";
+import {
+  advanceRenovation,
+  renovationBlockedRooms,
+  startRenovation,
+} from "../building/renovations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
@@ -166,11 +170,7 @@ export class GameSimulation {
         case "START_RENOVATION": {
           if (s.renovation)
             return { ok: false, reason: "renovation already running" };
-          startRenovation(
-            "module.free.1",
-            s.elapsedMinutes,
-            s.finance.cashMinor,
-          );
+          startRenovation("module.free.1", s.finance.cashMinor);
           return { ok: true };
         }
         default:
@@ -314,11 +314,7 @@ export class GameSimulation {
       }
       case "START_RENOVATION": {
         if (s.renovation) throw new Error("renovation already running");
-        const started = startRenovation(
-          "module.free.1",
-          s.elapsedMinutes,
-          s.finance.cashMinor,
-        );
+        const started = startRenovation("module.free.1", s.finance.cashMinor);
         this.spend(
           s.finance.cashMinor - started.cashMinor,
           "capex",
@@ -392,6 +388,7 @@ export class GameSimulation {
 
   private runHousekeeping(): void {
     const s = this.state;
+    this.advanceRenovationProject();
     for (const room of s.hotel.rooms)
       if (room.state === "Inspected") room.state = "VacantClean";
 
@@ -607,21 +604,6 @@ export class GameSimulation {
     this.settlePayables();
     if (this.monthRolled) this.closeMonth();
     s.finance.month.availableRoomNights += s.hotel.rooms.length;
-
-    if (s.renovation) {
-      const completion = completeRenovation(s.renovation, s.elapsedMinutes);
-      if (completion.roomsAdded > 0) {
-        const nextNumber = STARTER_HOTEL.firstRoomNumber + s.hotel.rooms.length;
-        for (let i = 0; i < completion.roomsAdded; i++)
-          s.hotel.rooms.push({
-            id: `room.${nextNumber + i}`,
-            category: "double",
-            state: "VacantClean",
-            cleanliness: 100,
-          });
-        s.renovation = null;
-      }
-    }
   }
 
   private generateDemand(): void {
@@ -704,6 +686,40 @@ export class GameSimulation {
   }
 
   // --- helpers -----------------------------------------------------------
+
+  /**
+   * Renovation lives in the roomState phase because that is where rooms open,
+   * close, and change product; the cash left in the commands phase already.
+   */
+  private advanceRenovationProject(): void {
+    const s = this.state;
+    if (!s.renovation) return;
+    const before = new Set(renovationBlockedRooms(s.renovation));
+    const step = advanceRenovation(s.renovation, QUANTUM_MINUTES);
+    s.renovation = step.job;
+    const blocked = new Set(renovationBlockedRooms(step.job));
+
+    for (const room of s.hotel.rooms) {
+      if (blocked.has(room.id) && room.state !== "Occupied")
+        room.state = "OutOfOrder";
+      // Reopening is a cleaning job, not an instant sale: a handed-over room
+      // still has to pass housekeeping.
+      else if (before.has(room.id) && !blocked.has(room.id))
+        room.state = "VacantDirty";
+    }
+
+    if (step.roomsAdded > 0) {
+      const nextNumber = STARTER_HOTEL.firstRoomNumber + s.hotel.rooms.length;
+      for (let i = 0; i < step.roomsAdded; i++)
+        s.hotel.rooms.push({
+          id: `room.${nextNumber + i}`,
+          category: "double",
+          state: "VacantClean",
+          cleanliness: 100,
+        });
+      s.renovation = null;
+    }
+  }
 
   private closeMonth(): void {
     const s = this.state;

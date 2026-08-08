@@ -19,6 +19,45 @@ import { assignRoom, processReceptionQueue } from "../guests/guestJourney";
 import { complaintForWait } from "../guests/complaints";
 import { cleanRoom } from "../rooms/housekeeping";
 import { serveBreakfast } from "../fnb/breakfastService";
+import { barCovers, barRevenueMinor, BAR_OPEN_MINUTE } from "../fnb/barService";
+import {
+  deliveryMinutes,
+  lateDeliveryComplaints,
+  roomServiceOrders,
+  ROOM_SERVICE_OPEN_MINUTE,
+} from "../fnb/roomService";
+import { externalCovers } from "../fnb/externalDemand";
+import { averageCoverMinor, menuItem } from "../content/1991/menu";
+import { linenSoiled, runLaundryDay, LINEN_SKU } from "../laundry/laundry";
+import { bookSlot } from "../wellness/reservations";
+import { fitnessCapacity } from "../wellness/fitness";
+import { executionLoad, roomBlockNights } from "../eventsales/contracts";
+import {
+  leadConverts,
+  offerPriceMinor,
+  qualifyLead,
+} from "../eventsales/leads";
+import { effectiveCapacity } from "../engineering/assets";
+import { isDueForService, preventiveCostMinor } from "../engineering/policy";
+import { serviceAsset, toEngineeringAsset } from "../maintenance/maintenance";
+import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
+import {
+  requiredSecurityStaff,
+  securityGapAlert,
+} from "../facilities/security";
+import {
+  changingRoomPressureBp,
+  staffAreaCapacity,
+} from "../facilities/staffAreas";
+import { facilityRow } from "../facilities/facilityBoard";
+import { classify } from "../classification/quality";
+import {
+  specializationBonusBp,
+  SPECIALIZATIONS,
+} from "../classification/specialization";
+import { roomAppeal, segmentFitBp } from "../rooms/product";
+import { roomModule, roomProductFor } from "../content/rooms/modules";
+import { noisePenaltyBp } from "../renovation/projects";
 import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
@@ -31,10 +70,12 @@ import {
   startRenovation,
 } from "../building/renovations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
+import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
 import type {
   AlertRecord,
+  EventRecord,
   GameState,
   ReservationRecord,
   RoomRecord,
@@ -59,14 +100,7 @@ export const PHASE_ORDER = [
 
 export type SimulationPhase = (typeof PHASE_ORDER)[number];
 
-export type StaffRole = "reception" | "housekeeping" | "kitchen" | "technician";
-
-export const STAFF_ROLES: readonly StaffRole[] = [
-  "reception",
-  "housekeeping",
-  "kitchen",
-  "technician",
-];
+export { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
 
 export const SHIFTS: readonly Shift[] = ["morning", "evening", "night"];
 
@@ -84,12 +118,23 @@ export type GameCommand =
       shift: Shift;
       monthlyWageMinor: number;
     }
-  | { type: "START_RENOVATION" };
+  | { type: "START_RENOVATION" }
+  | { type: "SET_SPECIALIZATION"; specializationId: string | null };
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
 const DEMAND_MINUTE = 600;
 const BREAKFAST_START = 390;
+const BAR_SERVICE_MINUTE = BAR_OPEN_MINUTE + 120;
+const ROOM_SERVICE_MINUTE = ROOM_SERVICE_OPEN_MINUTE + 30;
+const WELLNESS_OPEN_MINUTE = 600;
+const LAUNDRY_MINUTE = 480;
+/** Basis points of in-house guests who ask for a treatment on a given day. */
+const WELLNESS_TAKE_UP_BP = 1500;
+/** Basis points of in-house guests who use the bar in an evening. */
+const BAR_TAKE_UP_BP = 6000;
+/** Basis points of days on which a conference enquiry arrives. */
+const EVENT_LEAD_CHANCE_BP = 1200;
 const MAX_ALERTS = 20;
 /** Half a percent chance per day that a worn asset fails, in basis points. */
 const DAILY_FAILURE_BP = 50;
@@ -97,6 +142,10 @@ const DAILY_FAILURE_BP = 50;
 const PARTIES_PER_RECEPTIONIST_PER_HOUR = 6;
 /** A room takes half an hour of housekeeping labour. */
 const ROOM_CLEAN_MINUTES = 30;
+/** Productive minutes one member of staff contributes to a shift. */
+const MINUTES_PER_SHIFT = 480;
+/** Trips one lift car can make in a day. */
+const LIFT_TRIPS_PER_DAY = 400;
 
 export class GameSimulation {
   private queued: GameCommand[] = [];
@@ -173,6 +222,14 @@ export class GameSimulation {
           startRenovation("module.free.1", s.finance.cashMinor);
           return { ok: true };
         }
+        case "SET_SPECIALIZATION": {
+          if (
+            command.specializationId !== null &&
+            !SPECIALIZATIONS.some((x) => x.id === command.specializationId)
+          )
+            return { ok: false, reason: "unknown specialization" };
+          return { ok: true };
+        }
         default:
           return { ok: false, reason: "unknown command" };
       }
@@ -215,7 +272,7 @@ export class GameSimulation {
       case "staffService":
         return this.runReception();
       case "facilityThroughput":
-        return this.runBreakfast();
+        return this.runFacilities();
       case "inventory":
         return this.receiveOrders();
       case "maintenanceFailures":
@@ -323,6 +380,12 @@ export class GameSimulation {
         s.renovation = started.job;
         return;
       }
+      case "SET_SPECIALIZATION": {
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
+        s.specializationId = command.specializationId;
+        return;
+      }
     }
   }
 
@@ -336,6 +399,12 @@ export class GameSimulation {
     // both the close and the new day's room-night capacity wait for it.
     this.monthRolled =
       this.dayRolled && before.slice(0, 7) !== s.calendar.dateKey.slice(0, 7);
+    if (this.dayRolled) {
+      // Lift trips and conference housekeeping are per-day loads, so they
+      // start each day at zero rather than accumulating forever.
+      s.elevatorTrips = 0;
+      s.eventHousekeepingMinutes = 0;
+    }
   }
 
   private arrivalsDepartures(): void {
@@ -344,13 +413,21 @@ export class GameSimulation {
       const leaving = s.stays.filter(
         (stay) => stay.departureDateKey <= s.calendar.dateKey,
       );
+      const turned: { moduleId: string }[] = [];
       for (const stay of leaving) {
         const room = s.hotel.rooms.find((r) => r.id === stay.roomId);
         if (room) {
           room.state = "VacantDirty";
           room.cleanliness = 40;
+          turned.push({ moduleId: room.moduleId });
         }
       }
+      s.linen.dirty += linenSoiled(turned);
+      s.elevatorTrips += elevatorTrips({
+        arrivals: 0,
+        departures: leaving.length,
+        serviceRuns: 0,
+      });
       s.stays = s.stays.filter((stay) => !leaving.includes(stay));
     }
 
@@ -363,6 +440,8 @@ export class GameSimulation {
           s.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 0 });
       }
     }
+
+    this.runEventCalendar();
 
     // Anyone still unserved at midnight never arrived.
     if (s.calendar.minuteOfDay === 0) {
@@ -413,6 +492,16 @@ export class GameSimulation {
         });
         return;
       }
+      const pieces = roomModule(dirty.moduleId).linenPieces;
+      if (s.linen.clean < pieces) {
+        this.pushAlert({
+          id: "alert.linen-short",
+          severity: "warning",
+          title: "Out of clean linen",
+          cause: "rooms cannot be made up until the laundry catches up",
+        });
+        return;
+      }
       const cleaned = cleanRoom(
         { state: dirty.state, cleanliness: dirty.cleanliness },
         {
@@ -424,6 +513,13 @@ export class GameSimulation {
       dirty.state = cleaned.room.state;
       dirty.cleanliness = cleaned.room.cleanliness;
       s.stock = consume(s.stock, "cleaning-unit", 1);
+      s.linen.clean -= pieces;
+      // Trolleys and linen ride the same lift the guests do.
+      s.elevatorTrips += elevatorTrips({
+        arrivals: 0,
+        departures: 0,
+        serviceRuns: 1,
+      });
     }
   }
 
@@ -462,6 +558,11 @@ export class GameSimulation {
       );
       const target = s.hotel.rooms.find((r) => r.id === room.id) as RoomRecord;
       target.state = "Occupied";
+      s.elevatorTrips += elevatorTrips({
+        arrivals: 1,
+        departures: 0,
+        serviceRuns: 0,
+      });
       booking.status = "checkedIn";
       s.stays.push({
         bookingId: booking.id,
@@ -472,11 +573,24 @@ export class GameSimulation {
     }
   }
 
+  /**
+   * Every serviced area runs here, in a fixed order, so one house-wide load
+   * (a conference, a full night) reaches breakfast, the bar, the spa, the
+   * laundry and the lifts through the same quantum.
+   */
+  private runFacilities(): void {
+    this.runBreakfast();
+    this.runBar();
+    this.runRoomService();
+    this.runWellness();
+    this.runLaundry();
+  }
+
   private runBreakfast(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== BREAKFAST_START) return;
     const result = serveBreakfast({
-      demand: s.stays.length,
+      demand: s.stays.length + this.eventBreakfastCovers(),
       seats: STARTER_HOTEL.breakfastSeats,
       kitchenCovers: STARTER_HOTEL.kitchenCovers,
       stock: s.stock["breakfast-portion"] ?? 0,
@@ -499,6 +613,117 @@ export class GameSimulation {
         title: "Breakfast queue",
         cause: `${result.queue} guests could not be served`,
       });
+  }
+
+  private runBar(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== BAR_SERVICE_MINUTE) return;
+    const houseDemand = Math.floor((s.stays.length * BAR_TAKE_UP_BP) / 10000);
+    const outside = externalCovers({
+      baseCovers: 20,
+      seasonalityBp: seasonalityBp(s.calendar.dateKey),
+      priceIndexBp: 10000,
+      reputationBp: 5000,
+    });
+    const covers = barCovers({
+      seats: STARTER_HOTEL.barSeats,
+      staffed: this.onDuty("fnb"),
+      demand: houseDemand + outside,
+      minuteOfDay: s.calendar.minuteOfDay,
+    });
+    if (covers <= 0) return;
+    const revenue = barRevenueMinor(covers, averageCoverMinor("bar"));
+    this.earn(revenue, "barRevenue", `${covers} bar covers`);
+    s.finance.month.otherRevenueMinor += revenue;
+  }
+
+  private runRoomService(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== ROOM_SERVICE_MINUTE) return;
+    const orders = roomServiceOrders({
+      occupiedRooms: s.stays.length,
+      minuteOfDay: s.calendar.minuteOfDay,
+    });
+    if (orders <= 0) return;
+    const item = menuItem("menu.roomservice.club");
+    const minutes = deliveryMinutes({
+      kitchen: item.prepMinutes,
+      elevator: elevatorWaitMinutes(s.elevatorTrips, this.workingLifts()),
+      service: 6,
+    });
+    s.elevatorTrips += elevatorTrips({
+      arrivals: 0,
+      departures: 0,
+      serviceRuns: orders,
+    });
+    const revenue = orders * item.priceMinor;
+    this.earn(revenue, "roomServiceRevenue", `${orders} room-service orders`);
+    s.finance.month.otherRevenueMinor += revenue;
+    const late = lateDeliveryComplaints(orders, minutes);
+    if (late > 0)
+      this.pushAlert({
+        id: "alert.room-service-late",
+        severity: "warning",
+        title: "Room service running late",
+        cause: `${minutes} minutes door to door, mostly waiting for the lift`,
+      });
+  }
+
+  private runWellness(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay === WELLNESS_OPEN_MINUTE) {
+      s.wellness = {
+        ...s.wellness,
+        therapists: this.onDuty("wellness"),
+        booked: 0,
+      };
+      const demand = Math.floor((s.stays.length * WELLNESS_TAKE_UP_BP) / 10000);
+      let sold = 0;
+      for (let i = 0; i < demand; i++) {
+        const outcome = bookSlot(s.wellness, `stay.${i}`);
+        if (!outcome.accepted) break;
+        s.wellness = outcome.schedule;
+        sold += 1;
+      }
+      if (sold > 0) {
+        const revenue = sold * STARTER_HOTEL.wellnessTreatmentPriceMinor;
+        this.earn(revenue, "wellnessRevenue", `${sold} treatments`);
+        s.finance.month.otherRevenueMinor += revenue;
+      }
+      if (demand > sold && s.wellness.therapists === 0)
+        this.pushAlert({
+          id: "alert.spa-unstaffed",
+          severity: "warning",
+          title: "Spa unstaffed",
+          cause: "treatment rooms are open but no therapist is rostered",
+        });
+    }
+  }
+
+  private runLaundry(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== LAUNDRY_MINUTE) return;
+    const day = runLaundryDay({
+      clean: s.linen.clean,
+      dirty: s.linen.dirty,
+      // Washing is hot water: a tired boiler is a smaller laundry.
+      machine: Math.min(
+        STARTER_HOTEL.laundryMachinePieces,
+        effectiveCapacity({
+          rated: STARTER_HOTEL.laundryMachinePieces,
+          condition: this.assetCondition("asset.boiler"),
+        }),
+      ),
+      staffed: this.onDuty("laundry") * STARTER_HOTEL.laundryPiecesPerStaff,
+      externalPieces: STARTER_HOTEL.externalLaundryPieces,
+    });
+    s.linen = { clean: day.clean, dirty: day.dirty };
+    if (day.externalCostMinor > 0)
+      this.spend(
+        day.externalCostMinor,
+        "laundry",
+        `${day.washedExternally} pieces to contract laundry`,
+      );
   }
 
   private receiveOrders(): void {
@@ -536,6 +761,8 @@ export class GameSimulation {
     const s = this.state;
     // Wear is applied once a day: a five-minute quantum floors to zero decay.
     const wearMinutes = this.dayRolled ? MINUTES_PER_DAY : 0;
+    const technicianShift = this.onDuty("technician") * 240;
+    const serviced: string[] = [];
     s.assets = s.assets.map((asset) => {
       const degraded = { ...asset, ...degradeAsset(asset, wearMinutes) };
       if (
@@ -551,8 +778,30 @@ export class GameSimulation {
         const technicianMinutes = this.dayRolled ? 120 : 0;
         return { ...degraded, ...repairAsset(degraded, technicianMinutes) };
       }
+      // Planned service happens before a failure, not after one, and costs
+      // technician time and money up front.
+      if (
+        this.dayRolled &&
+        technicianShift > 0 &&
+        isDueForService({
+          minutesSinceService: degraded.minutesSinceService ?? 0,
+        })
+      ) {
+        serviced.push(degraded.id);
+        return { ...degraded, ...serviceAsset(degraded, technicianShift) };
+      }
       return degraded;
     });
+
+    for (const id of serviced) {
+      const asset = s.assets.find((a) => a.id === id);
+      if (!asset) continue;
+      this.spend(
+        preventiveCostMinor({ replacementMinor: asset.replacementMinor }),
+        "maintenance",
+        `preventive service on ${id}`,
+      );
+    }
 
     if (this.dayRolled) {
       const repairCost =
@@ -564,6 +813,47 @@ export class GameSimulation {
 
   private runSatisfaction(): void {
     const s = this.state;
+    if (s.calendar.minuteOfDay === ARRIVAL_MINUTE) {
+      const gap = securityGapAlert(
+        this.onDuty("security"),
+        requiredSecurityStaff({
+          base: STARTER_HOTEL.baseSecurityStaff,
+          eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
+          vipLevel: 0,
+        }),
+      );
+      if (gap)
+        this.pushAlert({
+          id: "alert.security-short",
+          severity: "warning",
+          title: "Security understaffed",
+          cause: `${gap.short} guards short for ${gap.cause}`,
+        });
+
+      const pressureBp = changingRoomPressureBp(
+        s.staff.filter((m) => !m.absent).length,
+        staffAreaCapacity({ areaSqm: STARTER_HOTEL.staffAreaSqm }),
+      );
+      if (pressureBp > 0)
+        this.pushAlert({
+          id: "alert.staff-areas-crowded",
+          severity: "warning",
+          title: "Back of house overcrowded",
+          cause: "changing rooms cannot take the whole shift at once",
+        });
+
+      const noiseBp = s.renovation
+        ? noisePenaltyBp(s.renovation.project, s.stays.length)
+        : 0;
+      if (noiseBp > 0)
+        this.pushAlert({
+          id: "alert.construction-noise",
+          severity: "warning",
+          title: "Construction noise",
+          cause: `${s.stays.length} guests are in the house while the site is live`,
+        });
+    }
+
     for (const waiting of s.receptionQueue) {
       const complaint = complaintForWait(
         waiting.bookingId,
@@ -612,6 +902,7 @@ export class GameSimulation {
   private generateDemand(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== DEMAND_MINUTE) return;
+    this.generateEventLeads();
 
     const season = seasonalityBp(s.calendar.dateKey);
     const parties = Math.round(
@@ -638,7 +929,13 @@ export class GameSimulation {
             id: `booking.${s.elapsedMinutes}.${i}`,
             roomsRequested: 1,
             rateMinor,
-            willingnessMinor: segment.willingnessMinor,
+            // A profile the hotel actually built for lifts what its segment
+            // will pay; an undeclared or unbuilt profile lifts nothing.
+            willingnessMinor: Math.round(
+              (segment.willingnessMinor *
+                (10000 + this.specializationBonusFor(segment.id))) /
+                10000,
+            ),
           },
         );
         const reservation: ReservationRecord = {
@@ -677,6 +974,8 @@ export class GameSimulation {
   }
 
   private refreshMetrics(): void {
+    this.refreshFacilities();
+    this.refreshClassification();
     const m = this.state.finance.month;
     this.state.metrics = {
       adrMinor: adrMinor(m.roomRevenueMinor, m.soldRoomNights),
@@ -689,6 +988,309 @@ export class GameSimulation {
   }
 
   // --- helpers -----------------------------------------------------------
+
+  private onDuty(role: StaffRole): number {
+    return this.state.staff.filter((m) => m.role === role && !m.absent).length;
+  }
+
+  private assetCondition(assetId: string): number {
+    const asset = this.state.assets.find((a) => a.id === assetId);
+    return asset ? Math.round(asset.condition / 100) : 0;
+  }
+
+  private workingLifts(): number {
+    const lift = this.state.assets.find((a) => a.id === "asset.lift");
+    return lift && lift.status === "operational"
+      ? STARTER_HOTEL.elevatorCars
+      : 0;
+  }
+
+  private runningEvents(): EventRecord[] {
+    return this.state.events.filter((e) => e.status === "running");
+  }
+
+  private eventBreakfastCovers(): number {
+    return this.runningEvents().reduce(
+      (n, e) => n + executionLoad(e).breakfastCovers,
+      0,
+    );
+  }
+
+  /** Sleeping rooms a confirmed conference holds on a given date. */
+  private eventRoomsBlocked(dateKey: string): number {
+    return this.state.events
+      .filter(
+        (e) =>
+          e.status !== "complete" &&
+          e.startDateKey <= dateKey &&
+          addDays(e.startDateKey, e.nights) > dateKey,
+      )
+      .reduce((n, e) => n + e.roomsBlocked, 0);
+  }
+
+  /**
+   * Moves conferences in and out and pushes their execution load into the
+   * rest of the house: covers, housekeeping minutes and lift trips.
+   */
+  private runEventCalendar(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== ARRIVAL_MINUTE) return;
+    for (const event of s.events) {
+      if (
+        event.status === "confirmed" &&
+        event.startDateKey === s.calendar.dateKey
+      ) {
+        event.status = "running";
+        const load = executionLoad(event);
+        // A delegation arrives together: lifts, housekeeping and catering all
+        // feel it on the same day.
+        s.elevatorTrips += elevatorTrips({
+          arrivals: event.roomsBlocked,
+          departures: 0,
+          serviceRuns: Math.ceil(load.cateringCovers / 20),
+        });
+        s.eventHousekeepingMinutes += load.housekeepingMinutes;
+        continue;
+      }
+      if (
+        event.status === "running" &&
+        addDays(event.startDateKey, event.nights) <= s.calendar.dateKey
+      ) {
+        event.status = "complete";
+        s.elevatorTrips += elevatorTrips({
+          arrivals: 0,
+          departures: event.roomsBlocked,
+          serviceRuns: 0,
+        });
+        this.earn(event.valueMinor, "eventRevenue", `conference ${event.id}`);
+        s.finance.month.otherRevenueMinor += event.valueMinor;
+      }
+    }
+    s.events = s.events.filter((e) => e.status !== "complete");
+  }
+
+  /** One conference enquiry a week or so, priced against its own budget. */
+  private generateEventLeads(): void {
+    const s = this.state;
+    if (this.streams.events.nextUint32() % 10000 >= EVENT_LEAD_CHANCE_BP)
+      return;
+    const guests = 40 + (this.streams.events.nextUint32() % 100);
+    const nights = 1 + (this.streams.events.nextUint32() % 2);
+    const leadDays = 5 + (this.streams.events.nextUint32() % 20);
+    const roomsBlocked = Math.min(
+      Math.floor(s.hotel.rooms.length / 3),
+      Math.floor(guests / 4),
+    );
+    const budgetMinor =
+      guests * nights * (9000 + (this.streams.events.nextUint32() % 4000));
+    const lead = {
+      id: `lead.${s.elapsedMinutes}`,
+      guests,
+      nights,
+      budgetMinor,
+      leadDays,
+    };
+    if (!qualifyLead(lead).ok) return;
+    const offer = offerPriceMinor({ guests, nights, roomsBlocked });
+    if (!leadConverts(lead, offer)) return;
+    s.events.push({
+      id: `event.${s.elapsedMinutes}`,
+      guests,
+      nights,
+      roomsBlocked,
+      startDateKey: addDays(s.calendar.dateKey, leadDays),
+      valueMinor: offer,
+      status: "confirmed",
+    });
+    this.pushAlert({
+      id: `alert.event.${s.elapsedMinutes}`,
+      severity: "info",
+      title: "Conference booked",
+      cause: `${guests} delegates for ${nights} day(s), ${roomsBlocked} rooms blocked`,
+    });
+  }
+
+  /** The board rows the UI and the Pixi layer both read. */
+  private refreshFacilities(): void {
+    const s = this.state;
+    const inHouse = s.stays.length;
+    const eventCovers = this.eventBreakfastCovers();
+    const housekeepers = this.onDuty("housekeeping");
+    const dirtyRooms = s.hotel.rooms.filter(
+      (r) => r.state === "VacantDirty",
+    ).length;
+
+    s.facilities = [
+      facilityRow({
+        id: "facility.breakfast_room",
+        name: "Breakfast room",
+        demand: inHouse + eventCovers,
+        constraints: [
+          { label: "seating", value: STARTER_HOTEL.breakfastSeats * 8 },
+          { label: "kitchen line", value: STARTER_HOTEL.kitchenCovers },
+          {
+            label: "portions in stock",
+            value: s.stock["breakfast-portion"] ?? 0,
+          },
+        ],
+      }),
+      facilityRow({
+        id: "facility.bar",
+        name: "Bar and lounge",
+        demand: Math.floor((inHouse * BAR_TAKE_UP_BP) / 10000),
+        constraints: [
+          { label: "seating", value: STARTER_HOTEL.barSeats * 7 },
+          { label: "staffed throughput", value: this.onDuty("fnb") * 40 },
+        ],
+      }),
+      facilityRow({
+        id: "facility.wellness",
+        name: "Wellness",
+        demand: Math.floor((inHouse * WELLNESS_TAKE_UP_BP) / 10000),
+        constraints: [
+          {
+            label: "treatment rooms",
+            value: Math.floor(
+              s.wellness.treatmentRooms * (s.wellness.openMinutes / 45),
+            ),
+          },
+          {
+            label: "therapists on duty",
+            value: Math.floor(
+              this.onDuty("wellness") * (s.wellness.openMinutes / 45),
+            ),
+          },
+        ],
+      }),
+      facilityRow({
+        id: "facility.fitness",
+        name: "Fitness",
+        demand: Math.floor(inHouse / 5),
+        constraints: [
+          {
+            label: "stations and floor area",
+            value: fitnessCapacity({
+              areaSqm: STARTER_HOTEL.fitnessSqm,
+              equipmentStations: STARTER_HOTEL.fitnessStations,
+            }),
+          },
+        ],
+      }),
+      facilityRow({
+        id: "facility.conference",
+        name: "Conference",
+        demand: this.runningEvents().reduce((n, e) => n + e.guests, 0),
+        constraints: [
+          { label: "hall capacity", value: STARTER_HOTEL.conferenceCapacity },
+        ],
+      }),
+      facilityRow({
+        id: "facility.housekeeping",
+        name: "Housekeeping",
+        demand: dirtyRooms * ROOM_CLEAN_MINUTES + s.eventHousekeepingMinutes,
+        constraints: [
+          {
+            label: "housekeepers on duty",
+            value: housekeepers * MINUTES_PER_SHIFT,
+          },
+          { label: "clean linen", value: s.linen.clean * ROOM_CLEAN_MINUTES },
+        ],
+      }),
+      facilityRow({
+        id: "facility.laundry",
+        name: "Laundry",
+        demand: s.linen.dirty,
+        constraints: [
+          {
+            label: "machine capacity",
+            value: effectiveCapacity({
+              rated: STARTER_HOTEL.laundryMachinePieces,
+              condition: this.assetCondition("asset.boiler"),
+            }),
+          },
+          {
+            label: "laundry staff",
+            value: this.onDuty("laundry") * STARTER_HOTEL.laundryPiecesPerStaff,
+          },
+        ],
+      }),
+      facilityRow({
+        id: "facility.elevator",
+        name: "Lifts",
+        demand: s.elevatorTrips,
+        constraints: [
+          {
+            label: "cars in service",
+            value: this.workingLifts() * LIFT_TRIPS_PER_DAY,
+          },
+        ],
+      }),
+      facilityRow({
+        id: "facility.security",
+        name: "Security",
+        demand: requiredSecurityStaff({
+          base: STARTER_HOTEL.baseSecurityStaff,
+          eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
+          vipLevel: 0,
+        }),
+        constraints: [
+          { label: "guards rostered", value: this.onDuty("security") },
+        ],
+      }),
+      facilityRow({
+        id: "facility.staff_area",
+        name: "Staff areas",
+        demand: s.staff.filter((m) => !m.absent).length,
+        constraints: [
+          {
+            label: "changing room space",
+            value: staffAreaCapacity({ areaSqm: STARTER_HOTEL.staffAreaSqm }),
+          },
+        ],
+      }),
+    ];
+  }
+
+  /** The star rating and the standard that is holding it back. */
+  private refreshClassification(): void {
+    const s = this.state;
+    const rooms = s.hotel.rooms;
+    const roomScore = rooms.length
+      ? Math.round(
+          rooms.reduce(
+            (sum, r) =>
+              sum +
+              roomAppeal(
+                roomProductFor(r.moduleId, {
+                  condition: r.cleanliness,
+                  styleAgeYears: r.styleAgeYears,
+                }),
+              ).appeal,
+            0,
+          ) / rooms.length,
+        )
+      : 0;
+    const maintenance = s.assets.length
+      ? Math.round(
+          s.assets.reduce(
+            (sum, a) => sum + toEngineeringAsset(a, a.rated).condition,
+            0,
+          ) / s.assets.length,
+        )
+      : 0;
+    // Reception quality is service reality: how many parties are still waiting.
+    const reception = Math.max(0, 100 - s.receptionQueue.length * 10);
+    const facilities = Math.min(
+      100,
+      Math.round((STARTER_HOTEL.conferenceSqm + STARTER_HOTEL.wellnessSqm) / 5),
+    );
+    s.classification = classify({
+      room: roomScore,
+      reception,
+      maintenance,
+      facilities,
+    });
+  }
 
   /**
    * Renovation lives in the roomState phase because that is where rooms open,
@@ -716,9 +1318,11 @@ export class GameSimulation {
       for (let i = 0; i < step.roomsAdded; i++)
         s.hotel.rooms.push({
           id: `room.${nextNumber + i}`,
-          category: "double",
+          category: roomModule(step.job.targetModuleId).category,
           state: "VacantClean",
           cleanliness: 100,
+          moduleId: step.job.targetModuleId,
+          styleAgeYears: 0,
         });
       s.renovation = null;
     }
@@ -770,7 +1374,20 @@ export class GameSimulation {
         b.arrivalDateKey <= dateKey &&
         addDays(b.arrivalDateKey, b.nights) > dateKey,
     ).length;
-    return Math.max(0, total - held);
+    // A conference holds its sleeping rooms out of general sale.
+    return Math.max(0, total - held - this.eventRoomsBlocked(dateKey));
+  }
+
+  /** Demand bonus for a declared profile the hotel has actually invested in. */
+  private specializationBonusFor(segmentId: string): number {
+    const id = this.state.specializationId;
+    if (!id) return 0;
+    const spec = SPECIALIZATIONS.find((x) => x.id === id);
+    if (!spec || spec.segmentId !== segmentId) return 0;
+    return specializationBonusBp(id, {
+      conferenceSqm: STARTER_HOTEL.conferenceSqm,
+      wellnessSqm: STARTER_HOTEL.wellnessSqm,
+    });
   }
 
   private sameDayInventory() {

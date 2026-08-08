@@ -11,6 +11,9 @@ import { PurchasingDashboard } from "../ui/PurchasingDashboard";
 import { FinanceDashboard } from "../ui/FinanceDashboard";
 import { BuildPanel } from "../ui/BuildPanel";
 import { AlertsPanel } from "../ui/AlertsPanel";
+import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
+import { ClassificationPanel } from "../ui/facilities/ClassificationPanel";
+import { STAFF_ROLES } from "../game/domain/staffRoles";
 import { MonthlyCloseModal } from "../ui/MonthlyCloseModal";
 
 function seedFromLocation(): number {
@@ -63,7 +66,15 @@ export function App() {
         onSave={game.save}
         onLoad={game.load}
       />
-      <HotelView rooms={s.hotel.rooms} />
+      <HotelView rooms={s.hotel.rooms} facilities={s.facilities} />
+      <FacilitiesDashboard rows={s.facilities} />
+      <ClassificationPanel
+        classification={s.classification}
+        specializationId={s.specializationId}
+        onSetSpecialization={(specializationId) =>
+          game.send({ type: "SET_SPECIALIZATION", specializationId })
+        }
+      />
       <RevenueDashboard
         adrMinor={s.metrics.adrMinor}
         revParMinor={s.metrics.revParMinor}
@@ -80,10 +91,11 @@ export function App() {
       />
       <StaffDashboard
         staff={s.staff}
-        onHire={() =>
+        roles={STAFF_ROLES}
+        onHire={(role) =>
           game.send({
             type: "HIRE",
-            role: "housekeeping",
+            role: role as (typeof STAFF_ROLES)[number],
             shift: "morning",
             monthlyWageMinor: 250_000,
           })

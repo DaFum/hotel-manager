@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatDm } from "./money";
 
 export interface StaffMember {
@@ -11,8 +12,11 @@ export interface StaffMember {
 
 export function StaffDashboard(props: {
   staff: readonly StaffMember[];
-  onHire: () => void;
+  /** The roles the hotel can roster; the deep facilities need their own. */
+  roles: readonly string[];
+  onHire: (role: string) => void;
 }) {
+  const [role, setRole] = useState(props.roles[0] ?? "housekeeping");
   return (
     <section aria-label="Staff">
       <h2>Staff</h2>
@@ -40,7 +44,17 @@ export function StaffDashboard(props: {
           ))}
         </tbody>
       </table>
-      <button type="button" onClick={props.onHire}>
+      <label>
+        Role
+        <select value={role} onChange={(event) => setRole(event.target.value)}>
+          {props.roles.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button type="button" onClick={() => props.onHire(role)}>
         Hire applicant
       </button>
     </section>

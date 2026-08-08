@@ -1,4 +1,7 @@
 import { createRngStreams } from "../domain/rng";
+
+export type GameState = ReturnType<typeof createInitialGameState>;
+
 export function createInitialGameState(seed: number) {
   const streams = createRngStreams(seed);
   return {

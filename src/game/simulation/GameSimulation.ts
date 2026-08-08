@@ -482,6 +482,9 @@ export class GameSimulation {
       stock: s.stock["breakfast-portion"] ?? 0,
       priceMinor: STARTER_HOTEL.breakfastPriceMinor,
       minuteOfDay: s.calendar.minuteOfDay,
+      // The recipe cost is what the portion actually cost to buy, so the
+      // reported contribution reconciles with the purchasing ledger.
+      ingredientMinor: supplierForSku("breakfast-portion").unitPriceMinor,
     });
     if (result.served === 0 && result.queue === 0) return;
     if (result.served > 0) {

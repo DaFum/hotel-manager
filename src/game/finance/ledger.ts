@@ -1,3 +1,5 @@
+import { assertPfennig } from "../domain/money";
+
 export type LedgerAccount =
   | "roomRevenue"
   | "breakfastRevenue"
@@ -19,9 +21,9 @@ export function postEntry(
   ledger: readonly LedgerEntry[],
   entry: LedgerEntry,
 ): LedgerEntry[] {
-  if (!Number.isInteger(entry.amountMinor))
-    throw new Error("amount must be integer Pfennig");
-  return [...ledger, entry];
+  assertPfennig(entry.amountMinor, "ledger amount");
+  // Copy so a later mutation of the caller's object cannot rewrite history.
+  return [...ledger, { ...entry }];
 }
 
 export function balanceMinor(ledger: readonly LedgerEntry[]): number {

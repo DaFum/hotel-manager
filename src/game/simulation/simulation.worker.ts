@@ -5,6 +5,7 @@ import {
 } from "../domain/protocol";
 import { GameSimulation, type GameCommand } from "./GameSimulation";
 import { createInitialGameState, type GameState } from "./initialState";
+import { isCompleteRngState } from "../persistence/saveSchema";
 
 /** One real tick is 100 ms; at 1x that is one simulated hour. */
 const TICK_MS = 100;
@@ -154,6 +155,17 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     }
     case "RESUME": {
       speed = speed || 1;
+      return;
+    }
+    case "REQUEST_DETAILS": {
+      // Entity detail lives in the snapshot; answering with it keeps the
+      // response inside the MASTER worker-to-UI message families.
+      if (simulation)
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "SNAPSHOT",
+          snapshot: simulation.snapshot(),
+        });
       return;
     }
     case "REQUEST_SAVE": {

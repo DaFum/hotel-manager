@@ -8,6 +8,7 @@ export interface Alert {
 export function AlertsPanel(props: {
   alerts: readonly Alert[];
   onOpen: (id: string) => void;
+  openAlertId?: string | null;
 }) {
   return (
     <section aria-label="Alerts">
@@ -20,10 +21,16 @@ export function AlertsPanel(props: {
           <button
             type="button"
             onClick={() => props.onOpen(a.id)}
+            aria-expanded={props.openAlertId === a.id}
             aria-label={`Open ${a.title}`}
           >
             Open
           </button>
+          {props.openAlertId === a.id ? (
+            <p aria-live="polite">
+              {a.id} · {a.severity} · {a.cause}
+            </p>
+          ) : null}
         </article>
       ))}
     </section>

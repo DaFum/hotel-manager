@@ -5,6 +5,8 @@ import {
 } from "../revenue/metrics";
 
 export interface MonthlyCloseInput {
+  /** The closed month as `YYYY-MM`; identifies the report. */
+  periodKey: string;
   openingCashMinor: number;
   closingCashMinor: number;
   roomRevenueMinor: number;

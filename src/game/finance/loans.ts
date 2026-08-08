@@ -9,22 +9,24 @@ export function drawLoan(
   annualRateBasisPoints: number,
   termMonths: number,
 ): Loan {
-  if (!Number.isInteger(principalMinor) || principalMinor <= 0)
+  if (!Number.isSafeInteger(principalMinor) || principalMinor <= 0)
     throw new Error("invalid principal");
-  if (annualRateBasisPoints < 0) throw new Error("invalid rate");
-  if (!Number.isInteger(termMonths) || termMonths <= 0)
+  if (!Number.isSafeInteger(annualRateBasisPoints) || annualRateBasisPoints < 0)
+    throw new Error("invalid rate");
+  if (!Number.isSafeInteger(termMonths) || termMonths <= 0)
     throw new Error("invalid term");
   return { principalMinor, annualRateBasisPoints, termMonths };
 }
 
 export function accrueMonthlyInterestMinor(loan: Loan): number {
-  return Math.round(
-    (loan.principalMinor * loan.annualRateBasisPoints) / 10000 / 12,
-  );
+  const numerator = loan.principalMinor * loan.annualRateBasisPoints;
+  if (!Number.isSafeInteger(numerator))
+    throw new Error("loan interest exceeds the safe integer range");
+  return Math.round(numerator / 10000 / 12);
 }
 
 export function repayLoan(loan: Loan, amountMinor: number): Loan {
-  if (!Number.isInteger(amountMinor) || amountMinor <= 0)
+  if (!Number.isSafeInteger(amountMinor) || amountMinor <= 0)
     throw new Error("invalid repayment");
   if (amountMinor > loan.principalMinor)
     throw new Error("repayment exceeds principal");

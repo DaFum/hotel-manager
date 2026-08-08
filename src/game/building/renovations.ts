@@ -31,6 +31,7 @@ export function completeRenovation(
   job: RenovationJob,
   nowMinutes: number,
 ): { roomsAdded: number; job: RenovationJob } {
+  if (job.status === "completed") return { roomsAdded: 0, job };
   return nowMinutes >= job.completesAtMinutes
     ? {
         roomsAdded: RENOVATION_ROOMS_ADDED,

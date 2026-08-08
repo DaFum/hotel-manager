@@ -10,6 +10,8 @@ export const STARTER_HOTEL = {
   startingCashMinor: 40_000_000,
   defaultRateMinor: { single: 9000, double: 12000 } as Record<string, number>,
   breakfastPriceMinor: 1800,
+  /** Charged per failed asset per day while a repair is outstanding. */
+  dailyRepairCostMinor: 25_000,
 } as const;
 
 export const STARTER_STAFF = [

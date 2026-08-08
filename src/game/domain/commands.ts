@@ -1,1 +1,1 @@
-export type GameCommand = any;
+export type { GameCommand } from "../simulation/GameSimulation";

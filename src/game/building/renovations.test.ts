@@ -15,6 +15,13 @@ describe("renovations", () => {
     expect(completeRenovation(j.job, 4320).job.status).toBe("completed");
   });
 
+  it("adds the rooms only once for a completed job", () => {
+    const j = startRenovation("module.free.1", 0, 10_000_000);
+    const done = completeRenovation(j.job, 4320);
+    expect(done.roomsAdded).toBe(2);
+    expect(completeRenovation(done.job, 5000).roomsAdded).toBe(0);
+  });
+
   it("refuses to start without the full cash cost", () => {
     expect(() => startRenovation("module.free.1", 0, 5_999_999)).toThrow(
       /cash/,

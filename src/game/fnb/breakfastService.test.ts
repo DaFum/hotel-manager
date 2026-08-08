@@ -37,6 +37,19 @@ describe("breakfast", () => {
     ).toBe(0);
   });
 
+  it("reports the whole queue when stock has run out", () => {
+    expect(
+      serveBreakfast({
+        demand: 24,
+        seats: 36,
+        kitchenCovers: 30,
+        stock: 0,
+        priceMinor: 1800,
+        minuteOfDay: 480,
+      }),
+    ).toEqual({ served: 0, queue: 24, stockLeft: 0, revenueMinor: 0 });
+  });
+
   it("serves the full demand when nothing constrains it", () => {
     expect(
       serveBreakfast({

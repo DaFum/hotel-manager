@@ -34,7 +34,15 @@ export function placeOrder(
   if (cost > state.cashMinor) throw new Error("insufficient cash");
   return {
     cashMinor: state.cashMinor - cost,
-    order: { ...x, dueAtMinutes: state.nowMinutes + x.leadMinutes },
+    // Only the declared SupplierOrder fields; leadMinutes is an input, and the
+    // order travels into the save file.
+    order: {
+      supplierId: x.supplierId,
+      sku: x.sku,
+      quantity: x.quantity,
+      unitPriceMinor: x.unitPriceMinor,
+      dueAtMinutes: state.nowMinutes + x.leadMinutes,
+    } satisfies SupplierOrder,
   };
 }
 

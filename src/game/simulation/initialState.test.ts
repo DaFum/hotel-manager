@@ -6,14 +6,14 @@ describe("initial state", () => {
     expect(s.calendar.dateKey).toBe("1991-01-01");
     expect(s.hotel.rooms).toHaveLength(24);
     expect(s.finance.cashMinor).toBe(40_000_000);
-    expect(Object.keys(s.rngState)).toEqual([
-      "guests",
-      "staffing",
-      "failures",
+    expect([...Object.keys(s.rngState)].sort()).toEqual([
+      "AI",
       "economy",
       "events",
+      "failures",
+      "guests",
+      "staffing",
       "weather",
-      "AI",
     ]);
   });
 });

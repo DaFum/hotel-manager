@@ -7,14 +7,24 @@ export type RateGrid = Record<string, number>;
 export const MIN_RATE_MINOR = 3000;
 export const MAX_RATE_MINOR = 50000;
 
-export function rateKey(isoDate: string, category: string): string {
+export const ROOM_CATEGORIES: readonly RoomCategory[] = [
+  "single",
+  "double",
+  "suite",
+];
+
+export function isRoomCategory(value: unknown): value is RoomCategory {
+  return ROOM_CATEGORIES.includes(value as RoomCategory);
+}
+
+export function rateKey(isoDate: string, category: RoomCategory): string {
   return `${isoDate}/${category}`;
 }
 
 export function setRate(
   grid: RateGrid,
   isoDate: string,
-  category: string,
+  category: RoomCategory,
   rateMinor: number,
 ): RateGrid {
   if (!Number.isInteger(rateMinor)) throw new Error("rate must be integer");
@@ -26,7 +36,7 @@ export function setRate(
 export function getRate(
   grid: RateGrid,
   isoDate: string,
-  category: string,
+  category: RoomCategory,
   defaultRateMinor: number,
 ): number {
   return grid[rateKey(isoDate, category)] ?? defaultRateMinor;

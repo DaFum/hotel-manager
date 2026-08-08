@@ -61,8 +61,12 @@ describe("simulation order", () => {
   it("produces snapshots that are detached from live state", () => {
     const sim = new GameSimulation(createInitialGameState(42));
     const snap = sim.snapshot();
+    snap.hotel.rooms[0].cleanliness = 1;
+    snap.finance.cashMinor = 0;
     sim.advanceQuantum();
     expect(snap.calendar.minuteOfDay).toBe(0);
+    expect(sim.snapshot().hotel.rooms[0].cleanliness).toBe(100);
+    expect(sim.snapshot().finance.cashMinor).toBeGreaterThan(0);
   });
 
   it("rejects states that violate cash or room invariants", () => {
@@ -121,12 +125,14 @@ describe("simulated operations", () => {
   });
 
   it("keeps cash whole and never lets the ledger drift from cash", () => {
-    const sim = new GameSimulation(createInitialGameState(7));
+    const initial = createInitialGameState(7);
+    const openingCashMinor = initial.finance.cashMinor;
+    const sim = new GameSimulation(initial);
     runQuanta(sim, QUANTA_PER_DAY * 14);
     const s = sim.snapshot();
     expect(Number.isSafeInteger(s.finance.cashMinor)).toBe(true);
     const ledgerNet = s.finance.ledger.reduce((n, e) => n + e.amountMinor, 0);
-    expect(s.finance.cashMinor).toBe(40_000_000 + ledgerNet);
+    expect(s.finance.cashMinor).toBe(openingCashMinor + ledgerNet);
   });
 
   it("rejects an invalid command before it is queued", () => {
@@ -165,11 +171,11 @@ describe("simulated operations", () => {
 
   it("keeps the hiring sequence stable across a save and load", () => {
     const hire = {
-      type: "HIRE" as const,
+      type: "HIRE",
       role: "housekeeping",
       shift: "morning",
       monthlyWageMinor: 250_000,
-    };
+    } as const;
     const sim = new GameSimulation(createInitialGameState(42));
     sim.queueCommand(hire);
     sim.advanceQuantum();
@@ -197,13 +203,15 @@ describe("simulated operations", () => {
   });
 
   it("keeps renovation CapEx out of the operating expense line", () => {
-    const sim = new GameSimulation(createInitialGameState(424242));
+    const initial = createInitialGameState(424242);
+    const openingCashMinor = initial.finance.cashMinor;
+    const sim = new GameSimulation(initial);
     const before = sim.snapshot().finance.month.operatingExpenseMinor;
     sim.queueCommand({ type: "START_RENOVATION" });
     sim.advanceQuantum();
     const after = sim.snapshot();
     expect(after.finance.month.operatingExpenseMinor).toBe(before);
-    expect(after.finance.cashMinor).toBe(40_000_000 - 6_000_000);
+    expect(after.finance.cashMinor).toBe(openingCashMinor - 6_000_000);
   });
 
   it("wears assets down over simulated days", () => {
@@ -217,11 +225,101 @@ describe("simulated operations", () => {
     const sim = new GameSimulation(createInitialGameState(424242));
     runQuanta(sim, QUANTA_PER_DAY * 7);
     const s = sim.snapshot();
+    let checked = 0;
     for (const stay of s.stays) {
       const booking = s.reservations.find((b) => b.id === stay.bookingId);
       const room = s.hotel.rooms.find((r) => r.id === stay.roomId)!;
-      if (booking) expect(room.category).toBe(booking.category);
+      if (!booking) continue;
+      expect(room.category).toBe(booking.category);
+      checked += 1;
     }
+    expect(checked).toBeGreaterThan(0);
+  });
+
+  it("rejects an order below the supplier minimum", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    expect(
+      sim.validateCommand({
+        type: "ORDER_SUPPLIES",
+        sku: "cleaning-unit",
+        quantity: 1,
+      }),
+    ).toEqual({ ok: false, reason: "minimum order is 50 cleaning-unit" });
+    expect(
+      sim.validateCommand({
+        type: "ORDER_SUPPLIES",
+        sku: "cleaning-unit",
+        quantity: 50,
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("rejects unknown roles and shifts at the command boundary", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    expect(
+      sim.validateCommand({
+        type: "HIRE",
+        role: "concierge",
+        shift: "morning",
+        monthlyWageMinor: 250_000,
+      } as never),
+    ).toEqual({ ok: false, reason: "unknown role" });
+  });
+
+  it("does not advance the staffing stream for a rejected hire", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    const before = sim.snapshot().rngState.staffing;
+    sim.queueCommand({
+      type: "HIRE",
+      role: "housekeeping",
+      shift: "morning",
+      monthlyWageMinor: -1,
+    });
+    sim.advanceQuantum();
+    const after = sim.snapshot();
+    expect(after.rngState.staffing).toBe(before);
+    expect(after.alerts.some((a) => a.title === "Command rejected")).toBe(true);
+  });
+
+  it("follows the declared segment shares rather than a uniform draw", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 120);
+    const s = sim.snapshot();
+    const counts = new Map<string, number>();
+    for (const b of s.reservations)
+      counts.set(b.segmentId, (counts.get(b.segmentId) ?? 0) + 1);
+    // Business holds 45 percent of demand, budget only 10 percent.
+    expect(counts.get("segment.business") ?? 0).toBeGreaterThan(
+      counts.get("segment.budget") ?? 0,
+    );
+  });
+
+  it("holds inventory per category so doubles cannot block singles", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 20);
+    const s = sim.snapshot();
+    for (const category of ["single", "double"]) {
+      const rooms = s.hotel.rooms.filter((r) => r.category === category).length;
+      const byDate = new Map<string, number>();
+      for (const b of s.reservations)
+        if (b.category === category)
+          byDate.set(b.arrivalDateKey, (byDate.get(b.arrivalDateKey) ?? 0) + 1);
+      for (const held of byDate.values())
+        expect(held).toBeLessThanOrEqual(rooms);
+    }
+  });
+
+  it("charges exactly one monthly wage across a 31 day month", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 31);
+    const s = sim.snapshot();
+    const wages = -s.finance.ledger
+      .filter((e) => e.account === "wages")
+      .reduce((n, e) => n + e.amountMinor, 0);
+    const monthly = s.staff.reduce((n, m) => n + m.monthlyWageMinor, 0);
+    // 31 daily postings that must sum to one contracted month, give or take
+    // the per-day rounding remainder.
+    expect(Math.abs(wages - monthly)).toBeLessThanOrEqual(31);
   });
 
   it("converts the free module into two extra rooms", () => {

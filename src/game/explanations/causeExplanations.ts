@@ -23,8 +23,12 @@ export function explainCause(
 ): string {
   const headline = HEADLINES[change];
   if (drivers.length === 0) return `${headline} for no single dominant reason.`;
+  // Code-unit order, not localeCompare: authoritative ordering must not depend
+  // on the worker's locale.
   const ranked = [...drivers].sort(
-    (a, b) => b.weight - a.weight || a.factor.localeCompare(b.factor),
+    (a, b) =>
+      b.weight - a.weight ||
+      (a.factor < b.factor ? -1 : a.factor > b.factor ? 1 : 0),
   );
   const phrases = ranked.map((d) => `${d.factor} (${d.weight}%)`);
   const list =

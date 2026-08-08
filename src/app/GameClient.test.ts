@@ -13,6 +13,13 @@ function fakeWorker() {
   };
 }
 
+const SET_RATE = {
+  type: "SET_RATE",
+  dateKey: "1991-01-02",
+  category: "single",
+  rateMinor: 9500,
+} as const;
+
 describe("GameClient protocol", () => {
   it("sends versioned INIT_GAME", () => {
     const worker = fakeWorker();
@@ -56,13 +63,13 @@ describe("GameClient protocol", () => {
   it("sends commands with a stable request id", () => {
     const worker = fakeWorker();
     const client = new GameClient(worker);
-    expect(client.sendCommand({ type: "SET_RATE" })).toBe("req.1");
+    expect(client.sendCommand(SET_RATE)).toBe("req.1");
     expect(worker.postMessage).toHaveBeenLastCalledWith({
       protocolVersion: PROTOCOL_VERSION,
       type: "COMMAND",
       requestId: "req.1",
-      command: { type: "SET_RATE" },
+      command: SET_RATE,
     });
-    expect(client.sendCommand({ type: "SET_RATE" })).toBe("req.2");
+    expect(client.sendCommand(SET_RATE)).toBe("req.2");
   });
 });

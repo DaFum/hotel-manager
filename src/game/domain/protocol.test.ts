@@ -8,10 +8,10 @@ describe("worker protocol", () => {
       type: "COMMAND",
       requestId: "r1",
       command: {
-        type: "SET_ROOM_RATE",
+        type: "SET_RATE",
         dateKey: "1991-01-01",
         category: "single",
-        minor: 9000,
+        rateMinor: 9000,
       },
     };
     expect(request.type).toBe("COMMAND");

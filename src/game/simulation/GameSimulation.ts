@@ -1,10 +1,15 @@
 import { captureRngState, restoreRngStreams } from "../domain/rng";
 import { CITY, seasonalityBp } from "../content/1991/frankfurt";
-import { GUEST_SEGMENTS } from "../content/1991/guestSegments";
+import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
 import { supplierForSku } from "../content/1991/suppliers";
 import { canWalkIn, markNoShow, reserve } from "../bookings/bookingEngine";
-import { getRate, setRate } from "../revenue/rates";
+import {
+  getRate,
+  isRoomCategory,
+  setRate,
+  type RoomCategory,
+} from "../revenue/rates";
 import {
   adrMinor,
   occupancyBasisPoints,
@@ -16,12 +21,12 @@ import { cleanRoom } from "../rooms/housekeeping";
 import { serveBreakfast } from "../fnb/breakfastService";
 import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
-import { hireApplicant } from "../staff/staffing";
+import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
 import { accrueMonthlyInterestMinor } from "../finance/loans";
 import { closeMonth } from "../finance/monthlyClose";
 import { completeRenovation, startRenovation } from "../building/renovations";
-import { addDays, MINUTES_PER_DAY } from "../domain/calendar";
+import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
 import type {
@@ -50,18 +55,44 @@ export const PHASE_ORDER = [
 
 export type SimulationPhase = (typeof PHASE_ORDER)[number];
 
+export type StaffRole = "reception" | "housekeeping" | "kitchen" | "technician";
+
+export const STAFF_ROLES: readonly StaffRole[] = [
+  "reception",
+  "housekeeping",
+  "kitchen",
+  "technician",
+];
+
+export const SHIFTS: readonly Shift[] = ["morning", "evening", "night"];
+
 export type GameCommand =
-  | { type: "SET_RATE"; dateKey: string; category: string; rateMinor: number }
+  | {
+      type: "SET_RATE";
+      dateKey: string;
+      category: RoomCategory;
+      rateMinor: number;
+    }
   | { type: "ORDER_SUPPLIES"; sku: string; quantity: number }
-  | { type: "HIRE"; role: string; shift: string; monthlyWageMinor: number }
+  | {
+      type: "HIRE";
+      role: StaffRole;
+      shift: Shift;
+      monthlyWageMinor: number;
+    }
   | { type: "START_RENOVATION" };
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
 const DEMAND_MINUTE = 600;
 const BREAKFAST_START = 390;
-/** Reception handles two parties per staffed quantum. */
-const PARTIES_PER_RECEPTIONIST = 2;
+const MAX_ALERTS = 20;
+/** Half a percent chance per day that a worn asset fails, in basis points. */
+const DAILY_FAILURE_BP = 50;
+/** One receptionist checks in six parties per simulated hour. */
+const PARTIES_PER_RECEPTIONIST_PER_HOUR = 6;
+/** A room takes half an hour of housekeeping labour. */
+const ROOM_CLEAN_MINUTES = 30;
 
 export class GameSimulation {
   private queued: GameCommand[] = [];
@@ -102,6 +133,11 @@ export class GameSimulation {
           return { ok: true };
         case "ORDER_SUPPLIES": {
           const supplier = supplierForSku(command.sku);
+          if (command.quantity < supplier.minimumQuantity)
+            return {
+              ok: false,
+              reason: `minimum order is ${supplier.minimumQuantity} ${supplier.sku}`,
+            };
           placeOrder(
             { cashMinor: s.finance.cashMinor, nowMinutes: s.elapsedMinutes },
             {
@@ -115,10 +151,14 @@ export class GameSimulation {
           return { ok: true };
         }
         case "HIRE":
+          if (!STAFF_ROLES.includes(command.role))
+            return { ok: false, reason: "unknown role" };
+          if (!SHIFTS.includes(command.shift))
+            return { ok: false, reason: "unknown shift" };
           hireApplicant(
             { id: "applicant", role: command.role, skill: 50 },
             {
-              shift: command.shift as "morning" | "evening" | "night",
+              shift: command.shift,
               monthlyWageMinor: command.monthlyWageMinor,
             },
           );
@@ -196,18 +236,18 @@ export class GameSimulation {
   // --- phases ------------------------------------------------------------
 
   private applyCommands(): void {
-    for (const command of this.queued) {
+    this.queued.forEach((command, index) => {
       try {
         this.applyCommand(command);
       } catch (error) {
         this.pushAlert({
-          id: `alert.command.${this.state.elapsedMinutes}`,
+          id: `alert.command.${this.state.elapsedMinutes}.${index}.${command.type}`,
           severity: "warning",
           title: "Command rejected",
           cause: (error as Error).message,
         });
       }
-    }
+    });
     this.queued = [];
   }
 
@@ -224,6 +264,10 @@ export class GameSimulation {
         return;
       case "ORDER_SUPPLIES": {
         const supplier = supplierForSku(command.sku);
+        if (command.quantity < supplier.minimumQuantity)
+          throw new Error(
+            `minimum order is ${supplier.minimumQuantity} ${supplier.sku}`,
+          );
         const result = placeOrder(
           { cashMinor: s.finance.cashMinor, nowMinutes: s.elapsedMinutes },
           {
@@ -243,6 +287,10 @@ export class GameSimulation {
         return;
       }
       case "HIRE": {
+        // Validate before drawing: a rejected command must not advance the
+        // staffing stream, which is authoritative save state.
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
         const hired = hireApplicant(
           {
             id: this.nextStaffId(command.role),
@@ -250,7 +298,7 @@ export class GameSimulation {
             skill: 50 + (this.streams.staffing.nextUint32() % 40),
           },
           {
-            shift: command.shift as "morning" | "evening" | "night",
+            shift: command.shift,
             monthlyWageMinor: command.monthlyWageMinor,
           },
         );
@@ -323,16 +371,19 @@ export class GameSimulation {
     // Anyone still unserved at midnight never arrived.
     if (s.calendar.minuteOfDay === 0) {
       const yesterday = addDays(s.calendar.dateKey, -1);
+      // A party still queued at reception has arrived; only guests who never
+      // turned up become no-shows.
+      const waiting = new Set(s.receptionQueue.map((w) => w.bookingId));
       for (const booking of s.reservations) {
         if (
           booking.status === "confirmed" &&
-          booking.arrivalDateKey === yesterday
+          booking.arrivalDateKey === yesterday &&
+          !waiting.has(booking.id)
         ) {
           const updated = markNoShow(booking);
           booking.status = updated.status;
         }
       }
-      s.receptionQueue = [];
       s.reservations = s.reservations.filter(
         (b) => b.status === "confirmed" || b.status === "checkedIn",
       );
@@ -344,10 +395,16 @@ export class GameSimulation {
     for (const room of s.hotel.rooms)
       if (room.state === "Inspected") room.state = "VacantClean";
 
+    // Each housekeeper contributes QUANTUM_MINUTES of labour per quantum and a
+    // room takes ROOM_CLEAN_MINUTES, so the surplus is carried across quanta.
     const housekeepers = s.staff.filter(
       (m) => m.role === "housekeeping" && !m.absent,
     ).length;
-    for (let i = 0; i < housekeepers; i++) {
+    s.housekeepingMinutes += housekeepers * QUANTUM_MINUTES;
+    const roomsThisQuantum = Math.floor(
+      s.housekeepingMinutes / ROOM_CLEAN_MINUTES,
+    );
+    for (let i = 0; i < roomsThisQuantum; i++) {
       const dirty = s.hotel.rooms.find((r) => r.state === "VacantDirty");
       if (!dirty) return;
       if ((s.stock["cleaning-unit"] ?? 0) < 1) {
@@ -361,8 +418,12 @@ export class GameSimulation {
       }
       const cleaned = cleanRoom(
         { state: dirty.state, cleanliness: dirty.cleanliness },
-        { minutes: 30, cleaningUnits: s.stock["cleaning-unit"] },
+        {
+          minutes: ROOM_CLEAN_MINUTES,
+          cleaningUnits: s.stock["cleaning-unit"],
+        },
       );
+      s.housekeepingMinutes -= ROOM_CLEAN_MINUTES;
       dirty.state = cleaned.room.state;
       dirty.cleanliness = cleaned.room.cleanliness;
       s.stock = consume(s.stock, "cleaning-unit", 1);
@@ -378,9 +439,13 @@ export class GameSimulation {
     const receptionists = s.staff.filter(
       (m) => m.role === "reception" && !m.absent,
     ).length;
+    s.receptionCapacity +=
+      (receptionists * PARTIES_PER_RECEPTIONIST_PER_HOUR * QUANTUM_MINUTES) /
+      60;
+    const servable = Math.floor(s.receptionCapacity);
     const { processed } = processReceptionQueue(
       s.receptionQueue.map((w) => w.bookingId),
-      receptionists * PARTIES_PER_RECEPTIONIST,
+      servable,
     );
 
     for (const bookingId of processed) {
@@ -421,10 +486,12 @@ export class GameSimulation {
       priceMinor: STARTER_HOTEL.breakfastPriceMinor,
       minuteOfDay: s.calendar.minuteOfDay,
     });
-    if (result.served === 0) return;
-    s.stock = consume(s.stock, "breakfast-portion", result.served);
-    this.earn(result.revenueMinor, "breakfastRevenue", "breakfast covers");
-    s.finance.month.otherRevenueMinor += result.revenueMinor;
+    if (result.served === 0 && result.queue === 0) return;
+    if (result.served > 0) {
+      s.stock = consume(s.stock, "breakfast-portion", result.served);
+      this.earn(result.revenueMinor, "breakfastRevenue", "breakfast covers");
+      s.finance.month.otherRevenueMinor += result.revenueMinor;
+    }
     if (result.queue > 0)
       this.pushAlert({
         id: "alert.breakfast-queue",
@@ -455,7 +522,9 @@ export class GameSimulation {
         supplier.unitPriceMinor * supplier.minimumQuantity
       )
         continue;
-      this.applyCommand({
+      // Queue it: commands are the mutation boundary, so the order goes
+      // through validation in the next commands phase like any other.
+      this.queueCommand({
         type: "ORDER_SUPPLIES",
         sku,
         quantity: supplier.minimumQuantity,
@@ -469,9 +538,14 @@ export class GameSimulation {
     const wearMinutes = this.dayRolled ? MINUTES_PER_DAY : 0;
     s.assets = s.assets.map((asset) => {
       const degraded = { ...asset, ...degradeAsset(asset, wearMinutes) };
-      if (degraded.status === "operational" && degraded.condition < 2000) {
+      if (
+        this.dayRolled &&
+        degraded.status === "operational" &&
+        degraded.condition < 2000
+      ) {
         const roll = this.streams.failures.nextUint32() % 10000;
-        if (roll < 50) return { ...degraded, status: "failed" as const };
+        if (roll < DAILY_FAILURE_BP)
+          return { ...degraded, status: "failed" as const };
       }
       if (degraded.status !== "operational") {
         const technicianMinutes = this.dayRolled ? 120 : 0;
@@ -482,7 +556,8 @@ export class GameSimulation {
 
     if (this.dayRolled) {
       const repairCost =
-        s.assets.filter((a) => a.status !== "operational").length * 25_000;
+        s.assets.filter((a) => a.status !== "operational").length *
+        STARTER_HOTEL.dailyRepairCostMinor;
       if (repairCost) this.spend(repairCost, "maintenance", "repairs");
     }
   }
@@ -514,8 +589,13 @@ export class GameSimulation {
       s.finance.month.soldRoomNights += 1;
     }
 
+    // Charge exactly one monthly wage per calendar month, whatever its length.
+    // The finance phase settles the day that just ended, so the divisor is
+    // that day's month length, not the new day's.
+    const endedDay = addDays(s.calendar.dateKey, -1);
     const dailyWages = Math.round(
-      s.staff.reduce((sum, m) => sum + m.monthlyWageMinor, 0) / 30,
+      s.staff.reduce((sum, m) => sum + m.monthlyWageMinor, 0) /
+        daysInMonth(endedDay),
     );
     this.spend(dailyWages, "wages", "daily payroll");
 
@@ -524,6 +604,7 @@ export class GameSimulation {
       this.spend(interest, "interest", "loan interest");
     }
 
+    this.settlePayables();
     if (this.monthRolled) this.closeMonth();
     s.finance.month.availableRoomNights += s.hotel.rooms.length;
 
@@ -552,10 +633,7 @@ export class GameSimulation {
       ((4 + (this.streams.guests.nextUint32() % 5)) * season) / 10000,
     );
     for (let i = 0; i < parties; i++) {
-      const segment =
-        GUEST_SEGMENTS[
-          this.streams.guests.nextUint32() % GUEST_SEGMENTS.length
-        ];
+      const segment = pickSegment(this.streams.guests.nextUint32() % 10000);
       const leadDays = this.streams.guests.nextUint32() % 7;
       const arrivalDateKey = addDays(s.calendar.dateKey, leadDays);
       const category =
@@ -587,7 +665,8 @@ export class GameSimulation {
         };
         s.reservations.push(reservation);
       } catch {
-        /* demand lost to price or inventory; the alerts phase reports it */
+        /* demand lost to price or inventory; the slice does not yet count
+           the causes, so this is intentionally silent */
       }
     }
   }
@@ -603,7 +682,13 @@ export class GameSimulation {
         title: "Housekeeping backlog",
         cause: `${dirty} rooms waiting for cleaning`,
       });
-    if (s.alerts.length > 20) s.alerts = s.alerts.slice(-20);
+    if (s.alerts.length > MAX_ALERTS) {
+      // Critical alerts are pushed once and never refreshed, so newer warnings
+      // must not evict them.
+      const critical = s.alerts.filter((a) => a.severity === "critical");
+      const rest = s.alerts.filter((a) => a.severity !== "critical");
+      s.alerts = [...critical, ...rest.slice(-(MAX_ALERTS - critical.length))];
+    }
   }
 
   private refreshMetrics(): void {
@@ -624,6 +709,7 @@ export class GameSimulation {
     const s = this.state;
     const m = s.finance.month;
     s.lastMonthlyClose = closeMonth({
+      periodKey: addDays(s.calendar.dateKey, -1).slice(0, 7),
       openingCashMinor: m.openingCashMinor,
       closingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: m.roomRevenueMinor,
@@ -660,7 +746,8 @@ export class GameSimulation {
     const total = s.hotel.rooms.filter((r) => r.category === category).length;
     const held = s.reservations.filter(
       (b) =>
-        b.status === "confirmed" &&
+        (b.status === "confirmed" || b.status === "checkedIn") &&
+        b.category === category &&
         b.arrivalDateKey <= dateKey &&
         addDays(b.arrivalDateKey, b.nights) > dateKey,
     ).length;
@@ -694,22 +781,42 @@ export class GameSimulation {
     if (amountMinor <= 0) return;
     const s = this.state;
     const paid = Math.min(amountMinor, s.finance.cashMinor);
+    const unpaid = amountMinor - paid;
     s.finance.cashMinor -= paid;
-    // CapEx buys an asset; it is cash out but not an operating expense.
-    if (account !== "capex") s.finance.month.operatingExpenseMinor += paid;
+    // CapEx buys an asset; it is cash out but not an operating expense. The
+    // expense is recognised in full even when cash cannot cover it.
+    if (account !== "capex")
+      s.finance.month.operatingExpenseMinor += amountMinor;
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,
       amountMinor: -paid,
       memo,
     });
-    if (paid < amountMinor)
+    if (unpaid > 0) {
+      // The shortfall becomes a payable and is settled once cash returns.
+      s.finance.payableMinor += unpaid;
       this.pushAlert({
         id: "alert.insolvent",
         severity: "critical",
         title: "Out of cash",
         cause: `${memo} could not be paid in full`,
       });
+    }
+  }
+
+  private settlePayables(): void {
+    const s = this.state;
+    if (s.finance.payableMinor <= 0 || s.finance.cashMinor <= 0) return;
+    const paid = Math.min(s.finance.payableMinor, s.finance.cashMinor);
+    s.finance.payableMinor -= paid;
+    s.finance.cashMinor -= paid;
+    s.finance.ledger = postEntry(s.finance.ledger, {
+      day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+      account: "payables",
+      amountMinor: -paid,
+      memo: "overdue liabilities settled",
+    });
   }
 
   private pushAlert(alert: AlertRecord): void {

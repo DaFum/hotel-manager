@@ -1,3 +1,5 @@
+import { applyBasisPoints, assertNonNegativePfennig } from "../domain/money";
+
 export type ComplaintCause =
   "longCheckIn" | "dirtyRoom" | "brokenAsset" | "breakfastWait";
 
@@ -8,6 +10,9 @@ export interface Complaint {
 }
 
 export type RecoveryAction = "apologize" | "discount10";
+
+/** The discount recovery is ten percent of the room charge. */
+export const DISCOUNT_RECOVERY_BP = 1000;
 
 /** Guests tolerate twenty minutes at reception before they complain. */
 export const CHECK_IN_TOLERANCE_MINUTES = 20;
@@ -33,8 +38,9 @@ export function resolveComplaint(
 ): RecoveryOutcome {
   if (action === "apologize")
     return { expenseMinor: 0, satisfaction: Math.min(100, c.satisfaction + 5) };
+  assertNonNegativePfennig(roomChargeMinor, "room charge");
   return {
-    expenseMinor: Math.round(roomChargeMinor * 0.1),
+    expenseMinor: applyBasisPoints(roomChargeMinor, DISCOUNT_RECOVERY_BP),
     satisfaction: Math.min(100, c.satisfaction + 15),
   };
 }

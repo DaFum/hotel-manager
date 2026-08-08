@@ -9,6 +9,10 @@ import {
 type SnapshotListener = (snapshot: GameSnapshot) => void;
 type ErrorListener = (message: string) => void;
 type SaveListener = (saveData: unknown) => void;
+type RejectionListener = (rejection: {
+  requestId: string;
+  reason: string;
+}) => void;
 
 /**
  * Thin, UI-side handle on the authoritative worker. It owns no rules: it only
@@ -18,6 +22,7 @@ export class GameClient {
   private snapshotListeners: SnapshotListener[] = [];
   private errorListeners: ErrorListener[] = [];
   private saveListeners: SaveListener[] = [];
+  private rejectionListeners: RejectionListener[] = [];
   private requestCounter = 0;
 
   constructor(private worker: Worker) {
@@ -35,6 +40,10 @@ export class GameClient {
 
   onSaveData(listener: SaveListener): void {
     this.saveListeners.push(listener);
+  }
+
+  onCommandRejected(listener: RejectionListener): void {
+    this.rejectionListeners.push(listener);
   }
 
   init(seed: number): void {
@@ -92,6 +101,10 @@ export class GameClient {
       case "SNAPSHOT":
       case "STATE_DELTA":
         for (const l of this.snapshotListeners) l(message.snapshot);
+        return;
+      case "COMMAND_REJECTED":
+        for (const l of this.rejectionListeners)
+          l({ requestId: message.requestId, reason: message.reason });
         return;
       case "SAVE_DATA":
         for (const l of this.saveListeners) l(message.saveData);

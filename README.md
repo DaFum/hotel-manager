@@ -51,7 +51,7 @@ CHROMIUM_PATH=/path/to/chromium npm run test:e2e
 
 The rules live in a Web Worker; the interface only draws what the worker publishes.
 
-```
+```text
 React + Pixi  ──commands──▶  Web Worker  ──snapshots──▶  React + Pixi
   (presentation)              (authoritative state, time, rules)
 ```

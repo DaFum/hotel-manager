@@ -44,6 +44,23 @@ describe("save repository", () => {
     expect((await repo.load("slot-1"))?.state).toEqual({ cashMinor: 5 });
   });
 
+  it("refuses a save whose RNG state is incomplete", async () => {
+    const repo = new IndexedDbSaveRepository("test-hotel-manager-rng");
+    const { staffing: _dropped, ...partial } = save.rngState;
+    expect(
+      isCompatible({
+        ...save,
+        rngState: partial,
+      } as unknown as SaveEnvelope),
+    ).toBe(false);
+    await expect(
+      repo.save("slot-1", {
+        ...save,
+        rngState: partial,
+      } as unknown as SaveEnvelope),
+    ).rejects.toThrow(/version/);
+  });
+
   it("refuses to load a save from an incompatible version", async () => {
     const repo = new IndexedDbSaveRepository("test-hotel-manager-version");
     await repo.save("slot-1", save);

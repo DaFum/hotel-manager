@@ -30,7 +30,19 @@ export class IndexedDbSaveRepository {
   ): Promise<T> {
     const db = await this.open();
     try {
-      return await run(db.transaction(STORE, mode).objectStore(STORE));
+      const transaction = db.transaction(STORE, mode);
+      const result = await run(transaction.objectStore(STORE));
+      // A request can succeed and the transaction still abort, so a write is
+      // only durable once the transaction itself completes.
+      if (mode === "readwrite")
+        await new Promise<void>((resolve, reject) => {
+          transaction.oncomplete = () => resolve();
+          transaction.onabort = () =>
+            reject(transaction.error ?? new Error("save transaction aborted"));
+          transaction.onerror = () =>
+            reject(transaction.error ?? new Error("save transaction failed"));
+        });
+      return result;
     } finally {
       db.close();
     }

@@ -12,7 +12,10 @@ export function parseDateKey(dateKey: string): number {
   if (!DATE_KEY.test(dateKey)) throw new Error("invalid date key");
   const [y, m, d] = dateKey.split("-").map(Number);
   const utc = Date.UTC(y, m - 1, d);
-  if (Number.isNaN(utc)) throw new Error("invalid date key");
+  // Date.UTC rolls impossible components over ("1991-02-31" becomes March),
+  // so the only safe check is that the value formats back to the same key.
+  if (Number.isNaN(utc) || formatDateKey(utc) !== dateKey)
+    throw new Error("invalid date key");
   return utc;
 }
 
@@ -27,6 +30,13 @@ export function addDays(dateKey: string, days: number): string {
 
 export function nextDateKey(dateKey: string): string {
   return addDays(dateKey, 1);
+}
+
+export function daysInMonth(dateKey: string): number {
+  const [y, m] = dateKey.split("-").map(Number);
+  return new Date(
+    Date.UTC(m === 12 ? y + 1 : y, m % 12, 1) - 86_400_000,
+  ).getUTCDate();
 }
 
 /** 0 is Monday, matching how the slice schedules staff shifts. */

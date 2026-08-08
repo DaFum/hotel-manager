@@ -1,3 +1,4 @@
+import { assertNonNegativePfennig } from "../domain/money";
 import type {
   Booking,
   ReservationRequest,
@@ -8,8 +9,10 @@ import type {
 export type { Booking, BookingChannel, BookingStatus } from "./bookingTypes";
 
 export function reserve(inv: RoomInventory, r: ReservationRequest): Booking {
-  if (!Number.isInteger(r.roomsRequested) || r.roomsRequested <= 0)
+  if (!Number.isSafeInteger(r.roomsRequested) || r.roomsRequested <= 0)
     throw new Error("invalid rooms requested");
+  assertNonNegativePfennig(r.rateMinor, "rate");
+  assertNonNegativePfennig(r.willingnessMinor, "willingness to pay");
   if (r.rateMinor > r.willingnessMinor) throw new Error("price rejected");
   if (r.roomsRequested > inv.availableRooms) throw new Error("no inventory");
   return {

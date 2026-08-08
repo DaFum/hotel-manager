@@ -77,9 +77,15 @@ export interface GameState {
   assets: (Asset & { id: string })[];
   finance: {
     cashMinor: number;
+    /** Expenses recognised but not yet payable in cash. */
+    payableMinor: number;
     ledger: LedgerEntry[];
     month: MonthAccumulator;
   };
+  /** Housekeeping labour carried between quanta, in simulated minutes. */
+  housekeepingMinutes: number;
+  /** Fractional reception throughput carried between quanta, in parties. */
+  receptionCapacity: number;
   loan: Loan;
   renovation: RenovationJob | null;
   alerts: AlertRecord[];
@@ -121,6 +127,7 @@ export function createInitialGameState(seed: number): GameState {
     ],
     finance: {
       cashMinor: STARTER_HOTEL.startingCashMinor,
+      payableMinor: 0,
       ledger: [],
       month: {
         openingCashMinor: STARTER_HOTEL.startingCashMinor,
@@ -137,6 +144,8 @@ export function createInitialGameState(seed: number): GameState {
       annualRateBasisPoints: 900,
       termMonths: 120,
     },
+    housekeepingMinutes: 0,
+    receptionCapacity: 0,
     renovation: null,
     alerts: [],
     lastMonthlyClose: null,

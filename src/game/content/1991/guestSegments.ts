@@ -43,3 +43,16 @@ export const GUEST_SEGMENTS: readonly GuestSegment[] = [
     breakfastTakeUpBp: 3000,
   },
 ];
+
+/**
+ * Picks a segment by its declared share of baseline demand. `rollBp` is a
+ * basis-point roll in [0, 10000) from the guests stream.
+ */
+export function pickSegment(rollBp: number): GuestSegment {
+  let cumulative = 0;
+  for (const segment of GUEST_SEGMENTS) {
+    cumulative += segment.shareBp;
+    if (rollBp < cumulative) return segment;
+  }
+  return GUEST_SEGMENTS[GUEST_SEGMENTS.length - 1];
+}

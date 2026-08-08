@@ -16,6 +16,7 @@ export interface GameStore {
   snapshot: GameState | null;
   speed: Speed;
   errors: string[];
+  savedCount: number;
   setSpeed: (speed: Speed) => void;
   send: (command: GameCommand) => void;
   save: () => void;
@@ -41,6 +42,8 @@ export function useGameStore(seed: number): GameStore {
   const [snapshot, setSnapshot] = useState<GameState | null>(null);
   const [speed, setSpeedState] = useState<Speed>(0);
   const [errors, setErrors] = useState<string[]>([]);
+  /** Increments once each save has actually committed to IndexedDB. */
+  const [savedAt, setSavedAt] = useState(0);
 
   useEffect(() => {
     const worker = createWorker();
@@ -49,6 +52,9 @@ export function useGameStore(seed: number): GameStore {
     clientRef.current = client;
     client.onSnapshot((s) => setSnapshot(s as GameState));
     client.onError((message) => setErrors((prev) => [...prev, message]));
+    client.onCommandRejected(({ reason }) =>
+      setErrors((prev) => [...prev, `command rejected: ${reason}`]),
+    );
     client.onSaveData((saveData) => {
       const envelope: SaveEnvelope = {
         saveVersion: SAVE_VERSION,
@@ -57,7 +63,12 @@ export function useGameStore(seed: number): GameStore {
         rngState: (saveData as GameState).rngState,
         state: saveData,
       };
-      void repoRef.current.save(SLOT, envelope);
+      void repoRef.current
+        .save(SLOT, envelope)
+        .then(() => setSavedAt((n) => n + 1))
+        .catch((error: Error) =>
+          setErrors((prev) => [...prev, `save failed: ${error.message}`]),
+        );
     });
     client.init(seed);
     return () => {
@@ -70,6 +81,7 @@ export function useGameStore(seed: number): GameStore {
     snapshot,
     speed,
     errors,
+    savedCount: savedAt,
     setSpeed: (next) => {
       setSpeedState(next);
       clientRef.current?.setSpeed(next);
@@ -77,9 +89,15 @@ export function useGameStore(seed: number): GameStore {
     send: (command) => clientRef.current?.sendCommand(command),
     save: () => clientRef.current?.requestSave(),
     load: () => {
-      void repoRef.current.load(SLOT).then((envelope) => {
-        if (envelope) clientRef.current?.loadGame(envelope.state);
-      });
+      void repoRef.current
+        .load(SLOT)
+        .then((envelope) => {
+          if (envelope) clientRef.current?.loadGame(envelope.state);
+          else setErrors((prev) => [...prev, "load failed: no save in slot"]);
+        })
+        .catch((error: Error) =>
+          setErrors((prev) => [...prev, `load failed: ${error.message}`]),
+        );
     },
   };
 }

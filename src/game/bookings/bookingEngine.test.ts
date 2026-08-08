@@ -39,6 +39,24 @@ describe("booking engine", () => {
     ).toThrow(/inventory/);
   });
 
+  it("rejects monetary inputs that are not whole non-negative Pfennig", () => {
+    const base = { id: "b9", roomsRequested: 1 };
+    for (const rateMinor of [-1, 99.9, Number.NaN, Number.MAX_SAFE_INTEGER + 2])
+      expect(() =>
+        reserve(
+          { availableRooms: 5 },
+          { ...base, rateMinor, willingnessMinor: 20000 },
+        ),
+      ).toThrow(/rate/);
+    for (const willingnessMinor of [-1, 0.5, Number.NaN])
+      expect(() =>
+        reserve(
+          { availableRooms: 5 },
+          { ...base, rateMinor: 9000, willingnessMinor },
+        ),
+      ).toThrow(/willingness/);
+  });
+
   it("releases a confirmed booking on cancellation", () => {
     expect(
       cancel({

@@ -6,6 +6,7 @@ import { drawLoan, accrueMonthlyInterestMinor, repayLoan } from "./loans";
 describe("monthly close", () => {
   it("reports profit, cash, occupancy, ADR, and RevPAR from auditable inputs", () => {
     const r = closeMonth({
+      periodKey: "1991-01",
       openingCashMinor: 1_000_000,
       closingCashMinor: 1_100_000,
       roomRevenueMinor: 240_000,
@@ -18,6 +19,7 @@ describe("monthly close", () => {
     expect(r.occupancyBasisPoints).toBe(5000);
     expect(r.adrMinor).toBe(10000);
     expect(r.revParMinor).toBe(5000);
+    expect(r.periodKey).toBe("1991-01");
   });
 });
 

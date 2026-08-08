@@ -8,6 +8,7 @@ import {
 
 type SnapshotListener = (snapshot: GameSnapshot) => void;
 type ErrorListener = (message: string) => void;
+type SaveListener = (saveData: unknown) => void;
 
 /**
  * Thin, UI-side handle on the authoritative worker. It owns no rules: it only
@@ -16,6 +17,7 @@ type ErrorListener = (message: string) => void;
 export class GameClient {
   private snapshotListeners: SnapshotListener[] = [];
   private errorListeners: ErrorListener[] = [];
+  private saveListeners: SaveListener[] = [];
   private requestCounter = 0;
 
   constructor(private worker: Worker) {
@@ -31,12 +33,34 @@ export class GameClient {
     this.errorListeners.push(listener);
   }
 
+  onSaveData(listener: SaveListener): void {
+    this.saveListeners.push(listener);
+  }
+
   init(seed: number): void {
     this.send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed });
   }
 
   setSpeed(speed: 0 | 1 | 2 | 4 | 16): void {
     this.send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed });
+  }
+
+  requestSave(): string {
+    const requestId = `req.${++this.requestCounter}`;
+    this.send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_SAVE",
+      requestId,
+    });
+    return requestId;
+  }
+
+  loadGame(saveData: unknown): void {
+    this.send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "LOAD_GAME",
+      saveData,
+    });
   }
 
   sendCommand(command: GameCommand): string {
@@ -68,6 +92,9 @@ export class GameClient {
       case "SNAPSHOT":
       case "STATE_DELTA":
         for (const l of this.snapshotListeners) l(message.snapshot);
+        return;
+      case "SAVE_DATA":
+        for (const l of this.saveListeners) l(message.saveData);
         return;
       case "SIMULATION_ERROR":
         for (const l of this.errorListeners) l(message.message);

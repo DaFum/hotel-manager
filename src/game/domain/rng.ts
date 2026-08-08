@@ -27,3 +27,27 @@ export function createRngStreams(seed: number) {
     AI: new XorShift32(mix(seed, 7)),
   };
 }
+
+export type RngStreamName = keyof ReturnType<typeof createRngStreams>;
+export type RngStateRecord = Record<RngStreamName, number>;
+
+/** Rehydrates every stream from a save so replays continue bit-for-bit. */
+export function restoreRngStreams(state: RngStateRecord) {
+  return {
+    guests: new XorShift32(state.guests),
+    staffing: new XorShift32(state.staffing),
+    failures: new XorShift32(state.failures),
+    economy: new XorShift32(state.economy),
+    events: new XorShift32(state.events),
+    weather: new XorShift32(state.weather),
+    AI: new XorShift32(state.AI),
+  };
+}
+
+export function captureRngState(
+  streams: ReturnType<typeof createRngStreams>,
+): RngStateRecord {
+  return Object.fromEntries(
+    Object.entries(streams).map(([k, v]) => [k, v.state]),
+  ) as RngStateRecord;
+}

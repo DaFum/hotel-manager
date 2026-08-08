@@ -1,11 +1,14 @@
-export const SAVE_VERSION = 1 as const;
-export const CONTENT_VERSION = "vertical-slice-1991-v1" as const;
+import { migrateV1ToV2 } from "./migrations/v1-to-v2";
+export const SAVE_VERSION = 2 as const;
+export const CONTENT_VERSION = "hotel-depth-1991-v2" as const;
+/** Save versions this build knows how to bring forward. */
+export const MIGRATABLE_SAVE_VERSIONS = [1] as const;
 
 export type RngStreamName =
   "guests" | "staffing" | "failures" | "economy" | "events" | "weather" | "AI";
 
 export interface SaveEnvelope {
-  saveVersion: 1;
+  saveVersion: number;
   contentVersion: string;
   protocolVersion: 1;
   rngState: Record<RngStreamName, number>;
@@ -46,4 +49,12 @@ export function isCompatible(envelope: SaveEnvelope): boolean {
 
 export function assertCompatible(envelope: SaveEnvelope): void {
   if (!isCompatible(envelope)) throw new Error("incompatible save version");
+}
+
+/**
+ * Brings a stored envelope forward to this build. Migration is explicit and
+ * ordered: a save is never silently reinterpreted, it is rewritten.
+ */
+export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
+  return envelope?.saveVersion === 1 ? migrateV1ToV2(envelope) : envelope;
 }

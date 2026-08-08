@@ -255,6 +255,15 @@ export class GameSimulation {
     assertInvariants(this.state);
   }
 
+  /**
+   * Recomputes the derived sections (facility board, classification, metrics)
+   * without advancing time, so a freshly initialised or loaded game publishes
+   * a correct board before the first quantum runs.
+   */
+  refreshDerivedState(): void {
+    this.refreshMetrics();
+  }
+
   snapshot(): GameState {
     return structuredClone(this.state);
   }

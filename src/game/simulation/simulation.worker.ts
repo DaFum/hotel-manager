@@ -81,6 +81,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   switch (m.type) {
     case "INIT_GAME": {
       simulation = new GameSimulation(createInitialGameState(m.seed));
+      simulation.refreshDerivedState();
       ensureTimer();
       reply({
         protocolVersion: PROTOCOL_VERSION,
@@ -99,6 +100,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         return;
       }
       simulation = new GameSimulation(m.saveData);
+      simulation.refreshDerivedState();
       ensureTimer();
       reply({
         protocolVersion: PROTOCOL_VERSION,

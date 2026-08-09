@@ -32,6 +32,56 @@ export interface ManagedHotelRecord {
   openedDateKey: string;
 }
 
+/**
+ * The rate a house has to achieve for its stabilised year to produce a given
+ * gross operating profit. It is the exact inverse of `managedHotelMonth`, so a
+ * hotel admitted at a valuation's GOP actually goes on to earn it — otherwise
+ * the price the buyer paid and the money the house makes describe two
+ * different hotels.
+ */
+export function adrForAnnualGopMinor(input: {
+  annualGopMinor: number;
+  rooms: number;
+  occupancyBasisPoints: number;
+  gopMarginBasisPoints: number;
+}): number {
+  assertCount(input.rooms, "rooms");
+  if (
+    input.rooms === 0 ||
+    input.occupancyBasisPoints === 0 ||
+    input.gopMarginBasisPoints === 0 ||
+    input.annualGopMinor <= 0
+  )
+    return 0;
+  const revenueMinor = Math.trunc(
+    (input.annualGopMinor * 10_000) / input.gopMarginBasisPoints,
+  );
+  const roomRevenueMinor = Math.trunc(
+    (revenueMinor * 10_000) / (10_000 + ANCILLARY_REVENUE_SHARE_BP),
+  );
+  const soldRoomNights = Math.trunc(
+    (input.rooms * 365 * input.occupancyBasisPoints) / 10_000,
+  );
+  return soldRoomNights === 0
+    ? 0
+    : Math.max(1, Math.trunc(roomRevenueMinor / soldRoomNights));
+}
+
+/** The rate implied by a whole year of room revenue at a stated occupancy. */
+export function adrForAnnualRoomRevenueMinor(input: {
+  annualRoomRevenueMinor: number;
+  rooms: number;
+  occupancyBasisPoints: number;
+}): number {
+  assertCount(input.rooms, "rooms");
+  const soldRoomNights = Math.trunc(
+    (input.rooms * 365 * input.occupancyBasisPoints) / 10_000,
+  );
+  return soldRoomNights === 0
+    ? 0
+    : Math.max(1, Math.trunc(input.annualRoomRevenueMinor / soldRoomNights));
+}
+
 export function createManagedHotel(
   input: ManagedHotelRecord,
 ): ManagedHotelRecord {
@@ -56,6 +106,12 @@ export function registerManagedHotel(
     throw new Error(`hotel ${hotel.hotelId} is already managed`);
   return [...hotels, hotel].sort((a, b) => compareIds(a.hotelId, b.hotelId));
 }
+
+/**
+ * Food, beverage and everything else a house of this size sells alongside the
+ * room, as a share of room revenue in basis points.
+ */
+export const ANCILLARY_REVENUE_SHARE_BP = 2200;
 
 export interface ManagedHotelMonth {
   soldRoomNights: number;
@@ -91,9 +147,9 @@ export function managedHotelMonth(
   );
   const soldRoomNights = Math.trunc((availableRoomNights * captureBp) / 10_000);
   const roomRevenueMinor = soldRoomNights * hotel.adrMinor;
-  // Food, beverage and everything else a house of this size sells alongside
-  // the room, as a fixed share of room revenue.
-  const otherRevenueMinor = Math.trunc((roomRevenueMinor * 2200) / 10_000);
+  const otherRevenueMinor = Math.trunc(
+    (roomRevenueMinor * ANCILLARY_REVENUE_SHARE_BP) / 10_000,
+  );
   const revenueMinor = roomRevenueMinor + otherRevenueMinor;
   const grossOperatingProfitMinor = Math.trunc(
     (revenueMinor * hotel.gopMarginBasisPoints) / 10_000,

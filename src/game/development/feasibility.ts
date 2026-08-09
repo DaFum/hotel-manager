@@ -48,13 +48,16 @@ export function calculateFeasibility(
   if (input.uncertaintyBasisPoints > 10_000)
     throw new Error("invalid uncertainty basis points");
 
-  const base = Math.trunc(
-    (input.expectedAdrMinor *
-      input.rooms *
-      DAYS_PER_YEAR *
-      input.occupancyBasisPoints) /
-      10_000,
-  );
+  const gross =
+    input.expectedAdrMinor *
+    input.rooms *
+    DAYS_PER_YEAR *
+    input.occupancyBasisPoints;
+  // Checked before the division: a product that has already left the safe
+  // range would divide down to a plausible-looking but wrong figure.
+  if (!Number.isSafeInteger(gross))
+    throw new Error("the scheme's revenue exceeds the safe integer range");
+  const base = Math.trunc(gross / 10_000);
   const spread = Math.trunc((base * input.uncertaintyBasisPoints) / 10_000);
 
   const margin = input.gopMarginBasisPoints;

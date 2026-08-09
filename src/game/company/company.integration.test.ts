@@ -114,7 +114,7 @@ describe("acquisitions through the simulation", () => {
     ).toBe("accepted");
 
     const report = s.state.company.dueDiligence["target.offenbach.1"];
-    expect(report.undisclosedLiabilityMinor).toBe(4_200_000);
+    expect(report.discoveredLiabilityMinor).toBe(4_200_000);
     // The finding is now the buyer's lever, so the same low offer that was
     // refused before is refused by exactly that much less.
     const rejected = submit(s, {

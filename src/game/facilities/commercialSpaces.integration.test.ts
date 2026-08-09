@@ -32,8 +32,10 @@ describe("commercial spaces in a real hotel", () => {
     const sold = s.state.commercialSpaces.unitsSold;
     // The month reset leaves the current month's counters, which is what the
     // panel shows; the ledger holds what the previous month earned.
-    for (const value of Object.values(sold))
-      expect(value).toBeGreaterThanOrEqual(0);
+    expect(Object.values(sold).some((value) => value > 0)).toBe(true);
+    for (const space of s.state.commercialSpaces.spaces)
+      // Nothing may sell more than it can serve at once in a day.
+      expect(sold[space.id] ?? 0).toBeLessThanOrEqual(space.capacity * 40);
     const earned = s.state.finance.ledger.filter(
       (entry) => entry.account === "commercialSpaces",
     );

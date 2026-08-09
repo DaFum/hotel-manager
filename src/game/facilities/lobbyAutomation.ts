@@ -161,6 +161,9 @@ export function staffingAfterAutomation(input: {
   installed: readonly SelfServiceOption[];
 }): { receptionists: number; technicians: number } {
   assertCount(input.baselineReceptionists, "baseline receptionists");
+  // Automation reduces a desk; it cannot conjure one that was never staffed.
+  if (input.baselineReceptionists === 0)
+    return { receptionists: 0, technicians: 0 };
   if (input.installed.length === 0)
     return { receptionists: input.baselineReceptionists, technicians: 0 };
   const saved = Math.min(

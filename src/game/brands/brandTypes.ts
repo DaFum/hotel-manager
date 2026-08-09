@@ -1,3 +1,4 @@
+import { parseDateKey } from "../domain/calendar";
 import { compareIds } from "../domain/ids";
 import { assertBasisPoints, assertScore } from "../domain/units";
 
@@ -109,6 +110,8 @@ export function assignBrand(
 ): BrandAssignment[] {
   if (!assignment.hotelId) throw new Error("a hotel id is required");
   if (!assignment.brandId) throw new Error("a brand id is required");
+  // The date the flag went up is what a later audit's grace period runs from.
+  parseDateKey(assignment.sinceDateKey);
   return [
     ...assignments.filter((a) => a.hotelId !== assignment.hotelId),
     { ...assignment },

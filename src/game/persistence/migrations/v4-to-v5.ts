@@ -91,12 +91,6 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
 }
 
 /**
- * Brings an existing company section forward, or creates one. A development
- * v5 save can already carry a partial company, so every field is normalised
- * rather than accepted: loading twice must produce the same state as loading
- * once, whatever shape the earlier build wrote.
- */
-/**
  * Fills in a section a v4 save never had, and completes a partial one an
  * early development v5 build may have written. Missing keys take their
  * documented default; keys the save already carries are left exactly as they
@@ -114,25 +108,46 @@ function normalisedSection<T extends object>(raw: unknown, created: T): T {
  * beyond the terms the game has always applied to them.
  */
 function workforceForLegacyStaff(raw: unknown) {
-  const staff = Array.isArray(raw)
-    ? (raw as { id: string; monthlyWageMinor: number; skill: number }[])
-    : [];
-  return staff.reduce(
-    (workforce, member) =>
-      employ(workforce, {
-        id: `employee.${member.id}`,
-        staffId: member.id,
-        contract: createContract({
-          monthlyWageMinor: Number.isSafeInteger(member.monthlyWageMinor)
-            ? member.monthlyWageMinor
+  const staff = Array.isArray(raw) ? raw : [];
+  const seen = new Set<string>();
+  return staff.reduce((workforce, raw) => {
+    // A malformed row is dropped rather than allowed to throw: one corrupt
+    // record must not cost the player the whole campaign.
+    const member = raw as {
+      id?: unknown;
+      monthlyWageMinor?: unknown;
+      skill?: unknown;
+    };
+    if (!member || typeof member !== "object") return workforce;
+    if (typeof member.id !== "string" || !member.id) return workforce;
+    if (seen.has(member.id)) return workforce;
+    seen.add(member.id);
+    return employ(workforce, {
+      id: `employee.${member.id}`,
+      staffId: member.id,
+      contract: createContract({
+        monthlyWageMinor:
+          Number.isSafeInteger(member.monthlyWageMinor) &&
+          (member.monthlyWageMinor as number) >= 0
+            ? (member.monthlyWageMinor as number)
             : 0,
-        }),
-        skill: Number.isSafeInteger(member.skill) ? member.skill : 50,
       }),
-    createWorkforceState(),
-  );
+      skill:
+        Number.isSafeInteger(member.skill) &&
+        (member.skill as number) >= 0 &&
+        (member.skill as number) <= 100
+          ? (member.skill as number)
+          : 50,
+    });
+  }, createWorkforceState());
 }
 
+/**
+ * Brings an existing company section forward, or creates one. A development
+ * v5 save can already carry a partial company, so every field is normalised
+ * rather than accepted: loading twice must produce the same state as loading
+ * once, whatever shape the earlier build wrote.
+ */
 function migratedCompany(raw: unknown, hotelId: string): unknown {
   const created = createCompanyState();
   const existing =
@@ -147,12 +162,23 @@ function migratedCompany(raw: unknown, hotelId: string): unknown {
 
   const managedHotels = Array.isArray(existing.managedHotels)
     ? existing.managedHotels
-        .map((hotel) =>
-          createManagedHotel(hotel as ReturnType<typeof createManagedHotel>),
+        // A record that cannot pass its own constructor is dropped: letting
+        // it through would put a corrupt house in front of managedHotelMonth,
+        // where it would throw every month for the rest of the campaign.
+        .map((hotel) => {
+          try {
+            return createManagedHotel(
+              hotel as ReturnType<typeof createManagedHotel>,
+            );
+          } catch {
+            return null;
+          }
+        })
+        .filter((hotel): hotel is ReturnType<typeof createManagedHotel> =>
+          // A managed house that is not in the portfolio would break the
+          // invariant, so the portfolio is the authority on membership.
+          Boolean(hotel && portfolio.hotelIds.includes(hotel.hotelId)),
         )
-        // A managed house that is not in the portfolio would break the
-        // invariant, so the portfolio is the authority on membership.
-        .filter((hotel) => portfolio.hotelIds.includes(hotel.hotelId))
     : created.managedHotels;
 
   const operatingModels: Record<string, unknown> = {};
@@ -252,12 +278,14 @@ function normalisedPortfolio(
   const declaredRegion = (existing.hotelRegion ?? {}) as Record<string, string>;
   const hotelLegalEntity: Record<string, string> = {};
   const hotelRegion: Record<string, string> = {};
+  const defaultEntityId =
+    created.portfolio.hotelLegalEntity[created.portfolio.hotelIds[0]] ??
+    "entity.de.1";
+  const defaultRegionId =
+    created.portfolio.hotelRegion[created.portfolio.hotelIds[0]];
   for (const id of hotelIds) {
-    hotelLegalEntity[id] =
-      declaredEntity[id] ??
-      created.portfolio.hotelLegalEntity[hotelId] ??
-      "entity.de.1";
-    const region = declaredRegion[id] ?? created.portfolio.hotelRegion[hotelId];
+    hotelLegalEntity[id] = declaredEntity[id] ?? defaultEntityId;
+    const region = declaredRegion[id] ?? defaultRegionId;
     if (region) hotelRegion[id] = region;
   }
   return {

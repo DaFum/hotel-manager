@@ -117,18 +117,46 @@ export function burnPoints(
  * Points nobody will ever come back for. Releasing them is income, and the
  * group has to say how much it released rather than letting the liability
  * quietly drift.
+ *
+ * Releasing writes off the points as well as the money. Taking the money into
+ * income while leaving the points on the members' balances would let those
+ * same points be burnt later against a liability that no longer covers them,
+ * and the group would end up owing a negative amount.
  */
 export function releaseBreakageMinor(state: LoyaltyState): {
   state: LoyaltyState;
   releasedMinor: number;
+  writtenOffPoints: number;
 } {
-  const releasedMinor = Math.trunc(
-    (state.liabilityMinor * BREAKAGE_BASIS_POINTS) / 10_000,
-  );
+  const writtenOffPoints = [...state.members]
+    .sort((a, b) => compareIds(a.guestId, b.guestId))
+    .reduce(
+      (sum, member) =>
+        sum + Math.trunc((member.points * BREAKAGE_BASIS_POINTS) / 10_000),
+      0,
+    );
+  const releasedMinor = writtenOffPoints * POINT_VALUE_MINOR;
   return {
-    state: { ...state, liabilityMinor: state.liabilityMinor - releasedMinor },
+    state: {
+      members: state.members.map((member) => ({
+        ...member,
+        points:
+          member.points -
+          Math.trunc((member.points * BREAKAGE_BASIS_POINTS) / 10_000),
+      })),
+      liabilityMinor: state.liabilityMinor - releasedMinor,
+    },
     releasedMinor,
+    writtenOffPoints,
   };
+}
+
+/** What the group would owe if every outstanding point were burnt today. */
+export function outstandingLiabilityMinor(state: LoyaltyState): number {
+  return (
+    state.members.reduce((sum, member) => sum + member.points, 0) *
+    POINT_VALUE_MINOR
+  );
 }
 
 /**

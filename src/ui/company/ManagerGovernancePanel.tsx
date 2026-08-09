@@ -1,5 +1,8 @@
 import { formatDm } from "../money";
 
+/** The smallest raise the panel will hand out, so zero can move off zero. */
+const REPAIR_LIMIT_STEP_MINOR = 100_000;
+
 export interface ManagerRow {
   id: string;
   name: string;
@@ -55,7 +58,12 @@ export function ManagerGovernancePanel(props: {
               onClick={() =>
                 props.onSetRepairLimit(
                   manager.hotelId,
-                  manager.repairLimitMinor * 2,
+                  // Doubling a limit of nothing leaves it at nothing, so an
+                  // undelegated manager would never gain any authority.
+                  Math.max(
+                    REPAIR_LIMIT_STEP_MINOR,
+                    manager.repairLimitMinor * 2,
+                  ),
                 )
               }
               aria-label={`Raise the repair limit for ${manager.name}`}

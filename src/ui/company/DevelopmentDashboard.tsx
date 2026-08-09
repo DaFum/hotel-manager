@@ -1,4 +1,5 @@
-import { formatDm } from "../money";
+import type { OpeningChecklistItem } from "../../game/development/preOpening";
+import { formatBasisPoints, formatDm } from "../money";
 
 export interface DevelopmentRow {
   id: string;
@@ -10,7 +11,7 @@ export interface DevelopmentRow {
   upsideAnnualRoomRevenueMinor: number;
   returnOnCostBasisPoints: number | null;
   /** Checklist items still outstanding before the house can open. */
-  missing: readonly string[];
+  missing: readonly OpeningChecklistItem[];
   openedDateKey: string | null;
 }
 
@@ -27,7 +28,7 @@ export interface DevelopmentRow {
  */
 export function DevelopmentDashboard(props: {
   developments: readonly DevelopmentRow[];
-  onCompleteTask: (developmentId: string, item: string) => void;
+  onCompleteTask: (developmentId: string, item: OpeningChecklistItem) => void;
   onOpen: (developmentId: string) => void;
 }) {
   if (props.developments.length === 0)
@@ -54,13 +55,13 @@ export function DevelopmentDashboard(props: {
             {formatDm(development.baseAnnualRoomRevenueMinor)}
             {development.returnOnCostBasisPoints === null
               ? ""
-              : ` - ${development.returnOnCostBasisPoints}bp return on cost`}
+              : ` - ${formatBasisPoints(development.returnOnCostBasisPoints)} return on cost`}
           </p>
           {development.openedDateKey ? (
             <p>Opened {development.openedDateKey}</p>
           ) : (
             <>
-              <p>
+              <p id={`${development.id}.outstanding`}>
                 {development.missing.length === 0
                   ? "Ready to open"
                   : `Outstanding: ${development.missing.join(", ")}`}
@@ -78,6 +79,8 @@ export function DevelopmentDashboard(props: {
               <button
                 type="button"
                 disabled={development.missing.length > 0}
+                // A disabled control has to say why, or it is just a dead end.
+                aria-describedby={`${development.id}.outstanding`}
                 onClick={() => props.onOpen(development.id)}
                 aria-label={`Open ${development.name}`}
               >

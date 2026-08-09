@@ -94,6 +94,18 @@ export function signContract(
   assertCount(contract.expectedRoomNights, "expected room nights");
   if (contract.validToDateKey <= contract.validFromDateKey)
     throw new Error("a contract must end after it starts");
+  // Two live rates for one account would make the charged rate depend on
+  // whichever contract id happened to sort first.
+  const clash = state.contracts.find(
+    (c) =>
+      c.accountName === contract.accountName &&
+      c.validFromDateKey < contract.validToDateKey &&
+      contract.validFromDateKey < c.validToDateKey,
+  );
+  if (clash)
+    throw new Error(
+      `contract ${clash.id} already covers ${contract.accountName} over those dates`,
+    );
   return {
     ...state,
     contracts: [...state.contracts, { ...contract }].sort((a, b) =>
@@ -188,9 +200,14 @@ export function negotiatedDiscountBasisPoints(
 ): number {
   assertNonNegativeMinor(rackRateMinor, "rack rate");
   if (rackRateMinor === 0) return 0;
-  const discount = Math.trunc(
-    ((rackRateMinor - contract.negotiatedRateMinor) * 10_000) / rackRateMinor,
+  // An account paying above rack rate negotiated no discount at all; a
+  // negative one would flow into pricing as a surcharge nobody agreed.
+  const discount = Math.max(
+    0,
+    Math.trunc(
+      ((rackRateMinor - contract.negotiatedRateMinor) * 10_000) / rackRateMinor,
+    ),
   );
-  assertBasisPoints(Math.max(0, discount), "negotiated discount");
+  assertBasisPoints(discount, "negotiated discount");
   return discount;
 }

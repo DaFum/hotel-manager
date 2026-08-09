@@ -10,6 +10,9 @@ import type { Loan } from "./loans";
  * how much it owes but when it has to pay, and how much of each payment is
  * interest that buys nothing.
  */
+/** The longest a lender will ever write; fifty years, in months. */
+export const MAX_TERM_MONTHS = 600;
+
 export interface DebtInstalment {
   month: number;
   openingPrincipalMinor: number;
@@ -26,7 +29,11 @@ export interface DebtInstalment {
 export function debtSchedule(loan: Loan): DebtInstalment[] {
   assertNonNegativeMinor(loan.principalMinor, "loan principal");
   assertBasisPoints(loan.annualRateBasisPoints, "loan rate");
-  if (!Number.isSafeInteger(loan.termMonths) || loan.termMonths <= 0)
+  if (
+    !Number.isSafeInteger(loan.termMonths) ||
+    loan.termMonths <= 0 ||
+    loan.termMonths > MAX_TERM_MONTHS
+  )
     throw new Error("invalid loan term");
 
   const perMonth = Math.trunc(loan.principalMinor / loan.termMonths);
@@ -89,9 +96,15 @@ export function restructure(
     throw new Error("a restructuring must add extra months");
   const penalty = terms.penaltyBasisPoints ?? 0;
   assertBasisPoints(penalty, "restructuring penalty");
+  // The rate the borrower ends up paying is what has to be valid, not just
+  // the penalty that was added to it.
+  const annualRateBasisPoints = assertBasisPoints(
+    loan.annualRateBasisPoints + penalty,
+    "restructured rate",
+  );
   return {
     principalMinor: loan.principalMinor,
-    annualRateBasisPoints: loan.annualRateBasisPoints + penalty,
+    annualRateBasisPoints,
     termMonths: loan.termMonths + terms.extraMonths,
   };
 }

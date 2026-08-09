@@ -138,6 +138,16 @@ describe("board plans and the kitchen", () => {
       "station.grill",
       "station.larder",
     ]);
+    // The stations reconcile with the total: truncating the remainder away
+    // would report less waste than the kitchen actually threw out.
+    const sum = (byStation: Record<string, number>) =>
+      Object.values(byStation).reduce((total, value) => total + value, 0);
+    expect(sum(waste.byStation)).toBe(waste.wastedCovers);
+
+    const odd = foodWaste({ prepared: 81, sold: 60, recipes: RECIPES });
+    expect(odd.wastedCovers).toBe(21);
+    expect(sum(odd.byStation)).toBe(21);
+
     expect(
       foodWaste({ prepared: 60, sold: 80, recipes: RECIPES }).wastedCovers,
     ).toBe(0);

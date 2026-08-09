@@ -8,7 +8,8 @@ import type { LedgerEntry } from "./ledger";
  * player has to be able to see that happening rather than discover it.
  */
 
-export type AccountClass = "revenue" | "operating" | "capital" | "financing";
+export type AccountClass =
+  "revenue" | "operating" | "capital" | "financing" | "settlement";
 
 /**
  * Which statement each account belongs to. An account missing from here is
@@ -41,7 +42,9 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   insurancePremium: "operating",
   capex: "capital",
   interest: "financing",
-  payables: "financing",
+  // Paying an overdue bill is cash leaving for an expense already recognised.
+  // Counting it again would double the cost and inflate interest.
+  payables: "settlement",
 };
 
 export function accountClass(account: string): AccountClass {
@@ -78,6 +81,7 @@ export function profitAndLoss(ledger: readonly LedgerEntry[]): ProfitAndLoss {
         interestMinor += -entry.amountMinor;
         break;
       case "capital":
+      case "settlement":
         break;
     }
   const operatingProfitMinor = revenueMinor - operatingExpenseMinor;

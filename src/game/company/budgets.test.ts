@@ -52,6 +52,7 @@ describe("hotel budgets", () => {
       budgetVariance({
         targetMinor: 20_000_000,
         actualMinor: 22_500_000,
+        kind: "revenue",
       }),
     ).toEqual({
       varianceMinor: 2_500_000,
@@ -59,18 +60,49 @@ describe("hotel budgets", () => {
       favourable: true,
     });
     expect(
-      budgetVariance({ targetMinor: 20_000_000, actualMinor: 18_000_000 }),
+      budgetVariance({
+        targetMinor: 20_000_000,
+        actualMinor: 18_000_000,
+        kind: "revenue",
+      }),
     ).toEqual({
       varianceMinor: -2_000_000,
       varianceBasisPoints: -1000,
       favourable: false,
     });
     // A target of nothing cannot be missed by a percentage.
-    expect(budgetVariance({ targetMinor: 0, actualMinor: 500 })).toEqual({
+    expect(
+      budgetVariance({ targetMinor: 0, actualMinor: 500, kind: "revenue" }),
+    ).toEqual({
       varianceMinor: 500,
       varianceBasisPoints: 0,
       favourable: true,
     });
+  });
+
+  it("reads the same variance the other way round for a cost budget", () => {
+    // Spending more than budgeted is an overspend, not an achievement.
+    expect(
+      budgetVariance({
+        targetMinor: 20_000_000,
+        actualMinor: 22_500_000,
+        kind: "cost",
+      }).favourable,
+    ).toBe(false);
+    expect(
+      budgetVariance({
+        targetMinor: 20_000_000,
+        actualMinor: 18_000_000,
+        kind: "cost",
+      }).favourable,
+    ).toBe(true);
+    expect(() =>
+      budgetVariance({
+        targetMinor: 1.5,
+        actualMinor: 0,
+        kind: "cost",
+      }),
+    ).toThrow(/variance target/);
   });
 
   it("rolls into a new period with the spend reset and the budget restated", () => {
@@ -96,13 +128,14 @@ describe("hotel budgets", () => {
   });
 
   it("refuses a budget that is not whole Pfennig", () => {
-    expect(() =>
-      createHotelBudget({
-        hotelId: "hotel.frankfurt.1",
-        periodKey: "1991-Q1",
-        capexBudgetMinor: -1,
-        operatingBudgetMinor: 0,
-      }),
-    ).toThrow(/capex budget/);
+    for (const capexBudgetMinor of [-1, 1.5, -1.5, Number.NaN])
+      expect(() =>
+        createHotelBudget({
+          hotelId: "hotel.frankfurt.1",
+          periodKey: "1991-Q1",
+          capexBudgetMinor,
+          operatingBudgetMinor: 0,
+        }),
+      ).toThrow(/capex budget/);
   });
 });

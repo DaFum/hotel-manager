@@ -124,8 +124,8 @@ export function managerRows(state: GameState): ManagerRow[] {
     hotelName: hotelName(state, manager.hotelId),
     competence: manager.competence,
     repairLimitMinor: manager.authority.repairLimitMinor,
-    capexLimitMinor: manager.authority.capexLimitMinor ?? 0,
-    recoveryLimitMinor: manager.authority.recoveryLimitMinor ?? 0,
+    capexLimitMinor: manager.authority.capexLimitMinor,
+    recoveryLimitMinor: manager.authority.recoveryLimitMinor,
   }));
 }
 

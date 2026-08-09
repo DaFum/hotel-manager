@@ -165,7 +165,7 @@ describe("central purchasing", () => {
     expect(trade.centralLeadTimeDays).toBeGreaterThan(trade.localLeadTimeDays);
   });
 
-  it("gives no discount at all to a group of one", () => {
+  it("leaves the price alone when no group discount was negotiated", () => {
     const trade = centralPurchasingTradeOff(CONTRACT, 0);
     expect(trade.centralUnitPriceMinor).toBe(trade.localUnitPriceMinor);
     expect(trade.centralLeadTimeDays).toBeGreaterThan(trade.localLeadTimeDays);

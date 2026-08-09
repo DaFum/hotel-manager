@@ -39,12 +39,21 @@ export interface CommercialSpace {
   maintenanceMinor: number;
 }
 
+/** Minutes of one hotel day; midnight at the end of it is 1440. */
+function assertMinuteOfDay(value: number, label: string): number {
+  if (!Number.isSafeInteger(value) || value < 0 || value > 1440)
+    throw new Error(`invalid ${label}`);
+  return value;
+}
+
 export function createCommercialSpace(space: CommercialSpace): CommercialSpace {
   if (!space.id) throw new Error("a commercial space id is required");
   assertCount(space.capacity, "space capacity");
   assertCount(space.staffRequired, "space staffing");
   assertNonNegativeMinor(space.unitPriceMinor, "space unit price");
   assertNonNegativeMinor(space.maintenanceMinor, "space maintenance");
+  assertMinuteOfDay(space.openMinute, "space opening minute");
+  assertMinuteOfDay(space.closeMinute, "space closing minute");
   if (space.closeMinute <= space.openMinute)
     throw new Error("a space must close after it opens");
   switch (space.operator.kind) {
@@ -61,7 +70,9 @@ export function createCommercialSpace(space: CommercialSpace): CommercialSpace {
       );
       break;
   }
-  return { ...space };
+  // The operator is copied too: a caller that keeps its own reference must
+  // not be able to rewrite the terms the hotel is trading under.
+  return { ...space, operator: { ...space.operator } };
 }
 
 /** Whether the space is open at a given minute of the hotel day. */

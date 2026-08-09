@@ -41,8 +41,10 @@ function send(payload: GameCommand): void {
 }
 
 function runDays(days: number): void {
-  for (let i = 0; i < (days * 1440) / QUANTUM_MINUTES; i += 1)
-    simulation.advanceQuantum();
+  // Rounded up, so a quantum that does not divide the day evenly still leaves
+  // every requested day fully simulated.
+  const quanta = Math.ceil((days * 1440) / QUANTUM_MINUTES);
+  for (let i = 0; i < quanta; i += 1) simulation.advanceQuantum();
 }
 
 const hotelId = simulation.state.hotel.id;

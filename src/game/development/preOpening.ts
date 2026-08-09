@@ -1,3 +1,5 @@
+import { parseDateKey } from "../domain/calendar";
+
 /**
  * The gate between a building and a hotel. Every item on the checklist is a
  * real dependency the player has to have arranged somewhere else in the game,
@@ -56,6 +58,8 @@ export function createPreOpening(
   targetOpenDateKey: string,
 ): PreOpeningProject {
   if (!developmentId) throw new Error("a development id is required");
+  // A scheme aimed at a date nobody can parse cannot be scheduled against.
+  parseDateKey(targetOpenDateKey);
   return {
     developmentId,
     targetOpenDateKey,
@@ -75,8 +79,11 @@ export function markPreOpeningTask(
   project: PreOpeningProject,
   item: OpeningChecklistItem,
 ): PreOpeningProject {
+  // An own-property check, not a truthiness test: `constructor` and friends
+  // are inherited and would otherwise pass for a checklist item.
+  if (!Object.hasOwn(FLAG_FOR_ITEM, item))
+    throw new Error(`unknown pre-opening checklist item: ${item}`);
   const flag = FLAG_FOR_ITEM[item];
-  if (!flag) throw new Error(`unknown pre-opening checklist item: ${item}`);
   return {
     ...project,
     readiness: { ...project.readiness, [flag]: true },

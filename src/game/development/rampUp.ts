@@ -1,4 +1,4 @@
-import { parseDateKey } from "../domain/calendar";
+import { daysInMonth, parseDateKey } from "../domain/calendar";
 
 /**
  * A new house does not open into its mature share of the market. It has no
@@ -42,9 +42,6 @@ export function monthsOpen(openedDateKey: string, dateKey: string): number {
   const months = (ny - oy) * 12 + (nm - om);
   // The last month is only complete once the day of the month has come round,
   // and a shorter target month completes on its own last day.
-  const lastDayOfTargetMonth = new Date(
-    Date.UTC(nm === 12 ? ny + 1 : ny, nm % 12, 1) - 86_400_000,
-  ).getUTCDate();
-  const anniversaryDay = Math.min(od, lastDayOfTargetMonth);
+  const anniversaryDay = Math.min(od, daysInMonth(dateKey));
   return Math.max(0, nd >= anniversaryDay ? months : months - 1);
 }

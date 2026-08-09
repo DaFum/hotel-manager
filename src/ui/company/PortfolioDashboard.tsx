@@ -51,10 +51,7 @@ export function PortfolioDashboard(props: {
       {props.hotels.map((hotel) => (
         <article key={hotel.id} aria-label={hotel.name}>
           <h3>{hotel.name}</h3>
-          <p>
-            {Math.round(hotel.occupancyBasisPoints / 100)}% occupancy (
-            {formatBasisPoints(hotel.occupancyBasisPoints)})
-          </p>
+          <p>{formatBasisPoints(hotel.occupancyBasisPoints)} occupancy</p>
           <p>{formatDm(hotel.monthlyProfitMinor)} last month</p>
           <p>
             {hotel.warnings} {hotel.warnings === 1 ? "warning" : "warnings"} -

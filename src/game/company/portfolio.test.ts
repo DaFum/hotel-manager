@@ -102,6 +102,31 @@ describe("company portfolio", () => {
   });
 });
 
+describe("portfolio refusals", () => {
+  it("refuses a company with no id", () => {
+    expect(() => createPortfolio("")).toThrow(/company id/);
+  });
+
+  it("refuses to divest a hotel the group never held", () => {
+    expect(() =>
+      removeHotelFromPortfolio(createPortfolio("company.player"), "hotel.none"),
+    ).toThrow(/not in the portfolio/);
+  });
+
+  it("refuses a region for an unknown hotel, or a region with no id", () => {
+    const portfolio = addHotelToPortfolio(createPortfolio("company.player"), {
+      hotelId: "hotel.frankfurt.1",
+      legalEntityId: "entity.de.1",
+    });
+    expect(() =>
+      setHotelRegion(portfolio, "hotel.none", "region.de.west"),
+    ).toThrow(/not in the portfolio/);
+    expect(() => setHotelRegion(portfolio, "hotel.frankfurt.1", "")).toThrow(
+      /region id/,
+    );
+  });
+});
+
 describe("legal entities", () => {
   it("holds hotels in a jurisdiction with its own reporting currency", () => {
     const entity = createLegalEntity({
@@ -123,6 +148,18 @@ describe("legal entities", () => {
         currencyCode: "DEM",
       }),
     ).toThrow(/id/);
+  });
+
+  it("refuses a jurisdiction that is not two capital letters", () => {
+    for (const jurisdiction of ["D", "DEU", "de", "D1", ""])
+      expect(() =>
+        createLegalEntity({
+          id: "entity.de.1",
+          name: "Rheinstern",
+          jurisdiction,
+          currencyCode: "DEM",
+        }),
+      ).toThrow(/jurisdiction/);
   });
 
   it("refuses to register the same entity id twice", () => {

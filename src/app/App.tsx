@@ -39,6 +39,7 @@ import {
   brandRows,
   developmentRows,
   escalationRows,
+  hotelName,
   managerRows,
   portfolioRows,
   accountRows,
@@ -46,7 +47,6 @@ import {
   marketableGuestCount,
   reputationRows,
 } from "../ui/company/companyViewModel";
-import type { OpeningChecklistItem } from "../game/development/preOpening";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -114,7 +114,7 @@ export function App() {
         <h1>
           {s.hotel.name}, {CITY.name} 1991
         </h1>
-        <p role="status" aria-live="polite">
+        <p role="status" aria-label="Simulation status" aria-live="polite">
           {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
         </p>
         <p aria-label="Command status" aria-live="polite">
@@ -209,7 +209,9 @@ export function App() {
           hotels={portfolioRows(s)}
           onOpenHotel={setOpenHotel}
         />
-        <p aria-label="Selected hotel">Viewing: {openHotel ?? s.hotel.id}</p>
+        <p aria-label="Selected hotel">
+          Viewing: {hotelName(s, openHotel ?? s.hotel.id)}
+        </p>
         <BrandDashboard
           brands={brandRows(s)}
           audits={brandAuditRows(s)}
@@ -224,7 +226,7 @@ export function App() {
             game.send({
               type: "COMPLETE_PRE_OPENING_TASK",
               developmentId,
-              item: item as OpeningChecklistItem,
+              item,
             })
           }
           onOpen={(developmentId) =>

@@ -34,7 +34,8 @@ export function openHotelAccount(
   hotelId: string,
   openingMinor = 0,
 ): TreasuryState {
-  if (hotelId in treasury.hotelCashMinor)
+  if (!hotelId) throw new Error("a hotel id is required");
+  if (Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} already has a treasury account`);
   assertMinor(openingMinor, "opening balance");
   return {
@@ -47,10 +48,11 @@ export function hotelCashMinor(
   treasury: TreasuryState,
   hotelId: string,
 ): number {
-  const balance = treasury.hotelCashMinor[hotelId];
-  if (balance === undefined)
+  // An own-property check, so an inherited key such as `toString` can never
+  // be read as a balance the group does not have.
+  if (!hotelId || !Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} has no treasury account`);
-  return balance;
+  return treasury.hotelCashMinor[hotelId];
 }
 
 /** The group's cash, summed in stable id order so the total is reproducible. */

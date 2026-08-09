@@ -122,6 +122,8 @@ export function menuQuadrant(input: {
   assertBasisPoints(input.soldShareBasisPoints, "sold share");
   assertBasisPoints(input.averageMarginBasisPoints, "average margin");
   const { recipe } = input;
+  assertNonNegativeMinor(recipe.sellingPriceMinor, "recipe selling price");
+  assertNonNegativeMinor(recipe.ingredientCostMinor, "recipe ingredient cost");
   if (recipe.sellingPriceMinor === 0)
     return {
       quadrant: "dog",
@@ -172,13 +174,23 @@ export function foodWaste(input: {
           input.recipes.reduce((sum, r) => sum + r.ingredientCostMinor, 0) /
             input.recipes.length,
         );
+  // Distributed so the stations reconcile exactly with the total: the
+  // remainder goes to the earliest stations rather than being truncated away,
+  // which would report less waste than actually happened.
   const byStation: Record<string, number> = {};
-  for (const recipe of [...input.recipes].sort((a, b) =>
+  const sorted = [...input.recipes].sort((a, b) =>
     compareIds(a.stationId, b.stationId),
-  ))
-    byStation[recipe.stationId] =
-      (byStation[recipe.stationId] ?? 0) +
-      Math.trunc(wastedCovers / input.recipes.length);
+  );
+  if (sorted.length > 0) {
+    const share = Math.trunc(wastedCovers / sorted.length);
+    let remainder = wastedCovers - share * sorted.length;
+    for (const recipe of sorted) {
+      const extra = remainder > 0 ? 1 : 0;
+      remainder -= extra;
+      byStation[recipe.stationId] =
+        (byStation[recipe.stationId] ?? 0) + share + extra;
+    }
+  }
   return {
     wastedCovers,
     costMinor: wastedCovers * averageCostMinor,

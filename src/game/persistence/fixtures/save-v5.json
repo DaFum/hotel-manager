@@ -9175,27 +9175,15 @@
           "atMinutes": 44640,
           "entities": ["hotel.frankfurt.1"],
           "payload": {
-            "type": "MONTH_CLOSED",
+            "type": "HOTEL_RESULT_PUBLISHED",
+            "hotelId": "hotel.frankfurt.1",
             "periodKey": "1991-01",
-            "profitMinor": -2438365,
-            "occupancyBasisPoints": 3454
+            "grossOperatingProfitMinor": -708163
           }
         },
         {
           "eventId": "evt.768",
           "sequence": 768,
-          "atMinutes": 44640,
-          "entities": ["hotel.frankfurt.1"],
-          "payload": {
-            "type": "HOTEL_RESULT_PUBLISHED",
-            "hotelId": "hotel.frankfurt.1",
-            "periodKey": "1991-01",
-            "grossOperatingProfitMinor": -2438365
-          }
-        },
-        {
-          "eventId": "evt.769",
-          "sequence": 769,
           "atMinutes": 44640,
           "entities": ["hotel.offenbach.1"],
           "payload": {
@@ -9206,8 +9194,8 @@
           }
         },
         {
-          "eventId": "evt.770",
-          "sequence": 770,
+          "eventId": "evt.769",
+          "sequence": 769,
           "atMinutes": 44640,
           "entities": ["hotel.frankfurt.1", "brand.mainblick"],
           "payload": {
@@ -9219,8 +9207,8 @@
           }
         },
         {
-          "eventId": "evt.771",
-          "sequence": 771,
+          "eventId": "evt.770",
+          "sequence": 770,
           "atMinutes": 44640,
           "entities": [
             "hotel.frankfurt.1",
@@ -9231,6 +9219,18 @@
             "escalationId": "escalation.hotel.frankfurt.1.1991-01",
             "hotelId": "hotel.frankfurt.1",
             "reason": "capex of 1500000 exceeds the 0 capex limit"
+          }
+        },
+        {
+          "eventId": "evt.771",
+          "sequence": 771,
+          "atMinutes": 44640,
+          "entities": ["hotel.frankfurt.1"],
+          "payload": {
+            "type": "MONTH_CLOSED",
+            "periodKey": "1991-01",
+            "profitMinor": -3163787,
+            "occupancyBasisPoints": 3454
           }
         },
         {
@@ -19271,7 +19271,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 2925189,
+      "cashMinor": 5227669,
       "payableMinor": 0,
       "ledger": [
         {
@@ -19337,13 +19337,13 @@
         {
           "day": 2,
           "account": "utilities",
-          "amountMinor": -45064,
+          "amountMinor": -64,
           "memo": "metered energy: 2 units"
         },
         {
           "day": 2,
           "account": "utilities",
-          "amountMinor": -18011,
+          "amountMinor": -11,
           "memo": "metered water: 1 units"
         },
         {
@@ -19391,13 +19391,13 @@
         {
           "day": 3,
           "account": "utilities",
-          "amountMinor": -45192,
+          "amountMinor": -192,
           "memo": "metered energy: 6 units"
         },
         {
           "day": 3,
           "account": "utilities",
-          "amountMinor": -18033,
+          "amountMinor": -33,
           "memo": "metered water: 3 units"
         },
         {
@@ -19451,14 +19451,14 @@
         {
           "day": 4,
           "account": "utilities",
-          "amountMinor": -45256,
-          "memo": "metered energy: 8 units"
+          "amountMinor": -320,
+          "memo": "metered energy: 10 units"
         },
         {
           "day": 4,
           "account": "utilities",
-          "amountMinor": -18044,
-          "memo": "metered water: 4 units"
+          "amountMinor": -88,
+          "memo": "metered water: 8 units"
         },
         {
           "day": 4,
@@ -19523,14 +19523,14 @@
         {
           "day": 5,
           "account": "utilities",
-          "amountMinor": -45384,
-          "memo": "metered energy: 12 units"
+          "amountMinor": -480,
+          "memo": "metered energy: 15 units"
         },
         {
           "day": 5,
           "account": "utilities",
-          "amountMinor": -18066,
-          "memo": "metered water: 6 units"
+          "amountMinor": -132,
+          "memo": "metered water: 12 units"
         },
         {
           "day": 5,
@@ -19601,14 +19601,14 @@
         {
           "day": 6,
           "account": "utilities",
-          "amountMinor": -45384,
-          "memo": "metered energy: 12 units"
+          "amountMinor": -608,
+          "memo": "metered energy: 19 units"
         },
         {
           "day": 6,
           "account": "utilities",
-          "amountMinor": -18066,
-          "memo": "metered water: 6 units"
+          "amountMinor": -220,
+          "memo": "metered water: 20 units"
         },
         {
           "day": 6,
@@ -19691,14 +19691,14 @@
         {
           "day": 7,
           "account": "utilities",
-          "amountMinor": -45384,
-          "memo": "metered energy: 12 units"
+          "amountMinor": -608,
+          "memo": "metered energy: 19 units"
         },
         {
           "day": 7,
           "account": "utilities",
-          "amountMinor": -18066,
-          "memo": "metered water: 6 units"
+          "amountMinor": -220,
+          "memo": "metered water: 20 units"
         },
         {
           "day": 7,
@@ -19787,13 +19787,13 @@
         {
           "day": 8,
           "account": "utilities",
-          "amountMinor": -45640,
+          "amountMinor": -640,
           "memo": "metered energy: 20 units"
         },
         {
           "day": 8,
           "account": "utilities",
-          "amountMinor": -18110,
+          "amountMinor": -110,
           "memo": "metered water: 10 units"
         },
         {
@@ -19883,14 +19883,14 @@
         {
           "day": 9,
           "account": "utilities",
-          "amountMinor": -45640,
-          "memo": "metered energy: 20 units"
+          "amountMinor": -1088,
+          "memo": "metered energy: 34 units"
         },
         {
           "day": 9,
           "account": "utilities",
-          "amountMinor": -18110,
-          "memo": "metered water: 10 units"
+          "amountMinor": -418,
+          "memo": "metered water: 38 units"
         },
         {
           "day": 9,
@@ -19985,14 +19985,14 @@
         {
           "day": 10,
           "account": "utilities",
-          "amountMinor": -45704,
-          "memo": "metered energy: 22 units"
+          "amountMinor": -1024,
+          "memo": "metered energy: 32 units"
         },
         {
           "day": 10,
           "account": "utilities",
-          "amountMinor": -18121,
-          "memo": "metered water: 11 units"
+          "amountMinor": -341,
+          "memo": "metered water: 31 units"
         },
         {
           "day": 10,
@@ -20069,14 +20069,14 @@
         {
           "day": 11,
           "account": "utilities",
-          "amountMinor": -45512,
-          "memo": "metered energy: 16 units"
+          "amountMinor": -800,
+          "memo": "metered energy: 25 units"
         },
         {
           "day": 11,
           "account": "utilities",
-          "amountMinor": -18088,
-          "memo": "metered water: 8 units"
+          "amountMinor": -286,
+          "memo": "metered water: 26 units"
         },
         {
           "day": 11,
@@ -20153,14 +20153,14 @@
         {
           "day": 12,
           "account": "utilities",
-          "amountMinor": -45512,
-          "memo": "metered energy: 16 units"
+          "amountMinor": -928,
+          "memo": "metered energy: 29 units"
         },
         {
           "day": 12,
           "account": "utilities",
-          "amountMinor": -18088,
-          "memo": "metered water: 8 units"
+          "amountMinor": -374,
+          "memo": "metered water: 34 units"
         },
         {
           "day": 12,
@@ -20243,14 +20243,14 @@
         {
           "day": 13,
           "account": "utilities",
-          "amountMinor": -45576,
-          "memo": "metered energy: 18 units"
+          "amountMinor": -704,
+          "memo": "metered energy: 22 units"
         },
         {
           "day": 13,
           "account": "utilities",
-          "amountMinor": -18099,
-          "memo": "metered water: 9 units"
+          "amountMinor": -187,
+          "memo": "metered water: 17 units"
         },
         {
           "day": 13,
@@ -20339,14 +20339,14 @@
         {
           "day": 14,
           "account": "utilities",
-          "amountMinor": -45640,
-          "memo": "metered energy: 20 units"
+          "amountMinor": -960,
+          "memo": "metered energy: 30 units"
         },
         {
           "day": 14,
           "account": "utilities",
-          "amountMinor": -18110,
-          "memo": "metered water: 10 units"
+          "amountMinor": -330,
+          "memo": "metered water: 30 units"
         },
         {
           "day": 14,
@@ -20441,14 +20441,14 @@
         {
           "day": 15,
           "account": "utilities",
-          "amountMinor": -45704,
-          "memo": "metered energy: 22 units"
+          "amountMinor": -1024,
+          "memo": "metered energy: 32 units"
         },
         {
           "day": 15,
           "account": "utilities",
-          "amountMinor": -18121,
-          "memo": "metered water: 11 units"
+          "amountMinor": -341,
+          "memo": "metered water: 31 units"
         },
         {
           "day": 15,
@@ -20537,14 +20537,14 @@
         {
           "day": 16,
           "account": "utilities",
-          "amountMinor": -45640,
-          "memo": "metered energy: 20 units"
+          "amountMinor": -960,
+          "memo": "metered energy: 30 units"
         },
         {
           "day": 16,
           "account": "utilities",
-          "amountMinor": -18110,
-          "memo": "metered water: 10 units"
+          "amountMinor": -330,
+          "memo": "metered water: 30 units"
         },
         {
           "day": 16,
@@ -20633,14 +20633,14 @@
         {
           "day": 17,
           "account": "utilities",
-          "amountMinor": -45640,
-          "memo": "metered energy: 20 units"
+          "amountMinor": -1088,
+          "memo": "metered energy: 34 units"
         },
         {
           "day": 17,
           "account": "utilities",
-          "amountMinor": -18110,
-          "memo": "metered water: 10 units"
+          "amountMinor": -418,
+          "memo": "metered water: 38 units"
         },
         {
           "day": 17,
@@ -20753,14 +20753,14 @@
         {
           "day": 18,
           "account": "utilities",
-          "amountMinor": -45832,
-          "memo": "metered energy: 26 units"
+          "amountMinor": -1024,
+          "memo": "metered energy: 32 units"
         },
         {
           "day": 18,
           "account": "utilities",
-          "amountMinor": -18143,
-          "memo": "metered water: 13 units"
+          "amountMinor": -275,
+          "memo": "metered water: 25 units"
         },
         {
           "day": 18,
@@ -20831,14 +20831,14 @@
         {
           "day": 19,
           "account": "utilities",
-          "amountMinor": -45448,
-          "memo": "metered energy: 14 units"
+          "amountMinor": -928,
+          "memo": "metered energy: 29 units"
         },
         {
           "day": 19,
           "account": "utilities",
-          "amountMinor": -18077,
-          "memo": "metered water: 7 units"
+          "amountMinor": -407,
+          "memo": "metered water: 37 units"
         },
         {
           "day": 19,
@@ -20897,14 +20897,14 @@
         {
           "day": 20,
           "account": "utilities",
-          "amountMinor": -45256,
-          "memo": "metered energy: 8 units"
+          "amountMinor": -736,
+          "memo": "metered energy: 23 units"
         },
         {
           "day": 20,
           "account": "utilities",
-          "amountMinor": -18110,
-          "memo": "metered water: 10 units"
+          "amountMinor": -440,
+          "memo": "metered water: 40 units"
         },
         {
           "day": 20,
@@ -20963,13 +20963,13 @@
         {
           "day": 21,
           "account": "utilities",
-          "amountMinor": -45320,
+          "amountMinor": -320,
           "memo": "metered energy: 10 units"
         },
         {
           "day": 21,
           "account": "utilities",
-          "amountMinor": -18187,
+          "amountMinor": -187,
           "memo": "metered water: 17 units"
         },
         {
@@ -21047,14 +21047,14 @@
         {
           "day": 22,
           "account": "utilities",
-          "amountMinor": -45384,
-          "memo": "metered energy: 12 units"
+          "amountMinor": -576,
+          "memo": "metered energy: 18 units"
         },
         {
           "day": 22,
           "account": "utilities",
-          "amountMinor": -18066,
-          "memo": "metered water: 6 units"
+          "amountMinor": -198,
+          "memo": "metered water: 18 units"
         },
         {
           "day": 22,
@@ -21131,14 +21131,14 @@
         {
           "day": 23,
           "account": "utilities",
-          "amountMinor": -45512,
-          "memo": "metered energy: 16 units"
+          "amountMinor": -640,
+          "memo": "metered energy: 20 units"
         },
         {
           "day": 23,
           "account": "utilities",
-          "amountMinor": -18088,
-          "memo": "metered water: 8 units"
+          "amountMinor": -176,
+          "memo": "metered water: 16 units"
         },
         {
           "day": 23,
@@ -21251,14 +21251,14 @@
         {
           "day": 24,
           "account": "utilities",
-          "amountMinor": -45832,
-          "memo": "metered energy: 26 units"
+          "amountMinor": -992,
+          "memo": "metered energy: 31 units"
         },
         {
           "day": 24,
           "account": "utilities",
-          "amountMinor": -18209,
-          "memo": "metered water: 19 units"
+          "amountMinor": -319,
+          "memo": "metered water: 29 units"
         },
         {
           "day": 24,
@@ -21359,14 +21359,14 @@
         {
           "day": 25,
           "account": "utilities",
-          "amountMinor": -45640,
-          "memo": "metered energy: 20 units"
+          "amountMinor": -1152,
+          "memo": "metered energy: 36 units"
         },
         {
           "day": 25,
           "account": "utilities",
-          "amountMinor": -18110,
-          "memo": "metered water: 10 units"
+          "amountMinor": -462,
+          "memo": "metered water: 42 units"
         },
         {
           "day": 25,
@@ -21467,14 +21467,14 @@
         {
           "day": 26,
           "account": "utilities",
-          "amountMinor": -45768,
-          "memo": "metered energy: 24 units"
+          "amountMinor": -992,
+          "memo": "metered energy: 31 units"
         },
         {
           "day": 26,
           "account": "utilities",
-          "amountMinor": -18132,
-          "memo": "metered water: 12 units"
+          "amountMinor": -286,
+          "memo": "metered water: 26 units"
         },
         {
           "day": 26,
@@ -21551,14 +21551,14 @@
         {
           "day": 27,
           "account": "utilities",
-          "amountMinor": -45512,
-          "memo": "metered energy: 16 units"
+          "amountMinor": -1056,
+          "memo": "metered energy: 33 units"
         },
         {
           "day": 27,
           "account": "utilities",
-          "amountMinor": -18088,
-          "memo": "metered water: 8 units"
+          "amountMinor": -462,
+          "memo": "metered water: 42 units"
         },
         {
           "day": 27,
@@ -21659,14 +21659,14 @@
         {
           "day": 28,
           "account": "utilities",
-          "amountMinor": -45768,
-          "memo": "metered energy: 24 units"
+          "amountMinor": -1120,
+          "memo": "metered energy: 35 units"
         },
         {
           "day": 28,
           "account": "utilities",
-          "amountMinor": -18132,
-          "memo": "metered water: 12 units"
+          "amountMinor": -374,
+          "memo": "metered water: 34 units"
         },
         {
           "day": 28,
@@ -21791,14 +21791,14 @@
         {
           "day": 29,
           "account": "utilities",
-          "amountMinor": -45960,
-          "memo": "metered energy: 30 units"
+          "amountMinor": -1248,
+          "memo": "metered energy: 39 units"
         },
         {
           "day": 29,
           "account": "utilities",
-          "amountMinor": -18165,
-          "memo": "metered water: 15 units"
+          "amountMinor": -363,
+          "memo": "metered water: 33 units"
         },
         {
           "day": 29,
@@ -21905,14 +21905,14 @@
         {
           "day": 30,
           "account": "utilities",
-          "amountMinor": -45768,
-          "memo": "metered energy: 24 units"
+          "amountMinor": -1184,
+          "memo": "metered energy: 37 units"
         },
         {
           "day": 30,
           "account": "utilities",
-          "amountMinor": -18132,
-          "memo": "metered water: 12 units"
+          "amountMinor": -418,
+          "memo": "metered water: 38 units"
         },
         {
           "day": 30,
@@ -21994,6 +21994,24 @@
         },
         {
           "day": 31,
+          "account": "utilities",
+          "amountMinor": -45000,
+          "memo": "energy standing charge"
+        },
+        {
+          "day": 31,
+          "account": "utilities",
+          "amountMinor": -18000,
+          "memo": "water standing charge"
+        },
+        {
+          "day": 31,
+          "account": "utilities",
+          "amountMinor": -9000,
+          "memo": "waste standing charge"
+        },
+        {
+          "day": 31,
           "account": "commercialSpaces",
           "amountMinor": 111960,
           "memo": "space.carpark self-operated"
@@ -22013,7 +22031,7 @@
         {
           "day": 31,
           "account": "loyaltyBreakage",
-          "amountMinor": 24854,
+          "amountMinor": 24288,
           "memo": "loyalty points released"
         },
         {
@@ -22055,14 +22073,14 @@
         {
           "day": 31,
           "account": "utilities",
-          "amountMinor": -45576,
-          "memo": "metered energy: 18 units"
+          "amountMinor": -1184,
+          "memo": "metered energy: 37 units"
         },
         {
           "day": 31,
           "account": "utilities",
-          "amountMinor": -18099,
-          "memo": "metered water: 9 units"
+          "amountMinor": -517,
+          "memo": "metered water: 47 units"
         },
         {
           "day": 31,
@@ -22139,14 +22157,14 @@
         {
           "day": 32,
           "account": "utilities",
-          "amountMinor": -45512,
-          "memo": "metered energy: 16 units"
+          "amountMinor": -864,
+          "memo": "metered energy: 27 units"
         },
         {
           "day": 32,
           "account": "utilities",
-          "amountMinor": -18088,
-          "memo": "metered water: 8 units"
+          "amountMinor": -330,
+          "memo": "metered water: 30 units"
         },
         {
           "day": 32,
@@ -22265,14 +22283,14 @@
         {
           "day": 33,
           "account": "utilities",
-          "amountMinor": -45896,
-          "memo": "metered energy: 28 units"
+          "amountMinor": -1056,
+          "memo": "metered energy: 33 units"
         },
         {
           "day": 33,
           "account": "utilities",
-          "amountMinor": -18154,
-          "memo": "metered water: 14 units"
+          "amountMinor": -264,
+          "memo": "metered water: 24 units"
         },
         {
           "day": 33,
@@ -22397,14 +22415,14 @@
         {
           "day": 34,
           "account": "utilities",
-          "amountMinor": -45960,
-          "memo": "metered energy: 30 units"
+          "amountMinor": -1344,
+          "memo": "metered energy: 42 units"
         },
         {
           "day": 34,
           "account": "utilities",
-          "amountMinor": -18165,
-          "memo": "metered water: 15 units"
+          "amountMinor": -429,
+          "memo": "metered water: 39 units"
         },
         {
           "day": 34,
@@ -22505,14 +22523,14 @@
         {
           "day": 35,
           "account": "utilities",
-          "amountMinor": -45768,
-          "memo": "metered energy: 24 units"
+          "amountMinor": -1184,
+          "memo": "metered energy: 37 units"
         },
         {
           "day": 35,
           "account": "utilities",
-          "amountMinor": -18132,
-          "memo": "metered water: 12 units"
+          "amountMinor": -418,
+          "memo": "metered water: 38 units"
         },
         {
           "day": 35,
@@ -22631,14 +22649,14 @@
         {
           "day": 36,
           "account": "utilities",
-          "amountMinor": -45832,
-          "memo": "metered energy: 26 units"
+          "amountMinor": -1344,
+          "memo": "metered energy: 42 units"
         },
         {
           "day": 36,
           "account": "utilities",
-          "amountMinor": -18209,
-          "memo": "metered water: 19 units"
+          "amountMinor": -561,
+          "memo": "metered water: 51 units"
         },
         {
           "day": 36,
@@ -22757,14 +22775,14 @@
         {
           "day": 37,
           "account": "utilities",
-          "amountMinor": -45896,
-          "memo": "metered energy: 28 units"
+          "amountMinor": -1216,
+          "memo": "metered energy: 38 units"
         },
         {
           "day": 37,
           "account": "utilities",
-          "amountMinor": -18220,
-          "memo": "metered water: 20 units"
+          "amountMinor": -440,
+          "memo": "metered water: 40 units"
         },
         {
           "day": 37,
@@ -22895,14 +22913,14 @@
         {
           "day": 38,
           "account": "utilities",
-          "amountMinor": -45960,
-          "memo": "metered energy: 30 units"
+          "amountMinor": -1472,
+          "memo": "metered energy: 46 units"
         },
         {
           "day": 38,
           "account": "utilities",
-          "amountMinor": -18165,
-          "memo": "metered water: 15 units"
+          "amountMinor": -517,
+          "memo": "metered water: 47 units"
         },
         {
           "day": 38,
@@ -23045,14 +23063,14 @@
         {
           "day": 39,
           "account": "utilities",
-          "amountMinor": -46088,
-          "memo": "metered energy: 34 units"
+          "amountMinor": -1472,
+          "memo": "metered energy: 46 units"
         },
         {
           "day": 39,
           "account": "utilities",
-          "amountMinor": -18187,
-          "memo": "metered water: 17 units"
+          "amountMinor": -451,
+          "memo": "metered water: 41 units"
         },
         {
           "day": 39,
@@ -23152,10 +23170,10 @@
         }
       ],
       "month": {
-        "openingCashMinor": 1908766,
+        "openingCashMinor": 3650402,
         "roomRevenueMinor": 1155210,
         "otherRevenueMinor": 1390350,
-        "operatingExpenseMinor": 1529137,
+        "operatingExpenseMinor": 968293,
         "soldRoomNights": 120,
         "availableRoomNights": 240
       }
@@ -23242,7 +23260,7 @@
       "energyCapacity": 3000,
       "waterUsed": 0,
       "energyUsed": 0,
-      "expenseMinor": 2992,
+      "expenseMinor": 5449,
       "pendingExpenseMinor": 0
     },
     "renderDescriptors": {
@@ -23558,15 +23576,15 @@
     "lastMonthlyClose": {
       "periodKey": "1991-01",
       "openingCashMinor": 40000000,
-      "closingCashMinor": 3561635,
+      "closingCashMinor": 3650402,
       "roomRevenueMinor": 2429760,
       "otherRevenueMinor": 2701050,
-      "operatingExpenseMinor": 7569175,
+      "operatingExpenseMinor": 8294597,
       "soldRoomNights": 257,
       "availableRoomNights": 744,
       "revenueMinor": 5130810,
-      "operatingProfitMinor": -2438365,
-      "cashDeltaMinor": -36438365,
+      "operatingProfitMinor": -3163787,
+      "cashDeltaMinor": -36349598,
       "occupancyBasisPoints": 3454,
       "adrMinor": 9454,
       "revParMinor": 3266
@@ -23737,10 +23755,10 @@
         {
           "hotelId": "hotel.frankfurt.1",
           "brandId": "brand.mainblick",
-          "dateKey": "1991-02-01",
+          "dateKey": "1991-01-01",
           "compliant": false,
           "failures": ["room-quality"],
-          "remediationDueDateKey": "1991-03-03"
+          "remediationDueDateKey": "1991-01-31"
         }
       ],
       "managedHotels": [
@@ -23762,6 +23780,7 @@
           "name": "Hanau Park",
           "cityId": "city.frankfurt.de",
           "rooms": 60,
+          "occupancyBasisPoints": 6500,
           "investmentMinor": 4000000,
           "feasibility": {
             "downsideAnnualRoomRevenueMinor": 169396500,
@@ -23840,7 +23859,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 1213151,
+        "hqMinor": 3515631,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -23901,7 +23920,7 @@
             }
           ],
           "uncoveredAreas": ["legal", "finance", "staff"],
-          "undisclosedLiabilityMinor": 4200000,
+          "discoveredLiabilityMinor": 4200000,
           "costMinor": 3000000
         }
       },
@@ -23917,8 +23936,8 @@
           "periodKey": "1991-01",
           "roomRevenueMinor": 2429760,
           "otherRevenueMinor": 2701050,
-          "operatingExpenseMinor": 7569175,
-          "grossOperatingProfitMinor": -2438365,
+          "operatingExpenseMinor": 5838973,
+          "grossOperatingProfitMinor": -708163,
           "occupancyBasisPoints": 3454,
           "soldRoomNights": 257,
           "availableRoomNights": 744
@@ -23974,8 +23993,8 @@
       }
     },
     "meters": {
-      "energy": 730,
-      "water": 401,
+      "energy": 1081,
+      "water": 1103,
       "waste": 376
     },
     "outages": [],
@@ -25002,535 +25021,535 @@
         "members": [
           {
             "guestId": "guest.booking.10680.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.10680.3",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.1",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.5",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.6",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.7",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.12120.8",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.13560.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.13560.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.15000.0",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.15000.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.15000.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.6",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.7",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.16440.8",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.17880.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.17880.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.17880.4",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.19320.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.19320.1",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.19320.2",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.2040.2",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.2040.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.2040.4",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.2040.5",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.2040.6",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.2040.7",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.20760.0",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.20760.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.20760.3",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.22200.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.22200.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.22200.6",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.22200.7",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.23640.0",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.23640.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.23640.3",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.23640.4",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.23640.5",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.23640.6",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.25080.0",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.25080.1",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.25080.2",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.25080.3",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.26520.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.26520.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.26520.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.26520.5",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.26520.7",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.27960.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.27960.3",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.29400.0",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.29400.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.29400.3",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.30840.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.30840.2",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.30840.3",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.30840.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.30840.5",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.30840.7",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.32280.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.32280.3",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.33720.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.33720.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.33720.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.33720.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.1",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.4",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.5",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.6",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.7",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.3480.8",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.35160.0",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.35160.1",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.35160.3",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.35160.4",
-            "points": 270,
+            "points": 260,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.35160.5",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.36600.0",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25542,25 +25561,25 @@
           },
           {
             "guestId": "guest.booking.36600.2",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.38040.0",
-            "points": 360,
+            "points": 317,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.38040.1",
-            "points": 360,
+            "points": 346,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.38040.2",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25572,19 +25591,19 @@
           },
           {
             "guestId": "guest.booking.38040.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.38040.5",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.38040.7",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25596,7 +25615,7 @@
           },
           {
             "guestId": "guest.booking.39480.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25608,7 +25627,7 @@
           },
           {
             "guestId": "guest.booking.39480.3",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25620,19 +25639,19 @@
           },
           {
             "guestId": "guest.booking.39480.6",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.40920.0",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.40920.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25650,7 +25669,7 @@
           },
           {
             "guestId": "guest.booking.40920.5",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25662,7 +25681,7 @@
           },
           {
             "guestId": "guest.booking.42360.1",
-            "points": 180,
+            "points": 170,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25680,7 +25699,7 @@
           },
           {
             "guestId": "guest.booking.42360.5",
-            "points": 270,
+            "points": 260,
             "qualifyingNights": 3,
             "tier": "none"
           },
@@ -25716,7 +25735,7 @@
           },
           {
             "guestId": "guest.booking.43800.2",
-            "points": 240,
+            "points": 226,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25818,19 +25837,19 @@
           },
           {
             "guestId": "guest.booking.4920.1",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.4920.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.4920.4",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
@@ -25950,66 +25969,66 @@
           },
           {
             "guestId": "guest.booking.600.1",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.6360.2",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.6360.3",
-            "points": 240,
+            "points": 212,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.6360.7",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.7800.1",
-            "points": 270,
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.7800.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.7800.3",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.7800.4",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.7800.5",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
             "guestId": "guest.booking.9240.2",
-            "points": 180,
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           }
         ],
-        "liabilityMinor": 280426
+        "liabilityMinor": 280992
       }
     },
     "reputation": {

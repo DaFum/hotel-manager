@@ -29,7 +29,13 @@ for (let index = 0; index < corpus.commands.length; index++) {
   const recorded = corpus.commands[index];
   while (simulation.state.elapsedMinutes < recorded.envelope.issuedAtMinutes)
     simulation.advanceQuantum();
-  simulation.submitCommands([recorded.envelope]);
+  const [result] = simulation.submitCommands([recorded.envelope]);
+  // A corpus whose recorded verdicts no longer match is not a re-recording,
+  // it is a different scenario; fail loudly rather than write it out.
+  if (result.status !== recorded.expectedStatus)
+    throw new Error(
+      `command ${recorded.envelope.commandId} is now ${result.status}, was ${recorded.expectedStatus}`,
+    );
   orderedEvents.push(...simulation.takeDomainEvents());
   const nextIssuedAt = corpus.commands[index + 1]?.envelope.issuedAtMinutes;
   if (
@@ -53,15 +59,16 @@ const rerecorded: ReplayCorpus = {
   finalStateHash: stateHash(simulation.snapshot()),
 };
 
+// Proved before it is written: a recording nobody can reproduce must not be
+// allowed to replace the corpus it was taken from.
+const verify = replayCorpus(rerecorded);
+if (verify.hash !== rerecorded.finalStateHash)
+  throw new Error("the re-recorded corpus does not reproduce its own hash");
+
 writeFileSync(
   new URL("../fixtures/replay/plans-01-03.json", import.meta.url),
   `${JSON.stringify(rerecorded, null, 2)}\n`,
 );
-
-// A recording nobody can reproduce is worthless, so prove it immediately.
-const verify = replayCorpus(rerecorded);
-if (verify.hash !== rerecorded.finalStateHash)
-  throw new Error("the re-recorded corpus does not reproduce its own hash");
 
 process.stdout.write(
   `recorded hash=${rerecorded.finalStateHash} events=${orderedEvents.length} checkpoints=${monthlyCheckpoints.length}\n`,

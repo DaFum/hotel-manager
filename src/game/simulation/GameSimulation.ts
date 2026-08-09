@@ -175,6 +175,7 @@ import {
   workOvertime,
 } from "../staff/employeeLifecycle";
 import { createProcurementState } from "../purchasing/contracts";
+import { createManagerAuthority } from "../management/managerAuthority";
 import {
   beginStay,
   createGuestRelationsState,
@@ -220,9 +221,11 @@ import {
   totalMonthlyPremiumMinor,
 } from "../risk/insurance";
 import {
+  UTILITY_KINDS,
   createUtilityContracts,
   readMeters,
-  utilityBillMinor,
+  standingChargeMinor,
+  utilityUsageMinor,
   wasteDisposalMinor,
 } from "../utilities/consumption";
 /** The MASTER deterministic phase contract; order is part of the save format. */
@@ -305,6 +308,8 @@ const ARRIVAL_ALERT_IDS = [
 const HANDLED_COMPLAINT_LIMIT = 256;
 /** The minute of the hotel day the commercial spaces are settled for. */
 const SHOP_TRADING_MINUTE = 1080;
+/** Share of the house's waste that is actually sorted before collection. */
+const SORTED_WASTE_BP = 2500;
 
 const WATER_UNIT_MINOR = 2;
 const ENERGY_UNIT_MINOR = 3;
@@ -1195,10 +1200,12 @@ export class GameSimulation implements CommandExecutor {
     this.runBar();
     this.runRoomService();
     this.runWellness();
-    this.runLaundry();
-    this.runCommercialSpaces();
+    // Metered before the wash: facility.laundry is charged for the linen it
+    // is about to put through, not for the empty pile it leaves behind.
     if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
       this.meterDailyUtilities();
+    this.runLaundry();
+    this.runCommercialSpaces();
   }
 
   /**
@@ -1298,7 +1305,9 @@ export class GameSimulation implements CommandExecutor {
     return lobbyThroughput({
       demand: deflectedDemand(demand, installed).demand,
       receptionists: this.onDuty("reception"),
-      porters: this.onDuty("reception"),
+      // The same people carry the bags in a house this size, but not at the
+      // same time as they are working the desk.
+      porters: Math.floor(this.onDuty("reception") / 2),
       partiesPerReceptionist: STARTER_HOTEL.partiesPerReceptionist,
       bagsPerPorter: STARTER_HOTEL.bagsPerPorter,
     });
@@ -1741,7 +1750,13 @@ export class GameSimulation implements CommandExecutor {
         remedy: "goodwill discount",
         costMinor: outcome.expenseMinor,
       },
-      manager?.authority ?? { repairLimitMinor: 0, recoveryLimitMinor: 0 },
+      // An unmanaged house delegates nothing: every gesture goes up.
+      manager?.authority ??
+        createManagerAuthority({
+          repairLimitMinor: 0,
+          capexLimitMinor: 0,
+          recoveryLimitMinor: 0,
+        }),
       manager?.id ?? "unmanaged",
     );
     s.recoveries = [...s.recoveries, record].slice(-HANDLED_COMPLAINT_LIMIT);
@@ -1767,7 +1782,7 @@ export class GameSimulation implements CommandExecutor {
       fullRemedyCostMinor: Math.max(1, roomChargeMinor),
     });
     this.moveSatisfaction(
-      outcome.satisfaction - s.guestSatisfaction.score,
+      explained.after - Math.round(s.guestSatisfaction.score),
       `recovery for ${bookingId}: ${explained.causes.join("; ")}`,
     );
     this.emit(
@@ -1775,7 +1790,8 @@ export class GameSimulation implements CommandExecutor {
         type: "SERVICE_RECOVERY_APPLIED",
         complaintId,
         bookingId,
-        costMinor: outcome.expenseMinor,
+        // What the ledger actually took, not what a full remedy would cost.
+        costMinor: record.postedCostMinor,
       },
       [complaintId, bookingId],
     );
@@ -1850,19 +1866,22 @@ export class GameSimulation implements CommandExecutor {
 
     if (energyUnits > 0 || waterUnits > 0) {
       this.spend(
-        utilityBillMinor(s.utilityContracts.energy, energyUnits),
+        utilityUsageMinor(s.utilityContracts.energy, energyUnits),
         "utilities",
         `metered energy: ${energyUnits} units`,
       );
       this.spend(
-        utilityBillMinor(s.utilityContracts.water, waterUnits),
+        utilityUsageMinor(s.utilityContracts.water, waterUnits),
         "utilities",
         `metered water: ${waterUnits} units`,
       );
     }
     if (wasteKilos > 0)
       this.spend(
-        wasteDisposalMinor({ kilos: wasteKilos, sortedBasisPoints: 2500 }),
+        wasteDisposalMinor(s.utilityContracts.waste, {
+          kilos: wasteKilos,
+          sortedBasisPoints: SORTED_WASTE_BP,
+        }),
         "utilities",
         `waste: ${wasteKilos} kilos`,
       );
@@ -2769,9 +2788,26 @@ export class GameSimulation implements CommandExecutor {
 
   private closeMonth(): void {
     const s = this.state;
+    const periodKey = addDays(s.calendar.dateKey, -1).slice(0, 7);
+
+    // Everything the closed month owes is charged first, so the report the
+    // player reads is the whole month rather than the month before overheads.
+    this.chargeUtilityStandingCharges();
+    this.runCommercialSpaceMonth();
+    this.runEmploymentMonth();
+    this.runCommercialMonth();
+    this.chargeInsuranceAndDepreciation(periodKey);
+    runCompanyMonth(s, `${periodKey}-01`, {
+      emit: (payload, entities) => this.emit(payload, entities),
+      earn: (amountMinor, account, memo) =>
+        this.earn(amountMinor, account, memo),
+      spend: (amountMinor, account, memo) =>
+        this.spend(amountMinor, account, memo),
+    });
+
     const m = s.finance.month;
     s.lastMonthlyClose = closeMonth({
-      periodKey: addDays(s.calendar.dateKey, -1).slice(0, 7),
+      periodKey,
       openingCashMinor: m.openingCashMinor,
       closingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: m.roomRevenueMinor,
@@ -2789,19 +2825,6 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
-    this.runCommercialSpaceMonth();
-    this.runEmploymentMonth();
-    this.runCommercialMonth();
-    this.chargeInsuranceAndDepreciation(s.lastMonthlyClose.periodKey);
-    // The company's month runs on the closed period, after the flagship has
-    // published what it earned and before the new month starts accumulating.
-    runCompanyMonth(s, `${s.lastMonthlyClose.periodKey}-01`, {
-      emit: (payload, entities) => this.emit(payload, entities),
-      earn: (amountMinor, account, memo) =>
-        this.earn(amountMinor, account, memo),
-      spend: (amountMinor, account, memo) =>
-        this.spend(amountMinor, account, memo),
-    });
     s.finance.month = {
       openingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: 0,
@@ -2844,6 +2867,20 @@ export class GameSimulation implements CommandExecutor {
     // The period stamp moves even when nothing was left to depreciate, so the
     // guard above still holds for a fully written-down hotel.
     s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
+  }
+
+  /**
+   * The three utility contracts' standing charges. They are owed once a month
+   * whatever the meters read, which is why they are not part of the daily
+   * usage posting.
+   */
+  private chargeUtilityStandingCharges(): void {
+    for (const kind of UTILITY_KINDS)
+      this.spend(
+        standingChargeMinor(this.state.utilityContracts[kind]),
+        "utilities",
+        `${kind} standing charge`,
+      );
   }
 
   /**

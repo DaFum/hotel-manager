@@ -53,17 +53,37 @@ export function createUtilityContracts(): UtilityContracts {
   };
 }
 
-export function utilityBillMinor(
+/**
+ * What the metered units cost. The standing charge is deliberately not in
+ * here: it is owed once a month whatever the meters say, so adding it to a
+ * usage calculation that runs daily would charge it thirty times over.
+ */
+export function utilityUsageMinor(
   contract: UtilityContract,
   units: number,
 ): number {
   assertCount(units, `${contract.kind} units`);
-  assertNonNegativeMinor(contract.standingChargeMinor, "standing charge");
   assertNonNegativeMinor(contract.unitPriceMinor, "unit price");
   const billable = Math.trunc(
     (units * (10_000 - contract.efficiencyBasisPoints)) / 10_000,
   );
-  return contract.standingChargeMinor + billable * contract.unitPriceMinor;
+  return billable * contract.unitPriceMinor;
+}
+
+/** One month of the contract: the standing charge, whatever was drawn. */
+export function standingChargeMinor(contract: UtilityContract): number {
+  return assertNonNegativeMinor(
+    contract.standingChargeMinor,
+    "standing charge",
+  );
+}
+
+/** A whole month billed at once: the standing charge plus the metered units. */
+export function utilityBillMinor(
+  contract: UtilityContract,
+  units: number,
+): number {
+  return standingChargeMinor(contract) + utilityUsageMinor(contract, units);
 }
 
 export type MeterReadings = Record<UtilityKind, number>;
@@ -107,21 +127,33 @@ export function applyEfficiencyInvestment(
   };
 }
 
-/** What the tip costs; sorted waste is cheaper to give away. */
-export function wasteDisposalMinor(input: {
-  kilos: number;
-  sortedBasisPoints: number;
-}): number {
+/** What sorted waste costs to give away, against the contract's list price. */
+export const SORTED_WASTE_SHARE_BP = 4000;
+
+/**
+ * What the tip costs. Priced off the waste contract, so investing in
+ * efficiency actually shows up on the bill rather than being ignored by a
+ * hardcoded rate.
+ */
+export function wasteDisposalMinor(
+  contract: UtilityContract,
+  input: { kilos: number; sortedBasisPoints: number },
+): number {
   assertCount(input.kilos, "waste kilos");
   assertBasisPoints(input.sortedBasisPoints, "sorted waste");
   if (input.sortedBasisPoints > 10_000) throw new Error("invalid sorted waste");
-  const unsortedMinor = 100;
-  const sortedMinor = 40;
   const sortedKilos = Math.trunc(
     (input.kilos * input.sortedBasisPoints) / 10_000,
   );
+  const sortedMinor = Math.trunc(
+    (contract.unitPriceMinor * SORTED_WASTE_SHARE_BP) / 10_000,
+  );
   return (
-    (input.kilos - sortedKilos) * unsortedMinor + sortedKilos * sortedMinor
+    utilityUsageMinor(contract, input.kilos - sortedKilos) +
+    Math.trunc(
+      (sortedKilos * sortedMinor * (10_000 - contract.efficiencyBasisPoints)) /
+        10_000,
+    )
   );
 }
 

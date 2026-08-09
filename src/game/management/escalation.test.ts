@@ -7,7 +7,7 @@ import {
 } from "./escalation";
 import { createManagerAuthority } from "./managerAuthority";
 
-const AUTHORITY = { repairLimitMinor: 5_000_000 };
+const AUTHORITY = createManagerAuthority({ repairLimitMinor: 5_000_000 });
 
 describe("manager escalation", () => {
   it("escalates spending above the manager limit", () => {
@@ -28,7 +28,7 @@ describe("manager escalation", () => {
     );
     expect(
       decideEscalation(
-        { repairLimitMinor: Number.MAX_SAFE_INTEGER },
+        createManagerAuthority({ repairLimitMinor: Number.MAX_SAFE_INTEGER }),
         { kind: "sell-hotel" },
       ),
     ).toBe("escalate");

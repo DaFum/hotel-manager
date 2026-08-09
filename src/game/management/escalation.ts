@@ -46,13 +46,13 @@ export function escalationReason(
     case "capex":
       return withinLimit(
         decision.amountMinor,
-        authority.capexLimitMinor ?? 0,
+        authority.capexLimitMinor,
         "capex",
       );
     case "recovery":
       return withinLimit(
         decision.amountMinor,
-        authority.recoveryLimitMinor ?? 0,
+        authority.recoveryLimitMinor,
         "recovery",
       );
     case "hire":

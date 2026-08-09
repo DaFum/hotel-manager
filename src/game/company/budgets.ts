@@ -1,4 +1,4 @@
-import { assertNonNegativeMinor } from "../domain/units";
+import { assertMinor, assertNonNegativeMinor } from "../domain/units";
 
 /**
  * What a hotel is allowed to spend without asking. The budget is the quiet
@@ -66,14 +66,24 @@ export function recordCapexSpend<T extends HotelBudget>(
  * named: a group that only ever sees an absolute variance cannot tell a house
  * that beat its number from one that missed it.
  */
+/**
+ * Which way is good. Beating a revenue target is a result; beating a cost
+ * budget is an overspend, and reporting both as "favourable" would tell the
+ * player the opposite of what happened.
+ */
+export type BudgetKind = "revenue" | "cost";
+
 export function budgetVariance(input: {
   targetMinor: number;
   actualMinor: number;
+  kind: BudgetKind;
 }): {
   varianceMinor: number;
   varianceBasisPoints: number;
   favourable: boolean;
 } {
+  assertMinor(input.targetMinor, "variance target");
+  assertMinor(input.actualMinor, "variance actual");
   const varianceMinor = input.actualMinor - input.targetMinor;
   return {
     varianceMinor,
@@ -81,7 +91,8 @@ export function budgetVariance(input: {
       input.targetMinor === 0
         ? 0
         : Math.trunc((varianceMinor * 10_000) / input.targetMinor),
-    favourable: varianceMinor >= 0,
+    favourable:
+      input.kind === "revenue" ? varianceMinor >= 0 : varianceMinor <= 0,
   };
 }
 

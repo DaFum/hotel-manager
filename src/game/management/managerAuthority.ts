@@ -5,17 +5,22 @@ import { assertNonNegativeMinor } from "../domain/units";
  * per kind of decision, because "trusted" is not a single number: a manager
  * who may buy linen is not thereby allowed to sell the building.
  */
+/**
+ * A delegation as it is stored: every limit resolved, so no consumer has to
+ * invent a default for one that is missing. `createManagerAuthority` is the
+ * only way to build one, and it fills in whatever was not declared.
+ */
 export interface ManagerAuthority {
   /** Repairs and maintenance the manager may commission unasked. */
   repairLimitMinor: number;
   /** Capital spend the manager may commit unasked. */
-  capexLimitMinor?: number;
+  capexLimitMinor: number;
   /** Guest service recovery the manager may authorise unasked. */
-  recoveryLimitMinor?: number;
+  recoveryLimitMinor: number;
   /** Whether the manager may hire without the group's agreement. */
-  mayHire?: boolean;
+  mayHire: boolean;
   /** Whether the manager may reprice rooms without the group's agreement. */
-  mayReprice?: boolean;
+  mayReprice: boolean;
 }
 
 /** A named manager and the authority the group has given them. */
@@ -39,10 +44,15 @@ export const DEFAULT_MANAGER_AUTHORITY: ManagerAuthority = {
 export function createManagerAuthority(
   authority: Partial<ManagerAuthority> = {},
 ): ManagerAuthority {
-  const merged = { ...DEFAULT_MANAGER_AUTHORITY, ...authority };
+  // Spreading a partial whose key is present but undefined would overwrite the
+  // default with undefined, silently removing a limit the group relies on.
+  const declared = Object.fromEntries(
+    Object.entries(authority).filter(([, value]) => value !== undefined),
+  ) as Partial<ManagerAuthority>;
+  const merged = { ...DEFAULT_MANAGER_AUTHORITY, ...declared };
   assertNonNegativeMinor(merged.repairLimitMinor, "repair limit");
-  assertNonNegativeMinor(merged.capexLimitMinor ?? 0, "capex limit");
-  assertNonNegativeMinor(merged.recoveryLimitMinor ?? 0, "recovery limit");
+  assertNonNegativeMinor(merged.capexLimitMinor, "capex limit");
+  assertNonNegativeMinor(merged.recoveryLimitMinor, "recovery limit");
   return merged;
 }
 

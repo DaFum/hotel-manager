@@ -108,6 +108,14 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !Number.isSafeInteger(company.treasury.hqMinor)
   )
     problems.push("the state has no complete Plan 05 company");
+  else if (
+    !company.portfolio.hotelLegalEntity ||
+    typeof company.portfolio.hotelLegalEntity !== "object" ||
+    company.portfolio.hotelIds.some((id) => typeof id !== "string")
+  )
+    // Reported rather than thrown: a malformed save must be refused with a
+    // reason the player can read, not crash the validator that refuses it.
+    problems.push("the company portfolio is malformed");
   else {
     if (!company.portfolio.hotelIds.includes(state.hotel?.id as string))
       problems.push("the company portfolio does not hold this save's hotel");

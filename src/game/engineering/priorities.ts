@@ -70,6 +70,11 @@ export function scheduleShift(input: {
   let blocker = "everything scheduled";
 
   for (const job of prioritiseJobs(input.jobs)) {
+    // Validated before it can move the schedule: a malformed job would
+    // otherwise take a negative bite out of the hours or the budget.
+    assertCount(job.minutes, `${job.id} minutes`);
+    assertNonNegativeMinor(job.costMinor, `${job.id} cost`);
+    assertNonNegativeMinor(job.deferredCostMinor, `${job.id} deferred cost`);
     if (job.minutes <= minutesLeft && job.costMinor <= budgetLeft) {
       done.push(job);
       minutesLeft -= job.minutes;

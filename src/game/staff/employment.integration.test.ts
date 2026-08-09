@@ -76,9 +76,29 @@ describe("the workforce against a real trading hotel", () => {
   });
 
   it("clears the month's hours at the close but keeps the record", () => {
-    const s = play(40);
-    for (const employee of s.state.workforce.employees)
-      expect(employee.overtimeHours).toBeGreaterThanOrEqual(0);
+    // Stopped just short of the close, with a month of hours on the books.
+    const s = play(29);
+    const before = s.state.workforce.employees.map((employee) => ({
+      id: employee.id,
+      overtimeHours: employee.overtimeHours,
+      contract: employee.contract,
+      leaveDaysTaken: employee.leaveDaysTaken,
+    }));
+    expect(before.length).toBeGreaterThan(0);
+    expect(before.some((e) => e.overtimeHours > 0)).toBe(true);
+
+    // Three days is enough to cross the close and no more.
+    for (let i = 0; i < (3 * 1440) / QUANTUM_MINUTES; i += 1)
+      s.advanceQuantum();
+
+    for (const employee of s.state.workforce.employees) {
+      const was = before.find((e) => e.id === employee.id);
+      if (!was) continue;
+      // The counter started again; the person and their terms did not.
+      expect(employee.overtimeHours).toBeLessThan(was.overtimeHours);
+      expect(employee.contract).toEqual(was.contract);
+      expect(employee.leaveDaysTaken).toBe(was.leaveDaysTaken);
+    }
     // Employer reputation was moved by what the workforce actually did.
     expect(
       reputationFor(s.state.reputation, "employer", s.state.hotel.id)

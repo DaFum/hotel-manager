@@ -58,7 +58,7 @@ export function authoriseRecovery(
     ? { authorised: true }
     : {
         authorised: false,
-        reason: `recovery of ${offer.costMinor} exceeds the ${authority.recoveryLimitMinor ?? 0} recovery limit`,
+        reason: `recovery of ${offer.costMinor} exceeds the ${authority.recoveryLimitMinor} recovery limit`,
       };
 }
 

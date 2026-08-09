@@ -32,7 +32,8 @@ export interface DueDiligenceReport {
   findings: DueDiligenceFinding[];
   /** Areas nobody examined; whatever is in them travels with the deal. */
   uncoveredAreas: DueDiligenceArea[];
-  undisclosedLiabilityMinor: number;
+  /** What the examined areas actually turned up; nothing hidden is in here. */
+  discoveredLiabilityMinor: number;
   costMinor: number;
 }
 
@@ -65,7 +66,7 @@ export function runDueDiligence(input: {
     uncoveredAreas: DUE_DILIGENCE_AREAS.filter(
       (area) => !examined.includes(area),
     ),
-    undisclosedLiabilityMinor: findings.reduce(
+    discoveredLiabilityMinor: findings.reduce(
       (sum, finding) => sum + finding.costMinor,
       0,
     ),
@@ -85,6 +86,6 @@ export function adjustedValuation(
   return {
     enterpriseValueMinor: valuation.enterpriseValueMinor,
     equityValueMinor:
-      valuation.equityValueMinor - report.undisclosedLiabilityMinor,
+      valuation.equityValueMinor - report.discoveredLiabilityMinor,
   };
 }

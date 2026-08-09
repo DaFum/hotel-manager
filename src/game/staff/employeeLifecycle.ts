@@ -131,11 +131,19 @@ export function workOvertime(
   assertCount(hours, "overtime hours");
   return update(state, id, (employee) => {
     const total = employee.overtimeHours + hours;
-    const excess = Math.max(0, total - OVERTIME_TOLERANCE_HOURS);
+    // Only the excess this call newly created costs morale. Charging the
+    // running total again every call would take the same hour off morale
+    // once for every later hour worked.
+    const excessBefore = Math.max(
+      0,
+      employee.overtimeHours - OVERTIME_TOLERANCE_HOURS,
+    );
+    const excessAfter = Math.max(0, total - OVERTIME_TOLERANCE_HOURS);
+    const charged = Math.trunc(excessAfter / 4) - Math.trunc(excessBefore / 4);
     return {
       ...employee,
       overtimeHours: total,
-      morale: Math.max(0, employee.morale - Math.trunc(excess / 4)),
+      morale: Math.max(0, employee.morale - charged),
     };
   });
 }
@@ -257,6 +265,10 @@ export function resign(
   id: string,
   cause: string,
 ): WorkforceState {
+  const employee = state.employees.find((e) => e.id === id);
+  if (!employee) throw new Error(`unknown employee ${id}`);
+  if (employee.status === "resigned" || employee.status === "dismissed")
+    throw new Error(`employee ${id} has already left`);
   const after = update(state, id, (employee) => ({
     ...employee,
     status: "resigned" as const,

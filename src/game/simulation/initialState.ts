@@ -428,8 +428,7 @@ export function createInitialGameState(seed: number): GameState {
     guestRelations: createGuestRelationsState(),
     recoveries: [],
     commercialSpaces: STARTER_COMMERCIAL_SPACES.reduce(
-      (state, space) =>
-        addSpace(state, { ...space, operator: { ...space.operator } }),
+      (state, space) => addSpace(state, { ...space }),
       createCommercialSpaceState(),
     ),
     lobby: { served: 0, unserved: 0, cause: "lobby is coping", automation: [] },

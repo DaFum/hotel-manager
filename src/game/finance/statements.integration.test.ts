@@ -76,11 +76,24 @@ describe("the statements against a real trading hotel", () => {
     expect(statements.accumulatedDepreciationMinor).toBeGreaterThan(0);
     expect(statements.lastDepreciationPeriodKey).toMatch(/^\d{4}-\d{2}$/);
 
+    // A reload has to actually reach another close for the guard to be
+    // exercised: it is the period stamp, not the reload, that stops the
+    // already-charged month being charged again.
     const before = statements.accumulatedDepreciationMinor;
-    // Re-running the same closed period must add nothing.
+    const chargedPeriod = statements.lastDepreciationPeriodKey;
     const reloaded = new GameSimulation(structuredClone(s.state));
     reloaded.refreshDerivedState();
-    expect(reloaded.state.statements.accumulatedDepreciationMinor).toBe(before);
+    for (let i = 0; i < (40 * 1440) / QUANTUM_MINUTES; i += 1)
+      reloaded.advanceQuantum();
+
+    // Exactly one further month was charged, and it was a different month.
+    const oneMonth = before / 2;
+    expect(reloaded.state.statements.accumulatedDepreciationMinor).toBe(
+      before + oneMonth,
+    );
+    expect(reloaded.state.statements.lastDepreciationPeriodKey).not.toBe(
+      chargedPeriod,
+    );
 
     // Depreciation is not cash: it never appears in the ledger.
     expect(

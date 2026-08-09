@@ -149,6 +149,12 @@ export function validateCompanyCommand(
     case "START_DEVELOPMENT": {
       if (findDevelopment(c, command.developmentId))
         return no("development already started");
+      // The hotel id is derived from the development id, so two schemes with
+      // different ids can still collide on the house they would become.
+      if (
+        c.portfolio.hotelIds.includes(developmentHotelId(command.developmentId))
+      )
+        return no("the group already holds that hotel");
       if (!Number.isSafeInteger(command.rooms) || command.rooms <= 0)
         return no("a development needs whole rooms");
       let feasibility;
@@ -247,6 +253,11 @@ export function acquisitionFloorMinor(
   // findings nobody looked for are not, and travel with the deal instead.
   const adjusted = report ? adjustedValuation(base, report) : base;
   return Math.max(0, adjusted.equityValueMinor);
+}
+
+/** The hotel a scheme becomes; derived once, so nothing can disagree on it. */
+export function developmentHotelId(developmentId: string): string {
+  return `hotel.${developmentId.split(".").slice(1).join(".")}`;
 }
 
 function studyFor(
@@ -405,7 +416,7 @@ export function applyCompanyCommand(
       return;
     }
     case "START_DEVELOPMENT": {
-      const hotelId = `hotel.${command.developmentId.split(".").slice(1).join(".")}`;
+      const hotelId = developmentHotelId(command.developmentId);
       ctx.spend(command.investmentMinor, "capex", command.name);
       c.developments = [
         ...c.developments,
@@ -415,6 +426,7 @@ export function applyCompanyCommand(
           name: command.name,
           cityId: command.cityId,
           rooms: command.rooms,
+          occupancyBasisPoints: command.occupancyBasisPoints,
           investmentMinor: command.investmentMinor,
           feasibility: studyFor(command),
           preOpening: createPreOpening(

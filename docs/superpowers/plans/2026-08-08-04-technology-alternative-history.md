@@ -14,9 +14,17 @@
 
 Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`.
 
-This plan depends on: **Plan 03 final verification**.
+This plan depends on: **Plan 03.5 conformance-remediation final verification**. The original Plan 03 green gate alone is insufficient after the implementation audit.
 
-MASTER-spec coverage: MASTER chapters 34–39.
+MASTER-spec coverage: MASTER chapters 34–39, plus the technology-dependent chapter 6–7 completion delta. See `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -31,16 +39,18 @@ MASTER-spec coverage: MASTER chapters 34–39.
 - currencies and alternate common-currency path
 - era UI derived from adoption
 - 50-year deterministic tests
+- adoption-driven distribution channels, channel inventory, overbooking, and revenue automation
 
 **Explicitly outside this plan**
 - multi-hotel corporate treasury
 - franchising/M&A
 - narrative campaign chains
 - content editor UI
+- non-technological commercial depth, which is owned by Plan 05
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/game/technology/
@@ -368,41 +378,60 @@ git commit -m "feat: add systemic crises"
 **Files:**
 - Create: `src/game/world/climate.ts`
 - Create: `src/game/regulation/compliance.ts`
+- Test: `src/game/world/climate.test.ts`
+- Test: `src/game/world/climate.integration.test.ts`
 - Test: `src/game/regulation/compliance.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+**MASTER completion contract:**
+
+- Weather is a seeded, isolated world input affecting demand, travel reliability,
+  utilities, outdoor facilities, and incident risk without changing another RNG stream.
+- Rare weather/climate events are conditional, offer preparation and recovery choices,
+  and can be insured; they are not arbitrary punishment rolls.
+- Regulation covers safety/fire protection, labor, accessibility, environment/energy,
+  food hygiene, guest data/privacy, construction/zoning, and deliberately abstract tax.
+  Rules have jurisdiction, conditions, lead time, detection, cost, and consequences.
+- Rule changes arise from world state, never hard-coded post-1991 dates. The player gets
+  an explainable gap and remediation path; one opaque `compliant` flag is insufficient.
+
+- [ ] **Step 1: Write the failing tests**
 
 ```ts
 import {expect,it} from 'vitest';import {complianceStatus} from './compliance';it('flags a hotel below a legal requirement',()=>{expect(complianceStatus(60,75)).toBe('noncompliant');});
 ```
 
+Also add focused climate tests proving that the same seed reproduces weather outcomes,
+weather draws do not advance any non-weather RNG stream, and weather effects propagate
+through demand, transport reliability, utilities, outdoor facilities, incidents, and
+insurance in stable phase/ID order.
+
 - [ ] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
-npm run test:run -- src/game/regulation/compliance.test.ts
+npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climate.test.ts src/game/world/climate.integration.test.ts
 ```
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/game/regulation/compliance.ts`:
-
-```ts
-export function complianceStatus(actual:number,required:number){return actual>=required?'compliant':'noncompliant';}
-```
+Implement jurisdiction-scoped regulation definitions and per-hotel compliance cases.
+Evaluation returns requirement, measured state, gap, effective/grace dates, inspection
+risk, remediation options, cost, and consequences. Integrate weather/climate through its
+own RNG stream into demand, transport, utilities, facilities, incidents, and insurance.
+The one-value comparison used by the first unit test is only a leaf rule, not the system.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
-npm run test:run -- src/game/regulation/compliance.test.ts
+npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climate.test.ts src/game/world/climate.integration.test.ts src/game/world/WorldSimulation.test.ts
 npm run typecheck
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/game/regulation/compliance.test.ts src/game/regulation/compliance.ts src/game/world/climate.ts
+git add src/game/regulation/compliance.test.ts src/game/regulation/compliance.ts src/game/world/climate.integration.test.ts src/game/world/climate.test.ts src/game/world/climate.ts src/game/world/WorldSimulation.test.ts
 git commit -m "feat: add climate and compliance"
 ```
 
@@ -547,8 +576,20 @@ git commit -m "feat: orchestrate world simulation"
 
 **Files:**
 - Create: `src/game/persistence/migrations/v3-to-v4.ts`
+- Test: `src/game/persistence/migrations/v3-to-v4.test.ts`
+- Create: `src/game/persistence/fixtures/save-v3-active-reservations.json`
+- Create: `src/game/persistence/fixtures/save-v4.json`
 - Create: `src/game/world/longRun.test.ts`
 - Create: `e2e/alternative-history.spec.ts`
+
+**Target-schema freeze:** Before implementing this migration, finalize the complete v4
+schema for Tasks 1-13. The v3-to-v4 migration owns world/currency state, revenue policies,
+and normalization of every non-empty v3 reservation into the authoritative Task 13
+shape, including channel, rate plan, commission, deposit, guarantee/cancellation terms,
+and explicit defaults with documented economic meaning. Add a non-empty v3 fixture and a
+v4 round-trip fixture; do not rely on `undefined` or load-time guesses. If a v4 save from
+an earlier development build can already exist, add versioned load-time normalization
+and a fixture for that exact v4 shape before accepting it as current.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -556,10 +597,14 @@ git commit -m "feat: orchestrate world simulation"
 import {expect,it} from 'vitest';import {runWorldYears} from '../test/worldScenario';it('keeps bounded macro and technology values for 50 years',()=>{const r=runWorldYears(50,9001);expect(r.maxInflationBp).toBeLessThan(5000);expect(r.maxTechnologyBp).toBeLessThanOrEqual(10000);});
 ```
 
+Add migration failures using `save-v3-active-reservations.json`: assert every active
+reservation is normalized to the frozen v4 schema, revenue policies are explicit, stable
+IDs and original economics are preserved, and migrate-save-reload is idempotent.
+
 - [ ] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
-npm run test:run -- src/game/world/longRun.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
+npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migrations/v3-to-v4.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
 ```
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
@@ -575,15 +620,78 @@ export function migrateV3ToV4(s:Record<string,unknown>){return{...s,saveVersion:
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
-npm run test:run -- src/game/world/longRun.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
+npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migrations/v3-to-v4.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
 npm run typecheck
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add e2e/alternative-history.spec.ts src/game/persistence/migrations/v3-to-v4.ts src/game/world/longRun.test.ts
+git add e2e/alternative-history.spec.ts src/game/persistence/fixtures/save-v3-active-reservations.json src/game/persistence/fixtures/save-v4.json src/game/persistence/migrations/v3-to-v4.test.ts src/game/persistence/migrations/v3-to-v4.ts src/game/world/longRun.test.ts
 git commit -m "feat: integrate alternative history"
+```
+
+---
+
+### Task 13: Complete adoption-driven distribution and revenue management
+
+**Files:**
+- Create: `src/game/distribution/channelEvolution.ts`
+- Create: `src/game/revenue/revenuePolicy.ts`
+- Test: `src/game/distribution/channelEvolution.test.ts`
+- Test: `src/game/revenue/revenuePolicy.test.ts`
+- Test: `src/game/persistence/migrations/v3-to-v4.test.ts`
+- Modify: `src/game/simulation/GameSimulation.ts`
+- Modify: `src/game/persistence/migrations/v3-to-v4.ts`
+- Modify: `e2e/alternative-history.spec.ts`
+
+**MASTER completion contract:**
+
+- Reservations retain booking date separately from stay dates and include party,
+  segment, channel, rate plan, category, status, price, commission, deposit,
+  cancellation/guarantee terms, and special requirements.
+- Lead time, stay length, cancellation, no-show, walk-in, direct, agency, corporate,
+  group, and allotment behavior are segment- and channel-sensitive.
+- OTA/channel-management capabilities unlock from simulated technology, adoption,
+  standards, and hotel implementation; legacy channels can remain meaningful.
+- Every channel draws from one authoritative inventory. Atomic inventory/allotment
+  updates prevent double sale outside an explicit overbooking policy.
+- Rate plans, restrictions, forecasts, elasticity, group contribution, ADR, RevPAR,
+  GOPPAR, and overbooking use declared fixed-point units and expose causes.
+- Automation is a bounded manager policy with authority, explanations, and override—not
+  a perfect-information optimizer. Displacement routes accommodation, transport,
+  compensation, complaints, reputation, channel, and loyalty through normal systems.
+
+- [ ] **Step 1: Write failing tests** for travel agencies, corporate contracts, group
+  blocks, allotments, adoption-gated OTA availability, commission, shared channel
+  inventory, rate plans/restrictions, forecast causes, automatic revenue rules,
+  overbooking, and deterministic displaced-guest compensation. Assert that channel
+  availability follows technology state rather than the calendar year.
+- [ ] **Step 2: Run the expected failures:**
+
+```bash
+npm run test:run -- src/game/distribution/channelEvolution.test.ts src/game/revenue/revenuePolicy.test.ts
+```
+
+- [ ] **Step 3: Implement through typed commands and the existing booking/demand
+  phases.** Reuse one inventory and pricing model for player and competitor hotels;
+  emit causes for conversion, commission, rejection, displacement, and recovery. Add
+  persisted policies and full active-reservation normalization to the complete v3-to-v4
+  migration without consuming another save version.
+- [ ] **Step 4: Verify the focused systems, determinism, E2E, and types:**
+
+```bash
+npm run test:run -- src/game/distribution src/game/revenue src/game/simulation
+npm run test:run -- src/game/persistence/migrations/v3-to-v4.test.ts
+npm run test:e2e -- e2e/alternative-history.spec.ts
+npm run typecheck
+```
+
+- [ ] **Step 5: Commit:**
+
+```bash
+git add src/game/distribution src/game/revenue src/game/simulation/GameSimulation.ts src/game/persistence/fixtures/save-v3-active-reservations.json src/game/persistence/fixtures/save-v4.json src/game/persistence/migrations/v3-to-v4.test.ts src/game/persistence/migrations/v3-to-v4.ts e2e/alternative-history.spec.ts
+git commit -m "feat: complete evolving distribution and revenue"
 ```
 
 ---
@@ -595,6 +703,7 @@ git commit -m "feat: integrate alternative history"
 - MASTER 38 compliance — Task 8.
 - MASTER 39 currencies — Task 9.
 - 50-year deterministic validation — Task 12.
+- MASTER 6–7 later distribution, overbooking, displaced guests, and revenue automation — Task 13.
 
 ### Consistency gate
 

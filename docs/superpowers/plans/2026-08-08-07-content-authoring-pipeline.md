@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-06 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 70-72 and implementation decomposition chapter 90.
+MASTER-spec coverage: MASTER chapters 70-72 and implementation decomposition chapter 90. Cross-plan ownership is recorded in `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -38,7 +46,7 @@ MASTER-spec coverage: MASTER chapters 70-72 and implementation decomposition cha
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/content-schema/common.ts
@@ -890,6 +898,33 @@ git commit -m "docs: finish content authoring pipeline"
 
 ---
 
+---
+
+### Task 15: Add validated player-save export and import boundaries
+
+**Files:**
+- Create: `src/game/persistence/saveTransfer.ts`
+- Test: `src/game/persistence/saveTransfer.test.ts`
+- Create: `src/ui/settings/SaveTransferPanel.tsx`
+- Modify: `src/game/persistence/contentCompatibility.ts`
+- Create: `e2e/save-transfer.spec.ts`
+
+**MASTER completion contract:** Export contains an explicit envelope, save/content/
+protocol versions, checksum, deterministic authoritative payload, and no browser-specific
+IndexedDB metadata. Import validates size, checksum, schema, versions, content references,
+and migration availability before an atomic write; invalid files cannot overwrite a valid
+slot. Filename/date are presentation metadata only. Repository interfaces remain
+sync-provider-neutral so later opt-in cloud saves are possible without placing network or
+wall-clock behavior inside simulation state; cloud sync itself remains non-P0.
+
+- [ ] Write failing round-trip, tamper, incompatible-version, missing-content, oversized,
+  and atomic-no-overwrite tests.
+- [ ] Run `npm run test:run -- src/game/persistence/saveTransfer.test.ts` and confirm fail.
+- [ ] Implement file-byte serialization at the presentation/persistence edge and reuse
+  the canonical migration/content compatibility chain.
+- [ ] Run persistence/migration/content tests, import/export E2E, typecheck, and lint.
+- [ ] Commit as `feat: add validated save transfer`.
+
 ## Plan self-review
 
 ### Spec coverage
@@ -902,6 +937,7 @@ git commit -m "docs: finish content authoring pipeline"
 - Authoring UI -> Tasks 10-12.
 - Import/export and schema snapshots -> Task 13.
 - Validated core content and documentation -> Task 14.
+- MASTER 72.9-72.11 save export/import and sync-neutral boundary -> Task 15.
 
 ### Consistency gate
 

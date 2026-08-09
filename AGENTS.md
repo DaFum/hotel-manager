@@ -63,13 +63,14 @@ Before implementation:
 
 ## 3. Implementation-plan sequence
 
-The project is implemented through ten gated plans. Treat them as a dependency chain, not a grab bag.
+The project is implemented through ten delivery plans plus the audited Plan 03.5 conformance gate. Treat them as a dependency chain, not a grab bag.
 
 | Plan | File                                                                               | Purpose                                                                                       |
 | ---- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | 01   | `docs/superpowers/plans/2026-08-08-01-1991-single-hotel-vertical-slice-rev-1.1.md` | Prove the core architecture and one playable Frankfurt hotel in 1991.                         |
 | 02   | `docs/superpowers/plans/2026-08-08-02-hotel-depth-specialization.md`               | Deepen rooms, F&B, facilities, engineering, events, classification, and specialization.       |
 | 03   | `docs/superpowers/plans/2026-08-08-03-city-market-competitors.md`                  | Add city markets, labor, property, transport, external actors, and fair competitors.          |
+| 03.5 | `docs/superpowers/plans/2026-08-09-03.5-plans-01-03-conformance-remediation.md`    | Close architecture, integration, persistence, isometric, and long-run proof gaps.             |
 | 04   | `docs/superpowers/plans/2026-08-08-04-technology-alternative-history.md`           | Add systemic technology, trends, macroeconomics, regulation, crises, and currencies.          |
 | 05   | `docs/superpowers/plans/2026-08-08-05-multi-hotel-company-brands.md`               | Add portfolio management, brands, ownership models, managers, development, treasury, and M&A. |
 | 06   | `docs/superpowers/plans/2026-08-08-06-emergent-campaign-narrative.md`              | Add emergent milestones, rivals, careers, media, prestige, choices, and chronicle.            |
@@ -103,6 +104,11 @@ gate is **verified**. Fresh verification on 2026-08-09 produced these exact resu
 - `npm run lint` — passed.
 - `npm run build` — passed.
 - `npm run test:e2e` — passed (8 tests).
+
+An implementation-to-MASTER audit subsequently found that green leaf and slice tests do
+not prove several contracts claimed by Plans 01-03. Plan 03.5 is therefore the active
+remediation gate. Plans 01-03 remain implemented and playable, but are not fully
+conformant until Plan 03.5 passes. Do not start Plan 04 before that gate is green.
 
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external

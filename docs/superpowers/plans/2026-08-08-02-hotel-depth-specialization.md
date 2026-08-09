@@ -40,7 +40,7 @@ MASTER-spec coverage: MASTER chapters 10–21.
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/game/facilities/

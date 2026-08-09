@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-05 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 33.9-33.11 and 45-50; implementation decomposition chapter 89.
+MASTER-spec coverage: MASTER chapters 4, 33.9-33.11 and 45-50; implementation decomposition chapter 89. See `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -30,6 +38,7 @@ MASTER-spec coverage: MASTER chapters 33.9-33.11 and 45-50; implementation decom
 - company and world chronicle
 - long-tail strategic opportunities with delayed consequences
 - choice framing without a global good/evil meter
+- campaign setup, difficulty/sandbox modifiers, endless continuation, and recoverable game-over states
 
 **Explicitly outside this plan**
 - new macroeconomic engines (Plan 04)
@@ -38,7 +47,7 @@ MASTER-spec coverage: MASTER chapters 33.9-33.11 and 45-50; implementation decom
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/game/narrative/eventTypes.ts
@@ -692,6 +701,13 @@ git commit -m "feat: add narrative ui"
 - Test: `src/game/persistence/migrations/v5-to-v6.test.ts`
 - Create: `e2e/campaign.spec.ts`
 
+**Target-schema freeze:** Before implementing this migration, finalize the complete v6
+schema for Tasks 1-13. The v5-to-v6 migration and round-trip fixture include narrative
+collections plus immutable campaign configuration, disclosed difficulty and sandbox
+inputs, career/outcome state, distress/recovery progress, the 2026 milestone, and endless
+continuation state. If an earlier development v6 save can exist, normalize and test that
+specific partial shape at load time; do not infer difficulty from current content.
+
 - [ ] **Step 1: Write the failing test**
 
 ```ts
@@ -743,6 +759,60 @@ git commit -m "test: cover emergent campaign"
 
 ---
 
+### Task 13: Implement campaign setup, difficulty, sandbox, and career outcomes
+
+**Files:**
+- Create: `src/game/campaign/campaignConfig.ts`
+- Create: `src/game/campaign/careerOutcome.ts`
+- Test: `src/game/campaign/campaignConfig.test.ts`
+- Test: `src/game/campaign/careerOutcome.test.ts`
+- Create: `src/ui/story/CampaignSetup.tsx`
+- Create: `src/ui/story/CareerOutcomeModal.tsx`
+- Modify: `src/game/persistence/migrations/v5-to-v6.ts`
+- Modify: `e2e/campaign.spec.ts`
+
+**MASTER completion contract:**
+
+- Standard start is Frankfurt, 1 January 1991, one small fictional hotel, limited
+  capital/credit, hands-on responsibility, and plausible demand/competition.
+- Difficulty discloses independent capital, credit, volatility, labor, competitor, event,
+  and assistance inputs. Sandbox options are orthogonal and serialized; no setting gives
+  AI hidden money or knowledge.
+- Milestones react to state, 2026 is recorded without stopping time, and deterministic
+  endless continuation remains available.
+- Distress exposes refinancing, restructuring, sale, and recovery before terminal
+  closure. Restart/load/outcome paths are explicit, accessible, and chronicle-aware.
+
+- [ ] **Step 1: Write failing tests** for the fixed 1 January 1991 Frankfurt standard
+  start; declared difficulty presets; orthogonal sandbox options; deterministic starting
+  capital/credit/demand/competitor effects; restructuring, sale, and restart paths; the
+  2026 milestone without a hard stop; and endless continuation.
+- [ ] **Step 2: Confirm expected failures:**
+
+```bash
+npm run test:run -- src/game/campaign/campaignConfig.test.ts src/game/campaign/careerOutcome.test.ts
+```
+
+- [ ] **Step 3: Implement immutable campaign configuration at creation, typed outcome
+  commands, and accessible setup/outcome UI.** Difficulty changes declared inputs only,
+  never hidden AI cheats. Bankruptcy offers modeled recovery paths before terminal
+  closure. Persist configuration and outcomes through v5-to-v6.
+- [ ] **Step 4: Verify focused tests, deterministic campaign replay, E2E, and types:**
+
+```bash
+npm run test:run -- src/game/campaign src/game/narrative
+npm run test:e2e -- e2e/campaign.spec.ts
+npm run typecheck
+```
+
+- [ ] **Step 5: Commit:**
+
+```bash
+git add src/game/campaign src/ui/story/CampaignSetup.tsx src/ui/story/CareerOutcomeModal.tsx src/game/persistence/migrations/v5-to-v6.ts e2e/campaign.spec.ts
+git commit -m "feat: define campaign setup and career outcomes"
+```
+
+---
 ## Plan self-review
 
 ### Spec coverage
@@ -757,6 +827,7 @@ git commit -m "test: cover emergent campaign"
 - No good/evil meter -> Task 10.
 - Narrative UI -> Task 11.
 - Persistence and deterministic campaign acceptance -> Task 12.
+- MASTER 4 campaign setup, difficulty, sandbox, recoverable game over, 2026 milestone, and endless continuation -> Task 13.
 
 ### Consistency gate
 

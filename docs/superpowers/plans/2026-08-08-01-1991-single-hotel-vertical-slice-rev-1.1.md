@@ -21,7 +21,6 @@ MASTER-spec coverage: MASTER chapters 1-19, 22, 51-57, 59-76 and Subproject 1 ch
 ## Scope contract
 
 **In scope**
-- new Git repository at /mnt/data/hotel-manager
 - Frankfurt 1991 baseline and fictional 24-room hotel
 - versioned Worker protocol and isolated RNG streams
 - 5-minute deterministic simulation quantum with fixed phase order
@@ -46,7 +45,7 @@ MASTER-spec coverage: MASTER chapters 1-19, 22, 51-57, 59-76 and Subproject 1 ch
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 package.json

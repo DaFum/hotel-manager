@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-07 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 51-58 and 78; implementation decomposition chapter 90.
+MASTER-spec coverage: MASTER chapters 51-58 and 78; implementation decomposition chapter 90. Cross-plan ownership is recorded in `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -38,7 +46,7 @@ MASTER-spec coverage: MASTER chapters 51-58 and 78; implementation decomposition
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/i18n/index.ts
@@ -486,6 +494,24 @@ git commit -m "feat: add causal context help"
 - Create: `src/ui/notifications/notificationPreferences.ts`
 - Create: `src/ui/notifications/NotificationCenter.tsx`
 - Test: `src/ui/notifications/notificationPreferences.test.ts`
+- Create: `src/ui/notifications/notificationIntegration.test.tsx`
+- Modify: `src/game/domain/protocol.ts`
+- Modify: `src/game/simulation/simulation.worker.ts`
+- Modify: `src/app/GameClient.ts`
+- Test: `src/app/GameClient.test.ts`
+- Modify: `src/game/settings/playerPreferences.ts`
+- Modify: `src/game/persistence/migrations/v6-to-v7.ts`
+- Modify: `e2e/accessibility.spec.ts`
+
+**MASTER completion contract:**
+
+- Notifications carry stable category/type, source hotel/region/company, severity, time,
+  causes, delegate, action target, read/acknowledged state, and grouping identity.
+- Filters cover category, severity, hotel, region, and delegated responsibility.
+- Auto-pause is configured by type/severity, uses the typed Worker control protocol, and
+  cannot race or falsely appear applied. Delegated items summarize while critical
+  exceptions escalate; repeated low-value alerts group for mature portfolios.
+- Severity has text/icon and accessible live-region semantics; sound is never sole signal.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -501,35 +527,42 @@ describe('notification preferences', () => {
 });
 ```
 
+Add protocol/integration failures for a correlated `PAUSE` request and its
+pending/accepted/rejected states. Reuse the existing `COMMAND_ACCEPTED` and
+`COMMAND_REJECTED` response families with the pause request ID rather than adding an
+ad-hoc Worker message. Prove a rejected or stale response cannot render the game paused.
+Add deterministic grouping/delegation/escalation cases and DOM assertions for role/live
+region, text/icon severity, focusable action target, and non-audio critical feedback.
+
 - [ ] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
-npm run test:run -- src/ui/notifications/notificationPreferences.test.ts
+npm run test:run -- src/ui/notifications/notificationPreferences.test.ts src/ui/notifications/notificationIntegration.test.tsx src/app/GameClient.test.ts src/game/domain/protocol.test.ts
 ```
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/ui/notifications/notificationPreferences.ts`:
-
-```ts
-export type AlertSeverity='info'|'advisory'|'warning'|'critical';
-const rank:Record<AlertSeverity,number>={info:0,advisory:1,warning:2,critical:3};
-export function shouldPauseForAlert(actual:AlertSeverity,minimum:AlertSeverity):boolean { return rank[actual]>=rank[minimum]; }
-```
+Implement the full notification record and preference schema from the completion
+contract, deterministic grouping/deduplication, delegated summaries/escalations, and a
+protocol-level pause request with pending/accepted/rejected presentation. The severity
+comparison from the first unit test is only one pure leaf rule. Persist filters,
+delegation, grouping and auto-pause preferences through v6-to-v7; presentation pending
+state remains transient.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
-npm run test:run -- src/ui/notifications/notificationPreferences.test.ts
+npm run test:run -- src/ui/notifications/notificationPreferences.test.ts src/ui/notifications/notificationIntegration.test.tsx src/app/GameClient.test.ts src/game/domain/protocol.test.ts
+npm run test:e2e -- e2e/accessibility.spec.ts
 npm run typecheck
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/ui/notifications/NotificationCenter.tsx src/ui/notifications/notificationPreferences.test.ts src/ui/notifications/notificationPreferences.ts
+git add e2e/accessibility.spec.ts src/app/GameClient.test.ts src/app/GameClient.ts src/game/domain/protocol.test.ts src/game/domain/protocol.ts src/game/persistence/migrations/v6-to-v7.ts src/game/settings/playerPreferences.ts src/game/simulation/simulation.worker.ts src/ui/notifications/NotificationCenter.tsx src/ui/notifications/notificationIntegration.test.tsx src/ui/notifications/notificationPreferences.test.ts src/ui/notifications/notificationPreferences.ts
 git commit -m "feat: add notification preferences"
 ```
 

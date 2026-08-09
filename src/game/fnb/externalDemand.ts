@@ -1,3 +1,4 @@
+import { assertBasisPoints, assertCount } from "../domain/units";
 export interface ExternalDemandInput {
   /** Covers the outlet draws from the city at market price and average repute. */
   baseCovers: number;
@@ -17,6 +18,10 @@ const PRICE_ELASTICITY_BP = 15000;
  * so each cause stays inspectable: season, price, then reputation.
  */
 export function externalCovers(x: ExternalDemandInput): number {
+  assertCount(x.baseCovers, "base covers");
+  assertBasisPoints(x.seasonalityBp, "seasonality");
+  assertBasisPoints(x.priceIndexBp, "price index");
+  assertBasisPoints(x.reputationBp, "reputation");
   const priceBp = Math.max(
     0,
     10000 -

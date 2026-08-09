@@ -1,3 +1,4 @@
+import { assertNonNegativeMinor } from "../domain/units";
 /**
  * A conference is sold as four separate lines. Keeping them apart is what lets
  * the player see whether an event earned its money on rooms or on catering.
@@ -10,6 +11,10 @@ export interface ContractLines {
 }
 
 export function contractValueMinor(i: ContractLines): number {
+  // Each line is checked before the sum: a negative line offset by another
+  // would otherwise pass a safe-integer check on the total alone.
+  for (const [line, value] of Object.entries(i))
+    assertNonNegativeMinor(value, `contract ${line}`);
   const total = i.rental + i.rooms + i.catering + i.technology;
   if (!Number.isSafeInteger(total)) throw new Error("invalid contract value");
   return total;

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { StaffRole } from "../game/domain/staffRoles";
 import { formatDm } from "./money";
 
 export interface StaffMember {
@@ -13,10 +14,10 @@ export interface StaffMember {
 export function StaffDashboard(props: {
   staff: readonly StaffMember[];
   /** The roles the hotel can roster; the deep facilities need their own. */
-  roles: readonly string[];
-  onHire: (role: string) => void;
+  roles: readonly StaffRole[];
+  onHire: (role: StaffRole) => void;
 }) {
-  const [role, setRole] = useState(props.roles[0] ?? "housekeeping");
+  const [role, setRole] = useState<StaffRole>(props.roles[0] ?? "housekeeping");
   return (
     <section aria-label="Staff">
       <h2>Staff</h2>
@@ -46,7 +47,10 @@ export function StaffDashboard(props: {
       </table>
       <label>
         Role
-        <select value={role} onChange={(event) => setRole(event.target.value)}>
+        <select
+          value={role}
+          onChange={(event) => setRole(event.target.value as StaffRole)}
+        >
           {props.roles.map((r) => (
             <option key={r} value={r}>
               {r}

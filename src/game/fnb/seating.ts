@@ -1,3 +1,4 @@
+import { assertCount, assertMinutes } from "../domain/units";
 import { availableSeats } from "./menu";
 
 /** How often a seat can be sold again during one service. */
@@ -5,6 +6,8 @@ export function seatTurns(
   serviceMinutes: number,
   averageStayMinutes: number,
 ): number {
+  assertMinutes(serviceMinutes, "service minutes");
+  assertMinutes(averageStayMinutes, "average stay minutes");
   if (averageStayMinutes <= 0) return 0;
   return Math.max(0, Math.floor(serviceMinutes / averageStayMinutes));
 }
@@ -27,6 +30,7 @@ export interface SeatingInput {
  * facility capacity primitives use everywhere else.
  */
 export function seatedCovers(x: SeatingInput): number {
+  assertCount(x.kitchenCovers, "kitchen covers");
   const seatCapacity =
     availableSeats(x.seats, x.reservedSeats, x.walkIns) *
     seatTurns(x.serviceMinutes, x.averageStayMinutes);
@@ -35,5 +39,7 @@ export function seatedCovers(x: SeatingInput): number {
 
 /** Demand the outlet had to refuse; the number the player needs to see. */
 export function turnedAwayCovers(demand: number, capacity: number): number {
+  assertCount(demand, "demand covers");
+  assertCount(capacity, "capacity covers");
   return Math.max(0, demand - capacity);
 }

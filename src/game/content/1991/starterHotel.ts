@@ -16,6 +16,12 @@ export const STARTER_HOTEL = {
   // --- deep facilities ---------------------------------------------------
   restaurantSeats: 48,
   barSeats: 24,
+  /** Covers the bar draws from the city at market price and average repute. */
+  barBaseExternalCovers: 20,
+  /** The bar's price against the comparable city price, in basis points. */
+  barPriceIndexBp: 10000,
+  /** The bar's standing with non-resident guests, in basis points. */
+  barReputationBp: 5000,
   /** Treatment rooms and the daily opening window of the small spa. */
   treatmentRooms: 2,
   wellnessOpenMinutes: 6 * 60,

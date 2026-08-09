@@ -1,3 +1,4 @@
+import { assertCount, assertMinutes, safeProductMinor } from "../domain/units";
 import { availableThroughput } from "../facilities/capacity";
 import { seatTurns } from "./seating";
 
@@ -22,6 +23,10 @@ export interface BarInput {
  * facility: room, equipment behind the counter, and staff on the shift.
  */
 export function barCovers(x: BarInput): number {
+  assertCount(x.seats, "bar seats");
+  assertCount(x.staffed, "barkeepers");
+  assertCount(x.demand, "bar demand");
+  assertMinutes(x.minuteOfDay, "minute of day");
   if (x.minuteOfDay < BAR_OPEN_MINUTE || x.minuteOfDay >= BAR_CLOSE_MINUTE)
     return 0;
   const turns = seatTurns(BAR_CLOSE_MINUTE - BAR_OPEN_MINUTE, BAR_STAY_MINUTES);
@@ -35,6 +40,5 @@ export function barCovers(x: BarInput): number {
 }
 
 export function barRevenueMinor(covers: number, coverMinor: number): number {
-  if (!Number.isInteger(coverMinor)) throw new Error("minor units required");
-  return Math.max(0, covers) * coverMinor;
+  return safeProductMinor(covers, coverMinor, "bar revenue");
 }

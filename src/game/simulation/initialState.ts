@@ -11,6 +11,7 @@ import type { RenovationJob } from "../building/renovations";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
 import { defaultModuleForCategory } from "../content/rooms/modules";
+import { STARTER_PLANT } from "../content/1991/plant";
 
 export interface RoomRecord {
   id: string;
@@ -181,24 +182,14 @@ export function createInitialGameState(seed: number): GameState {
     stock: { "cleaning-unit": 240, "breakfast-portion": 180 },
     pendingOrders: [],
     staff: STARTER_STAFF.map((s) => ({ ...s, absent: false })),
-    assets: [
-      {
-        id: "asset.boiler",
-        condition: 9000,
-        status: "operational",
-        minutesSinceService: 0,
-        rated: 120,
-        replacementMinor: 4_500_000,
-      },
-      {
-        id: "asset.lift",
-        condition: 9500,
-        status: "operational",
-        minutesSinceService: 0,
-        rated: 180,
-        replacementMinor: 6_000_000,
-      },
-    ],
+    assets: STARTER_PLANT.map((a) => ({
+      id: a.id,
+      condition: a.startingCondition,
+      status: "operational" as const,
+      minutesSinceService: 0,
+      rated: a.rated,
+      replacementMinor: a.replacementMinor,
+    })),
     finance: {
       cashMinor: STARTER_HOTEL.startingCashMinor,
       payableMinor: 0,

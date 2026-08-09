@@ -51,7 +51,9 @@ export class FacilityLayer {
   readonly container = new Container();
 
   render(rows: readonly FacilityTile[]): void {
-    this.container.removeChildren();
+    // removeChildren only detaches; the Graphics keep their GPU resources
+    // until each one is destroyed, and render runs on every snapshot.
+    for (const child of this.container.removeChildren()) child.destroy();
     rows.forEach((row, index) => {
       const y = index * BAR_SPACING;
       const track = new Graphics()

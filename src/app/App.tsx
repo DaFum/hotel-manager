@@ -97,7 +97,7 @@ export function App() {
         onHire={(role) =>
           game.send({
             type: "HIRE",
-            role: role as (typeof STAFF_ROLES)[number],
+            role,
             shift: "morning",
             monthlyWageMinor: 250_000,
           })

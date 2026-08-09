@@ -1,3 +1,4 @@
+import { assertMinutes } from "../domain/units";
 import { roomModule } from "../content/rooms/modules";
 
 /**
@@ -48,11 +49,14 @@ export function planProject(moduleId: string, affected: string[]): Project {
 }
 
 export function advanceProject(p: Project, m: number): Project {
+  // A NaN would survive every comparison below and walk the project straight
+  // to complete, so elapsed time is validated before anything moves.
+  assertMinutes(m, "elapsed minutes");
   let phase = p.phase;
   let remainingMinutes = p.remainingMinutes;
   // Time carries across phase boundaries so a long step cannot silently stall
   // a project on a phase it already finished.
-  let left = Math.max(0, m);
+  let left = m;
   while (phase !== "complete") {
     const spent = Math.min(left, remainingMinutes);
     remainingMinutes -= spent;

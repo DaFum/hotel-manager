@@ -1,3 +1,15 @@
+import { safeProductMinor } from "../domain/units";
+import {
+  EXPANSION_COST_PER_SQM_MINOR,
+  EXPANSION_SQM,
+  SPECIALIZATIONS,
+} from "../content/1991/classification";
+
+export {
+  EXPANSION_COST_PER_SQM_MINOR,
+  EXPANSION_SQM,
+  SPECIALIZATIONS,
+} from "../content/1991/classification";
 /**
  * A specialization is a deliberate profile, not a free label: it pays only
  * against the floor area and facilities the hotel actually built for it.
@@ -16,27 +28,6 @@ export interface Specialization {
   /** The bonus is capped at this many basis points however large the build. */
   maxBonusBp: number;
 }
-
-export const SPECIALIZATIONS: readonly Specialization[] = [
-  {
-    id: "spec.conference",
-    name: "Conference hotel",
-    segmentId: "segment.corporate",
-    requires: "conferenceSqm",
-    thresholdSqm: 300,
-    bonusBp: 500,
-    maxBonusBp: 2000,
-  },
-  {
-    id: "spec.wellness",
-    name: "Wellness hotel",
-    segmentId: "segment.leisure",
-    requires: "wellnessSqm",
-    thresholdSqm: 250,
-    bonusBp: 500,
-    maxBonusBp: 2000,
-  },
-];
 
 export function specialization(id: string): Specialization {
   const found = SPECIALIZATIONS.find((s) => s.id === id);
@@ -61,10 +52,6 @@ export function specializationBonusBp(
   return Math.min(spec.maxBonusBp, steps * spec.bonusBp);
 }
 
-/** Square metres one expansion adds, and what building them costs. */
-export const EXPANSION_SQM = 60;
-export const EXPANSION_COST_PER_SQM_MINOR = 24_000;
-
 export type ExpandableArea = Specialization["requires"];
 
 export const EXPANDABLE_AREAS: readonly ExpandableArea[] = [
@@ -73,5 +60,5 @@ export const EXPANDABLE_AREAS: readonly ExpandableArea[] = [
 ];
 
 export function expansionCostMinor(sqm: number = EXPANSION_SQM): number {
-  return Math.max(0, Math.round(sqm)) * EXPANSION_COST_PER_SQM_MINOR;
+  return safeProductMinor(sqm, EXPANSION_COST_PER_SQM_MINOR, "expansion");
 }

@@ -1,3 +1,4 @@
+import { assertCount, assertMinor } from "../domain/units";
 /**
  * F&B economics. Every figure is integer Pfennig: a cover's contribution is
  * the number the player steers the outlets on, so it must not drift.
@@ -6,7 +7,10 @@ export function contributionMinor(
   priceMinor: number,
   ingredientMinor: number,
 ): number {
-  if (!Number.isInteger(priceMinor) || !Number.isInteger(ingredientMinor))
+  if (
+    !Number.isSafeInteger(priceMinor) ||
+    !Number.isSafeInteger(ingredientMinor)
+  )
     throw new Error("minor units required");
   return priceMinor - ingredientMinor;
 }
@@ -28,11 +32,11 @@ export interface SoldLine {
 }
 
 export function menuContributionMinor(lines: readonly SoldLine[]): number {
-  return lines.reduce(
-    (sum, l) =>
-      sum + contributionMinor(l.priceMinor, l.ingredientMinor) * l.sold,
-    0,
-  );
+  const total = lines.reduce((sum, l) => {
+    assertCount(l.sold, "covers sold");
+    return sum + contributionMinor(l.priceMinor, l.ingredientMinor) * l.sold;
+  }, 0);
+  return assertMinor(total, "menu contribution");
 }
 
 /**
@@ -44,5 +48,8 @@ export function availableSeats(
   reserved: number,
   walkIns: number,
 ): number {
+  assertCount(seats, "seats");
+  assertCount(reserved, "reserved seats");
+  assertCount(walkIns, "seated walk-ins");
   return Math.max(0, seats - reserved - walkIns);
 }

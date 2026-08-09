@@ -155,6 +155,16 @@ const ROOM_CLEAN_MINUTES = 30;
 const MINUTES_PER_SHIFT = 480;
 /** Trips one lift car can make in a day. */
 const LIFT_TRIPS_PER_DAY = 400;
+/** Productive minutes one technician contributes to a day. */
+const TECHNICIAN_MINUTES_PER_DAY = 240;
+/** Technician minutes a breakdown repair is allowed each day. */
+const REPAIR_MINUTES_PER_DAY = 120;
+/** Condition alerts re-decided at every arrival wave. */
+const ARRIVAL_ALERT_IDS = [
+  "alert.security-short",
+  "alert.staff-areas-crowded",
+  "alert.construction-noise",
+];
 
 export class GameSimulation {
   private queued: GameCommand[] = [];
@@ -524,6 +534,7 @@ export class GameSimulation {
       (m) => m.role === "housekeeping" && !m.absent,
     ).length;
     s.housekeepingMinutes += housekeepers * QUANTUM_MINUTES;
+    if (s.linen.clean > 0) this.clearAlerts(["alert.linen-short"]);
 
     // Conference set-up and hall turnarounds are real work and are done
     // first: they compete with room turnaround for the same shift, which is
@@ -552,6 +563,7 @@ export class GameSimulation {
       }
       const pieces = roomModule(dirty.moduleId).linenPieces;
       if (s.linen.clean < pieces) {
+        this.clearAlerts(["alert.linen-short"]);
         this.pushAlert({
           id: "alert.linen-short",
           severity: "warning",
@@ -678,10 +690,10 @@ export class GameSimulation {
     if (s.calendar.minuteOfDay !== BAR_SERVICE_MINUTE) return;
     const houseDemand = Math.floor((s.stays.length * BAR_TAKE_UP_BP) / 10000);
     const outside = externalCovers({
-      baseCovers: 20,
+      baseCovers: STARTER_HOTEL.barBaseExternalCovers,
       seasonalityBp: seasonalityBp(s.calendar.dateKey),
-      priceIndexBp: 10000,
-      reputationBp: 5000,
+      priceIndexBp: STARTER_HOTEL.barPriceIndexBp,
+      reputationBp: STARTER_HOTEL.barReputationBp,
     });
     const covers = barCovers({
       seats: STARTER_HOTEL.barSeats,
@@ -730,6 +742,7 @@ export class GameSimulation {
   private runWellness(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay === WELLNESS_OPEN_MINUTE) {
+      this.clearAlerts(["alert.spa-unstaffed"]);
       s.wellness = {
         ...s.wellness,
         therapists: this.onDuty("wellness"),
@@ -822,7 +835,7 @@ export class GameSimulation {
     // A shift is a budget, not a per-asset allowance: every service booked
     // today draws it down, so two assets due at once need two technicians.
     let technicianMinutesLeft = this.dayRolled
-      ? this.onDuty("technician") * 240
+      ? this.onDuty("technician") * TECHNICIAN_MINUTES_PER_DAY
       : 0;
     const serviced: string[] = [];
     s.assets = s.assets.map((asset) => {
@@ -837,7 +850,7 @@ export class GameSimulation {
           return { ...degraded, status: "failed" as const };
       }
       if (degraded.status !== "operational") {
-        const technicianMinutes = this.dayRolled ? 120 : 0;
+        const technicianMinutes = this.dayRolled ? REPAIR_MINUTES_PER_DAY : 0;
         return { ...degraded, ...repairAsset(degraded, technicianMinutes) };
       }
       // Planned service happens before a failure, not after one, and costs
@@ -876,13 +889,19 @@ export class GameSimulation {
   private runSatisfaction(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay === ARRIVAL_MINUTE) {
+      // These describe a condition, not an event, so each evaluation clears
+      // the previous verdict before deciding again; otherwise a warning the
+      // player has already fixed stays on the board.
+      this.clearAlerts(ARRIVAL_ALERT_IDS);
+      const load = {
+        base: STARTER_HOTEL.baseSecurityStaff,
+        eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
+        vipLevel: 0,
+      };
       const gap = securityGapAlert(
         this.onDuty("security"),
-        requiredSecurityStaff({
-          base: STARTER_HOTEL.baseSecurityStaff,
-          eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
-          vipLevel: 0,
-        }),
+        requiredSecurityStaff(load),
+        load,
       );
       if (gap)
         this.pushAlert({
@@ -1361,7 +1380,9 @@ export class GameSimulation {
     const reception = Math.max(0, 100 - s.receptionQueue.length * 10);
     const facilities = Math.min(
       100,
-      Math.round((STARTER_HOTEL.conferenceSqm + STARTER_HOTEL.wellnessSqm) / 5),
+      Math.round(
+        (s.investedArea.conferenceSqm + s.investedArea.wellnessSqm) / 5,
+      ),
     );
     s.classification = classify({
       room: roomScore,
@@ -1388,7 +1409,11 @@ export class GameSimulation {
         room.state = "OutOfOrder";
       // Reopening is a cleaning job, not an instant sale: a handed-over room
       // still has to pass housekeeping.
-      else if (before.has(room.id) && !blocked.has(room.id))
+      else if (
+        before.has(room.id) &&
+        !blocked.has(room.id) &&
+        room.state === "OutOfOrder"
+      )
         room.state = "VacantDirty";
     }
 
@@ -1532,6 +1557,11 @@ export class GameSimulation {
       amountMinor: -paid,
       memo: "overdue liabilities settled",
     });
+  }
+
+  /** Drops condition alerts so the next evaluation can restate the truth. */
+  private clearAlerts(ids: readonly string[]): void {
+    this.state.alerts = this.state.alerts.filter((a) => !ids.includes(a.id));
   }
 
   private pushAlert(alert: AlertRecord): void {

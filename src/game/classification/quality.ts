@@ -29,29 +29,9 @@ export interface StarStandard {
   required: StandardScores;
 }
 
-/** The 1991 German classification bands, as content rather than conditionals. */
-export const STAR_STANDARDS: readonly StarStandard[] = [
-  {
-    stars: 1,
-    required: { room: 25, reception: 25, maintenance: 25, facilities: 0 },
-  },
-  {
-    stars: 2,
-    required: { room: 40, reception: 40, maintenance: 40, facilities: 15 },
-  },
-  {
-    stars: 3,
-    required: { room: 60, reception: 60, maintenance: 60, facilities: 40 },
-  },
-  {
-    stars: 4,
-    required: { room: 75, reception: 75, maintenance: 75, facilities: 65 },
-  },
-  {
-    stars: 5,
-    required: { room: 88, reception: 90, maintenance: 88, facilities: 85 },
-  },
-];
+import { STAR_STANDARDS } from "../content/1991/classification";
+
+export { STAR_STANDARDS };
 
 export interface Classification {
   stars: number;

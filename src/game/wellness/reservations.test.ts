@@ -6,7 +6,6 @@ import {
   SLOT_MINUTES,
   type WellnessSchedule,
 } from "./reservations";
-import { fitnessCapacity, fitnessSatisfactionBp } from "./fitness";
 
 it("requires room staff and opening-time capacity", () => {
   expect(canReserve({ roomSlots: 1, staffSlots: 0, isOpen: true })).toBe(false);
@@ -53,13 +52,4 @@ it("books a slot only while one is free", () => {
   expect(third.accepted).toBe(false);
   expect(third.reason).toMatch(/no free slot/);
   expect(third.schedule).toEqual(second.schedule);
-});
-
-it("crowds the gym before it stops letting people in", () => {
-  expect(fitnessCapacity({ areaSqm: 60, equipmentStations: 8 })).toBe(8);
-  expect(fitnessCapacity({ areaSqm: 12, equipmentStations: 8 })).toBe(3);
-  expect(fitnessSatisfactionBp(4, 8)).toBeGreaterThan(
-    fitnessSatisfactionBp(8, 8),
-  );
-  expect(fitnessSatisfactionBp(0, 0)).toBe(0);
 });

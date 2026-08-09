@@ -2,18 +2,39 @@ import {
   CONTENT_VERSION,
   SAVE_VERSION,
   type SaveEnvelope,
-} from "../saveSchema";
+} from "../saveVersions";
 import { STARTER_HOTEL } from "../../content/1991/starterHotel";
+import {
+  STARTER_PLANT,
+  UNKNOWN_PLANT_DEFAULTS,
+} from "../../content/1991/plant";
 import { defaultModuleForCategory } from "../../content/rooms/modules";
 
-/** Nameplate ratings the deep engineering rules need for a v1 asset. */
+/**
+ * Nameplate ratings the deep engineering rules need for a v1 asset. They come
+ * from the same content module a new game reads, so a migrated save and a new
+ * campaign can never disagree about laundry capacity or service cost.
+ */
 const ASSET_DEFAULTS: Record<
   string,
   { rated: number; replacementMinor: number }
-> = {
-  "asset.boiler": { rated: 120, replacementMinor: 4_500_000 },
-  "asset.lift": { rated: 180, replacementMinor: 6_000_000 },
-};
+> = Object.fromEntries(
+  STARTER_PLANT.map((a) => [
+    a.id,
+    { rated: a.rated, replacementMinor: a.replacementMinor },
+  ]),
+);
+
+/** The module a category maps to, or the house default if it is unknown. */
+function fallbackModuleId(category: string): string {
+  try {
+    return defaultModuleForCategory(category).id;
+  } catch {
+    // An unrecognised category must cost the player one room's fit-out, not
+    // the whole save: the load has to keep working.
+    return defaultModuleForCategory("double").id;
+  }
+}
 
 function migrateRoom(room: Record<string, unknown>): Record<string, unknown> {
   const category = String(room.category ?? "double");
@@ -24,21 +45,24 @@ function migrateRoom(room: Record<string, unknown>): Record<string, unknown> {
     moduleId:
       typeof room.moduleId === "string"
         ? room.moduleId
-        : defaultModuleForCategory(category).id,
+        : fallbackModuleId(category),
     styleAgeYears:
       typeof room.styleAgeYears === "number" ? room.styleAgeYears : 16,
   };
 }
 
 function migrateAsset(asset: Record<string, unknown>): Record<string, unknown> {
-  const defaults = ASSET_DEFAULTS[String(asset.id)] ?? {
-    rated: 100,
-    replacementMinor: 2_000_000,
-  };
+  const defaults = ASSET_DEFAULTS[String(asset.id)] ?? UNKNOWN_PLANT_DEFAULTS;
   return {
     minutesSinceService: 0,
-    ...defaults,
     ...asset,
+    // Defaulted after the spread: a stored `rated: undefined` would otherwise
+    // overwrite the fallback and reach the engineering rules as undefined.
+    rated: typeof asset.rated === "number" ? asset.rated : defaults.rated,
+    replacementMinor:
+      typeof asset.replacementMinor === "number"
+        ? asset.replacementMinor
+        : defaults.replacementMinor,
   };
 }
 

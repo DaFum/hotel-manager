@@ -23,9 +23,25 @@ it("adds staff for events and vip load", () => {
 it("names the shortfall rather than only failing quietly", () => {
   expect(securityGapAlert(2, 5)).toEqual({
     short: 3,
-    cause: "event and vip load",
+    cause: "rostered guards below requirement",
   });
   expect(securityGapAlert(5, 5)).toBeNull();
+});
+
+it("blames the part of the requirement that is actually driving it", () => {
+  // Base-only: no event, no VIP, so the cause must not invent one.
+  expect(
+    securityGapAlert(0, 1, { base: 1, eventGuests: 0, vipLevel: 0 })?.cause,
+  ).toBe("base cover for the house");
+  expect(
+    securityGapAlert(1, 3, { base: 1, eventGuests: 300, vipLevel: 0 })?.cause,
+  ).toBe("event load");
+  expect(
+    securityGapAlert(1, 2, { base: 1, eventGuests: 0, vipLevel: 1 })?.cause,
+  ).toBe("vip load");
+  expect(
+    securityGapAlert(1, 5, { base: 1, eventGuests: 300, vipLevel: 2 })?.cause,
+  ).toBe("event load and vip load");
 });
 
 it("sizes staff areas by headcount on the biggest shift", () => {

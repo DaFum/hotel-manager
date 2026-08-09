@@ -1,3 +1,4 @@
+import { assertMinutes, assertNonNegativeMinor } from "../domain/units";
 import {
   advanceProject,
   blockedRooms,
@@ -35,6 +36,7 @@ export function startRenovation(
   cashMinor: number,
   options: { targetModuleId?: string; affected?: string[] } = {},
 ): { cashMinor: number; job: RenovationJob } {
+  assertNonNegativeMinor(cashMinor, "cash");
   if (cashMinor < RENOVATION_COST_MINOR) throw new Error("insufficient cash");
   const targetModuleId = options.targetModuleId ?? "room.standard.double";
   return {
@@ -58,6 +60,7 @@ export function advanceRenovation(
   job: RenovationJob,
   minutes: number,
 ): { roomsAdded: number; job: RenovationJob } {
+  assertMinutes(minutes, "renovation minutes");
   const project = advanceProject(job.project, minutes);
   const justCompleted =
     project.phase === "complete" && job.project.phase !== "complete";

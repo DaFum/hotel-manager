@@ -1,3 +1,4 @@
+import { safeProductMinor } from "../domain/units";
 import { availableThroughput } from "../facilities/capacity";
 import { roomModule } from "../content/rooms/modules";
 
@@ -25,7 +26,7 @@ export function linenSoiled(rooms: readonly { moduleId: string }[]): number {
 }
 
 export function externalLaundryCostMinor(pieces: number): number {
-  return Math.max(0, pieces) * EXTERNAL_PIECE_MINOR;
+  return safeProductMinor(pieces, EXTERNAL_PIECE_MINOR, "external laundry");
 }
 
 export interface LaundryDayInput {

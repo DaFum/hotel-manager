@@ -1,3 +1,4 @@
+import { assertCount, assertMinutes } from "../domain/units";
 /**
  * Room service is a logistics problem, not a menu: the plate has to leave the
  * kitchen, ride the lift, and walk the corridor before it counts as served.
@@ -21,6 +22,9 @@ export const ROOM_SERVICE_OPEN_MINUTE = 1290;
 export const ROOM_SERVICE_CLOSE_MINUTE = 1440;
 
 export function deliveryMinutes(i: DeliveryLegs): number {
+  assertMinutes(i.kitchen, "kitchen minutes");
+  assertMinutes(i.elevator, "lift minutes");
+  assertMinutes(i.service, "service minutes");
   return i.kitchen + i.elevator + i.service;
 }
 
@@ -29,13 +33,17 @@ export function lateDeliveryComplaints(
   orders: number,
   minutes: number,
 ): number {
-  return minutes > PROMISED_DELIVERY_MINUTES ? Math.max(0, orders) : 0;
+  assertCount(orders, "orders");
+  assertMinutes(minutes, "delivery minutes");
+  return minutes > PROMISED_DELIVERY_MINUTES ? orders : 0;
 }
 
 export function roomServiceOrders(x: {
   occupiedRooms: number;
   minuteOfDay: number;
 }): number {
+  assertCount(x.occupiedRooms, "occupied rooms");
+  assertMinutes(x.minuteOfDay, "minute of day");
   if (
     x.minuteOfDay < ROOM_SERVICE_OPEN_MINUTE ||
     x.minuteOfDay >= ROOM_SERVICE_CLOSE_MINUTE

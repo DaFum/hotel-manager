@@ -1,3 +1,4 @@
+import { assertMinutes } from "../domain/units";
 import type { EngineeringAsset } from "../engineering/assets";
 
 export type AssetStatus = "operational" | "failed" | "repairing";
@@ -19,10 +20,17 @@ export const SERVICE_MINUTES = 180;
 export const SERVICE_RECOVERY_BP = 2500;
 
 export function degradeAsset(a: Asset, minutes: number): Asset {
+  assertMinutes(minutes, "wear minutes");
+  // The persisted counter is validated here too: a NaN that reached the save
+  // would make the asset permanently un-serviceable.
+  const sinceService = assertMinutes(
+    a.minutesSinceService ?? 0,
+    "minutes since service",
+  );
   return {
     ...a,
     condition: Math.max(0, a.condition - Math.floor(minutes / 144)),
-    minutesSinceService: (a.minutesSinceService ?? 0) + Math.max(0, minutes),
+    minutesSinceService: sinceService + minutes,
   };
 }
 

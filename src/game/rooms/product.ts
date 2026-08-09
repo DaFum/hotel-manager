@@ -1,3 +1,4 @@
+import { assertCount, assertScore } from "../domain/units";
 /**
  * A room's saleable product. `condition` is physical upkeep; `styleAgeYears`
  * is how long ago the fit-out was current. The MASTER model keeps them apart:
@@ -44,7 +45,16 @@ export function agedAppeal(appeal: number, styleAgeYears: number): number {
   );
 }
 
+function assertProduct(r: RoomProduct): void {
+  assertScore(r.comfort, "comfort");
+  assertScore(r.bath, "bath");
+  assertScore(r.technology, "technology");
+  assertScore(r.condition, "condition");
+  assertCount(r.styleAgeYears, "style age years");
+}
+
 export function roomAppeal(r: RoomProduct): RoomAppeal {
+  assertProduct(r);
   // Integer centi-points throughout: appeal feeds pricing and demand, so it
   // must not drift with floating-point accumulation.
   const raw =
@@ -87,6 +97,7 @@ const SEGMENT_WEIGHTS: Record<
  * to explain conversion, not to silently multiply demand somewhere else.
  */
 export function segmentFitBp(r: RoomProduct, segmentId: string): number {
+  assertProduct(r);
   const w = SEGMENT_WEIGHTS[segmentId] ?? WEIGHTS;
   const raw =
     clamp100(r.comfort) * w.comfort +

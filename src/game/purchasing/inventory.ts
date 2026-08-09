@@ -69,6 +69,7 @@ export function reserveLinen(
 ): { available: number } {
   assertNonNegativeCount(pieces, "pieces");
   const held = stock[sku] ?? 0;
+  assertNonNegativeCount(held, `${sku} stock`);
   if (held < pieces) throw new Error(`insufficient linen: ${held} < ${pieces}`);
   return { available: held - pieces };
 }

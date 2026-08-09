@@ -58,6 +58,11 @@ const booking = (overrides: Partial<Booking> = {}): Booking => ({
   nights: 2,
   terms: TERMS,
   history: [{ status: "confirmed", atMinutes: 0 }],
+  bookingDateKey: "1991-03-01",
+  ratePlanId: "flexible",
+  commissionBp: 0,
+  depositMinor: 0,
+  specialRequirements: [],
   ...overrides,
 });
 

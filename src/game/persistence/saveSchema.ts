@@ -118,6 +118,8 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     3: migrateV3ToV4,
   };
   let current = envelope;
+  if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
+    current = migrateV3ToV4(current);
   while (
     (MIGRATABLE_SAVE_VERSIONS as readonly number[]).includes(
       current.saveVersion,

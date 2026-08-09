@@ -64,6 +64,11 @@ export function reserve(
     nights: r.nights,
     terms: r.terms,
     history: [{ status: "confirmed", atMinutes: r.atMinutes }],
+    bookingDateKey: r.bookingDateKey ?? r.arrivalDateKey,
+    ratePlanId: r.ratePlanId ?? "flexible",
+    commissionBp: r.commissionBp ?? 0,
+    depositMinor: r.depositMinor ?? 0,
+    specialRequirements: [...(r.specialRequirements ?? [])].sort(),
   };
 }
 

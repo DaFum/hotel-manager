@@ -24,7 +24,8 @@ export type GameCommand =
   | { type: "START_RENOVATION" }
   | { type: "SET_SPECIALIZATION"; specializationId: string | null }
   | { type: "EXPAND_FACILITY"; area: ExpandableArea }
-  | { type: "BUY_MARKET_RESEARCH" };
+  | { type: "BUY_MARKET_RESEARCH" }
+  | { type: "ADOPT_TECHNOLOGY"; technologyId: string };
 
 export type CommandType = GameCommand["type"];
 

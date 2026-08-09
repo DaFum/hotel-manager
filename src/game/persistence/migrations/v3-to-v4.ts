@@ -10,6 +10,8 @@ import {
   createSavePolicyMetadata,
 } from "../../simulation/initialState";
 import type { SaveEnvelope } from "../saveVersions";
+import { createWorldState } from "../../world/WorldSimulation";
+import { createRevenuePolicy } from "../../revenue/revenuePolicy";
 
 const DEFAULT_TERMS = {
   guaranteed: false,
@@ -87,6 +89,17 @@ export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
           history: Array.isArray(booking.history)
             ? booking.history
             : [{ status, atMinutes: elapsedMinutes }],
+          bookingDateKey: booking.bookingDateKey ?? "1991-01-01",
+          ratePlanId: booking.ratePlanId ?? "flexible",
+          commissionBp: Number.isSafeInteger(booking.commissionBp)
+            ? booking.commissionBp
+            : 0,
+          depositMinor: Number.isSafeInteger(booking.depositMinor)
+            ? booking.depositMinor
+            : 0,
+          specialRequirements: Array.isArray(booking.specialRequirements)
+            ? booking.specialRequirements
+            : [],
         };
       })
     : [];
@@ -94,7 +107,7 @@ export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
   return {
     ...save,
     saveVersion: 4,
-    contentVersion: "plans-01-03-v4",
+    contentVersion: "plan-04-v4",
     protocolVersion: 2,
     state: {
       ...state,
@@ -119,6 +132,14 @@ export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
         state.linen && typeof state.linen === "object"
           ? { floorStock: 0, ...(state.linen as Record<string, unknown>) }
           : { clean: 0, floorStock: 0, dirty: 0 },
+      world: state.world ?? createWorldState(),
+      revenuePolicy: state.revenuePolicy ?? createRevenuePolicy(),
+      technologyProjects: Array.isArray(state.technologyProjects)
+        ? state.technologyProjects
+        : [],
+      technologyImplementations: Array.isArray(state.technologyImplementations)
+        ? state.technologyImplementations
+        : [],
     },
   };
 }

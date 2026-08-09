@@ -21,6 +21,12 @@ import {
   type CompetitorRecord,
 } from "../city/cityMarket";
 import { createUtilityState, type UtilityState } from "../facilities/utilities";
+import { createWorldState, type WorldState } from "../world/WorldSimulation";
+import {
+  createRevenuePolicy,
+  type RevenuePolicy,
+} from "../revenue/revenuePolicy";
+import type { TechnologyProject } from "../technology/adoption";
 
 export interface RoomRecord {
   id: string;
@@ -204,6 +210,11 @@ export interface GameState {
   };
   elapsedMinutes: number;
   rngState: RngStateRecord;
+  /** Systemic world state; technology capabilities never derive from dates. */
+  world: WorldState;
+  revenuePolicy: RevenuePolicy;
+  technologyProjects: TechnologyProject[];
+  technologyImplementations: string[];
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -308,6 +319,10 @@ export function createInitialGameState(seed: number): GameState {
     rngState: Object.fromEntries(
       Object.entries(streams).map(([k, v]) => [k, v.state]),
     ) as RngStateRecord,
+    world: createWorldState(),
+    revenuePolicy: createRevenuePolicy(),
+    technologyProjects: [],
+    technologyImplementations: [],
   };
 }
 

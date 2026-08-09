@@ -25,8 +25,13 @@ test("plays the remediation journey and reloads from recovery", async ({
   ).toBeVisible();
   const checkpointStatus = await page
     .getByRole("region", { name: "Status bar" })
+    .locator("p")
     .innerText();
-  const checkpointRate = await page.getByLabel("Single rate").inputValue();
+  const singleRate = page
+    .getByRole("region", { name: "Revenue" })
+    .locator("dt", { hasText: "Single rate" })
+    .locator("+ dd");
+  const checkpointRate = await singleRate.innerText();
 
   await page.getByRole("button", { name: "16x", exact: true }).click();
   await expect(
@@ -41,11 +46,13 @@ test("plays the remediation journey and reloads from recovery", async ({
   const before = await page
     .getByRole("region", { name: "Status bar" })
     .innerText();
-  await page.getByRole("button", { name: /Recover generation 0/i }).click();
+  await page.getByRole("button", { name: /Recover generation 1/i }).click();
   const statusBar = page.getByRole("region", { name: "Status bar" });
-  await expect(statusBar).toHaveText(checkpointStatus, { timeout: 30_000 });
-  await expect(statusBar).not.toHaveText(before);
-  await expect(page.getByLabel("Single rate")).toHaveValue(checkpointRate);
+  await expect(statusBar.locator("p")).toHaveText(checkpointStatus, {
+    timeout: 30_000,
+  });
+  await expect(statusBar.locator("p")).not.toHaveText(before);
+  await expect(singleRate).toHaveText(checkpointRate);
   await expect(page.getByLabel("Saves committed")).toBeVisible();
 });
 

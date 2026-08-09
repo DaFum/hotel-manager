@@ -153,6 +153,11 @@ function busyReceptionScenario(): DomainEvent[] {
     // Guaranteed, so every one of them turns up and the queue is real.
     terms: { guaranteed: true, freeCancellationDays: 1, lateChargeBp: 10000 },
     history: [{ status: "confirmed" as const, atMinutes: 0 }],
+    bookingDateKey: state.calendar.dateKey,
+    ratePlanId: "flexible",
+    commissionBp: 0,
+    depositMinor: 0,
+    specialRequirements: [],
   }));
   const s = new GameSimulation(state);
   s.refreshDerivedState();

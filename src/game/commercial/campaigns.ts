@@ -61,6 +61,8 @@ export function channelAvailable(
 export function createCampaign(input: Omit<Campaign, "status">): Campaign {
   if (!input.id) throw new Error("a campaign id is required");
   if (!input.targetSegmentId) throw new Error("a campaign needs a target");
+  if (!Object.hasOwn(COST_PER_CONTACT_MINOR, input.channel))
+    throw new Error("invalid campaign channel");
   if (!Number.isSafeInteger(input.durationDays) || input.durationDays <= 0)
     throw new Error("invalid campaign duration");
   assertNonNegativeMinor(input.budgetMinor, "campaign budget");

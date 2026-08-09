@@ -70,6 +70,17 @@ describe("hotel budgets", () => {
       varianceBasisPoints: -1000,
       favourable: false,
     });
+    expect(
+      budgetVariance({
+        targetMinor: 20_000_000,
+        actualMinor: 22_500_000,
+        kind: "cost",
+      }),
+    ).toEqual({
+      varianceMinor: 2_500_000,
+      varianceBasisPoints: 1250,
+      favourable: false,
+    });
     // A target of nothing cannot be missed by a percentage.
     expect(
       budgetVariance({ targetMinor: 0, actualMinor: 500, kind: "revenue" }),

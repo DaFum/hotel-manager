@@ -247,6 +247,22 @@ describe("ManagerGovernancePanel", () => {
     expect(onResolve).toHaveBeenNthCalledWith(2, "escalation.1", false);
   });
 
+  it("raises a zero repair limit to the minimum useful authority", () => {
+    const onSetRepairLimit = vi.fn();
+    render(
+      <ManagerGovernancePanel
+        managers={[{ ...MANAGER, repairLimitMinor: 0 }]}
+        escalations={[]}
+        onSetRepairLimit={onSetRepairLimit}
+        onResolve={() => {}}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /raise the repair limit/i }),
+    );
+    expect(onSetRepairLimit).toHaveBeenCalledWith("h1", 100_000);
+  });
+
   it("hides resolved escalations and says the queue is empty", () => {
     render(
       <ManagerGovernancePanel

@@ -34,6 +34,11 @@ import { BrandDashboard } from "../ui/company/BrandDashboard";
 import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
 import { ManagerGovernancePanel } from "../ui/company/ManagerGovernancePanel";
 import { CommercialDashboard } from "../ui/company/CommercialDashboard";
+import { CampaignSetup } from "../ui/story/CampaignSetup";
+import { StoryInbox } from "../ui/story/StoryInbox";
+import { ChronicleView } from "../ui/story/ChronicleView";
+import { MilestoneToast } from "../ui/story/MilestoneToast";
+import { CareerOutcomeModal } from "../ui/story/CareerOutcomeModal";
 import {
   brandAuditRows,
   brandRows,
@@ -73,7 +78,12 @@ export function App() {
   const [openHotel, setOpenHotel] = useState<string | null>(null);
   /** Presentation state: where the player is looking, never a game rule. */
   const [camera, setCamera] = useState<CameraState>(createCamera);
+  /** The milestone the toast has already announced; presentation only. */
+  const [announcedMilestone, setAnnouncedMilestone] = useState<string | null>(
+    null,
+  );
   const s = game.snapshot;
+  const latestMilestone = s?.narrative.achievedMilestones.at(-1) ?? null;
 
   if (!s)
     return (
@@ -175,7 +185,7 @@ export function App() {
               s.commercialSpaces.unitsSold[space.id] ?? 0,
             ).hotelShareMinor,
             unitsSold: s.commercialSpaces.unitsSold[space.id] ?? 0,
-            fit: space.fit,
+            fitBp: space.fitBp ?? (space.fit ?? 0) * 100,
           }))}
           lobby={s.lobby}
         />
@@ -254,6 +264,50 @@ export function App() {
           loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
           loyaltyMembers={s.commercial.loyalty.members.length}
           marketableGuests={marketableGuestCount(s)}
+        />
+        <CampaignSetup
+          difficulty={s.narrative.campaign.difficulty}
+          locked={s.elapsedMinutes > 0}
+          onDifficulty={(difficulty) =>
+            game.send({ type: "SET_CAMPAIGN_DIFFICULTY", difficulty })
+          }
+        />
+        <StoryInbox
+          events={s.narrative.activeEvents.map((event) => ({
+            id: event.id,
+            titleKey: `${event.definitionId}.title`,
+            bodyKey: `${event.definitionId}.body`,
+            raisedDateKey: event.triggeredDateKey,
+            choices: event.choices.map((choice) => ({
+              id: choice.id,
+              labelKey: choice.labelKey,
+            })),
+          }))}
+          onChoose={(eventId, choiceId) =>
+            game.send({ type: "RESOLVE_NARRATIVE_EVENT", eventId, choiceId })
+          }
+        />
+        <MilestoneToast
+          milestoneId={
+            latestMilestone !== announcedMilestone ? latestMilestone : null
+          }
+          onDismiss={() => setAnnouncedMilestone(latestMilestone)}
+        />
+        <ChronicleView
+          entries={s.narrative.chronicle.map((entry) => ({
+            id: entry.id,
+            date: entry.date,
+            text: entry.textKey,
+            scope: entry.scope,
+          }))}
+        />
+        <CareerOutcomeModal
+          outcome={s.narrative.career}
+          onRecovery={(path) =>
+            game.send({ type: "TAKE_RECOVERY_MEASURE", path })
+          }
+          onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
+          onRestart={() => game.restart()}
         />
         <TechnologyPanel
           technologies={s.world.technologies}

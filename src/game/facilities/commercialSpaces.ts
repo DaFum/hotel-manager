@@ -33,8 +33,10 @@ export interface CommercialSpace {
   operator: OperatorModel;
   /** People it needs on duty to open at all. */
   staffRequired: number;
-  /** 0-100; how well it suits the house's guests. */
-  fit: number;
+  /** How well it suits the house's guests, in basis points. */
+  fitBp: number;
+  /** Legacy v5 saves used a 0-100 percentage; accepted only while loading. */
+  fit?: number;
   /** Monthly upkeep, whoever runs it. */
   maintenanceMinor: number;
 }
@@ -54,6 +56,7 @@ export function createCommercialSpace(space: CommercialSpace): CommercialSpace {
   assertNonNegativeMinor(space.maintenanceMinor, "space maintenance");
   assertMinuteOfDay(space.openMinute, "space opening minute");
   assertMinuteOfDay(space.closeMinute, "space closing minute");
+  assertBasisPoints(space.fitBp, "space fit");
   if (space.closeMinute <= space.openMinute)
     throw new Error("a space must close after it opens");
   switch (space.operator.kind) {

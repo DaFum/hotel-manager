@@ -384,6 +384,52 @@ describe("domain event buffer", () => {
     expect(journal.pending[0].sequence).toBe(11);
   });
 
+  /**
+   * The campaign side: a story raised by a month the hotel actually had, the
+   * decision that answers it, and a measure taken against a position the company
+   * cannot pay its way out of.
+   */
+  function campaignScenario(): DomainEvent[] {
+    const s = sim(11);
+    const collected: DomainEvent[] = [];
+    // The campaign is agreed before the first day of it.
+    expect(
+      submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "expert" })
+        .status,
+    ).toBe("accepted");
+    collected.push(...s.takeDomainEvents());
+    // A month of ordinary trading is enough for a travel writer to notice.
+    collected.push(...runDays(s, 32));
+    const raised = s.state.narrative.activeEvents[0];
+    expect(raised).toBeTruthy();
+    submit(s, {
+      type: "RESOLVE_NARRATIVE_EVENT",
+      eventId: raised.id,
+      choiceId: "compensate",
+    });
+    collected.push(...s.takeDomainEvents());
+
+    // Owing more than the account holds is the position the measures exist for.
+    s.state.finance.payableMinor = s.state.finance.cashMinor + 1_000_000;
+    const measure = submit(s, {
+      type: "TAKE_RECOVERY_MEASURE",
+      path: "refinance",
+    });
+    expect(measure.status).toBe("accepted");
+    collected.push(...s.takeDomainEvents());
+
+    // The 2026 review, put in front of the player rather than waited out.
+    s.state.narrative.career = {
+      ...s.state.narrative.career,
+      careerMilestone2026: true,
+    };
+    expect(submit(s, { type: "CONTINUE_ENDLESS_CAREER" }).status).toBe(
+      "accepted",
+    );
+    collected.push(...s.takeDomainEvents());
+    return collected;
+  }
+
   it("publishes an event for every declared simulation transition", () => {
     const seen = new Set<DomainEventType>();
     const record = (events: readonly DomainEvent[]) => {
@@ -400,6 +446,7 @@ describe("domain event buffer", () => {
     record(routeChangeScenario());
     record(technologyAdoptionScenario());
     record(companyScenario());
+    record(campaignScenario());
 
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);

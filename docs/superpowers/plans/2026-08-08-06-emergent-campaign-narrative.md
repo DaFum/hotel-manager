@@ -1,6 +1,6 @@
 # Emergent Campaign & Narrative Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Add a simulation-driven career narrative with milestones, named rivals, key staff careers, changing media reach, prestige, strategic opportunities, and a durable company/world chronicle.
 
@@ -77,7 +77,7 @@ e2e/campaign.spec.ts
 - Create: `src/game/narrative/eventEngine.ts`
 - Test: `src/game/narrative/eventEngine.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -92,7 +92,7 @@ describe('narrative event eligibility', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/narrative/eventEngine.test.ts
@@ -100,7 +100,7 @@ npm run test:run -- src/game/narrative/eventEngine.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/narrative/eventEngine.ts`:
 
@@ -112,14 +112,14 @@ export function eligibleEvents(defs: NarrativeDefinition[], facts: Record<string
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/narrative/eventEngine.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/narrative/eventEngine.test.ts src/game/narrative/eventEngine.ts src/game/narrative/eventTypes.ts
@@ -134,7 +134,7 @@ git commit -m "feat: add narrative event eligibility"
 - Create: `src/game/narrative/outcomes.ts`
 - Test: `src/game/narrative/outcomes.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -150,7 +150,7 @@ describe('narrative outcomes', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/narrative/outcomes.test.ts
@@ -158,7 +158,7 @@ npm run test:run -- src/game/narrative/outcomes.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/narrative/outcomes.ts`:
 
@@ -172,14 +172,14 @@ export function commandsForNarrativeChoice(choice: NarrativeChoice) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/narrative/outcomes.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/narrative/outcomes.test.ts src/game/narrative/outcomes.ts
@@ -194,7 +194,7 @@ git commit -m "feat: route story outcomes through domain rules"
 - Create: `src/game/milestones/milestoneEngine.ts`
 - Test: `src/game/milestones/milestoneEngine.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -208,7 +208,7 @@ describe('milestones', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/milestones/milestoneEngine.test.ts
@@ -216,7 +216,7 @@ npm run test:run -- src/game/milestones/milestoneEngine.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/milestones/milestoneEngine.ts`:
 
@@ -228,14 +228,14 @@ export function detectMilestones(input: { annualProfitMinor:number; achieved:str
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/milestones/milestoneEngine.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/milestones/milestoneEngine.test.ts src/game/milestones/milestoneEngine.ts
@@ -251,7 +251,7 @@ git commit -m "feat: add career milestones"
 - Create: `src/game/rivals/relationships.ts`
 - Test: `src/game/rivals/relationships.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -266,7 +266,7 @@ describe('rival memory', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/rivals/relationships.test.ts
@@ -274,7 +274,7 @@ npm run test:run -- src/game/rivals/relationships.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/rivals/relationships.ts`:
 
@@ -286,14 +286,14 @@ export function applyRivalInteraction(state:RivalRelationship, event:{kind:strin
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/rivals/relationships.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/rivals/relationships.test.ts src/game/rivals/relationships.ts src/game/rivals/rivalState.ts
@@ -308,7 +308,7 @@ git commit -m "feat: add rival relationship memory"
 - Create: `src/game/people/careerProgression.ts`
 - Test: `src/game/people/careerProgression.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -321,7 +321,7 @@ describe('key staff careers', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/people/careerProgression.test.ts
@@ -329,7 +329,7 @@ npm run test:run -- src/game/people/careerProgression.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/people/careerProgression.ts`:
 
@@ -342,14 +342,14 @@ export function eligiblePromotions(person:{role:string; experience:number; leade
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/people/careerProgression.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/people/careerProgression.test.ts src/game/people/careerProgression.ts
@@ -364,7 +364,7 @@ git commit -m "feat: add key staff career paths"
 - Create: `src/game/media/mediaLandscape.ts`
 - Test: `src/game/media/mediaLandscape.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -379,7 +379,7 @@ describe('media reach', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/media/mediaLandscape.test.ts
@@ -387,7 +387,7 @@ npm run test:run -- src/game/media/mediaLandscape.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/media/mediaLandscape.ts`:
 
@@ -399,14 +399,14 @@ export function incidentReach(media:MediaLandscape, severity:number):number {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/media/mediaLandscape.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/media/mediaLandscape.test.ts src/game/media/mediaLandscape.ts
@@ -421,7 +421,7 @@ git commit -m "feat: add evolving media reach"
 - Create: `src/game/prestige/prestige.ts`
 - Test: `src/game/prestige/prestige.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -435,7 +435,7 @@ describe('prestige', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/prestige/prestige.test.ts
@@ -443,7 +443,7 @@ npm run test:run -- src/game/prestige/prestige.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/prestige/prestige.ts`:
 
@@ -454,14 +454,14 @@ export function financingAccessBonusBasisPoints(prestige:number):number {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/prestige/prestige.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/prestige/prestige.test.ts src/game/prestige/prestige.ts
@@ -476,7 +476,7 @@ git commit -m "feat: add prestige access effects"
 - Create: `src/game/chronicle/chronicle.ts`
 - Test: `src/game/chronicle/chronicle.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -490,7 +490,7 @@ describe('chronicle', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/chronicle/chronicle.test.ts
@@ -498,7 +498,7 @@ npm run test:run -- src/game/chronicle/chronicle.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/chronicle/chronicle.ts`:
 
@@ -510,14 +510,14 @@ export function appendChronicleEntry(entries:ChronicleEntry[], entry:ChronicleEn
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/chronicle/chronicle.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/chronicle/chronicle.test.ts src/game/chronicle/chronicle.ts
@@ -532,7 +532,7 @@ git commit -m "feat: add company world chronicle"
 - Create: `src/game/narrative/strategicOpportunities.ts`
 - Test: `src/game/narrative/strategicOpportunities.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -546,7 +546,7 @@ describe('long tail opportunity', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/narrative/strategicOpportunities.test.ts
@@ -554,7 +554,7 @@ npm run test:run -- src/game/narrative/strategicOpportunities.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/narrative/strategicOpportunities.ts`:
 
@@ -565,14 +565,14 @@ export function resolveInvestmentOutcome(input:{investedMinor:number; companyVal
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/narrative/strategicOpportunities.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/narrative/strategicOpportunities.test.ts src/game/narrative/strategicOpportunities.ts
@@ -587,7 +587,7 @@ git commit -m "feat: add delayed strategic opportunities"
 - Create: `src/game/narrative/choiceConsequences.ts`
 - Test: `src/game/narrative/choiceConsequences.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -602,7 +602,7 @@ describe('strategic choice framing', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/narrative/choiceConsequences.test.ts
@@ -610,7 +610,7 @@ npm run test:run -- src/game/narrative/choiceConsequences.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/narrative/choiceConsequences.ts`:
 
@@ -620,14 +620,14 @@ export function consequencesForClosure(input:{employees:number; monthlyLossMinor
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/narrative/choiceConsequences.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/narrative/choiceConsequences.test.ts src/game/narrative/choiceConsequences.ts
@@ -644,7 +644,7 @@ git commit -m "feat: model neutral strategic tradeoffs"
 - Create: `src/ui/story/MilestoneToast.tsx`
 - Test: `src/ui/story/ChronicleView.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { render, screen } from '@testing-library/react';
@@ -660,7 +660,7 @@ describe('ChronicleView', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/ui/story/ChronicleView.test.tsx
@@ -668,7 +668,7 @@ npm run test:run -- src/ui/story/ChronicleView.test.tsx
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/ui/story/ChronicleView.tsx`:
 
@@ -678,14 +678,14 @@ export function ChronicleView(props:{entries:Array<{id:string;date:string;text:s
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/ui/story/ChronicleView.test.tsx
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/ui/story/ChronicleView.test.tsx src/ui/story/ChronicleView.tsx src/ui/story/MilestoneToast.tsx src/ui/story/StoryInbox.tsx
@@ -708,7 +708,7 @@ inputs, career/outcome state, distress/recovery progress, the 2026 milestone, an
 continuation state. If an earlier development v6 save can exist, normalize and test that
 specific partial shape at load time; do not infer difficulty from current content.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -725,7 +725,7 @@ describe('v5 to v6 migration', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/persistence/migrations/v5-to-v6.test.ts && npm run test:e2e -- e2e/campaign.spec.ts
@@ -733,7 +733,7 @@ npm run test:run -- src/game/persistence/migrations/v5-to-v6.test.ts && npm run 
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/persistence/migrations/v5-to-v6.ts`:
 
@@ -743,14 +743,22 @@ export function migrateV5ToV6<T extends {saveVersion:5}>(oldSave:T) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/persistence/migrations/v5-to-v6.test.ts && npm run test:e2e -- e2e/campaign.spec.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+Verified 2026-08-09. Deterministic replay after the v6 schema change was proven
+by re-recording the corpus and replaying it:
+
+```bash
+node --import tsx scripts/record-replay-corpus.ts   # recorded hash=4c76b90b
+node --import tsx scripts/replay-plans-01-03.ts     # replay hash=4c76b90b
+```
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add e2e/campaign.spec.ts src/game/persistence/migrations/v5-to-v6.test.ts src/game/persistence/migrations/v5-to-v6.ts
@@ -783,21 +791,21 @@ git commit -m "test: cover emergent campaign"
 - Distress exposes refinancing, restructuring, sale, and recovery before terminal
   closure. Restart/load/outcome paths are explicit, accessible, and chronicle-aware.
 
-- [ ] **Step 1: Write failing tests** for the fixed 1 January 1991 Frankfurt standard
+- [x] **Step 1: Write failing tests** for the fixed 1 January 1991 Frankfurt standard
   start; declared difficulty presets; orthogonal sandbox options; deterministic starting
   capital/credit/demand/competitor effects; restructuring, sale, and restart paths; the
   2026 milestone without a hard stop; and endless continuation.
-- [ ] **Step 2: Confirm expected failures:**
+- [x] **Step 2: Confirm expected failures:**
 
 ```bash
 npm run test:run -- src/game/campaign/campaignConfig.test.ts src/game/campaign/careerOutcome.test.ts
 ```
 
-- [ ] **Step 3: Implement immutable campaign configuration at creation, typed outcome
+- [x] **Step 3: Implement immutable campaign configuration at creation, typed outcome
   commands, and accessible setup/outcome UI.** Difficulty changes declared inputs only,
   never hidden AI cheats. Bankruptcy offers modeled recovery paths before terminal
   closure. Persist configuration and outcomes through v5-to-v6.
-- [ ] **Step 4: Verify focused tests, deterministic campaign replay, E2E, and types:**
+- [x] **Step 4: Verify focused tests, deterministic campaign replay, E2E, and types:**
 
 ```bash
 npm run test:run -- src/game/campaign src/game/narrative
@@ -805,7 +813,19 @@ npm run test:e2e -- e2e/campaign.spec.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit:**
+Verified 2026-08-09. The deterministic campaign replay claim rests on two
+things, both re-run after the campaign became part of the simulation:
+
+```bash
+node --import tsx scripts/replay-plans-01-03.ts        # replay hash=4c76b90b
+node --import tsx scripts/verify-plans-01-03-long-run.ts   # passed
+```
+
+The narrative's own determinism is covered in-suite by
+`src/game/narrative/narrativeSystem.test.ts`, which runs two simulations from
+the same seed and requires the same story to be raised in both.
+
+- [x] **Step 5: Commit:**
 
 ```bash
 git add src/game/campaign src/ui/story/CampaignSetup.tsx src/ui/story/CareerOutcomeModal.tsx src/game/persistence/migrations/v5-to-v6.ts e2e/campaign.spec.ts

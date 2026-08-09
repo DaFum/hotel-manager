@@ -12,6 +12,7 @@ describe("initial state", () => {
       "events",
       "failures",
       "guests",
+      "narrative",
       "staffing",
       "weather",
     ]);

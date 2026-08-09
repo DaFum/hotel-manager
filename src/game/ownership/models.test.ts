@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   controlsCapex,
   createOperatingContract,
-  monthlyOwnershipCashFlows,
   monthlyOwnershipPostings,
   ownsRealEstate,
   type OperatingModel,
@@ -11,30 +10,39 @@ import {
 describe("ownership models", () => {
   it("charges lease rent and franchise fees through explicit contract rules", () => {
     expect(
-      monthlyOwnershipCashFlows(
+      monthlyOwnershipPostings(
         { kind: "lease", monthlyRentMinor: 1_000_000 },
         8_000_000,
       ),
-    ).toEqual([-1_000_000]);
+    ).toMatchObject([{ amountMinor: -1_000_000 }]);
     expect(
-      monthlyOwnershipCashFlows(
+      monthlyOwnershipPostings(
         { kind: "franchise", royaltyBasisPoints: 500 },
         8_000_000,
       ),
-    ).toEqual([-400_000]);
+    ).toMatchObject([{ amountMinor: -400_000 }]);
   });
 
   it("costs an owned hotel nothing in contract fees", () => {
-    expect(monthlyOwnershipCashFlows({ kind: "owned" }, 8_000_000)).toEqual([]);
+    expect(monthlyOwnershipPostings({ kind: "owned" }, 8_000_000)).toEqual([]);
+  });
+
+  it("validates revenue and preserves an owned contract", () => {
+    expect(() => monthlyOwnershipPostings({ kind: "owned" }, -1)).toThrow(
+      /room revenue/,
+    );
+    expect(createOperatingContract({ kind: "owned" })).toEqual({
+      kind: "owned",
+    });
   });
 
   it("pays the operator a management fee out of the owner's revenue", () => {
     expect(
-      monthlyOwnershipCashFlows(
+      monthlyOwnershipPostings(
         { kind: "management", managementFeeBasisPoints: 300 },
         8_000_000,
       ),
-    ).toEqual([240_000]);
+    ).toMatchObject([{ amountMinor: 240_000 }]);
   });
 
   it("posts each contract flow to a named account rather than one lump", () => {
@@ -73,12 +81,12 @@ describe("ownership models", () => {
   });
 
   it("keeps money whole Pfennig when a fee does not divide evenly", () => {
-    const [fee] = monthlyOwnershipCashFlows(
+    const [fee] = monthlyOwnershipPostings(
       { kind: "franchise", royaltyBasisPoints: 333 },
       1_000_001,
     );
-    expect(Number.isSafeInteger(fee)).toBe(true);
-    expect(fee).toBe(-33_300);
+    expect(Number.isSafeInteger(fee.amountMinor)).toBe(true);
+    expect(fee.amountMinor).toBe(-33_300);
   });
 
   it("separates who owns the building from who controls investment", () => {

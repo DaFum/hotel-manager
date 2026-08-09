@@ -31,14 +31,14 @@ describe("v4 to v5 migration", () => {
     ).toEqual(["hotel.frankfurt.1"]);
   });
 
-  it("brings a real v4 save all the way to a valid v5 save", () => {
+  it("stamps a real v4 save as v5 before the next migration", () => {
     const migrated = migrateV4ToV5(v4());
     expect(migrated).toMatchObject({
       saveVersion: 5,
       contentVersion: "plan-05-v5",
       protocolVersion: 2,
     });
-    expect(validateEnvelope(migrated)).toEqual([]);
+    expect(validateEnvelope(migrateEnvelope(migrated))).toEqual([]);
     const company = (migrated.state as GameState).company;
     expect(company.portfolio.hotelIds).toEqual([
       (v4().state as GameState).hotel.id,
@@ -52,7 +52,7 @@ describe("v4 to v5 migration", () => {
 
   it("stamps only its own target version, never the build's", () => {
     expect(migrateV4ToV5(v4()).saveVersion).toBe(5);
-    expect(SAVE_VERSION).toBe(5);
+    expect(SAVE_VERSION).toBe(6);
   });
 
   it("carries a v1 save through every step to the current version", () => {
@@ -116,6 +116,33 @@ describe("v4 to v5 migration", () => {
     expect(after.company.hotelResults).toEqual(state.company.hotelResults);
     expect(after.company.escalations).toEqual(state.company.escalations);
     expect(after.pendingOrders).toEqual(state.pendingOrders);
+  });
+
+  it("reconciles loyalty liability and commercial-space fit in early v5 saves", () => {
+    const early = v5();
+    const state = early.state as GameState;
+    state.commercial.loyalty = {
+      members: [
+        {
+          guestId: "guest.legacy",
+          points: 100,
+          tier: "none",
+          qualifyingNights: 1,
+        },
+      ],
+      liabilityMinor: 640,
+    };
+    const space = state.commercialSpaces
+      .spaces[0] as (typeof state.commercialSpaces.spaces)[number] & {
+      fit?: number;
+    };
+    space.fit = 70;
+    delete (space as Partial<typeof space>).fitBp;
+
+    const migrated = migrateEnvelope(early).state as GameState;
+    expect(migrated.commercial.loyalty.members[0].points).toBe(80);
+    expect(migrated.commercial.loyalty.liabilityMinor).toBe(640);
+    expect(migrated.commercialSpaces.spaces[0].fitBp).toBe(7000);
   });
 
   it("runs on after a reload without duplicating a posting or losing cash", () => {

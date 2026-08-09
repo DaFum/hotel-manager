@@ -62,17 +62,17 @@ export function recordCapexSpend<T extends HotelBudget>(
 }
 
 /**
- * How the hotel did against the target it was given. The sign is kept and
- * named: a group that only ever sees an absolute variance cannot tell a house
- * that beat its number from one that missed it.
- */
-/**
  * Which way is good. Beating a revenue target is a result; beating a cost
  * budget is an overspend, and reporting both as "favourable" would tell the
  * player the opposite of what happened.
  */
 export type BudgetKind = "revenue" | "cost";
 
+/**
+ * How the hotel did against the target it was given. The sign is kept and
+ * named: a group that only ever sees an absolute variance cannot tell a house
+ * that beat its number from one that missed it.
+ */
 export function budgetVariance(input: {
   targetMinor: number;
   actualMinor: number;

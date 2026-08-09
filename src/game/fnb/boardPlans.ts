@@ -3,6 +3,7 @@ import {
   assertBasisPoints,
   assertCount,
   assertNonNegativeMinor,
+  safeProductMinor,
 } from "../domain/units";
 
 /**
@@ -167,33 +168,39 @@ export function foodWaste(input: {
   assertCount(input.prepared, "prepared covers");
   assertCount(input.sold, "sold covers");
   const wastedCovers = Math.max(0, input.prepared - input.sold);
+  const totalCostMinor = input.recipes.reduce((sum, recipe) => {
+    assertNonNegativeMinor(recipe.ingredientCostMinor, "ingredient cost");
+    return assertNonNegativeMinor(
+      sum + recipe.ingredientCostMinor,
+      "food waste recipe cost",
+    );
+  }, 0);
   const averageCostMinor =
     input.recipes.length === 0
       ? 0
-      : Math.trunc(
-          input.recipes.reduce((sum, r) => sum + r.ingredientCostMinor, 0) /
-            input.recipes.length,
+      : assertNonNegativeMinor(
+          Math.trunc(totalCostMinor / input.recipes.length),
+          "average ingredient cost",
         );
   // Distributed so the stations reconcile exactly with the total: the
   // remainder goes to the earliest stations rather than being truncated away,
   // which would report less waste than actually happened.
   const byStation: Record<string, number> = {};
-  const sorted = [...input.recipes].sort((a, b) =>
+  const recipes = [...input.recipes].sort((a, b) =>
     compareIds(a.stationId, b.stationId),
   );
-  if (sorted.length > 0) {
-    const share = Math.trunc(wastedCovers / sorted.length);
-    let remainder = wastedCovers - share * sorted.length;
-    for (const recipe of sorted) {
-      const extra = remainder > 0 ? 1 : 0;
-      remainder -= extra;
-      byStation[recipe.stationId] =
-        (byStation[recipe.stationId] ?? 0) + share + extra;
-    }
-  }
+  const quotient =
+    recipes.length === 0 ? 0 : Math.trunc(wastedCovers / recipes.length);
+  const remainder = recipes.length === 0 ? 0 : wastedCovers % recipes.length;
+  recipes.forEach((recipe, index) => {
+    byStation[recipe.stationId] =
+      (byStation[recipe.stationId] ?? 0) +
+      quotient +
+      (index < remainder ? 1 : 0);
+  });
   return {
     wastedCovers,
-    costMinor: wastedCovers * averageCostMinor,
+    costMinor: safeProductMinor(wastedCovers, averageCostMinor, "food waste"),
     byStation,
   };
 }

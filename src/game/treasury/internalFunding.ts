@@ -6,18 +6,25 @@ import { hotelCashMinor, type TreasuryState } from "./treasury";
  * total is the invariant every one of these functions preserves.
  */
 export function transferInternalFunding(
-  balances: { hqMinor: number; hotelMinor: number },
+  balances: { fromMinor: number; toMinor: number },
   amountMinor: number,
-): { hqMinor: number; hotelMinor: number } {
+): { fromMinor: number; toMinor: number } {
   if (
+    !Number.isSafeInteger(balances.fromMinor) ||
+    balances.fromMinor < 0 ||
+    !Number.isSafeInteger(balances.toMinor) ||
+    balances.toMinor < 0 ||
     !Number.isSafeInteger(amountMinor) ||
     amountMinor < 0 ||
-    amountMinor > balances.hqMinor
+    amountMinor > balances.fromMinor ||
+    !Number.isSafeInteger(balances.toMinor + amountMinor)
   )
-    throw new Error("invalid transfer");
+    throw new Error(
+      `invalid transfer of ${amountMinor} from ${balances.fromMinor}`,
+    );
   return {
-    hqMinor: balances.hqMinor - amountMinor,
-    hotelMinor: balances.hotelMinor + amountMinor,
+    fromMinor: balances.fromMinor - amountMinor,
+    toMinor: balances.toMinor + amountMinor,
   };
 }
 
@@ -29,17 +36,17 @@ export function fundHotel(
 ): TreasuryState {
   const moved = transferInternalFunding(
     {
-      hqMinor: treasury.hqMinor,
-      hotelMinor: hotelCashMinor(treasury, hotelId),
+      fromMinor: treasury.hqMinor,
+      toMinor: hotelCashMinor(treasury, hotelId),
     },
     amountMinor,
   );
   return {
     ...treasury,
-    hqMinor: moved.hqMinor,
+    hqMinor: moved.fromMinor,
     hotelCashMinor: {
       ...treasury.hotelCashMinor,
-      [hotelId]: moved.hotelMinor,
+      [hotelId]: moved.toMinor,
     },
   };
 }
@@ -56,14 +63,14 @@ export function sweepToHeadquarters(
 ): TreasuryState {
   const moved = transferInternalFunding(
     {
-      hqMinor: hotelCashMinor(treasury, hotelId),
-      hotelMinor: treasury.hqMinor,
+      fromMinor: hotelCashMinor(treasury, hotelId),
+      toMinor: treasury.hqMinor,
     },
     amountMinor,
   );
   return {
     ...treasury,
-    hqMinor: moved.hotelMinor,
-    hotelCashMinor: { ...treasury.hotelCashMinor, [hotelId]: moved.hqMinor },
+    hqMinor: moved.toMinor,
+    hotelCashMinor: { ...treasury.hotelCashMinor, [hotelId]: moved.fromMinor },
   };
 }

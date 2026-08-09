@@ -69,22 +69,26 @@ export function WorldControls(props: {
       >
         Pan right
       </button>
-      <button
-        type="button"
-        aria-label="Zoom in"
-        disabled={camera.zoom >= MAX_ZOOM}
-        onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
-      >
-        Zoom in
-      </button>
-      <button
-        type="button"
-        aria-label="Zoom out"
-        disabled={camera.zoom <= MIN_ZOOM}
-        onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
-      >
-        Zoom out
-      </button>
+      <div className="world-controls__zoom">
+        <button
+          className="world-controls__zoom-in"
+          type="button"
+          aria-label="Zoom in"
+          disabled={camera.zoom >= MAX_ZOOM}
+          onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
+        >
+          Zoom in
+        </button>
+        <button
+          className="world-controls__zoom-out"
+          type="button"
+          aria-label="Zoom out"
+          disabled={camera.zoom <= MIN_ZOOM}
+          onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
+        >
+          Zoom out
+        </button>
+      </div>
 
       <h3>Floors</h3>
       <ul>

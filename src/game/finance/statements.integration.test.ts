@@ -121,6 +121,12 @@ describe("the statements against a real trading hotel", () => {
     );
     expect(premiums).toHaveLength(1);
     expect(premiums[0].amountMinor).toBe(-100_000);
+    expect(s.state.lastMonthlyClose?.closingCashMinor).toBe(
+      s.state.finance.month.openingCashMinor,
+    );
+    expect(
+      s.state.lastMonthlyClose?.operatingExpenseMinor,
+    ).toBeGreaterThanOrEqual(100_000);
   });
 
   it("bills energy, water and waste separately and moves their meters", () => {

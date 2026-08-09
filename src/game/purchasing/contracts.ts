@@ -69,6 +69,17 @@ export function signSupplierContract(
   assertCount(contract.minimumOrderQuantity, "minimum order quantity");
   if (contract.validToDateKey <= contract.validFromDateKey)
     throw new Error("a contract must end after it starts");
+  if (
+    state.contracts.some(
+      (existing) =>
+        existing.sku === contract.sku &&
+        existing.validFromDateKey < contract.validToDateKey &&
+        contract.validFromDateKey < existing.validToDateKey,
+    )
+  )
+    throw new Error(
+      `supplier contract overlaps an existing ${contract.sku} contract`,
+    );
   return {
     ...state,
     contracts: [...state.contracts, { ...contract }].sort((a, b) =>
@@ -204,14 +215,14 @@ export function recordStockout(
   return { ...state, stockouts: [...state.stockouts, { ...input }] };
 }
 
+/** Days a central order waits for the group's consolidation run. */
+export const CONSOLIDATION_DELAY_DAYS = 3;
+
 /**
  * The central-purchasing trade, stated plainly. Buying through the group is
  * cheaper per unit and slower to arrive, so a house that centralises
  * everything saves money and runs out more often.
  */
-/** Days a central order waits for the group's consolidation run. */
-export const CONSOLIDATION_DELAY_DAYS = 3;
-
 export function centralPurchasingTradeOff(
   contract: SupplierContract,
   groupDiscountBp: number,

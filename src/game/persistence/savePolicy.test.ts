@@ -152,4 +152,15 @@ describe("save policy", () => {
       "the state has a malformed stay",
     );
   });
+
+  it("rejects a non-integer persisted hotel treasury balance", () => {
+    const malformed = structuredClone(current) as SaveEnvelope & {
+      state: ReturnType<typeof createInitialGameState>;
+    };
+    malformed.state.company.treasury.hotelCashMinor[malformed.state.hotel.id] =
+      1.5;
+    expect(validateEnvelope(malformed)).toContain(
+      "the state has no complete Plan 05 company",
+    );
+  });
 });

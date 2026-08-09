@@ -34,7 +34,7 @@ export function openHotelAccount(
   hotelId: string,
   openingMinor = 0,
 ): TreasuryState {
-  if (!hotelId) throw new Error("a hotel id is required");
+  if (!hotelId.trim()) throw new Error("a hotel id is required");
   if (Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} already has a treasury account`);
   assertMinor(openingMinor, "opening balance");
@@ -48,9 +48,11 @@ export function hotelCashMinor(
   treasury: TreasuryState,
   hotelId: string,
 ): number {
+  // A blank id is a caller mistake, not an account that happens to be missing.
+  if (!hotelId.trim()) throw new Error("a hotel id is required");
   // An own-property check, so an inherited key such as `toString` can never
   // be read as a balance the group does not have.
-  if (!hotelId || !Object.hasOwn(treasury.hotelCashMinor, hotelId))
+  if (!Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} has no treasury account`);
   return treasury.hotelCashMinor[hotelId];
 }

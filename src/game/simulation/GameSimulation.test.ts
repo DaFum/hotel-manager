@@ -4,6 +4,7 @@ import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
 import { createInitialGameState, type GameState } from "./initialState";
 import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
+import { reserve } from "../bookings/bookingEngine";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -12,6 +13,44 @@ function runQuanta(sim: GameSimulation, quanta: number) {
 }
 
 describe("simulation order", () => {
+  it("credits separate bookings to one persistent commercial guest", () => {
+    const sim = new GameSimulation(createInitialGameState(3));
+    const booking = (id: string) =>
+      reserve(
+        { availableRoomsOn: () => 1 },
+        {
+          id,
+          guestId: "guest.returning.1",
+          roomsRequested: 1,
+          rateMinor: 10_000,
+          willingnessMinor: 10_000,
+          channel: "directPhone",
+          partySize: 1,
+          segmentId: "segment.leisure",
+          category: "single",
+          arrivalDateKey: "1991-01-01",
+          nights: 1,
+          terms: {
+            guaranteed: true,
+            freeCancellationDays: 1,
+            lateChargeBp: 10_000,
+          },
+          atMinutes: 0,
+        },
+      );
+    sim.state.reservations = [
+      booking("booking.return.1"),
+      booking("booking.return.2"),
+    ];
+    runQuanta(sim, QUANTA_PER_DAY);
+    expect(sim.state.commercial.crm.profiles).toMatchObject([
+      {
+        guestId: "guest.returning.1",
+        stayHistory: ["booking.return.1", "booking.return.2"],
+      },
+    ]);
+    expect(sim.state.commercial.loyalty.members).toHaveLength(1);
+  });
   it("opens legacy state without guest satisfaction or handled complaints", () => {
     const state = createInitialGameState(3);
     const legacy = state as unknown as Record<string, unknown>;

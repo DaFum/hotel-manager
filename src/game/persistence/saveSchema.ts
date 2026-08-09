@@ -3,7 +3,17 @@ import type { GameState } from "../simulation/initialState";
 import { migrateV1ToV2 } from "./migrations/v1-to-v2";
 import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import { migrateV3ToV4 } from "./migrations/v3-to-v4";
-import { migrateV4ToV5 } from "./migrations/v4-to-v5";
+import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
+import { migrateV5ToV6 } from "./migrations/v5-to-v6";
+import {
+  isValidAnnualProfit,
+  isValidCampaign,
+  isValidCareer,
+  isValidChronicle,
+  isValidKeyPerson,
+  isValidMedia,
+  isValidPrestige,
+} from "../narrative/narrativeSchema";
 import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
@@ -95,6 +105,27 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  const narrative = state.narrative;
+  if (
+    !narrative ||
+    !Array.isArray(narrative.activeEvents) ||
+    !Array.isArray(narrative.achievedMilestones) ||
+    !Array.isArray(narrative.rivals) ||
+    !Array.isArray(narrative.opportunities) ||
+    !narrative.lastFiredByDefinition ||
+    !isValidChronicle(narrative.chronicle) ||
+    !Array.isArray(narrative.keyPeople) ||
+    !narrative.keyPeople.every(isValidKeyPerson) ||
+    !isValidAnnualProfit(narrative.annualProfit) ||
+    !isValidMedia(narrative.media) ||
+    !isValidPrestige(narrative.prestige) ||
+    !isValidCampaign(narrative.campaign) ||
+    !isValidCareer(narrative.career)
+  )
+    // The same validators the migration normalises against: anything that
+    // still fails here is a save the simulation would restore into arithmetic
+    // on a value that is not a number.
+    problems.push("the state has no complete Plan 06 narrative");
   const company = state.company;
   if (
     !company ||
@@ -105,7 +136,12 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !Array.isArray(company.managedHotels) ||
     !Array.isArray(company.managers) ||
     !company.treasury ||
-    !Number.isSafeInteger(company.treasury.hqMinor)
+    !Number.isSafeInteger(company.treasury.hqMinor) ||
+    !company.treasury.hotelCashMinor ||
+    typeof company.treasury.hotelCashMinor !== "object" ||
+    Object.values(company.treasury.hotelCashMinor).some(
+      (balance) => !Number.isSafeInteger(balance),
+    )
   )
     problems.push("the state has no complete Plan 05 company");
   else if (
@@ -166,8 +202,12 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     2: migrateV2ToV3,
     3: migrateV3ToV4,
     4: migrateV4ToV5,
+    5: migrateV5ToV6,
   };
   let current = envelope;
+  // Early v5 builds wrote fields whose accounting and unit upgrades must be
+  // completed even though the public save version did not change.
+  if (current.saveVersion === 5) current = migrateEarlyV5Fields(current);
   if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
     current = migrateV3ToV4(current);
   while (

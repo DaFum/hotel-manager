@@ -21,6 +21,8 @@ export interface DebtInstalment {
   closingPrincipalMinor: number;
 }
 
+export const MAX_LOAN_TERM_MONTHS = 1200;
+
 /**
  * Straight-line amortisation of principal with interest on the balance
  * outstanding. Integer arithmetic throughout; the last instalment absorbs the
@@ -35,13 +37,16 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
     loan.termMonths > MAX_TERM_MONTHS
   )
     throw new Error("invalid loan term");
+  if (loan.termMonths > MAX_LOAN_TERM_MONTHS)
+    throw new Error("loan term exceeds maximum");
 
   const perMonth = Math.trunc(loan.principalMinor / loan.termMonths);
   const schedule: DebtInstalment[] = [];
   let outstanding = loan.principalMinor;
   for (let month = 1; month <= loan.termMonths; month += 1) {
-    const interestMinor = Math.round(
-      (outstanding * loan.annualRateBasisPoints) / 10_000 / 12,
+    const interestMinor = roundedRateMinor(
+      outstanding,
+      loan.annualRateBasisPoints,
     );
     const principalMinor =
       month === loan.termMonths ? outstanding : Math.min(perMonth, outstanding);
@@ -55,6 +60,25 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
     outstanding -= principalMinor;
   }
   return schedule;
+}
+
+function roundedRateMinor(
+  outstandingMinor: number,
+  annualRateBasisPoints: number,
+): number {
+  const divisor = 120_000;
+  const quotient = Math.trunc(outstandingMinor / divisor);
+  if (
+    annualRateBasisPoints > 0 &&
+    quotient > Math.trunc(Number.MAX_SAFE_INTEGER / annualRateBasisPoints)
+  )
+    throw new Error("invalid monthly interest");
+  const remainder = outstandingMinor % divisor;
+  return assertNonNegativeMinor(
+    quotient * annualRateBasisPoints +
+      Math.round((remainder * annualRateBasisPoints) / divisor),
+    "monthly interest",
+  );
 }
 
 /** What the lender would actually get back if it took the security today. */
@@ -97,14 +121,19 @@ export function restructure(
   const penalty = terms.penaltyBasisPoints ?? 0;
   assertBasisPoints(penalty, "restructuring penalty");
   // The rate the borrower ends up paying is what has to be valid, not just
-  // the penalty that was added to it.
+  // the penalty that was added to it, and the same goes for the term the
+  // extra months add up to.
   const annualRateBasisPoints = assertBasisPoints(
     loan.annualRateBasisPoints + penalty,
     "restructured rate",
   );
+  const termMonths = loan.termMonths + terms.extraMonths;
+  if (!Number.isSafeInteger(termMonths)) throw new Error("invalid loan term");
+  if (termMonths > MAX_LOAN_TERM_MONTHS)
+    throw new Error("loan term exceeds maximum");
   return {
     principalMinor: loan.principalMinor,
     annualRateBasisPoints,
-    termMonths: loan.termMonths + terms.extraMonths,
+    termMonths,
   };
 }

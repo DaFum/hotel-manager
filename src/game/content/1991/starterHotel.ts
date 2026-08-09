@@ -8,6 +8,12 @@ export const STARTER_HOTEL = {
   breakfastSeats: 36,
   kitchenCovers: 30,
   startingCashMinor: 40_000_000,
+  /** The mortgage the house comes with, and what the bank charges for it. */
+  startingLoan: {
+    principalMinor: 10_000_000,
+    annualRateBasisPoints: 900,
+    termMonths: 120,
+  },
   defaultRateMinor: { single: 9000, double: 12000 } as Record<string, number>,
   breakfastPriceMinor: 1800,
   /** Charged per failed asset per day while a repair is outstanding. */
@@ -63,7 +69,7 @@ export const STARTER_COMMERCIAL_SPACES = [
     unitPriceMinor: 900,
     operator: { kind: "self" as const, marginBasisPoints: 3500 },
     staffRequired: 0,
-    fit: 55,
+    fitBp: 5500,
     maintenanceMinor: 25_000,
   },
   {
@@ -75,7 +81,7 @@ export const STARTER_COMMERCIAL_SPACES = [
     unitPriceMinor: 1_200,
     operator: { kind: "self" as const, marginBasisPoints: 7000 },
     staffRequired: 0,
-    fit: 70,
+    fitBp: 7000,
     maintenanceMinor: 30_000,
   },
   {
@@ -87,7 +93,7 @@ export const STARTER_COMMERCIAL_SPACES = [
     unitPriceMinor: 0,
     operator: { kind: "self" as const, marginBasisPoints: 0 },
     staffRequired: 0,
-    fit: 65,
+    fitBp: 6500,
     maintenanceMinor: 12_000,
   },
 ] as const;

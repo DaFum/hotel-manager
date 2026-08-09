@@ -1,4 +1,8 @@
-import { captureRngState, restoreRngStreams } from "../domain/rng";
+import {
+  captureRngState,
+  createRngStreams,
+  restoreRngStreams,
+} from "../domain/rng";
 import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
@@ -142,6 +146,29 @@ import {
   type RoomRecord,
   type StayRecord,
 } from "./initialState";
+import { createNarrativeState } from "../narrative/narrativeState";
+import { detectMilestones } from "../milestones/milestoneEngine";
+import { appendChronicleEntry } from "../chronicle/chronicle";
+import {
+  chooseEndlessContinuation,
+  type RecoveryPath,
+} from "../campaign/careerOutcome";
+import {
+  careerFacts,
+  applyRecoveryPath,
+  validateRecoveryPath,
+} from "../campaign/recovery";
+import {
+  createCampaignConfig,
+  adjustedStartingCapitalMinor,
+  DIFFICULTY_IDS,
+} from "../campaign/campaignConfig";
+import {
+  refreshCareerOutcome,
+  resolveNarrativeChoice,
+  runNarrativeMonth,
+  validateNarrativeChoice,
+} from "../narrative/narrativeSystem";
 import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
@@ -357,6 +384,10 @@ export class GameSimulation implements CommandExecutor {
     state.procurement ??= createProcurementState();
     state.guestRelations ??= createGuestRelationsState();
     state.recoveries ??= [];
+    // A loaded game's career reading comes from the position it is actually
+    // in, never from an optimistic constant a fresh game would have had.
+    state.narrative ??= createNarrativeState({ career: careerFacts(state) });
+    state.rngState.narrative ??= createRngStreams(state.seed).narrative.state;
     state.commercialSpaces ??= createCommercialSpaceState();
     state.lobby ??= {
       served: 0,
@@ -554,6 +585,25 @@ export class GameSimulation implements CommandExecutor {
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         }
+        case "SET_CAMPAIGN_DIFFICULTY":
+          if (!DIFFICULTY_IDS.includes(command.difficulty))
+            return { ok: false, reason: "unknown difficulty" };
+          // Difficulty is part of what the campaign is. Changing it after the
+          // first day would make the run unreplayable and the career a lie.
+          if (s.elapsedMinutes > 0)
+            return { ok: false, reason: "the career has already started" };
+          return { ok: true };
+        case "RESOLVE_NARRATIVE_EVENT":
+          return validateNarrativeChoice(s, command.eventId, command.choiceId);
+        case "TAKE_RECOVERY_MEASURE":
+          return validateRecoveryPath(s, command.path);
+        case "CONTINUE_ENDLESS_CAREER":
+          if (!s.narrative.career.careerMilestone2026)
+            return {
+              ok: false,
+              reason: "the 2026 review has not been reached",
+            };
+          return { ok: true };
         default:
           if (isCompanyCommand(command))
             return validateCompanyCommand(s, command);
@@ -861,6 +911,96 @@ export class GameSimulation implements CommandExecutor {
             costMinor,
           },
           [projectId, command.technologyId],
+        );
+        return;
+      }
+      case "SET_CAMPAIGN_DIFFICULTY": {
+        const campaign = createCampaignConfig(
+          command.difficulty,
+          s.narrative.campaign.sandbox,
+        );
+        s.narrative.campaign = campaign;
+        // The disclosed inputs are the whole of what difficulty does: the
+        // opening balance and what the bank charges, both visible up front.
+        const opening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          campaign,
+        );
+        // Posted, not assigned: the opening balance is the ledger's business
+        // too, and cash that appears beside it is cash that cannot be audited.
+        const delta = opening - s.finance.cashMinor;
+        if (delta !== 0) {
+          s.finance.cashMinor += delta;
+          // The month's opening balance is what the close measures the cash
+          // movement against; leaving it behind would report a delta the
+          // hotel never traded.
+          s.finance.month.openingCashMinor = opening;
+          s.finance.ledger = postEntry(s.finance.ledger, {
+            day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+            account: "capital",
+            amountMinor: delta,
+            memo: `opening capital at ${campaign.difficulty}`,
+          });
+        }
+        s.loan = {
+          ...s.loan,
+          annualRateBasisPoints: Math.trunc(
+            (STARTER_HOTEL.startingLoan.annualRateBasisPoints *
+              campaign.inputs.creditSpreadBasisPoints) /
+              10_000,
+          ),
+        };
+        syncTreasury(s);
+        refreshCareerOutcome(s);
+        this.emit(
+          {
+            type: "CAMPAIGN_DIFFICULTY_SET",
+            difficulty: campaign.difficulty,
+            openingCapitalDeltaMinor: delta,
+          },
+          [s.company.companyId],
+        );
+        return;
+      }
+      case "RESOLVE_NARRATIVE_EVENT": {
+        resolveNarrativeChoice(s, command.eventId, command.choiceId, {
+          emit: (payload, entities) => this.emit(payload, entities),
+          spend: (amountMinor, account, memo) =>
+            this.spend(amountMinor, account, memo),
+          earn: (amountMinor, account, memo) =>
+            this.earn(amountMinor, account, memo),
+        });
+        syncTreasury(s);
+        refreshCareerOutcome(s);
+        return;
+      }
+      case "TAKE_RECOVERY_MEASURE": {
+        const taken = applyRecoveryPath(s, command.path as RecoveryPath, {
+          earn: (amountMinor, account, memo) =>
+            this.earn(amountMinor, account, memo),
+          spend: (amountMinor, account, memo) =>
+            this.spend(amountMinor, account, memo),
+        });
+        syncTreasury(s);
+        refreshCareerOutcome(s);
+        this.emit(
+          {
+            type: "RECOVERY_MEASURE_TAKEN",
+            measure: taken.measure,
+            amountMinor: taken.amountMinor,
+          },
+          [s.company.companyId],
+        );
+        return;
+      }
+      case "CONTINUE_ENDLESS_CAREER": {
+        s.narrative.career = chooseEndlessContinuation(s.narrative.career);
+        this.emit(
+          {
+            type: "ENDLESS_CAREER_CONTINUED",
+            dateKey: s.calendar.dateKey,
+          },
+          [s.company.companyId],
         );
         return;
       }
@@ -1220,7 +1360,8 @@ export class GameSimulation implements CommandExecutor {
     for (const space of s.commercialSpaces.spaces) {
       // Demand comes from the guests actually in the house, at a take-up
       // rate the space's own fit decides.
-      const demand = Math.trunc((inHouse * space.fit) / 100);
+      const fitBp = space.fitBp ?? (space.fit ?? 0) * 100;
+      const demand = Math.trunc((inHouse * fitBp) / 10_000);
       const result = spaceThroughput({
         space,
         demand,
@@ -1950,7 +2091,10 @@ export class GameSimulation implements CommandExecutor {
    */
   private recordCommercialStay(stay: StayRecord): void {
     const s = this.state;
-    const guestId = `guest.${stay.bookingId}`;
+    const booking = s.reservations.find(
+      (reservation) => reservation.id === stay.bookingId,
+    );
+    const guestId = booking?.guestId ?? `guest.${stay.bookingId}`;
     s.commercial = {
       ...s.commercial,
       crm: recordCrmStay(s.commercial.crm, {
@@ -2086,6 +2230,7 @@ export class GameSimulation implements CommandExecutor {
           { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
             id: bookingId,
+            guestId: `guest.${segment.id}.${(Math.floor(s.elapsedMinutes / 1440) + i) % 32}`,
             roomsRequested: 1,
             rateMinor,
             // A profile the hotel actually built for lifts what its segment
@@ -2816,6 +2961,62 @@ export class GameSimulation implements CommandExecutor {
       soldRoomNights: m.soldRoomNights,
       availableRoomNights: m.availableRoomNights,
     });
+    // The flagship published its result from the month accumulator before the
+    // corporate postings landed, so it is restated from the finished report.
+    const flagship = s.company.hotelResults[s.hotel.id];
+    if (flagship)
+      s.company.hotelResults[s.hotel.id] = {
+        ...flagship,
+        roomRevenueMinor: s.lastMonthlyClose.roomRevenueMinor,
+        otherRevenueMinor: s.lastMonthlyClose.otherRevenueMinor,
+        operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
+        grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
+      };
+    // The period that just closed, not the day the close is being posted on:
+    // December's close happens on 1 January and belongs to December's year.
+    const closedYear = Number(periodKey.slice(0, 4));
+    const annual = s.narrative.annualProfit;
+    if (annual.year !== closedYear) {
+      annual.year = closedYear;
+      annual.operatingProfitMinor = 0;
+    }
+    annual.operatingProfitMinor += s.lastMonthlyClose.operatingProfitMinor;
+    // A year is only profitable once it has finished being a year.
+    if (Number(periodKey.slice(5, 7)) === 12)
+      annual.lastCompletedYearProfitMinor = annual.operatingProfitMinor;
+    const milestoneIds = detectMilestones({
+      // A profitable year, not a profitable month: one good March is not a
+      // milestone, and the accumulator resets when the calendar turns.
+      annualProfitMinor: annual.lastCompletedYearProfitMinor,
+      hotelCount: s.company.portfolio.hotelIds.length,
+      year: closedYear,
+      achieved: s.narrative.achievedMilestones,
+    });
+    for (const milestoneId of milestoneIds) {
+      s.narrative.achievedMilestones.push(milestoneId);
+      s.narrative.chronicle = appendChronicleEntry(s.narrative.chronicle, {
+        id: `milestone.${milestoneId}`,
+        date: s.calendar.dateKey,
+        scope: "company",
+        textKey: `chronicle.milestone.${milestoneId}`,
+      });
+      this.emit(
+        {
+          type: "MILESTONE_ACHIEVED",
+          milestoneId,
+          dateKey: s.calendar.dateKey,
+        },
+        [milestoneId],
+      );
+    }
+    runNarrativeMonth(s, this.streams.narrative, {
+      emit: (payload, entities) => this.emit(payload, entities),
+      spend: (amountMinor, account, memo) =>
+        this.spend(amountMinor, account, memo),
+      earn: (amountMinor, account, memo) =>
+        this.earn(amountMinor, account, memo),
+    });
+    refreshCareerOutcome(s);
     this.emit(
       {
         type: "MONTH_CLOSED",

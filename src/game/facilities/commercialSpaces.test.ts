@@ -31,7 +31,7 @@ const SHOP = createCommercialSpace({
   unitPriceMinor: 1_500,
   operator: { kind: "self", marginBasisPoints: 3000 },
   staffRequired: 1,
-  fit: 60,
+  fitBp: 6000,
   maintenanceMinor: 40_000,
 });
 

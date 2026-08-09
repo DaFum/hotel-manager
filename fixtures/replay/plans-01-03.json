@@ -10829,7 +10829,7 @@
       "payload": {
         "type": "MONTH_CLOSED",
         "periodKey": "1991-01",
-        "profitMinor": 3277454,
+        "profitMinor": 1405877,
         "occupancyBasisPoints": 3938
       }
     },
@@ -10842,7 +10842,7 @@
         "type": "HOTEL_RESULT_PUBLISHED",
         "hotelId": "hotel.frankfurt.1",
         "periodKey": "1991-01",
-        "grossOperatingProfitMinor": 3277454
+        "grossOperatingProfitMinor": 1405877
       }
     }
   ],
@@ -10850,13 +10850,13 @@
     {
       "dateKey": "1991-01-01",
       "atMinutes": 0,
-      "stateHash": "0367665f"
+      "stateHash": "aa7fbab6"
     },
     {
       "dateKey": "1991-02-01",
       "atMinutes": 44640,
-      "stateHash": "7b08c344"
+      "stateHash": "e6b4076b"
     }
   ],
-  "finalStateHash": "7b08c344"
+  "finalStateHash": "e6b4076b"
 }

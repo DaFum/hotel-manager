@@ -109,6 +109,7 @@ import {
   startRenovation,
 } from "../building/renovations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
+import { compareIds } from "../domain/ids";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
 import {
   commandEnvelope,
@@ -158,6 +159,22 @@ import {
   validateCompanyCommand,
 } from "../company/companyCommands";
 import { runCompanyMonth, syncTreasury } from "../company/companyMonth";
+import {
+  capitaliseAsset,
+  createStatements,
+  depreciationMinor,
+  postDepreciation,
+} from "../finance/statements";
+import {
+  createInsuranceState,
+  totalMonthlyPremiumMinor,
+} from "../risk/insurance";
+import {
+  createUtilityContracts,
+  readMeters,
+  utilityBillMinor,
+  wasteDisposalMinor,
+} from "../utilities/consumption";
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -205,6 +222,8 @@ const BAR_TAKE_UP_BP = 6000;
 /** Basis points of days on which a conference enquiry arrives. */
 const EVENT_LEAD_CHANCE_BP = 1200;
 const MAX_ALERTS = 20;
+/** How long a plant asset is written down over; a balancing constant. */
+const ASSET_USEFUL_LIFE_MONTHS = 120;
 /** Half a percent chance per day that a worn asset fails, in basis points. */
 const DAILY_FAILURE_BP = 50;
 /** One receptionist checks in six parties per simulated hour. */
@@ -270,6 +289,11 @@ export class GameSimulation implements CommandExecutor {
     state.technologyProjects ??= [];
     state.technologyImplementations ??= [];
     state.company ??= createCompanyState();
+    state.statements ??= createStatements();
+    state.insurance ??= createInsuranceState();
+    state.utilityContracts ??= createUtilityContracts();
+    state.meters ??= { energy: 0, water: 0, waste: 0 };
+    state.outages ??= [];
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -1123,7 +1147,12 @@ export class GameSimulation implements CommandExecutor {
       ],
       { waterMinor: WATER_UNIT_MINOR, energyMinor: ENERGY_UNIT_MINOR },
     );
-    s.utilities = metered.state;
+    // Billed here rather than at the close: the daily counters are reset at
+    // midnight, so the only moment the day's actual draw exists is this one.
+    const energyUnits = metered.state.energyUsed - s.utilities.energyUsed;
+    const waterUnits = metered.state.waterUsed - s.utilities.waterUsed;
+    s.utilities = { ...metered.state, pendingExpenseMinor: 0 };
+    this.billUtilities(energyUnits, waterUnits);
   }
 
   private runBreakfast(): void {
@@ -1543,18 +1572,46 @@ export class GameSimulation implements CommandExecutor {
     };
   }
 
+  /**
+   * The day's utilities, billed through the three separate contracts. The
+   * meters move by what was actually drawn, so a bill can always be traced
+   * back to a reading rather than to an accumulated expense figure.
+   */
+  private billUtilities(energyUnits: number, waterUnits: number): void {
+    const s = this.state;
+    // Guests and covers make rubbish; the kitchen makes most of it.
+    const wasteKilos =
+      s.stays.length + Math.ceil(this.eventBreakfastCovers() / 4);
+
+    if (energyUnits > 0 || waterUnits > 0) {
+      this.spend(
+        utilityBillMinor(s.utilityContracts.energy, energyUnits),
+        "utilities",
+        `metered energy: ${energyUnits} units`,
+      );
+      this.spend(
+        utilityBillMinor(s.utilityContracts.water, waterUnits),
+        "utilities",
+        `metered water: ${waterUnits} units`,
+      );
+    }
+    if (wasteKilos > 0)
+      this.spend(
+        wasteDisposalMinor({ kilos: wasteKilos, sortedBasisPoints: 2500 }),
+        "utilities",
+        `waste: ${wasteKilos} kilos`,
+      );
+
+    s.meters = readMeters(s.meters, {
+      energy: energyUnits,
+      water: waterUnits,
+      waste: wasteKilos,
+    });
+  }
+
   private runFinance(): void {
     if (!this.dayRolled) return;
     const s = this.state;
-
-    if (s.utilities.pendingExpenseMinor > 0) {
-      this.spend(
-        s.utilities.pendingExpenseMinor,
-        "utilities",
-        "metered water and energy",
-      );
-      s.utilities.pendingExpenseMinor = 0;
-    }
 
     for (const stay of s.stays) {
       const booking = s.reservations.find(
@@ -2377,6 +2434,7 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
+    this.chargeInsuranceAndDepreciation(s.lastMonthlyClose.periodKey);
     // The company's month runs on the closed period, after the flagship has
     // published what it earned and before the new month starts accumulating.
     runCompanyMonth(s, `${s.lastMonthlyClose.periodKey}-01`, {
@@ -2396,6 +2454,38 @@ export class GameSimulation implements CommandExecutor {
       availableRoomNights: 0,
     };
     syncTreasury(s);
+  }
+
+  /**
+   * The two monthly postings that are not a purchase: the premium the hotel
+   * pays whether or not anything goes wrong, and the depreciation that is a
+   * real expense moving no cash at all. Both are guarded by the period they
+   * were last posted for, so a reload cannot repeat them.
+   */
+  private chargeInsuranceAndDepreciation(periodKey: string): void {
+    const s = this.state;
+    if (s.statements.lastDepreciationPeriodKey === periodKey) return;
+
+    const premium = totalMonthlyPremiumMinor(s.insurance);
+    if (premium > 0)
+      this.spend(premium, "insurancePremium", "insurance premiums");
+
+    for (const asset of [...s.assets].sort((a, b) => compareIds(a.id, b.id))) {
+      const amountMinor = depreciationMinor({
+        costMinor: asset.replacementMinor,
+        usefulLifeMonths: ASSET_USEFUL_LIFE_MONTHS,
+        accumulatedMinor: s.statements.depreciationByAsset[asset.id] ?? 0,
+      });
+      if (amountMinor <= 0) continue;
+      s.statements = postDepreciation(s.statements, {
+        assetId: asset.id,
+        amountMinor,
+        periodKey,
+      });
+    }
+    // The period stamp moves even when nothing was left to depreciate, so the
+    // guard above still holds for a fully written-down hotel.
+    s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
   }
 
   private nextStaffId(role: string): string {
@@ -2467,6 +2557,8 @@ export class GameSimulation implements CommandExecutor {
     // expense is recognised in full even when cash cannot cover it.
     if (account !== "capex")
       s.finance.month.operatingExpenseMinor += amountMinor;
+    // Capital spend buys something: the balance sheet has to know it exists.
+    else s.statements = capitaliseAsset(s.statements, amountMinor);
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

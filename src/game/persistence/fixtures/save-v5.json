@@ -9177,7 +9177,7 @@
           "payload": {
             "type": "MONTH_CLOSED",
             "periodKey": "1991-01",
-            "profitMinor": -572213,
+            "profitMinor": -2438365,
             "occupancyBasisPoints": 3454
           }
         },
@@ -9190,7 +9190,7 @@
             "type": "HOTEL_RESULT_PUBLISHED",
             "hotelId": "hotel.frankfurt.1",
             "periodKey": "1991-01",
-            "grossOperatingProfitMinor": -572213
+            "grossOperatingProfitMinor": -2438365
           }
         },
         {
@@ -19271,7 +19271,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 5236634,
+      "cashMinor": 2785055,
       "payableMinor": 0,
       "ledger": [
         {
@@ -19336,15 +19336,27 @@
         },
         {
           "day": 2,
+          "account": "utilities",
+          "amountMinor": -45064,
+          "memo": "metered energy: 2 units"
+        },
+        {
+          "day": 2,
+          "account": "utilities",
+          "amountMinor": -18011,
+          "memo": "metered water: 1 units"
+        },
+        {
+          "day": 2,
+          "account": "utilities",
+          "amountMinor": -100,
+          "memo": "waste: 1 kilos"
+        },
+        {
+          "day": 2,
           "account": "barRevenue",
           "amountMinor": 8775,
           "memo": "13 bar covers"
-        },
-        {
-          "day": 3,
-          "account": "utilities",
-          "amountMinor": -8,
-          "memo": "metered water and energy"
         },
         {
           "day": 3,
@@ -19378,15 +19390,27 @@
         },
         {
           "day": 3,
+          "account": "utilities",
+          "amountMinor": -45192,
+          "memo": "metered energy: 6 units"
+        },
+        {
+          "day": 3,
+          "account": "utilities",
+          "amountMinor": -18033,
+          "memo": "metered water: 3 units"
+        },
+        {
+          "day": 3,
+          "account": "utilities",
+          "amountMinor": -300,
+          "memo": "waste: 3 kilos"
+        },
+        {
+          "day": 3,
           "account": "barRevenue",
           "amountMinor": 9450,
           "memo": "14 bar covers"
-        },
-        {
-          "day": 4,
-          "account": "utilities",
-          "amountMinor": -24,
-          "memo": "metered water and energy"
         },
         {
           "day": 4,
@@ -19426,15 +19450,27 @@
         },
         {
           "day": 4,
+          "account": "utilities",
+          "amountMinor": -45256,
+          "memo": "metered energy: 8 units"
+        },
+        {
+          "day": 4,
+          "account": "utilities",
+          "amountMinor": -18044,
+          "memo": "metered water: 4 units"
+        },
+        {
+          "day": 4,
+          "account": "utilities",
+          "amountMinor": -340,
+          "memo": "waste: 4 kilos"
+        },
+        {
+          "day": 4,
           "account": "barRevenue",
           "amountMinor": 10125,
           "memo": "15 bar covers"
-        },
-        {
-          "day": 5,
-          "account": "utilities",
-          "amountMinor": -32,
-          "memo": "metered water and energy"
         },
         {
           "day": 5,
@@ -19486,6 +19522,24 @@
         },
         {
           "day": 5,
+          "account": "utilities",
+          "amountMinor": -45384,
+          "memo": "metered energy: 12 units"
+        },
+        {
+          "day": 5,
+          "account": "utilities",
+          "amountMinor": -18066,
+          "memo": "metered water: 6 units"
+        },
+        {
+          "day": 5,
+          "account": "utilities",
+          "amountMinor": -540,
+          "memo": "waste: 6 kilos"
+        },
+        {
+          "day": 5,
           "account": "barRevenue",
           "amountMinor": 10125,
           "memo": "15 bar covers"
@@ -19495,12 +19549,6 @@
           "account": "otherRevenue",
           "amountMinor": 12000,
           "memo": "no-show booking.3480.3"
-        },
-        {
-          "day": 6,
-          "account": "utilities",
-          "amountMinor": -48,
-          "memo": "metered water and energy"
         },
         {
           "day": 6,
@@ -19552,6 +19600,24 @@
         },
         {
           "day": 6,
+          "account": "utilities",
+          "amountMinor": -45384,
+          "memo": "metered energy: 12 units"
+        },
+        {
+          "day": 6,
+          "account": "utilities",
+          "amountMinor": -18066,
+          "memo": "metered water: 6 units"
+        },
+        {
+          "day": 6,
+          "account": "utilities",
+          "amountMinor": -540,
+          "memo": "waste: 6 kilos"
+        },
+        {
+          "day": 6,
           "account": "otherRevenue",
           "amountMinor": 12000,
           "memo": "late cancellation booking.4920.0"
@@ -19573,12 +19639,6 @@
           "account": "otherRevenue",
           "amountMinor": 9000,
           "memo": "no-show booking.6360.4"
-        },
-        {
-          "day": 7,
-          "account": "utilities",
-          "amountMinor": -48,
-          "memo": "metered water and energy"
         },
         {
           "day": 7,
@@ -19630,15 +19690,27 @@
         },
         {
           "day": 7,
+          "account": "utilities",
+          "amountMinor": -45384,
+          "memo": "metered energy: 12 units"
+        },
+        {
+          "day": 7,
+          "account": "utilities",
+          "amountMinor": -18066,
+          "memo": "metered water: 6 units"
+        },
+        {
+          "day": 7,
+          "account": "utilities",
+          "amountMinor": -540,
+          "memo": "waste: 6 kilos"
+        },
+        {
+          "day": 7,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 8,
-          "account": "utilities",
-          "amountMinor": -48,
-          "memo": "metered water and energy"
         },
         {
           "day": 8,
@@ -19714,15 +19786,27 @@
         },
         {
           "day": 8,
+          "account": "utilities",
+          "amountMinor": -45640,
+          "memo": "metered energy: 20 units"
+        },
+        {
+          "day": 8,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 8,
+          "account": "utilities",
+          "amountMinor": -880,
+          "memo": "waste: 10 kilos"
+        },
+        {
+          "day": 8,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 9,
-          "account": "utilities",
-          "amountMinor": -80,
-          "memo": "metered water and energy"
         },
         {
           "day": 9,
@@ -19798,15 +19882,27 @@
         },
         {
           "day": 9,
+          "account": "utilities",
+          "amountMinor": -45640,
+          "memo": "metered energy: 20 units"
+        },
+        {
+          "day": 9,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 9,
+          "account": "utilities",
+          "amountMinor": -880,
+          "memo": "waste: 10 kilos"
+        },
+        {
+          "day": 9,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 10,
-          "account": "utilities",
-          "amountMinor": -80,
-          "memo": "metered water and energy"
         },
         {
           "day": 10,
@@ -19888,15 +19984,27 @@
         },
         {
           "day": 10,
+          "account": "utilities",
+          "amountMinor": -45704,
+          "memo": "metered energy: 22 units"
+        },
+        {
+          "day": 10,
+          "account": "utilities",
+          "amountMinor": -18121,
+          "memo": "metered water: 11 units"
+        },
+        {
+          "day": 10,
+          "account": "utilities",
+          "amountMinor": -980,
+          "memo": "waste: 11 kilos"
+        },
+        {
+          "day": 10,
           "account": "barRevenue",
           "amountMinor": 10800,
           "memo": "16 bar covers"
-        },
-        {
-          "day": 11,
-          "account": "utilities",
-          "amountMinor": -88,
-          "memo": "metered water and energy"
         },
         {
           "day": 11,
@@ -19960,15 +20068,27 @@
         },
         {
           "day": 11,
+          "account": "utilities",
+          "amountMinor": -45512,
+          "memo": "metered energy: 16 units"
+        },
+        {
+          "day": 11,
+          "account": "utilities",
+          "amountMinor": -18088,
+          "memo": "metered water: 8 units"
+        },
+        {
+          "day": 11,
+          "account": "utilities",
+          "amountMinor": -680,
+          "memo": "waste: 8 kilos"
+        },
+        {
+          "day": 11,
           "account": "barRevenue",
           "amountMinor": 10800,
           "memo": "16 bar covers"
-        },
-        {
-          "day": 12,
-          "account": "utilities",
-          "amountMinor": -64,
-          "memo": "metered water and energy"
         },
         {
           "day": 12,
@@ -20032,15 +20152,27 @@
         },
         {
           "day": 12,
+          "account": "utilities",
+          "amountMinor": -45512,
+          "memo": "metered energy: 16 units"
+        },
+        {
+          "day": 12,
+          "account": "utilities",
+          "amountMinor": -18088,
+          "memo": "metered water: 8 units"
+        },
+        {
+          "day": 12,
+          "account": "utilities",
+          "amountMinor": -680,
+          "memo": "waste: 8 kilos"
+        },
+        {
+          "day": 12,
           "account": "barRevenue",
           "amountMinor": 11475,
           "memo": "17 bar covers"
-        },
-        {
-          "day": 13,
-          "account": "utilities",
-          "amountMinor": -64,
-          "memo": "metered water and energy"
         },
         {
           "day": 13,
@@ -20110,15 +20242,27 @@
         },
         {
           "day": 13,
+          "account": "utilities",
+          "amountMinor": -45576,
+          "memo": "metered energy: 18 units"
+        },
+        {
+          "day": 13,
+          "account": "utilities",
+          "amountMinor": -18099,
+          "memo": "metered water: 9 units"
+        },
+        {
+          "day": 13,
+          "account": "utilities",
+          "amountMinor": -780,
+          "memo": "waste: 9 kilos"
+        },
+        {
+          "day": 13,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 14,
-          "account": "utilities",
-          "amountMinor": -72,
-          "memo": "metered water and energy"
         },
         {
           "day": 14,
@@ -20194,15 +20338,27 @@
         },
         {
           "day": 14,
+          "account": "utilities",
+          "amountMinor": -45640,
+          "memo": "metered energy: 20 units"
+        },
+        {
+          "day": 14,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 14,
+          "account": "utilities",
+          "amountMinor": -880,
+          "memo": "waste: 10 kilos"
+        },
+        {
+          "day": 14,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 15,
-          "account": "utilities",
-          "amountMinor": -80,
-          "memo": "metered water and energy"
         },
         {
           "day": 15,
@@ -20284,15 +20440,27 @@
         },
         {
           "day": 15,
+          "account": "utilities",
+          "amountMinor": -45704,
+          "memo": "metered energy: 22 units"
+        },
+        {
+          "day": 15,
+          "account": "utilities",
+          "amountMinor": -18121,
+          "memo": "metered water: 11 units"
+        },
+        {
+          "day": 15,
+          "account": "utilities",
+          "amountMinor": -980,
+          "memo": "waste: 11 kilos"
+        },
+        {
+          "day": 15,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 16,
-          "account": "utilities",
-          "amountMinor": -88,
-          "memo": "metered water and energy"
         },
         {
           "day": 16,
@@ -20368,15 +20536,27 @@
         },
         {
           "day": 16,
+          "account": "utilities",
+          "amountMinor": -45640,
+          "memo": "metered energy: 20 units"
+        },
+        {
+          "day": 16,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 16,
+          "account": "utilities",
+          "amountMinor": -880,
+          "memo": "waste: 10 kilos"
+        },
+        {
+          "day": 16,
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 17,
-          "account": "utilities",
-          "amountMinor": -80,
-          "memo": "metered water and energy"
         },
         {
           "day": 17,
@@ -20452,6 +20632,24 @@
         },
         {
           "day": 17,
+          "account": "utilities",
+          "amountMinor": -45640,
+          "memo": "metered energy: 20 units"
+        },
+        {
+          "day": 17,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 17,
+          "account": "utilities",
+          "amountMinor": -880,
+          "memo": "waste: 10 kilos"
+        },
+        {
+          "day": 17,
           "account": "barRevenue",
           "amountMinor": 12825,
           "memo": "19 bar covers"
@@ -20461,12 +20659,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 18,
-          "account": "utilities",
-          "amountMinor": -80,
-          "memo": "metered water and energy"
         },
         {
           "day": 18,
@@ -20560,15 +20752,27 @@
         },
         {
           "day": 18,
+          "account": "utilities",
+          "amountMinor": -45832,
+          "memo": "metered energy: 26 units"
+        },
+        {
+          "day": 18,
+          "account": "utilities",
+          "amountMinor": -18143,
+          "memo": "metered water: 13 units"
+        },
+        {
+          "day": 18,
+          "account": "utilities",
+          "amountMinor": -1120,
+          "memo": "waste: 13 kilos"
+        },
+        {
+          "day": 18,
           "account": "barRevenue",
           "amountMinor": 10800,
           "memo": "16 bar covers"
-        },
-        {
-          "day": 19,
-          "account": "utilities",
-          "amountMinor": -104,
-          "memo": "metered water and energy"
         },
         {
           "day": 19,
@@ -20626,15 +20830,27 @@
         },
         {
           "day": 19,
+          "account": "utilities",
+          "amountMinor": -45448,
+          "memo": "metered energy: 14 units"
+        },
+        {
+          "day": 19,
+          "account": "utilities",
+          "amountMinor": -18077,
+          "memo": "metered water: 7 units"
+        },
+        {
+          "day": 19,
+          "account": "utilities",
+          "amountMinor": -640,
+          "memo": "waste: 7 kilos"
+        },
+        {
+          "day": 19,
           "account": "barRevenue",
           "amountMinor": 9450,
           "memo": "14 bar covers"
-        },
-        {
-          "day": 20,
-          "account": "utilities",
-          "amountMinor": -56,
-          "memo": "metered water and energy"
         },
         {
           "day": 20,
@@ -20680,15 +20896,27 @@
         },
         {
           "day": 20,
+          "account": "utilities",
+          "amountMinor": -45256,
+          "memo": "metered energy: 8 units"
+        },
+        {
+          "day": 20,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 20,
+          "account": "utilities",
+          "amountMinor": -540,
+          "memo": "waste: 6 kilos"
+        },
+        {
+          "day": 20,
           "account": "barRevenue",
           "amountMinor": 10125,
           "memo": "15 bar covers"
-        },
-        {
-          "day": 21,
-          "account": "utilities",
-          "amountMinor": -44,
-          "memo": "metered water and energy"
         },
         {
           "day": 21,
@@ -20734,6 +20962,24 @@
         },
         {
           "day": 21,
+          "account": "utilities",
+          "amountMinor": -45320,
+          "memo": "metered energy: 10 units"
+        },
+        {
+          "day": 21,
+          "account": "utilities",
+          "amountMinor": -18187,
+          "memo": "metered water: 17 units"
+        },
+        {
+          "day": 21,
+          "account": "utilities",
+          "amountMinor": -680,
+          "memo": "waste: 8 kilos"
+        },
+        {
+          "day": 21,
           "account": "eventRevenue",
           "amountMinor": 609300,
           "memo": "conference event.10680"
@@ -20749,12 +20995,6 @@
           "account": "barRevenue",
           "amountMinor": 10125,
           "memo": "15 bar covers"
-        },
-        {
-          "day": 22,
-          "account": "utilities",
-          "amountMinor": -64,
-          "memo": "metered water and energy"
         },
         {
           "day": 22,
@@ -20806,15 +21046,27 @@
         },
         {
           "day": 22,
+          "account": "utilities",
+          "amountMinor": -45384,
+          "memo": "metered energy: 12 units"
+        },
+        {
+          "day": 22,
+          "account": "utilities",
+          "amountMinor": -18066,
+          "memo": "metered water: 6 units"
+        },
+        {
+          "day": 22,
+          "account": "utilities",
+          "amountMinor": -540,
+          "memo": "waste: 6 kilos"
+        },
+        {
+          "day": 22,
           "account": "barRevenue",
           "amountMinor": 10800,
           "memo": "16 bar covers"
-        },
-        {
-          "day": 23,
-          "account": "utilities",
-          "amountMinor": -48,
-          "memo": "metered water and energy"
         },
         {
           "day": 23,
@@ -20878,6 +21130,24 @@
         },
         {
           "day": 23,
+          "account": "utilities",
+          "amountMinor": -45512,
+          "memo": "metered energy: 16 units"
+        },
+        {
+          "day": 23,
+          "account": "utilities",
+          "amountMinor": -18088,
+          "memo": "metered water: 8 units"
+        },
+        {
+          "day": 23,
+          "account": "utilities",
+          "amountMinor": -680,
+          "memo": "waste: 8 kilos"
+        },
+        {
+          "day": 23,
           "account": "barRevenue",
           "amountMinor": 12825,
           "memo": "19 bar covers"
@@ -20887,12 +21157,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 24,
-          "account": "utilities",
-          "amountMinor": -64,
-          "memo": "metered water and energy"
         },
         {
           "day": 24,
@@ -20986,6 +21250,24 @@
         },
         {
           "day": 24,
+          "account": "utilities",
+          "amountMinor": -45832,
+          "memo": "metered energy: 26 units"
+        },
+        {
+          "day": 24,
+          "account": "utilities",
+          "amountMinor": -18209,
+          "memo": "metered water: 19 units"
+        },
+        {
+          "day": 24,
+          "account": "utilities",
+          "amountMinor": -1320,
+          "memo": "waste: 15 kilos"
+        },
+        {
+          "day": 24,
           "account": "eventRevenue",
           "amountMinor": 468300,
           "memo": "conference event.4920"
@@ -20995,12 +21277,6 @@
           "account": "barRevenue",
           "amountMinor": 12150,
           "memo": "18 bar covers"
-        },
-        {
-          "day": 25,
-          "account": "utilities",
-          "amountMinor": -116,
-          "memo": "metered water and energy"
         },
         {
           "day": 25,
@@ -21082,15 +21358,27 @@
         },
         {
           "day": 25,
+          "account": "utilities",
+          "amountMinor": -45640,
+          "memo": "metered energy: 20 units"
+        },
+        {
+          "day": 25,
+          "account": "utilities",
+          "amountMinor": -18110,
+          "memo": "metered water: 10 units"
+        },
+        {
+          "day": 25,
+          "account": "utilities",
+          "amountMinor": -880,
+          "memo": "waste: 10 kilos"
+        },
+        {
+          "day": 25,
           "account": "barRevenue",
           "amountMinor": 12825,
           "memo": "19 bar covers"
-        },
-        {
-          "day": 26,
-          "account": "utilities",
-          "amountMinor": -80,
-          "memo": "metered water and energy"
         },
         {
           "day": 26,
@@ -21178,15 +21466,27 @@
         },
         {
           "day": 26,
+          "account": "utilities",
+          "amountMinor": -45768,
+          "memo": "metered energy: 24 units"
+        },
+        {
+          "day": 26,
+          "account": "utilities",
+          "amountMinor": -18132,
+          "memo": "metered water: 12 units"
+        },
+        {
+          "day": 26,
+          "account": "utilities",
+          "amountMinor": -1020,
+          "memo": "waste: 12 kilos"
+        },
+        {
+          "day": 26,
           "account": "barRevenue",
           "amountMinor": 10800,
           "memo": "16 bar covers"
-        },
-        {
-          "day": 27,
-          "account": "utilities",
-          "amountMinor": -96,
-          "memo": "metered water and energy"
         },
         {
           "day": 27,
@@ -21250,15 +21550,27 @@
         },
         {
           "day": 27,
+          "account": "utilities",
+          "amountMinor": -45512,
+          "memo": "metered energy: 16 units"
+        },
+        {
+          "day": 27,
+          "account": "utilities",
+          "amountMinor": -18088,
+          "memo": "metered water: 8 units"
+        },
+        {
+          "day": 27,
+          "account": "utilities",
+          "amountMinor": -680,
+          "memo": "waste: 8 kilos"
+        },
+        {
+          "day": 27,
           "account": "barRevenue",
           "amountMinor": 12825,
           "memo": "19 bar covers"
-        },
-        {
-          "day": 28,
-          "account": "utilities",
-          "amountMinor": -64,
-          "memo": "metered water and energy"
         },
         {
           "day": 28,
@@ -21346,6 +21658,24 @@
         },
         {
           "day": 28,
+          "account": "utilities",
+          "amountMinor": -45768,
+          "memo": "metered energy: 24 units"
+        },
+        {
+          "day": 28,
+          "account": "utilities",
+          "amountMinor": -18132,
+          "memo": "metered water: 12 units"
+        },
+        {
+          "day": 28,
+          "account": "utilities",
+          "amountMinor": -1020,
+          "memo": "waste: 12 kilos"
+        },
+        {
+          "day": 28,
           "account": "barRevenue",
           "amountMinor": 14175,
           "memo": "21 bar covers"
@@ -21355,12 +21685,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 29,
-          "account": "utilities",
-          "amountMinor": -96,
-          "memo": "metered water and energy"
         },
         {
           "day": 29,
@@ -21466,15 +21790,27 @@
         },
         {
           "day": 29,
+          "account": "utilities",
+          "amountMinor": -45960,
+          "memo": "metered energy: 30 units"
+        },
+        {
+          "day": 29,
+          "account": "utilities",
+          "amountMinor": -18165,
+          "memo": "metered water: 15 units"
+        },
+        {
+          "day": 29,
+          "account": "utilities",
+          "amountMinor": -1320,
+          "memo": "waste: 15 kilos"
+        },
+        {
+          "day": 29,
           "account": "barRevenue",
           "amountMinor": 12825,
           "memo": "19 bar covers"
-        },
-        {
-          "day": 30,
-          "account": "utilities",
-          "amountMinor": -120,
-          "memo": "metered water and energy"
         },
         {
           "day": 30,
@@ -21568,15 +21904,27 @@
         },
         {
           "day": 30,
+          "account": "utilities",
+          "amountMinor": -45768,
+          "memo": "metered energy: 24 units"
+        },
+        {
+          "day": 30,
+          "account": "utilities",
+          "amountMinor": -18132,
+          "memo": "metered water: 12 units"
+        },
+        {
+          "day": 30,
+          "account": "utilities",
+          "amountMinor": -1020,
+          "memo": "waste: 12 kilos"
+        },
+        {
+          "day": 30,
           "account": "barRevenue",
           "amountMinor": 11475,
           "memo": "17 bar covers"
-        },
-        {
-          "day": 31,
-          "account": "utilities",
-          "amountMinor": -96,
-          "memo": "metered water and energy"
         },
         {
           "day": 31,
@@ -21682,15 +22030,27 @@
         },
         {
           "day": 31,
+          "account": "utilities",
+          "amountMinor": -45576,
+          "memo": "metered energy: 18 units"
+        },
+        {
+          "day": 31,
+          "account": "utilities",
+          "amountMinor": -18099,
+          "memo": "metered water: 9 units"
+        },
+        {
+          "day": 31,
+          "account": "utilities",
+          "amountMinor": -780,
+          "memo": "waste: 9 kilos"
+        },
+        {
+          "day": 31,
           "account": "barRevenue",
           "amountMinor": 11475,
           "memo": "17 bar covers"
-        },
-        {
-          "day": 32,
-          "account": "utilities",
-          "amountMinor": -72,
-          "memo": "metered water and energy"
         },
         {
           "day": 32,
@@ -21754,6 +22114,24 @@
         },
         {
           "day": 32,
+          "account": "utilities",
+          "amountMinor": -45512,
+          "memo": "metered energy: 16 units"
+        },
+        {
+          "day": 32,
+          "account": "utilities",
+          "amountMinor": -18088,
+          "memo": "metered water: 8 units"
+        },
+        {
+          "day": 32,
+          "account": "utilities",
+          "amountMinor": -680,
+          "memo": "waste: 8 kilos"
+        },
+        {
+          "day": 32,
           "account": "barRevenue",
           "amountMinor": 14175,
           "memo": "21 bar covers"
@@ -21763,12 +22141,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 33,
-          "account": "utilities",
-          "amountMinor": -64,
-          "memo": "metered water and energy"
         },
         {
           "day": 33,
@@ -21868,6 +22240,24 @@
         },
         {
           "day": 33,
+          "account": "utilities",
+          "amountMinor": -45896,
+          "memo": "metered energy: 28 units"
+        },
+        {
+          "day": 33,
+          "account": "utilities",
+          "amountMinor": -18154,
+          "memo": "metered water: 14 units"
+        },
+        {
+          "day": 33,
+          "account": "utilities",
+          "amountMinor": -1220,
+          "memo": "waste: 14 kilos"
+        },
+        {
+          "day": 33,
           "account": "barRevenue",
           "amountMinor": 14850,
           "memo": "22 bar covers"
@@ -21877,12 +22267,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 34,
-          "account": "utilities",
-          "amountMinor": -112,
-          "memo": "metered water and energy"
         },
         {
           "day": 34,
@@ -21988,15 +22372,27 @@
         },
         {
           "day": 34,
+          "account": "utilities",
+          "amountMinor": -45960,
+          "memo": "metered energy: 30 units"
+        },
+        {
+          "day": 34,
+          "account": "utilities",
+          "amountMinor": -18165,
+          "memo": "metered water: 15 units"
+        },
+        {
+          "day": 34,
+          "account": "utilities",
+          "amountMinor": -1320,
+          "memo": "waste: 15 kilos"
+        },
+        {
+          "day": 34,
           "account": "barRevenue",
           "amountMinor": 13500,
           "memo": "20 bar covers"
-        },
-        {
-          "day": 35,
-          "account": "utilities",
-          "amountMinor": -120,
-          "memo": "metered water and energy"
         },
         {
           "day": 35,
@@ -22084,6 +22480,24 @@
         },
         {
           "day": 35,
+          "account": "utilities",
+          "amountMinor": -45768,
+          "memo": "metered energy: 24 units"
+        },
+        {
+          "day": 35,
+          "account": "utilities",
+          "amountMinor": -18132,
+          "memo": "metered water: 12 units"
+        },
+        {
+          "day": 35,
+          "account": "utilities",
+          "amountMinor": -1020,
+          "memo": "waste: 12 kilos"
+        },
+        {
+          "day": 35,
           "account": "barRevenue",
           "amountMinor": 13500,
           "memo": "20 bar covers"
@@ -22093,12 +22507,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 36,
-          "account": "utilities",
-          "amountMinor": -96,
-          "memo": "metered water and energy"
         },
         {
           "day": 36,
@@ -22198,6 +22606,24 @@
         },
         {
           "day": 36,
+          "account": "utilities",
+          "amountMinor": -45832,
+          "memo": "metered energy: 26 units"
+        },
+        {
+          "day": 36,
+          "account": "utilities",
+          "amountMinor": -18209,
+          "memo": "metered water: 19 units"
+        },
+        {
+          "day": 36,
+          "account": "utilities",
+          "amountMinor": -1320,
+          "memo": "waste: 15 kilos"
+        },
+        {
+          "day": 36,
           "account": "barRevenue",
           "amountMinor": 14175,
           "memo": "21 bar covers"
@@ -22207,12 +22633,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 37,
-          "account": "utilities",
-          "amountMinor": -116,
-          "memo": "metered water and energy"
         },
         {
           "day": 37,
@@ -22312,6 +22732,24 @@
         },
         {
           "day": 37,
+          "account": "utilities",
+          "amountMinor": -45896,
+          "memo": "metered energy: 28 units"
+        },
+        {
+          "day": 37,
+          "account": "utilities",
+          "amountMinor": -18220,
+          "memo": "metered water: 20 units"
+        },
+        {
+          "day": 37,
+          "account": "utilities",
+          "amountMinor": -1360,
+          "memo": "waste: 16 kilos"
+        },
+        {
+          "day": 37,
           "account": "eventRevenue",
           "amountMinor": 1021200,
           "memo": "conference event.39480"
@@ -22327,12 +22765,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 38,
-          "account": "utilities",
-          "amountMinor": -124,
-          "memo": "metered water and energy"
         },
         {
           "day": 38,
@@ -22438,6 +22870,24 @@
         },
         {
           "day": 38,
+          "account": "utilities",
+          "amountMinor": -45960,
+          "memo": "metered energy: 30 units"
+        },
+        {
+          "day": 38,
+          "account": "utilities",
+          "amountMinor": -18165,
+          "memo": "metered water: 15 units"
+        },
+        {
+          "day": 38,
+          "account": "utilities",
+          "amountMinor": -1320,
+          "memo": "waste: 15 kilos"
+        },
+        {
+          "day": 38,
           "account": "barRevenue",
           "amountMinor": 15525,
           "memo": "23 bar covers"
@@ -22447,12 +22897,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 39,
-          "account": "utilities",
-          "amountMinor": -120,
-          "memo": "metered water and energy"
         },
         {
           "day": 39,
@@ -22576,15 +23020,27 @@
         },
         {
           "day": 39,
+          "account": "utilities",
+          "amountMinor": -46088,
+          "memo": "metered energy: 34 units"
+        },
+        {
+          "day": 39,
+          "account": "utilities",
+          "amountMinor": -18187,
+          "memo": "metered water: 17 units"
+        },
+        {
+          "day": 39,
+          "account": "utilities",
+          "amountMinor": -1460,
+          "memo": "waste: 17 kilos"
+        },
+        {
+          "day": 39,
           "account": "barRevenue",
           "amountMinor": 13500,
           "memo": "20 bar covers"
-        },
-        {
-          "day": 40,
-          "account": "utilities",
-          "amountMinor": -136,
-          "memo": "metered water and energy"
         },
         {
           "day": 40,
@@ -22672,10 +23128,10 @@
         }
       ],
       "month": {
-        "openingCashMinor": 3634784,
+        "openingCashMinor": 1768632,
         "roomRevenueMinor": 1155210,
         "otherRevenueMinor": 1390350,
-        "operatingExpenseMinor": 943710,
+        "operatingExpenseMinor": 1529137,
         "soldRoomNights": 120,
         "availableRoomNights": 240
       }
@@ -23078,15 +23534,15 @@
     "lastMonthlyClose": {
       "periodKey": "1991-01",
       "openingCashMinor": 40000000,
-      "closingCashMinor": 5427787,
+      "closingCashMinor": 3561635,
       "roomRevenueMinor": 2429760,
       "otherRevenueMinor": 2701050,
-      "operatingExpenseMinor": 5703023,
+      "operatingExpenseMinor": 7569175,
       "soldRoomNights": 257,
       "availableRoomNights": 744,
       "revenueMinor": 5130810,
-      "operatingProfitMinor": -572213,
-      "cashDeltaMinor": -34572213,
+      "operatingProfitMinor": -2438365,
+      "cashDeltaMinor": -36438365,
       "occupancyBasisPoints": 3454,
       "adrMinor": 9454,
       "revParMinor": 3266
@@ -23360,7 +23816,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 3524596,
+        "hqMinor": 1073017,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -23437,8 +23893,8 @@
           "periodKey": "1991-01",
           "roomRevenueMinor": 2429760,
           "otherRevenueMinor": 2701050,
-          "operatingExpenseMinor": 5703023,
-          "grossOperatingProfitMinor": -572213,
+          "operatingExpenseMinor": 7569175,
+          "grossOperatingProfitMinor": -2438365,
           "occupancyBasisPoints": 3454,
           "soldRoomNights": 257,
           "availableRoomNights": 744
@@ -23456,6 +23912,48 @@
         }
       },
       "sequence": 1
-    }
+    },
+    "statements": {
+      "receivables": [],
+      "receivablesMinor": 0,
+      "fixedAssetsMinor": 34000000,
+      "accumulatedDepreciationMinor": 87500,
+      "depreciationThisPeriodMinor": 87500,
+      "depreciationByAsset": {
+        "asset.boiler": 37500,
+        "asset.lift": 50000
+      },
+      "lastDepreciationPeriodKey": "1991-01"
+    },
+    "insurance": {
+      "policies": [],
+      "claims": []
+    },
+    "utilityContracts": {
+      "energy": {
+        "kind": "energy",
+        "standingChargeMinor": 45000,
+        "unitPriceMinor": 32,
+        "efficiencyBasisPoints": 0
+      },
+      "water": {
+        "kind": "water",
+        "standingChargeMinor": 18000,
+        "unitPriceMinor": 11,
+        "efficiencyBasisPoints": 0
+      },
+      "waste": {
+        "kind": "waste",
+        "standingChargeMinor": 9000,
+        "unitPriceMinor": 100,
+        "efficiencyBasisPoints": 0
+      }
+    },
+    "meters": {
+      "energy": 730,
+      "water": 401,
+      "waste": 376
+    },
+    "outages": []
   }
 }

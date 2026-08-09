@@ -28,6 +28,14 @@ import {
 } from "../revenue/revenuePolicy";
 import type { TechnologyProject } from "../technology/adoption";
 import { createCompanyState, type CompanyState } from "../company/companyState";
+import { createStatements, type StatementsState } from "../finance/statements";
+import { createInsuranceState, type InsuranceState } from "../risk/insurance";
+import {
+  createUtilityContracts,
+  type MeterReadings,
+  type UtilityContracts,
+  type UtilityOutage,
+} from "../utilities/consumption";
 
 export interface RoomRecord {
   id: string;
@@ -222,6 +230,14 @@ export interface GameState {
    * published results.
    */
   company: CompanyState;
+  /** The accrual half of the accounts: receivables, assets, depreciation. */
+  statements: StatementsState;
+  /** Policies in force and the claims made against them. */
+  insurance: InsuranceState;
+  /** Energy, water and waste contracts, meters and any running outage. */
+  utilityContracts: UtilityContracts;
+  meters: MeterReadings;
+  outages: UtilityOutage[];
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -331,6 +347,11 @@ export function createInitialGameState(seed: number): GameState {
     technologyProjects: [],
     technologyImplementations: [],
     company: createCompanyState(),
+    statements: createStatements(),
+    insurance: createInsuranceState(),
+    utilityContracts: createUtilityContracts(),
+    meters: { energy: 0, water: 0, waste: 0 },
+    outages: [],
   };
 }
 

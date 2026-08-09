@@ -1,0 +1,285 @@
+import { compareIds } from "../domain/ids";
+import { assertMinor, assertNonNegativeMinor } from "../domain/units";
+import type { LedgerEntry } from "./ledger";
+
+/**
+ * The three statements, kept apart on purpose. Profit is not cash and cash is
+ * not solvency: a hotel can be profitable and unable to pay its wages, and the
+ * player has to be able to see that happening rather than discover it.
+ */
+
+export type AccountClass = "revenue" | "operating" | "capital" | "financing";
+
+/**
+ * Which statement each account belongs to. An account missing from here is
+ * treated as operating, which is the safe reading: a cost of unknown kind is
+ * a cost of trading, never quietly capitalised into an asset.
+ */
+export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
+  roomRevenue: "revenue",
+  breakfastRevenue: "revenue",
+  barRevenue: "revenue",
+  roomServiceRevenue: "revenue",
+  wellnessRevenue: "revenue",
+  eventRevenue: "revenue",
+  portfolioRevenue: "revenue",
+  managementFee: "revenue",
+  wages: "operating",
+  supplies: "operating",
+  maintenance: "operating",
+  utilities: "operating",
+  laundry: "operating",
+  marketResearch: "operating",
+  advisory: "operating",
+  headquarters: "operating",
+  brandProgramme: "operating",
+  leaseRent: "operating",
+  franchiseRoyalty: "operating",
+  portfolioOperating: "operating",
+  insurancePremium: "operating",
+  capex: "capital",
+  interest: "financing",
+  payables: "financing",
+};
+
+export function accountClass(account: string): AccountClass {
+  return ACCOUNT_CLASSES[account] ?? "operating";
+}
+
+export function isCapitalAccount(account: string): boolean {
+  return accountClass(account) === "capital";
+}
+
+export interface ProfitAndLoss {
+  revenueMinor: number;
+  operatingExpenseMinor: number;
+  operatingProfitMinor: number;
+  interestMinor: number;
+  netProfitMinor: number;
+}
+
+/** Trading only: capital spend buys an asset and belongs nowhere in here. */
+export function profitAndLoss(ledger: readonly LedgerEntry[]): ProfitAndLoss {
+  let revenueMinor = 0;
+  let operatingExpenseMinor = 0;
+  let interestMinor = 0;
+  for (const entry of ledger)
+    switch (accountClass(entry.account)) {
+      case "revenue":
+        revenueMinor += entry.amountMinor;
+        break;
+      case "operating":
+        // Expenses are stored signed; the statement quotes them positive.
+        operatingExpenseMinor += -entry.amountMinor;
+        break;
+      case "financing":
+        interestMinor += -entry.amountMinor;
+        break;
+      case "capital":
+        break;
+    }
+  const operatingProfitMinor = revenueMinor - operatingExpenseMinor;
+  return {
+    revenueMinor,
+    operatingExpenseMinor,
+    operatingProfitMinor,
+    interestMinor,
+    netProfitMinor: operatingProfitMinor - interestMinor,
+  };
+}
+
+export interface CashFlowStatement {
+  openingCashMinor: number;
+  operatingCashMinor: number;
+  investingCashMinor: number;
+  closingCashMinor: number;
+}
+
+/** The same period as money actually moving, where capital spend does count. */
+export function cashFlowStatement(
+  ledger: readonly LedgerEntry[],
+  input: { openingCashMinor: number },
+): CashFlowStatement {
+  assertMinor(input.openingCashMinor, "opening cash");
+  let operatingCashMinor = 0;
+  let investingCashMinor = 0;
+  for (const entry of ledger)
+    if (accountClass(entry.account) === "capital")
+      investingCashMinor += entry.amountMinor;
+    else operatingCashMinor += entry.amountMinor;
+  return {
+    openingCashMinor: input.openingCashMinor,
+    operatingCashMinor,
+    investingCashMinor,
+    closingCashMinor:
+      input.openingCashMinor + operatingCashMinor + investingCashMinor,
+  };
+}
+
+export interface BalanceSheetInput {
+  cashMinor: number;
+  receivablesMinor: number;
+  fixedAssetsMinor: number;
+  accumulatedDepreciationMinor: number;
+  payablesMinor: number;
+  debtMinor: number;
+  contributedCapitalMinor: number;
+  retainedEarningsMinor: number;
+}
+
+export interface BalanceSheet {
+  totalAssetsMinor: number;
+  totalLiabilitiesMinor: number;
+  equityMinor: number;
+  /** Whether assets equal liabilities plus equity; reported, never forced. */
+  balances: boolean;
+}
+
+export function balanceSheet(input: BalanceSheetInput): BalanceSheet {
+  const totalAssetsMinor =
+    input.cashMinor +
+    input.receivablesMinor +
+    input.fixedAssetsMinor -
+    input.accumulatedDepreciationMinor;
+  const totalLiabilitiesMinor = input.payablesMinor + input.debtMinor;
+  const equityMinor =
+    input.contributedCapitalMinor + input.retainedEarningsMinor;
+  return {
+    totalAssetsMinor,
+    totalLiabilitiesMinor,
+    equityMinor,
+    balances: totalAssetsMinor === totalLiabilitiesMinor + equityMinor,
+  };
+}
+
+/** Straight line, and never more than the asset has left to give up. */
+export function depreciationMinor(input: {
+  costMinor: number;
+  usefulLifeMonths: number;
+  accumulatedMinor?: number;
+}): number {
+  assertNonNegativeMinor(input.costMinor, "asset cost");
+  if (
+    !Number.isSafeInteger(input.usefulLifeMonths) ||
+    input.usefulLifeMonths <= 0
+  )
+    throw new Error("invalid useful life");
+  const accumulated = input.accumulatedMinor ?? 0;
+  assertNonNegativeMinor(accumulated, "accumulated depreciation");
+  return Math.max(
+    0,
+    Math.min(
+      Math.trunc(input.costMinor / input.usefulLifeMonths),
+      input.costMinor - accumulated,
+    ),
+  );
+}
+
+/** Money the hotel has earned but not yet been paid. */
+export interface Receivable {
+  id: string;
+  amountMinor: number;
+  dueDateKey: string;
+}
+
+/** The accrual half of the accounts, alongside the cash the ledger records. */
+export interface StatementsState {
+  receivables: Receivable[];
+  receivablesMinor: number;
+  fixedAssetsMinor: number;
+  accumulatedDepreciationMinor: number;
+  depreciationThisPeriodMinor: number;
+  /** Depreciation already posted per asset, so a reload cannot repeat it. */
+  depreciationByAsset: Record<string, number>;
+  /** The last period depreciation was posted for; a guard against duplicates. */
+  lastDepreciationPeriodKey: string | null;
+}
+
+export function createStatements(): StatementsState {
+  return {
+    receivables: [],
+    receivablesMinor: 0,
+    fixedAssetsMinor: 0,
+    accumulatedDepreciationMinor: 0,
+    depreciationThisPeriodMinor: 0,
+    depreciationByAsset: {},
+    lastDepreciationPeriodKey: null,
+  };
+}
+
+export function recogniseReceivable(
+  statements: StatementsState,
+  receivable: Receivable,
+): StatementsState {
+  assertNonNegativeMinor(receivable.amountMinor, "receivable");
+  if (statements.receivables.some((r) => r.id === receivable.id))
+    throw new Error(`receivable ${receivable.id} already exists`);
+  return {
+    ...statements,
+    receivables: [...statements.receivables, { ...receivable }].sort((a, b) =>
+      compareIds(a.id, b.id),
+    ),
+    receivablesMinor: statements.receivablesMinor + receivable.amountMinor,
+  };
+}
+
+export function settleReceivable(
+  statements: StatementsState,
+  id: string,
+): StatementsState {
+  const receivable = statements.receivables.find((r) => r.id === id);
+  if (!receivable) throw new Error(`unknown receivable ${id}`);
+  return {
+    ...statements,
+    receivables: statements.receivables.filter((r) => r.id !== id),
+    receivablesMinor: statements.receivablesMinor - receivable.amountMinor,
+  };
+}
+
+/**
+ * Depreciation is an expense that moves no cash, which is why it is posted
+ * here rather than through the ledger's cash path.
+ */
+export function postDepreciation(
+  statements: StatementsState,
+  input: { assetId: string; amountMinor: number; periodKey: string },
+): StatementsState {
+  assertNonNegativeMinor(input.amountMinor, "depreciation");
+  const alreadyThisPeriod =
+    statements.lastDepreciationPeriodKey === input.periodKey;
+  return {
+    ...statements,
+    accumulatedDepreciationMinor:
+      statements.accumulatedDepreciationMinor + input.amountMinor,
+    depreciationThisPeriodMinor: alreadyThisPeriod
+      ? statements.depreciationThisPeriodMinor + input.amountMinor
+      : input.amountMinor,
+    depreciationByAsset: {
+      ...statements.depreciationByAsset,
+      [input.assetId]:
+        (statements.depreciationByAsset[input.assetId] ?? 0) +
+        input.amountMinor,
+    },
+    lastDepreciationPeriodKey: input.periodKey,
+  };
+}
+
+/** Capitalises a purchase; the cash side is the ledger's capex posting. */
+export function capitaliseAsset(
+  statements: StatementsState,
+  amountMinor: number,
+): StatementsState {
+  assertNonNegativeMinor(amountMinor, "capitalised asset");
+  return {
+    ...statements,
+    fixedAssetsMinor: statements.fixedAssetsMinor + amountMinor,
+  };
+}
+
+/** Receivables that have fallen due on or before a date, in stable order. */
+export function overdueReceivables(
+  statements: StatementsState,
+  dateKey: string,
+): Receivable[] {
+  return statements.receivables.filter((r) => r.dueDateKey <= dateKey);
+}

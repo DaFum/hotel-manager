@@ -4,6 +4,9 @@ import { createManagedHotel } from "../../company/managedHotels";
 import { createLegalEntity } from "../../company/legalEntities";
 import { createOperatingContract } from "../../ownership/models";
 import { createManagerAuthority } from "../../management/managerAuthority";
+import { createStatements } from "../../finance/statements";
+import { createInsuranceState } from "../../risk/insurance";
+import { createUtilityContracts } from "../../utilities/consumption";
 import { compareIds } from "../../domain/ids";
 
 /**
@@ -32,6 +35,18 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
     state: {
       ...state,
       company: migratedCompany(state.company, hotelId),
+      statements: normalisedSection(state.statements, createStatements()),
+      insurance: normalisedSection(state.insurance, createInsuranceState()),
+      utilityContracts: normalisedSection(
+        state.utilityContracts,
+        createUtilityContracts(),
+      ),
+      meters: normalisedSection(state.meters, {
+        energy: 0,
+        water: 0,
+        waste: 0,
+      }),
+      outages: Array.isArray(state.outages) ? state.outages : [],
     },
   };
 }
@@ -42,6 +57,18 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
  * rather than accepted: loading twice must produce the same state as loading
  * once, whatever shape the earlier build wrote.
  */
+/**
+ * Fills in a section a v4 save never had, and completes a partial one an
+ * early development v5 build may have written. Missing keys take their
+ * documented default; keys the save already carries are left exactly as they
+ * are, so nothing is reinterpreted.
+ */
+function normalisedSection<T extends object>(raw: unknown, created: T): T {
+  return raw && typeof raw === "object"
+    ? { ...created, ...(raw as T) }
+    : created;
+}
+
 function migratedCompany(raw: unknown, hotelId: string): unknown {
   const created = createCompanyState();
   const existing =

@@ -80,8 +80,13 @@ export function migrateV1ToV2(s: SaveEnvelope): SaveEnvelope {
       },
       elevatorTrips: state.elevatorTrips ?? 0,
       eventHousekeepingMinutes: state.eventHousekeepingMinutes ?? 0,
+      eventHousekeepingWorkedMinutes: state.eventHousekeepingWorkedMinutes ?? 0,
       classification: state.classification ?? { stars: 0, blockedBy: [] },
       specializationId: state.specializationId ?? null,
+      investedArea: state.investedArea ?? {
+        conferenceSqm: STARTER_HOTEL.conferenceSqm,
+        wellnessSqm: STARTER_HOTEL.wellnessSqm,
+      },
     },
   };
 }

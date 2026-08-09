@@ -1,4 +1,10 @@
-import { SPECIALIZATIONS } from "../../game/classification/specialization";
+import {
+  expansionCostMinor,
+  EXPANSION_SQM,
+  SPECIALIZATIONS,
+  type ExpandableArea,
+} from "../../game/classification/specialization";
+import { formatDm } from "../money";
 
 export interface ClassificationView {
   stars: number;
@@ -12,8 +18,12 @@ export interface ClassificationView {
 export function ClassificationPanel(props: {
   classification: ClassificationView;
   specializationId: string | null;
+  investedArea: { conferenceSqm: number; wellnessSqm: number };
   onSetSpecialization: (id: string | null) => void;
+  onExpand: (area: ExpandableArea) => void;
 }) {
+  const selected = SPECIALIZATIONS.find((s) => s.id === props.specializationId);
+  const built = selected ? props.investedArea[selected.requires] : 0;
   return (
     <section aria-label="Classification">
       <h2>Classification</h2>
@@ -45,6 +55,25 @@ export function ClassificationPanel(props: {
           ))}
         </select>
       </label>
+      {selected ? (
+        <p aria-label="Profile investment">
+          {selected.name} needs {selected.thresholdSqm} m² of{" "}
+          {selected.requires === "conferenceSqm" ? "conference" : "wellness"}{" "}
+          space; {built} m² is built.
+          {built < selected.thresholdSqm
+            ? " It pays nothing until the space exists."
+            : ""}
+        </p>
+      ) : null}
+      <p>
+        Build {EXPANSION_SQM} m² more for {formatDm(expansionCostMinor())}.
+      </p>
+      <button type="button" onClick={() => props.onExpand("conferenceSqm")}>
+        Expand conference space
+      </button>
+      <button type="button" onClick={() => props.onExpand("wellnessSqm")}>
+        Expand wellness space
+      </button>
     </section>
   );
 }

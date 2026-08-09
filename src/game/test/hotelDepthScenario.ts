@@ -10,7 +10,7 @@ export interface HotelDepthScenarioResult {
   conferences: number;
   /** Breakfast covers demanded on the busiest conference day. */
   breakfastDemand: number;
-  /** Housekeeping minutes the conferences added on that day. */
+  /** Conference housekeeping minutes charged on the heaviest day. */
   housekeepingMinutes: number;
   /** Lift trips on that day. */
   elevatorTrips: number;
@@ -43,6 +43,9 @@ export function runHotelDepthScenario(
     });
 
   const seenEvents = new Set<string>();
+  // Conference housekeeping is real work: the shift starts eating it in the
+  // same quantum it is booked, so the peak is what the event actually cost.
+  let peakEventHousekeeping = 0;
   let best: HotelDepthScenarioResult | null = null;
 
   for (let quantum = 0; quantum < days * QUANTA_PER_DAY; quantum++) {
@@ -51,6 +54,10 @@ export function runHotelDepthScenario(
     const running = s.events.filter((e) => e.status === "running");
     if (running.length === 0) continue;
     for (const e of running) seenEvents.add(e.id);
+    peakEventHousekeeping = Math.max(
+      peakEventHousekeeping,
+      s.eventHousekeepingMinutes + s.eventHousekeepingWorkedMinutes,
+    );
     const breakfast = s.facilities.find(
       (f) => f.id === "facility.breakfast_room",
     );
@@ -58,7 +65,7 @@ export function runHotelDepthScenario(
       days,
       conferences: seenEvents.size,
       breakfastDemand: breakfast?.demand ?? 0,
-      housekeepingMinutes: s.eventHousekeepingMinutes,
+      housekeepingMinutes: peakEventHousekeeping,
       elevatorTrips: s.elevatorTrips,
       facilities: structuredClone(s.facilities),
       linen: { ...s.linen },

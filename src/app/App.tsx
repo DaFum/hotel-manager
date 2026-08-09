@@ -71,9 +71,11 @@ export function App() {
       <ClassificationPanel
         classification={s.classification}
         specializationId={s.specializationId}
+        investedArea={s.investedArea}
         onSetSpecialization={(specializationId) =>
           game.send({ type: "SET_SPECIALIZATION", specializationId })
         }
+        onExpand={(area) => game.send({ type: "EXPAND_FACILITY", area })}
       />
       <RevenueDashboard
         adrMinor={s.metrics.adrMinor}

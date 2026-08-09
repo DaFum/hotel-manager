@@ -39,7 +39,11 @@ import {
 } from "../eventsales/leads";
 import { effectiveCapacity } from "../engineering/assets";
 import { isDueForService, preventiveCostMinor } from "../engineering/policy";
-import { serviceAsset, toEngineeringAsset } from "../maintenance/maintenance";
+import {
+  serviceAsset,
+  toEngineeringAsset,
+  SERVICE_MINUTES,
+} from "../maintenance/maintenance";
 import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
 import {
   requiredSecurityStaff,
@@ -52,8 +56,12 @@ import {
 import { facilityRow } from "../facilities/facilityBoard";
 import { classify } from "../classification/quality";
 import {
+  expansionCostMinor,
   specializationBonusBp,
+  EXPANDABLE_AREAS,
+  EXPANSION_SQM,
   SPECIALIZATIONS,
+  type ExpandableArea,
 } from "../classification/specialization";
 import { roomAppeal, segmentFitBp } from "../rooms/product";
 import { roomModule, roomProductFor } from "../content/rooms/modules";
@@ -119,7 +127,8 @@ export type GameCommand =
       monthlyWageMinor: number;
     }
   | { type: "START_RENOVATION" }
-  | { type: "SET_SPECIALIZATION"; specializationId: string | null };
+  | { type: "SET_SPECIALIZATION"; specializationId: string | null }
+  | { type: "EXPAND_FACILITY"; area: ExpandableArea };
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
@@ -228,6 +237,13 @@ export class GameSimulation {
             !SPECIALIZATIONS.some((x) => x.id === command.specializationId)
           )
             return { ok: false, reason: "unknown specialization" };
+          return { ok: true };
+        }
+        case "EXPAND_FACILITY": {
+          if (!EXPANDABLE_AREAS.includes(command.area))
+            return { ok: false, reason: "unknown facility area" };
+          if (s.finance.cashMinor < expansionCostMinor())
+            return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         }
         default:
@@ -395,6 +411,22 @@ export class GameSimulation {
         s.specializationId = command.specializationId;
         return;
       }
+      case "EXPAND_FACILITY": {
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
+        // Building the area is CapEx; the profile only starts paying once the
+        // floor space actually exists.
+        this.spend(
+          expansionCostMinor(),
+          "capex",
+          `${EXPANSION_SQM} sqm more ${command.area}`,
+        );
+        s.investedArea = {
+          ...s.investedArea,
+          [command.area]: s.investedArea[command.area] + EXPANSION_SQM,
+        };
+        return;
+      }
     }
   }
 
@@ -412,8 +444,14 @@ export class GameSimulation {
       // Lift trips and conference housekeeping are per-day loads, so they
       // start each day at zero rather than accumulating forever.
       s.elevatorTrips = 0;
-      s.eventHousekeepingMinutes = 0;
+      // Outstanding conference work does not evaporate overnight; only the
+      // day's worked total starts again at zero.
+      s.eventHousekeepingWorkedMinutes = 0;
     }
+    // A fit-out dates by the calendar, not by wear: on every new year every
+    // room is one year further from being current.
+    if (this.dayRolled && before.slice(0, 4) !== s.calendar.dateKey.slice(0, 4))
+      for (const room of s.hotel.rooms) room.styleAgeYears += 1;
   }
 
   private arrivalsDepartures(): void {
@@ -486,6 +524,17 @@ export class GameSimulation {
       (m) => m.role === "housekeeping" && !m.absent,
     ).length;
     s.housekeepingMinutes += housekeepers * QUANTUM_MINUTES;
+
+    // Conference set-up and hall turnarounds are real work and are done
+    // first: they compete with room turnaround for the same shift, which is
+    // what makes an oversold event visible as dirty rooms.
+    if (s.eventHousekeepingMinutes > 0 && s.housekeepingMinutes > 0) {
+      const spent = Math.min(s.eventHousekeepingMinutes, s.housekeepingMinutes);
+      s.eventHousekeepingMinutes -= spent;
+      s.housekeepingMinutes -= spent;
+      s.eventHousekeepingWorkedMinutes += spent;
+    }
+
     const roomsThisQuantum = Math.floor(
       s.housekeepingMinutes / ROOM_CLEAN_MINUTES,
     );
@@ -770,7 +819,11 @@ export class GameSimulation {
     const s = this.state;
     // Wear is applied once a day: a five-minute quantum floors to zero decay.
     const wearMinutes = this.dayRolled ? MINUTES_PER_DAY : 0;
-    const technicianShift = this.onDuty("technician") * 240;
+    // A shift is a budget, not a per-asset allowance: every service booked
+    // today draws it down, so two assets due at once need two technicians.
+    let technicianMinutesLeft = this.dayRolled
+      ? this.onDuty("technician") * 240
+      : 0;
     const serviced: string[] = [];
     s.assets = s.assets.map((asset) => {
       const degraded = { ...asset, ...degradeAsset(asset, wearMinutes) };
@@ -790,14 +843,14 @@ export class GameSimulation {
       // Planned service happens before a failure, not after one, and costs
       // technician time and money up front.
       if (
-        this.dayRolled &&
-        technicianShift > 0 &&
+        technicianMinutesLeft >= SERVICE_MINUTES &&
         isDueForService({
           minutesSinceService: degraded.minutesSinceService ?? 0,
         })
       ) {
+        technicianMinutesLeft -= SERVICE_MINUTES;
         serviced.push(degraded.id);
-        return { ...degraded, ...serviceAsset(degraded, technicianShift) };
+        return { ...degraded, ...serviceAsset(degraded, SERVICE_MINUTES) };
       }
       return degraded;
     });
@@ -1025,12 +1078,17 @@ export class GameSimulation {
     );
   }
 
-  /** Sleeping rooms a confirmed conference holds on a given date. */
-  private eventRoomsBlocked(dateKey: string): number {
+  /**
+   * Sleeping rooms a confirmed conference holds on a given date, in one rate
+   * category. A block comes out of the category it was sold from; subtracting
+   * a house-wide figure from every category would hold each room twice.
+   */
+  private eventRoomsBlocked(dateKey: string, category: string): number {
     return this.state.events
       .filter(
         (e) =>
           e.status !== "complete" &&
+          e.blockedCategory === category &&
           e.startDateKey <= dateKey &&
           addDays(e.startDateKey, e.nights) > dateKey,
       )
@@ -1086,8 +1144,14 @@ export class GameSimulation {
     const guests = 40 + (this.streams.events.nextUint32() % 100);
     const nights = 1 + (this.streams.events.nextUint32() % 2);
     const leadDays = 5 + (this.streams.events.nextUint32() % 20);
+    // Delegations sleep in doubles, so the block is capped by that category's
+    // own inventory rather than by the size of the whole house.
+    const blockedCategory = "double";
+    const categoryRooms = s.hotel.rooms.filter(
+      (r) => r.category === blockedCategory,
+    ).length;
     const roomsBlocked = Math.min(
-      Math.floor(s.hotel.rooms.length / 3),
+      Math.floor(categoryRooms / 2),
       Math.floor(guests / 4),
     );
     const budgetMinor =
@@ -1107,6 +1171,7 @@ export class GameSimulation {
       guests,
       nights,
       roomsBlocked,
+      blockedCategory,
       startDateKey: addDays(s.calendar.dateKey, leadDays),
       valueMinor: offer,
       status: "confirmed",
@@ -1190,7 +1255,12 @@ export class GameSimulation {
         name: "Conference",
         demand: this.runningEvents().reduce((n, e) => n + e.guests, 0),
         constraints: [
-          { label: "hall capacity", value: STARTER_HOTEL.conferenceCapacity },
+          {
+            label: "hall capacity",
+            value: Math.floor(
+              s.investedArea.conferenceSqm / STARTER_HOTEL.conferenceSqmPerSeat,
+            ),
+          },
         ],
       }),
       facilityRow({
@@ -1384,7 +1454,10 @@ export class GameSimulation {
         addDays(b.arrivalDateKey, b.nights) > dateKey,
     ).length;
     // A conference holds its sleeping rooms out of general sale.
-    return Math.max(0, total - held - this.eventRoomsBlocked(dateKey));
+    return Math.max(
+      0,
+      total - held - this.eventRoomsBlocked(dateKey, category),
+    );
   }
 
   /** Demand bonus for a declared profile the hotel has actually invested in. */
@@ -1393,10 +1466,7 @@ export class GameSimulation {
     if (!id) return 0;
     const spec = SPECIALIZATIONS.find((x) => x.id === id);
     if (!spec || spec.segmentId !== segmentId) return 0;
-    return specializationBonusBp(id, {
-      conferenceSqm: STARTER_HOTEL.conferenceSqm,
-      wellnessSqm: STARTER_HOTEL.wellnessSqm,
-    });
+    return specializationBonusBp(id, this.state.investedArea);
   }
 
   private sameDayInventory() {

@@ -60,3 +60,18 @@ export function specializationBonusBp(
   const steps = Math.floor(area / spec.thresholdSqm);
   return Math.min(spec.maxBonusBp, steps * spec.bonusBp);
 }
+
+/** Square metres one expansion adds, and what building them costs. */
+export const EXPANSION_SQM = 60;
+export const EXPANSION_COST_PER_SQM_MINOR = 24_000;
+
+export type ExpandableArea = Specialization["requires"];
+
+export const EXPANDABLE_AREAS: readonly ExpandableArea[] = [
+  "conferenceSqm",
+  "wellnessSqm",
+];
+
+export function expansionCostMinor(sqm: number = EXPANSION_SQM): number {
+  return Math.max(0, Math.round(sqm)) * EXPANSION_COST_PER_SQM_MINOR;
+}

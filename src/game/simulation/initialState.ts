@@ -62,6 +62,8 @@ export interface EventRecord {
   guests: number;
   nights: number;
   roomsBlocked: number;
+  /** The rate category those rooms come out of. */
+  blockedCategory: string;
   startDateKey: string;
   valueMinor: number;
   status: "confirmed" | "running" | "complete";
@@ -119,10 +121,14 @@ export interface GameState {
   };
   /** Lift trips generated today; reset at midnight. */
   elevatorTrips: number;
-  /** Housekeeping minutes today's conferences added on top of the rooms. */
+  /** Conference housekeeping still outstanding, in simulated minutes. */
   eventHousekeepingMinutes: number;
+  /** Conference housekeeping the shift has actually worked off today. */
+  eventHousekeepingWorkedMinutes: number;
   classification: Classification;
   specializationId: string | null;
+  /** Floor area actually built for a profile; only investment moves it. */
+  investedArea: { conferenceSqm: number; wellnessSqm: number };
   finance: {
     cashMinor: number;
     /** Expenses recognised but not yet payable in cash. */
@@ -223,8 +229,13 @@ export function createInitialGameState(seed: number): GameState {
     },
     elevatorTrips: 0,
     eventHousekeepingMinutes: 0,
+    eventHousekeepingWorkedMinutes: 0,
     classification: { stars: 0, blockedBy: [] },
     specializationId: null,
+    investedArea: {
+      conferenceSqm: STARTER_HOTEL.conferenceSqm,
+      wellnessSqm: STARTER_HOTEL.wellnessSqm,
+    },
     housekeepingMinutes: 0,
     receptionCapacity: 0,
     renovation: null,

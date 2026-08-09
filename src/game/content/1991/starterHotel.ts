@@ -26,7 +26,8 @@ export const STARTER_HOTEL = {
   fitnessStations: 6,
   /** The one conference room the house starts with. */
   conferenceSqm: 180,
-  conferenceCapacity: 120,
+  /** Floor area one seated delegate needs in the hall. */
+  conferenceSqmPerSeat: 1.5,
   /** In-house laundry: pieces per day by machine and per laundry hand. */
   laundryMachinePieces: 220,
   laundryPiecesPerStaff: 120,

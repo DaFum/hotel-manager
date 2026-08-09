@@ -36,6 +36,13 @@ export interface GameStore {
   send: (command: GameCommand) => void;
   save: (slot?: string) => void;
   load: (slot?: string) => Promise<void>;
+  /**
+   * Starts the career again from 1 January 1991. A restart replaces the game
+   * rather than changing it, so it goes through `INIT_GAME` — the worker's own
+   * entry point — and not through a command, which exists to mutate the game
+   * that is running.
+   */
+  restart: () => void;
 }
 
 function createWorker(): Worker | null {
@@ -193,6 +200,11 @@ export function useGameStore(seed: number): GameStore {
         commandStatesRef.current.set(requestId, "pending");
         setCommandStatus("pending");
       }
+    },
+    restart: () => {
+      setSnapshot(null);
+      setSpeedState(0);
+      clientRef.current?.init(seed);
     },
     save: (slot = DEFAULT_SLOT) => {
       const requestId = clientRef.current?.requestSave();

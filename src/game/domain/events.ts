@@ -166,7 +166,27 @@ export type DomainEventPayload =
       hotelId: string;
       periodKey: string;
       grossOperatingProfitMinor: number;
-    };
+    }
+  // --- the campaign and its remembered history ---------------------------
+  | { type: "MILESTONE_ACHIEVED"; milestoneId: string; dateKey: string }
+  | { type: "NARRATIVE_EVENT_RAISED"; eventId: string; definitionId: string }
+  | {
+      type: "NARRATIVE_EVENT_RESOLVED";
+      eventId: string;
+      definitionId: string;
+      choiceId: string;
+    }
+  | {
+      type: "RECOVERY_MEASURE_TAKEN";
+      measure: string;
+      amountMinor: number;
+    }
+  | {
+      type: "CAMPAIGN_DIFFICULTY_SET";
+      difficulty: string;
+      openingCapitalDeltaMinor: number;
+    }
+  | { type: "ENDLESS_CAREER_CONTINUED"; dateKey: string };
 
 export type DomainEventType = DomainEventPayload["type"];
 
@@ -225,6 +245,12 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   DUE_DILIGENCE_COMPLETED: true,
   HOTEL_ACQUIRED: true,
   HOTEL_RESULT_PUBLISHED: true,
+  MILESTONE_ACHIEVED: true,
+  NARRATIVE_EVENT_RAISED: true,
+  NARRATIVE_EVENT_RESOLVED: true,
+  RECOVERY_MEASURE_TAKEN: true,
+  CAMPAIGN_DIFFICULTY_SET: true,
+  ENDLESS_CAREER_CONTINUED: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -273,6 +299,12 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "DUE_DILIGENCE_COMPLETED",
   "HOTEL_ACQUIRED",
   "HOTEL_RESULT_PUBLISHED",
+  "MILESTONE_ACHIEVED",
+  "NARRATIVE_EVENT_RAISED",
+  "NARRATIVE_EVENT_RESOLVED",
+  "RECOVERY_MEASURE_TAKEN",
+  "CAMPAIGN_DIFFICULTY_SET",
+  "ENDLESS_CAREER_CONTINUED",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

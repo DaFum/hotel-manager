@@ -6,6 +6,15 @@ import { migrateV3ToV4 } from "./migrations/v3-to-v4";
 import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import { migrateV5ToV6 } from "./migrations/v5-to-v6";
 import {
+  isValidAnnualProfit,
+  isValidCampaign,
+  isValidCareer,
+  isValidChronicle,
+  isValidKeyPerson,
+  isValidMedia,
+  isValidPrestige,
+} from "../narrative/narrativeSchema";
+import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
   RNG_STREAM_NAMES,
@@ -96,14 +105,26 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  const narrative = state.narrative;
   if (
-    !state.narrative ||
-    !Array.isArray(state.narrative.chronicle) ||
-    !Array.isArray(state.narrative.activeEvents) ||
-    !Array.isArray(state.narrative.achievedMilestones) ||
-    !state.narrative.campaign ||
-    !state.narrative.career
+    !narrative ||
+    !Array.isArray(narrative.activeEvents) ||
+    !Array.isArray(narrative.achievedMilestones) ||
+    !Array.isArray(narrative.rivals) ||
+    !Array.isArray(narrative.opportunities) ||
+    !narrative.lastFiredByDefinition ||
+    !isValidChronicle(narrative.chronicle) ||
+    !Array.isArray(narrative.keyPeople) ||
+    !narrative.keyPeople.every(isValidKeyPerson) ||
+    !isValidAnnualProfit(narrative.annualProfit) ||
+    !isValidMedia(narrative.media) ||
+    !isValidPrestige(narrative.prestige) ||
+    !isValidCampaign(narrative.campaign) ||
+    !isValidCareer(narrative.career)
   )
+    // The same validators the migration normalises against: anything that
+    // still fails here is a save the simulation would restore into arithmetic
+    // on a value that is not a number.
     problems.push("the state has no complete Plan 06 narrative");
   const company = state.company;
   if (

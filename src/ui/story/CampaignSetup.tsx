@@ -1,45 +1,58 @@
 import {
+  DIFFICULTY_IDS,
   DIFFICULTY_PRESETS,
   type DifficultyId,
   type SandboxOptions,
 } from "../../game/campaign/campaignConfig";
+import { translate, translateKey } from "../localization";
+
+/**
+ * The brief the player agreed to. Every difficulty input is disclosed here
+ * before the first day, because a difficulty the player cannot read is
+ * indistinguishable from the game cheating.
+ */
 export function CampaignSetup({
   difficulty,
+  locked = false,
   onDifficulty,
 }: {
   difficulty: DifficultyId;
+  /** True once the career has started; difficulty is part of the run. */
+  locked?: boolean;
   onDifficulty?: (difficulty: DifficultyId) => void;
 }) {
+  const inputs = DIFFICULTY_PRESETS[difficulty];
   return (
-    <section aria-label="Campaign setup">
-      <h2>Campaign brief — Frankfurt, 1 January 1991</h2>
+    <section aria-label={translate("campaign.setup")}>
+      <h2>{translate("campaign.title")}</h2>
       <label>
-        Difficulty{" "}
+        {translate("campaign.difficulty")}{" "}
         <select
           value={difficulty}
           onChange={(event) =>
             onDifficulty?.(event.target.value as DifficultyId)
           }
-          disabled={!onDifficulty}
+          disabled={locked || !onDifficulty}
         >
-          {(Object.keys(DIFFICULTY_PRESETS) as DifficultyId[]).map((id) => (
+          {DIFFICULTY_IDS.map((id) => (
             <option key={id} value={id}>
-              {id}
+              {translateKey(`campaign.difficulty.${id}`)}
             </option>
           ))}
         </select>
       </label>
       <ul>
         <li>
-          Capital: {DIFFICULTY_PRESETS[difficulty].startingCapitalBasisPoints}{" "}
+          {translate("campaign.capital")}: {inputs.startingCapitalBasisPoints}{" "}
           bp
         </li>
         <li>
-          Credit: {DIFFICULTY_PRESETS[difficulty].creditSpreadBasisPoints} bp
+          {translate("campaign.credit")}: {inputs.creditSpreadBasisPoints} bp
         </li>
-        <li>Competition: No hidden money or knowledge</li>
+        <li>{translate("campaign.fairness")}</li>
       </ul>
     </section>
   );
 }
+
 export type CampaignSandboxDraft = Partial<SandboxOptions>;

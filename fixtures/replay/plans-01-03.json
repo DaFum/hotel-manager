@@ -10837,6 +10837,17 @@
       "eventId": "evt.857",
       "sequence": 857,
       "atMinutes": 44640,
+      "entities": ["narrative.1991-02-01.narrative.press-profile"],
+      "payload": {
+        "type": "NARRATIVE_EVENT_RAISED",
+        "eventId": "narrative.1991-02-01.narrative.press-profile",
+        "definitionId": "narrative.press-profile"
+      }
+    },
+    {
+      "eventId": "evt.858",
+      "sequence": 858,
+      "atMinutes": 44640,
       "entities": ["hotel.frankfurt.1"],
       "payload": {
         "type": "MONTH_CLOSED",
@@ -10850,13 +10861,13 @@
     {
       "dateKey": "1991-01-01",
       "atMinutes": 0,
-      "stateHash": "c367862c"
+      "stateHash": "01199558"
     },
     {
       "dateKey": "1991-02-01",
       "atMinutes": 44640,
-      "stateHash": "5ae6b043"
+      "stateHash": "4c76b90b"
     }
   ],
-  "finalStateHash": "5ae6b043"
+  "finalStateHash": "4c76b90b"
 }

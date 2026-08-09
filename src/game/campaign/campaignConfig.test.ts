@@ -13,4 +13,37 @@ describe("campaign config", () => {
     expect(c.sandbox.technologySpeedBasisPoints).toBe(15000);
     expect(adjustedStartingCapitalMinor(10000, c)).toBe(7500);
   });
+
+  it("cannot be edited once the career has started", () => {
+    const c = createCampaignConfig("beginner");
+    expect(Object.isFrozen(c)).toBe(true);
+    expect(Object.isFrozen(c.inputs)).toBe(true);
+    expect(Object.isFrozen(c.sandbox)).toBe(true);
+    expect(() => {
+      (
+        c.inputs as { startingCapitalBasisPoints: number }
+      ).startingCapitalBasisPoints = 99;
+    }).toThrow();
+  });
+
+  it("refuses a difficulty or a sandbox value it could not replay", () => {
+    expect(() => createCampaignConfig("impossible" as "expert")).toThrow();
+    expect(() =>
+      createCampaignConfig("standard", { crisisFrequencyBasisPoints: -1 }),
+    ).toThrow();
+    expect(() =>
+      createCampaignConfig("standard", {
+        economicVolatilityBasisPoints: Number.NaN,
+      }),
+    ).toThrow();
+    expect(() =>
+      adjustedStartingCapitalMinor(1.5, createCampaignConfig()),
+    ).toThrow();
+    expect(() =>
+      adjustedStartingCapitalMinor(
+        Number.MAX_SAFE_INTEGER,
+        createCampaignConfig("beginner"),
+      ),
+    ).toThrow();
+  });
 });

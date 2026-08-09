@@ -15,9 +15,10 @@ Web Worker. Design authority, in order: the user, `AGENTS.md`,
 active plan in `docs/superpowers/plans/`.
 
 Plans 01 (vertical slice), 02 (hotel depth), 03 (city market), 03.5 (conformance),
-04 (technology and alternative history) and 05 (multi-hotel company and brands) are
-implemented and verified. Plan 06 (emergent campaign and narrative) is next; see
-`AGENTS.md` for the exact fresh Plan 05 gate evidence.
+04 (technology and alternative history), 05 (multi-hotel company and brands) and
+06 (emergent campaign and narrative) are implemented and verified. Plan 07 (content
+and authoring pipeline) is next; see `AGENTS.md` for the exact fresh Plan 06 gate
+evidence and for the Plan 06 scope this build deliberately does not model.
 
 ## Commands
 
@@ -45,16 +46,19 @@ reformatted.
 
 ## Where things live
 
-| Path                                            | Responsibility                                                                            |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `src/game/simulation/GameSimulation.ts`         | the thirteen-phase quantum; all systems are called from here                              |
-| `src/game/simulation/simulation.worker.ts`      | the only place the protocol is spoken worker-side                                         |
-| `src/app/GameClient.ts`, `src/app/gameStore.ts` | UI-side protocol handle and snapshot mirror                                               |
-| `src/game/domain/`                              | money, calendar, ids, RNG streams, protocol, commands, events                             |
-| `src/game/content/1991/`                        | Frankfurt, starter hotel, guest segments, suppliers, city market — data, not conditionals |
-| `src/game/<system>/`                            | one domain per directory (rooms, staff, revenue, fnb, finance, …)                         |
-| `src/game/company/`                             | the corporate layer: portfolio, brands, budgets, treasury, managed hotels                 |
-| `src/ui/`, `src/render/`                        | React surfaces and the Pixi scene; presentation only                                      |
+| Path                                                                              | Responsibility                                                                            |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `src/game/simulation/GameSimulation.ts`                                           | the thirteen-phase quantum; all systems are called from here                              |
+| `src/game/simulation/simulation.worker.ts`                                        | the only place the protocol is spoken worker-side                                         |
+| `src/app/GameClient.ts`, `src/app/gameStore.ts`                                   | UI-side protocol handle and snapshot mirror                                               |
+| `src/game/domain/`                                                                | money, calendar, ids, RNG streams, protocol, commands, events                             |
+| `src/game/content/1991/`                                                          | Frankfurt, starter hotel, guest segments, suppliers, city market — data, not conditionals |
+| `src/game/<system>/`                                                              | one domain per directory (rooms, staff, revenue, fnb, finance, …)                         |
+| `src/game/company/`                                                               | the corporate layer: portfolio, brands, budgets, treasury, managed hotels                 |
+| `src/game/narrative/`, `src/game/campaign/`                                       | stories and their outcomes; campaign configuration, career reading, recovery measures     |
+| `src/game/chronicle/`, `milestones/`, `rivals/`, `people/`, `media/`, `prestige/` | the campaign's memory: what happened, who remembers it, and what it is worth              |
+| `src/ui/localization.ts`                                                          | the key-to-text catalogue; state holds keys, the UI resolves them                         |
+| `src/ui/`, `src/render/`                                                          | React surfaces and the Pixi scene; presentation only                                      |
 
 ## Non-negotiables in this codebase
 
@@ -71,10 +75,18 @@ reformatted.
   `HotelView` degrades to its room list when no renderer exists.
 - **Saves are versioned.** `saveVersion`, `contentVersion`, `protocolVersion` and all RNG
   states travel together; a schema change needs a migration and fixtures. The current
-  version is 5; the v5 fixture and the replay corpus are recorded from real runs by
+  version is 6; the v6 fixture and the replay corpus are recorded from real runs by
   `scripts/record-save-fixture.ts` and `scripts/record-replay-corpus.ts`, never edited.
 - **The treasury never holds money.** `consolidatedCashMinor(treasury)` must always equal
-  `finance.cashMinor`; the invariants assert it every quantum.
+  `finance.cashMinor`; the invariants assert it every quantum. Cash only moves through
+  `earn`/`spend` or an explicit ledger posting — an assignment beside the ledger trips
+  "cash has drifted from the ledger".
+- **Narrative observes, it never rules.** Stories fire from state through
+  `narrative/narrativeSystem.ts`; a choice returns typed effects that finance and reputation
+  post. Never give the narrative its own economy, and never offer a measure
+  (`MODELLED_RECOVERY_PATHS`) that nothing implements.
+- **Distress is cash less payables.** `spend()` converts a shortfall into a payable and
+  floors cash at zero, so `cashMinor < 0` never fires.
 
 ## How to work
 

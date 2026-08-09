@@ -6,6 +6,8 @@ import type { OperatingModel } from "../ownership/models";
 import type { DueDiligenceArea } from "../ma/dueDiligence";
 import type { OpeningChecklistItem } from "../development/preOpening";
 import type { ManagerAuthority } from "../management/managerAuthority";
+import type { DifficultyId } from "../campaign/campaignConfig";
+import type { RecoveryPath } from "../campaign/careerOutcome";
 
 /**
  * The payload half of a command: what the player wants done, with no identity
@@ -71,7 +73,11 @@ export type GameCommand =
     }
   | { type: "OPEN_DEVELOPMENT"; developmentId: string }
   | { type: "RUN_DUE_DILIGENCE"; targetId: string; areas: DueDiligenceArea[] }
-  | { type: "ACQUIRE_HOTEL"; targetId: string; priceMinor: number };
+  | { type: "ACQUIRE_HOTEL"; targetId: string; priceMinor: number }
+  | { type: "SET_CAMPAIGN_DIFFICULTY"; difficulty: DifficultyId }
+  | { type: "RESOLVE_NARRATIVE_EVENT"; eventId: string; choiceId: string }
+  | { type: "TAKE_RECOVERY_MEASURE"; path: RecoveryPath }
+  | { type: "CONTINUE_ENDLESS_CAREER" };
 
 export type CommandType = GameCommand["type"];
 

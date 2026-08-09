@@ -9,4 +9,16 @@ describe("choices", () => {
       jobsLost: 40,
       localReputationDelta: -12,
     }));
+
+  it("refuses head counts and losses that are not whole", () => {
+    expect(() =>
+      consequencesForClosure({ employees: -1, monthlyLossMinor: 1 }),
+    ).toThrow();
+    expect(() =>
+      consequencesForClosure({ employees: 1.5, monthlyLossMinor: 1 }),
+    ).toThrow();
+    expect(() =>
+      consequencesForClosure({ employees: 40, monthlyLossMinor: Number.NaN }),
+    ).toThrow();
+  });
 });

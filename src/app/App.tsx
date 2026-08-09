@@ -78,7 +78,12 @@ export function App() {
   const [openHotel, setOpenHotel] = useState<string | null>(null);
   /** Presentation state: where the player is looking, never a game rule. */
   const [camera, setCamera] = useState<CameraState>(createCamera);
+  /** The milestone the toast has already announced; presentation only. */
+  const [announcedMilestone, setAnnouncedMilestone] = useState<string | null>(
+    null,
+  );
   const s = game.snapshot;
+  const latestMilestone = s?.narrative.achievedMilestones.at(-1) ?? null;
 
   if (!s)
     return (
@@ -260,20 +265,33 @@ export function App() {
           loyaltyMembers={s.commercial.loyalty.members.length}
           marketableGuests={marketableGuestCount(s)}
         />
-        <CampaignSetup difficulty={s.narrative.campaign.difficulty} />
+        <CampaignSetup
+          difficulty={s.narrative.campaign.difficulty}
+          locked={s.elapsedMinutes > 0}
+          onDifficulty={(difficulty) =>
+            game.send({ type: "SET_CAMPAIGN_DIFFICULTY", difficulty })
+          }
+        />
         <StoryInbox
           events={s.narrative.activeEvents.map((event) => ({
             id: event.id,
-            title: event.definitionId,
-            body: `Triggered ${event.triggeredDateKey}`,
+            titleKey: `${event.definitionId}.title`,
+            bodyKey: `${event.definitionId}.body`,
+            raisedDateKey: event.triggeredDateKey,
             choices: event.choices.map((choice) => ({
               id: choice.id,
-              label: choice.labelKey,
+              labelKey: choice.labelKey,
             })),
           }))}
+          onChoose={(eventId, choiceId) =>
+            game.send({ type: "RESOLVE_NARRATIVE_EVENT", eventId, choiceId })
+          }
         />
         <MilestoneToast
-          milestone={s.narrative.achievedMilestones.at(-1) ?? null}
+          milestoneId={
+            latestMilestone !== announcedMilestone ? latestMilestone : null
+          }
+          onDismiss={() => setAnnouncedMilestone(latestMilestone)}
         />
         <ChronicleView
           entries={s.narrative.chronicle.map((entry) => ({
@@ -283,7 +301,14 @@ export function App() {
             scope: entry.scope,
           }))}
         />
-        <CareerOutcomeModal outcome={s.narrative.career} />
+        <CareerOutcomeModal
+          outcome={s.narrative.career}
+          onRecovery={(path) =>
+            game.send({ type: "TAKE_RECOVERY_MEASURE", path })
+          }
+          onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
+          onRestart={() => game.restart()}
+        />
         <TechnologyPanel
           technologies={s.world.technologies}
           projects={s.technologyProjects}

@@ -11,6 +11,7 @@ describe("rng streams", () => {
       "events",
       "failures",
       "guests",
+      "narrative",
       "staffing",
       "weather",
     ]);

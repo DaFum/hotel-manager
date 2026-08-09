@@ -85,3 +85,16 @@ test("carries the group through a save and a reload", async ({ page }) => {
     portfolio.getByRole("article", { name: "Hotel Mainblick" }),
   ).toContainText("Flag: Mainblick");
 });
+
+test("keeps every reputation dimension named with what it affects", async ({
+  page,
+}) => {
+  await page.goto("/?seed=424242");
+  const commercial = page.getByRole("region", { name: "Commercial" });
+  await expect(commercial).toBeVisible();
+  await expect(commercial).toContainText("Nothing is being advertised");
+  await expect(commercial).toContainText("No rate has been agreed");
+  await expect(commercial.getByLabel("Loyalty liability")).toContainText(
+    /members, .*DM owed in points/,
+  );
+});

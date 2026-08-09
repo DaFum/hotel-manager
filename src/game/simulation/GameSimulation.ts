@@ -140,6 +140,7 @@ import {
   type GameState,
   type ReservationRecord,
   type RoomRecord,
+  type StayRecord,
 } from "./initialState";
 import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
 import {
@@ -153,6 +154,14 @@ import {
 } from "../distribution/channelEvolution";
 import { createRevenuePolicy } from "../revenue/revenuePolicy";
 import { createCompanyState } from "../company/companyState";
+import { createCommercialState } from "../commercial/commercialState";
+import {
+  applyReputationEvent,
+  createReputationState,
+  decayReputation,
+} from "../reputation/dimensions";
+import { earnPoints, releaseBreakageMinor } from "../commercial/loyalty";
+import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
   applyCompanyCommand,
   isCompanyCommand,
@@ -294,6 +303,8 @@ export class GameSimulation implements CommandExecutor {
     state.utilityContracts ??= createUtilityContracts();
     state.meters ??= { energy: 0, water: 0, waste: 0 };
     state.outages ??= [];
+    state.commercial ??= createCommercialState();
+    state.reputation ??= createReputationState();
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -1609,6 +1620,44 @@ export class GameSimulation implements CommandExecutor {
     });
   }
 
+  /**
+   * The commercial consequences of a night actually sold: the guest is
+   * remembered if they agreed to be, the scheme owes them points, and the
+   * house's own reputation moves for a reason that can be read back.
+   */
+  private recordCommercialStay(stay: StayRecord): void {
+    const s = this.state;
+    const guestId = `guest.${stay.bookingId}`;
+    s.commercial = {
+      ...s.commercial,
+      crm: recordCrmStay(s.commercial.crm, {
+        guestId,
+        stayId: stay.bookingId,
+      }),
+      loyalty: earnPoints(s.commercial.loyalty, {
+        guestId,
+        roomRevenueMinor: stay.rateMinor,
+        nights: 1,
+      }),
+    };
+  }
+
+  /** Reputation moves only for things that actually happened to somebody. */
+  private moveReputation(
+    dimension: Parameters<typeof applyReputationEvent>[1]["dimension"],
+    scopeId: string,
+    delta: number,
+    cause: string,
+  ): void {
+    this.state.reputation = applyReputationEvent(this.state.reputation, {
+      dimension,
+      scopeId,
+      delta,
+      cause,
+      atMinutes: this.state.elapsedMinutes,
+    });
+  }
+
   private runFinance(): void {
     if (!this.dayRolled) return;
     const s = this.state;
@@ -1622,6 +1671,7 @@ export class GameSimulation implements CommandExecutor {
         booking?.commissionBp ?? 0,
       );
       this.earn(recognized, "roomRevenue", stay.roomId);
+      this.recordCommercialStay(stay);
       s.finance.month.roomRevenueMinor += recognized;
       s.finance.month.soldRoomNights += 1;
       // The city closes on the same occupied nights as the hotel ledger. An
@@ -2434,6 +2484,7 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
+    this.runCommercialMonth();
     this.chargeInsuranceAndDepreciation(s.lastMonthlyClose.periodKey);
     // The company's month runs on the closed period, after the flagship has
     // published what it earned and before the new month starts accumulating.
@@ -2486,6 +2537,40 @@ export class GameSimulation implements CommandExecutor {
     // The period stamp moves even when nothing was left to depreciate, so the
     // guard above still holds for a fully written-down hotel.
     s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
+  }
+
+  /**
+   * The commercial month: points nobody will ever claim are released as
+   * income, campaigns age toward the end of their attribution window, and
+   * every reputation dimension drifts a little back toward neutral.
+   */
+  private runCommercialMonth(): void {
+    const s = this.state;
+    const released = releaseBreakageMinor(s.commercial.loyalty);
+    if (released.releasedMinor > 0)
+      this.earn(
+        released.releasedMinor,
+        "loyaltyBreakage",
+        "loyalty points released",
+      );
+    s.commercial = { ...s.commercial, loyalty: released.state };
+
+    // The house's standing with guests follows what guests actually got.
+    const satisfaction = Math.round(s.guestSatisfaction.score);
+    this.moveReputation(
+      "hotel",
+      s.hotel.id,
+      satisfaction >= 70 ? 2 : satisfaction <= 45 ? -3 : 0,
+      `guest satisfaction ${satisfaction} at the close`,
+    );
+    // Reputation with staff follows whether the house is actually staffed.
+    this.moveReputation(
+      "employer",
+      s.hotel.id,
+      s.staff.some((member) => member.absent) ? -1 : 1,
+      "monthly rota",
+    );
+    s.reputation = decayReputation(s.reputation);
   }
 
   private nextStaffId(role: string): string {

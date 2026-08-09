@@ -28,6 +28,7 @@ import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
 import { BrandDashboard } from "../ui/company/BrandDashboard";
 import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
 import { ManagerGovernancePanel } from "../ui/company/ManagerGovernancePanel";
+import { CommercialDashboard } from "../ui/company/CommercialDashboard";
 import {
   brandAuditRows,
   brandRows,
@@ -35,6 +36,10 @@ import {
   escalationRows,
   managerRows,
   portfolioRows,
+  accountRows,
+  campaignRows,
+  marketableGuestCount,
+  reputationRows,
 } from "../ui/company/companyViewModel";
 import type { OpeningChecklistItem } from "../game/development/preOpening";
 
@@ -197,6 +202,14 @@ export function App() {
           onResolve={(escalationId, approve) =>
             game.send({ type: "RESOLVE_ESCALATION", escalationId, approve })
           }
+        />
+        <CommercialDashboard
+          campaigns={campaignRows(s)}
+          accounts={accountRows(s)}
+          reputation={reputationRows(s)}
+          loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
+          loyaltyMembers={s.commercial.loyalty.members.length}
+          marketableGuests={marketableGuestCount(s)}
         />
         <TechnologyPanel
           technologies={s.world.technologies}

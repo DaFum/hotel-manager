@@ -7,6 +7,8 @@ import { createManagerAuthority } from "../../management/managerAuthority";
 import { createStatements } from "../../finance/statements";
 import { createInsuranceState } from "../../risk/insurance";
 import { createUtilityContracts } from "../../utilities/consumption";
+import { createCommercialState } from "../../commercial/commercialState";
+import { createReputationState } from "../../reputation/dimensions";
 import { compareIds } from "../../domain/ids";
 
 /**
@@ -47,6 +49,8 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
         waste: 0,
       }),
       outages: Array.isArray(state.outages) ? state.outages : [],
+      commercial: normalisedSection(state.commercial, createCommercialState()),
+      reputation: normalisedSection(state.reputation, createReputationState()),
     },
   };
 }

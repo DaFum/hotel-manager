@@ -6,6 +6,23 @@ import type { PortfolioHotelRow } from "./PortfolioDashboard";
 import type { BrandAuditRow, BrandRow } from "./BrandDashboard";
 import type { DevelopmentRow } from "./DevelopmentDashboard";
 import type { EscalationRow, ManagerRow } from "./ManagerGovernancePanel";
+import type {
+  AccountRow,
+  CampaignRow,
+  ReputationRow,
+} from "./CommercialDashboard";
+import {
+  ATTRIBUTION_LAG_DAYS,
+  campaignEffectBasisPoints,
+  campaignUncertaintyBand,
+} from "../../game/commercial/campaigns";
+import { contractProfitabilityMinor } from "../../game/commercial/salesPipeline";
+import { marketableGuestIds } from "../../game/commercial/crm";
+import {
+  DIMENSION_EFFECTS,
+  REPUTATION_DIMENSIONS,
+  reputationCauses,
+} from "../../game/reputation/dimensions";
 
 /**
  * Presentation-only projections of the authoritative company snapshot. The
@@ -122,4 +139,67 @@ export function escalationRows(state: GameState): EscalationRow[] {
     reason: escalation.reason,
     status: escalation.status,
   }));
+}
+
+/** The audience a Frankfurt campaign is bought against; a balancing constant. */
+const CAMPAIGN_AUDIENCE = 40_000;
+/** What one night costs to service, for judging a negotiated account. */
+const VARIABLE_COST_PER_NIGHT_MINOR = 3_000;
+const CONCESSION_COST_MINOR = 800;
+
+export function campaignRows(state: GameState): CampaignRow[] {
+  return state.commercial.campaigns.map((campaign) => {
+    const band = campaignUncertaintyBand(
+      campaignEffectBasisPoints(campaign, CAMPAIGN_AUDIENCE),
+      2500,
+    );
+    const age = state.commercial.campaignAgeDays[campaign.id] ?? 0;
+    return {
+      id: campaign.id,
+      objective: campaign.objective,
+      channel: campaign.channel,
+      targetSegmentId: campaign.targetSegmentId,
+      budgetMinor: campaign.budgetMinor,
+      status: campaign.status,
+      lowBasisPoints: band.low,
+      highBasisPoints: band.high,
+      daysUntilAttribution: Math.max(0, ATTRIBUTION_LAG_DAYS - age),
+    };
+  });
+}
+
+export function accountRows(state: GameState): AccountRow[] {
+  return state.commercial.sales.contracts.map((contract) => ({
+    id: contract.id,
+    accountName: contract.accountName,
+    negotiatedRateMinor: contract.negotiatedRateMinor,
+    expectedRoomNights: contract.expectedRoomNights,
+    concessions: contract.concessions,
+    renewalIntent: contract.renewalIntent,
+    profitabilityMinor: contractProfitabilityMinor(contract, {
+      variableCostPerNightMinor: VARIABLE_COST_PER_NIGHT_MINOR,
+      concessionCostMinor: CONCESSION_COST_MINOR,
+    }),
+  }));
+}
+
+/** Every dimension that has actually been scored, with what it affects. */
+export function reputationRows(state: GameState): ReputationRow[] {
+  const rows: ReputationRow[] = [];
+  for (const dimension of REPUTATION_DIMENSIONS)
+    for (const scopeId of Object.keys(state.reputation[dimension]).sort())
+      rows.push({
+        dimension,
+        scopeId,
+        score: state.reputation[dimension][scopeId].score,
+        effect: DIMENSION_EFFECTS[dimension],
+        topCause:
+          reputationCauses(state.reputation, dimension, scopeId)[0]?.cause ??
+          null,
+      });
+  return rows;
+}
+
+export function marketableGuestCount(state: GameState): number {
+  return marketableGuestIds(state.commercial.crm).length;
 }

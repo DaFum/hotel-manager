@@ -31,6 +31,14 @@ import { createCompanyState, type CompanyState } from "../company/companyState";
 import { createStatements, type StatementsState } from "../finance/statements";
 import { createInsuranceState, type InsuranceState } from "../risk/insurance";
 import {
+  createCommercialState,
+  type CommercialState,
+} from "../commercial/commercialState";
+import {
+  createReputationState,
+  type ReputationState,
+} from "../reputation/dimensions";
+import {
   createUtilityContracts,
   type MeterReadings,
   type UtilityContracts,
@@ -238,6 +246,10 @@ export interface GameState {
   utilityContracts: UtilityContracts;
   meters: MeterReadings;
   outages: UtilityOutage[];
+  /** Campaigns, negotiated accounts, guest records and the loyalty scheme. */
+  commercial: CommercialState;
+  /** Every reputation dimension, scoped and with its causes. */
+  reputation: ReputationState;
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -352,6 +364,8 @@ export function createInitialGameState(seed: number): GameState {
     utilityContracts: createUtilityContracts(),
     meters: { energy: 0, water: 0, waste: 0 },
     outages: [],
+    commercial: createCommercialState(),
+    reputation: createReputationState(),
   };
 }
 

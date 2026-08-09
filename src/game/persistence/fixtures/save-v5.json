@@ -19271,7 +19271,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 2785055,
+      "cashMinor": 2809909,
       "payableMinor": 0,
       "ledger": [
         {
@@ -21994,6 +21994,12 @@
         },
         {
           "day": 31,
+          "account": "loyaltyBreakage",
+          "amountMinor": 24854,
+          "memo": "loyalty points released"
+        },
+        {
+          "day": 31,
           "account": "portfolioRevenue",
           "amountMinor": 662621,
           "memo": "Hafenhaus revenue"
@@ -23128,7 +23134,7 @@
         }
       ],
       "month": {
-        "openingCashMinor": 1768632,
+        "openingCashMinor": 1793486,
         "roomRevenueMinor": 1155210,
         "otherRevenueMinor": 1390350,
         "operatingExpenseMinor": 1529137,
@@ -23816,7 +23822,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 1073017,
+        "hqMinor": 1097871,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -23954,6 +23960,2069 @@
       "water": 401,
       "waste": 376
     },
-    "outages": []
+    "outages": [],
+    "commercial": {
+      "campaigns": [],
+      "campaignAgeDays": {},
+      "sales": {
+        "leads": [],
+        "contracts": []
+      },
+      "crm": {
+        "profiles": [
+          {
+            "guestId": "guest.booking.10680.0",
+            "preferences": [],
+            "stayHistory": ["booking.10680.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.10680.3",
+            "preferences": [],
+            "stayHistory": ["booking.10680.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.0",
+            "preferences": [],
+            "stayHistory": ["booking.12120.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.1",
+            "preferences": [],
+            "stayHistory": ["booking.12120.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.2",
+            "preferences": [],
+            "stayHistory": ["booking.12120.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.3",
+            "preferences": [],
+            "stayHistory": ["booking.12120.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.4",
+            "preferences": [],
+            "stayHistory": ["booking.12120.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.5",
+            "preferences": [],
+            "stayHistory": ["booking.12120.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.6",
+            "preferences": [],
+            "stayHistory": ["booking.12120.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.7",
+            "preferences": [],
+            "stayHistory": ["booking.12120.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.8",
+            "preferences": [],
+            "stayHistory": ["booking.12120.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.2",
+            "preferences": [],
+            "stayHistory": ["booking.13560.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.3",
+            "preferences": [],
+            "stayHistory": ["booking.13560.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.0",
+            "preferences": [],
+            "stayHistory": ["booking.15000.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.1",
+            "preferences": [],
+            "stayHistory": ["booking.15000.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.3",
+            "preferences": [],
+            "stayHistory": ["booking.15000.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.0",
+            "preferences": [],
+            "stayHistory": ["booking.16440.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.1",
+            "preferences": [],
+            "stayHistory": ["booking.16440.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.2",
+            "preferences": [],
+            "stayHistory": ["booking.16440.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.3",
+            "preferences": [],
+            "stayHistory": ["booking.16440.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.4",
+            "preferences": [],
+            "stayHistory": ["booking.16440.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.6",
+            "preferences": [],
+            "stayHistory": ["booking.16440.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.7",
+            "preferences": [],
+            "stayHistory": ["booking.16440.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.8",
+            "preferences": [],
+            "stayHistory": ["booking.16440.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.0",
+            "preferences": [],
+            "stayHistory": ["booking.17880.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.2",
+            "preferences": [],
+            "stayHistory": ["booking.17880.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.4",
+            "preferences": [],
+            "stayHistory": ["booking.17880.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.0",
+            "preferences": [],
+            "stayHistory": ["booking.19320.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.1",
+            "preferences": [],
+            "stayHistory": ["booking.19320.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.2",
+            "preferences": [],
+            "stayHistory": ["booking.19320.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.2",
+            "preferences": [],
+            "stayHistory": ["booking.2040.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.3",
+            "preferences": [],
+            "stayHistory": ["booking.2040.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.4",
+            "preferences": [],
+            "stayHistory": ["booking.2040.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.5",
+            "preferences": [],
+            "stayHistory": ["booking.2040.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.6",
+            "preferences": [],
+            "stayHistory": ["booking.2040.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.7",
+            "preferences": [],
+            "stayHistory": ["booking.2040.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.0",
+            "preferences": [],
+            "stayHistory": ["booking.20760.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.2",
+            "preferences": [],
+            "stayHistory": ["booking.20760.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.3",
+            "preferences": [],
+            "stayHistory": ["booking.20760.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.0",
+            "preferences": [],
+            "stayHistory": ["booking.22200.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.1",
+            "preferences": [],
+            "stayHistory": ["booking.22200.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.6",
+            "preferences": [],
+            "stayHistory": ["booking.22200.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.7",
+            "preferences": [],
+            "stayHistory": ["booking.22200.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.0",
+            "preferences": [],
+            "stayHistory": ["booking.23640.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.1",
+            "preferences": [],
+            "stayHistory": ["booking.23640.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.3",
+            "preferences": [],
+            "stayHistory": ["booking.23640.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.4",
+            "preferences": [],
+            "stayHistory": ["booking.23640.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.5",
+            "preferences": [],
+            "stayHistory": ["booking.23640.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.6",
+            "preferences": [],
+            "stayHistory": ["booking.23640.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.0",
+            "preferences": [],
+            "stayHistory": ["booking.25080.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.1",
+            "preferences": [],
+            "stayHistory": ["booking.25080.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.2",
+            "preferences": [],
+            "stayHistory": ["booking.25080.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.3",
+            "preferences": [],
+            "stayHistory": ["booking.25080.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.0",
+            "preferences": [],
+            "stayHistory": ["booking.26520.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.2",
+            "preferences": [],
+            "stayHistory": ["booking.26520.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.4",
+            "preferences": [],
+            "stayHistory": ["booking.26520.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.5",
+            "preferences": [],
+            "stayHistory": ["booking.26520.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.7",
+            "preferences": [],
+            "stayHistory": ["booking.26520.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.1",
+            "preferences": [],
+            "stayHistory": ["booking.27960.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.3",
+            "preferences": [],
+            "stayHistory": ["booking.27960.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.0",
+            "preferences": [],
+            "stayHistory": ["booking.29400.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.2",
+            "preferences": [],
+            "stayHistory": ["booking.29400.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.3",
+            "preferences": [],
+            "stayHistory": ["booking.29400.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.0",
+            "preferences": [],
+            "stayHistory": ["booking.30840.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.2",
+            "preferences": [],
+            "stayHistory": ["booking.30840.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.3",
+            "preferences": [],
+            "stayHistory": ["booking.30840.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.4",
+            "preferences": [],
+            "stayHistory": ["booking.30840.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.5",
+            "preferences": [],
+            "stayHistory": ["booking.30840.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.7",
+            "preferences": [],
+            "stayHistory": ["booking.30840.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.0",
+            "preferences": [],
+            "stayHistory": ["booking.32280.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.3",
+            "preferences": [],
+            "stayHistory": ["booking.32280.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.0",
+            "preferences": [],
+            "stayHistory": ["booking.33720.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.1",
+            "preferences": [],
+            "stayHistory": ["booking.33720.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.2",
+            "preferences": [],
+            "stayHistory": ["booking.33720.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.4",
+            "preferences": [],
+            "stayHistory": ["booking.33720.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.0",
+            "preferences": [],
+            "stayHistory": ["booking.3480.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.1",
+            "preferences": [],
+            "stayHistory": ["booking.3480.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.2",
+            "preferences": [],
+            "stayHistory": ["booking.3480.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.4",
+            "preferences": [],
+            "stayHistory": ["booking.3480.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.5",
+            "preferences": [],
+            "stayHistory": ["booking.3480.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.6",
+            "preferences": [],
+            "stayHistory": ["booking.3480.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.7",
+            "preferences": [],
+            "stayHistory": ["booking.3480.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.8",
+            "preferences": [],
+            "stayHistory": ["booking.3480.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.0",
+            "preferences": [],
+            "stayHistory": ["booking.35160.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.1",
+            "preferences": [],
+            "stayHistory": ["booking.35160.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.3",
+            "preferences": [],
+            "stayHistory": ["booking.35160.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.4",
+            "preferences": [],
+            "stayHistory": ["booking.35160.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.5",
+            "preferences": [],
+            "stayHistory": ["booking.35160.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.0",
+            "preferences": [],
+            "stayHistory": ["booking.36600.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.1",
+            "preferences": [],
+            "stayHistory": ["booking.36600.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.2",
+            "preferences": [],
+            "stayHistory": ["booking.36600.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.0",
+            "preferences": [],
+            "stayHistory": ["booking.38040.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.1",
+            "preferences": [],
+            "stayHistory": ["booking.38040.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.2",
+            "preferences": [],
+            "stayHistory": ["booking.38040.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.3",
+            "preferences": [],
+            "stayHistory": ["booking.38040.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.4",
+            "preferences": [],
+            "stayHistory": ["booking.38040.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.5",
+            "preferences": [],
+            "stayHistory": ["booking.38040.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.7",
+            "preferences": [],
+            "stayHistory": ["booking.38040.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.8",
+            "preferences": [],
+            "stayHistory": ["booking.38040.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.0",
+            "preferences": [],
+            "stayHistory": ["booking.39480.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.1",
+            "preferences": [],
+            "stayHistory": ["booking.39480.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.3",
+            "preferences": [],
+            "stayHistory": ["booking.39480.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.4",
+            "preferences": [],
+            "stayHistory": ["booking.39480.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.6",
+            "preferences": [],
+            "stayHistory": ["booking.39480.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.0",
+            "preferences": [],
+            "stayHistory": ["booking.40920.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.2",
+            "preferences": [],
+            "stayHistory": ["booking.40920.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.3",
+            "preferences": [],
+            "stayHistory": ["booking.40920.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.4",
+            "preferences": [],
+            "stayHistory": ["booking.40920.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.5",
+            "preferences": [],
+            "stayHistory": ["booking.40920.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.0",
+            "preferences": [],
+            "stayHistory": ["booking.42360.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.1",
+            "preferences": [],
+            "stayHistory": ["booking.42360.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.2",
+            "preferences": [],
+            "stayHistory": ["booking.42360.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.3",
+            "preferences": [],
+            "stayHistory": ["booking.42360.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.5",
+            "preferences": [],
+            "stayHistory": ["booking.42360.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.6",
+            "preferences": [],
+            "stayHistory": ["booking.42360.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.7",
+            "preferences": [],
+            "stayHistory": ["booking.42360.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.8",
+            "preferences": [],
+            "stayHistory": ["booking.42360.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.0",
+            "preferences": [],
+            "stayHistory": ["booking.43800.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.1",
+            "preferences": [],
+            "stayHistory": ["booking.43800.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.2",
+            "preferences": [],
+            "stayHistory": ["booking.43800.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.4",
+            "preferences": [],
+            "stayHistory": ["booking.43800.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.5",
+            "preferences": [],
+            "stayHistory": ["booking.43800.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.0",
+            "preferences": [],
+            "stayHistory": ["booking.45240.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.1",
+            "preferences": [],
+            "stayHistory": ["booking.45240.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.2",
+            "preferences": [],
+            "stayHistory": ["booking.45240.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.0",
+            "preferences": [],
+            "stayHistory": ["booking.46680.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.1",
+            "preferences": [],
+            "stayHistory": ["booking.46680.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.2",
+            "preferences": [],
+            "stayHistory": ["booking.46680.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.3",
+            "preferences": [],
+            "stayHistory": ["booking.46680.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.5",
+            "preferences": [],
+            "stayHistory": ["booking.46680.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.0",
+            "preferences": [],
+            "stayHistory": ["booking.48120.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.1",
+            "preferences": [],
+            "stayHistory": ["booking.48120.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.2",
+            "preferences": [],
+            "stayHistory": ["booking.48120.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.3",
+            "preferences": [],
+            "stayHistory": ["booking.48120.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.4",
+            "preferences": [],
+            "stayHistory": ["booking.48120.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.6",
+            "preferences": [],
+            "stayHistory": ["booking.48120.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.1",
+            "preferences": [],
+            "stayHistory": ["booking.4920.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.3",
+            "preferences": [],
+            "stayHistory": ["booking.4920.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.4",
+            "preferences": [],
+            "stayHistory": ["booking.4920.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.1",
+            "preferences": [],
+            "stayHistory": ["booking.49560.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.2",
+            "preferences": [],
+            "stayHistory": ["booking.49560.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.3",
+            "preferences": [],
+            "stayHistory": ["booking.49560.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.4",
+            "preferences": [],
+            "stayHistory": ["booking.49560.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.6",
+            "preferences": [],
+            "stayHistory": ["booking.49560.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.7",
+            "preferences": [],
+            "stayHistory": ["booking.49560.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.1",
+            "preferences": [],
+            "stayHistory": ["booking.51000.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.2",
+            "preferences": [],
+            "stayHistory": ["booking.51000.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.4",
+            "preferences": [],
+            "stayHistory": ["booking.51000.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.6",
+            "preferences": [],
+            "stayHistory": ["booking.51000.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.7",
+            "preferences": [],
+            "stayHistory": ["booking.51000.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.3",
+            "preferences": [],
+            "stayHistory": ["booking.52440.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.5",
+            "preferences": [],
+            "stayHistory": ["booking.52440.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.7",
+            "preferences": [],
+            "stayHistory": ["booking.52440.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.1",
+            "preferences": [],
+            "stayHistory": ["booking.53880.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.4",
+            "preferences": [],
+            "stayHistory": ["booking.53880.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.5",
+            "preferences": [],
+            "stayHistory": ["booking.53880.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.4",
+            "preferences": [],
+            "stayHistory": ["booking.55320.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.5",
+            "preferences": [],
+            "stayHistory": ["booking.55320.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.600.1",
+            "preferences": [],
+            "stayHistory": ["booking.600.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.2",
+            "preferences": [],
+            "stayHistory": ["booking.6360.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.3",
+            "preferences": [],
+            "stayHistory": ["booking.6360.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.7",
+            "preferences": [],
+            "stayHistory": ["booking.6360.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.1",
+            "preferences": [],
+            "stayHistory": ["booking.7800.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.2",
+            "preferences": [],
+            "stayHistory": ["booking.7800.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.3",
+            "preferences": [],
+            "stayHistory": ["booking.7800.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.4",
+            "preferences": [],
+            "stayHistory": ["booking.7800.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.5",
+            "preferences": [],
+            "stayHistory": ["booking.7800.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.9240.2",
+            "preferences": [],
+            "stayHistory": ["booking.9240.2"],
+            "consent": "none"
+          }
+        ]
+      },
+      "loyalty": {
+        "members": [
+          {
+            "guestId": "guest.booking.10680.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.10680.3",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.1",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.5",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.8",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.6",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.7",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.8",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.4",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.1",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.2",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.5",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.6",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.0",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.6",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.6",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.0",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.1",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.5",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.3",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.3",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.3",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.5",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.7",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.3",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.1",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.8",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.1",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.4",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.5",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.1",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.2",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.0",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.1",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.8",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.1",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.6",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.4",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.5",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.0",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.3",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.5",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.7",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.8",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.1",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.4",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.0",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.1",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.2",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.5",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.4",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.1",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.3",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.4",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.7",
+            "points": 90,
+            "qualifyingNights": 1,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.7",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.5",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.5",
+            "points": 90,
+            "qualifyingNights": 1,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.600.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.2",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.3",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.7",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.1",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.9240.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          }
+        ],
+        "liabilityMinor": 280426
+      }
+    },
+    "reputation": {
+      "hotel": {
+        "hotel.frankfurt.1": {
+          "score": 51,
+          "contributors": [
+            {
+              "cause": "guest satisfaction 70 at the close",
+              "delta": 2,
+              "atMinutes": 44640
+            }
+          ]
+        }
+      },
+      "brand": {},
+      "group": {},
+      "employer": {
+        "hotel.frankfurt.1": {
+          "score": 50,
+          "contributors": [
+            {
+              "cause": "monthly rota",
+              "delta": 1,
+              "atMinutes": 44640
+            }
+          ]
+        }
+      },
+      "media": {},
+      "channel": {}
+    }
   }
 }

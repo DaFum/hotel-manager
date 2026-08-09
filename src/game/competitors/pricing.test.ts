@@ -58,6 +58,15 @@ it("splits the city's room nights between equally placed houses", () => {
   expect(sold["hotel.rival.a"]).toBe(20);
 });
 
+it("sends more of the city to the larger house at the same product", () => {
+  const sold = allocateRoomNights(32, [
+    { id: "hotel.big", rooms: 60, rateMinor: 18000, appealBp: 10000 },
+    { id: "hotel.small", rooms: 20, rateMinor: 18000, appealBp: 10000 },
+  ]);
+  // Three times the rooms draw three times the nights, not an equal split.
+  expect(sold["hotel.big"]).toBe(3 * sold["hotel.small"]);
+});
+
 it("sends demand to the cheaper house without giving it the whole city", () => {
   const sold = allocateRoomNights(40, [
     { ...HOUSES[0], rateMinor: 14000 },

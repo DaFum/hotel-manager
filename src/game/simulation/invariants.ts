@@ -33,6 +33,31 @@ export function assertInvariants(state: GameState): void {
       throw new Error(`room ${room.id} cleanliness out of range`);
   }
 
+  // The city is authoritative state too: a rival with fractional money or a
+  // negative house would corrupt every later month of the market.
+  const market = state.cityMarket;
+  if (!market) throw new Error("game state is missing the city market");
+  if (!Number.isSafeInteger(market.landPriceMinor) || market.landPriceMinor < 0)
+    throw new Error("land price must be whole Pfennig");
+  for (const source of Object.values(market.demand))
+    if (!Number.isSafeInteger(source) || source < 0)
+      throw new Error("city demand must be whole room nights");
+
+  const competitorIds = new Set<string>();
+  for (const c of state.competitors) {
+    if (competitorIds.has(c.id))
+      throw new Error(`duplicate competitor id ${c.id}`);
+    competitorIds.add(c.id);
+    if (!Number.isSafeInteger(c.rooms) || c.rooms < 0)
+      throw new Error(`competitor ${c.id} has an impossible room count`);
+    if (!Number.isSafeInteger(c.cashMinor))
+      throw new Error(`competitor ${c.id} cash must be whole Pfennig`);
+    if (!Number.isSafeInteger(c.debtMinor) || c.debtMinor < 0)
+      throw new Error(`competitor ${c.id} debt must be whole Pfennig`);
+    if (!Number.isSafeInteger(c.rateMinor) || c.rateMinor <= 0)
+      throw new Error(`competitor ${c.id} rate must be whole Pfennig`);
+  }
+
   const minute = state.calendar.minuteOfDay;
   if (!Number.isSafeInteger(minute) || minute < 0 || minute >= 1440)
     throw new Error("minute of day out of range");

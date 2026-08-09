@@ -40,7 +40,12 @@ export function nextActorScale(i: {
   ] as const)
     if (!Number.isFinite(value)) throw new Error(`invalid ${label}`);
 
-  const move = Math.round((i.demand - 100) * 0.2 + i.profitBp / 1000);
+  // Demand and its own trade move an actor; the pull back toward the city's
+  // neutral scale is what stops a run of soft months compounding into a city
+  // with no economy left in it.
+  const move = Math.round(
+    (i.demand - 100) * 0.2 + i.profitBp / 1000 + (100 - i.scale) / 20,
+  );
   const bounded = Math.max(
     -MAX_MONTHLY_ACTOR_MOVE,
     Math.min(MAX_MONTHLY_ACTOR_MOVE, move),

@@ -3,6 +3,7 @@ import { useGameStore } from "./gameStore";
 import { CITY } from "../game/content/1991/frankfurt";
 import { STARTER_HOTEL } from "../game/content/1991/starterHotel";
 import { getRate } from "../game/revenue/rates";
+import { connectivityIndex } from "../game/transport/network";
 import { TopBar } from "../ui/TopBar";
 import { HotelView } from "../ui/HotelView";
 import { RevenueDashboard } from "../ui/RevenueDashboard";
@@ -15,6 +16,10 @@ import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
 import { ClassificationPanel } from "../ui/facilities/ClassificationPanel";
 import { STAFF_ROLES } from "../game/domain/staffRoles";
 import { MonthlyCloseModal } from "../ui/MonthlyCloseModal";
+import { CityDashboard } from "../ui/market/CityDashboard";
+import { CompetitorTable } from "../ui/market/CompetitorTable";
+import { marketWageMinor } from "../game/labor/market";
+import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -39,6 +44,11 @@ export function App() {
         <p>Starting {CITY.name} 1991…</p>
       </main>
     );
+
+  const cityWageMinor = marketWageMinor(
+    BASE_MONTHLY_WAGE_MINOR,
+    s.cityMarket.wagePressureBp,
+  );
 
   const singleRateMinor = getRate(
     s.rates,
@@ -77,6 +87,21 @@ export function App() {
         }
         onExpand={(area) => game.send({ type: "EXPAND_FACILITY", area })}
       />
+      <CityDashboard
+        business={s.cityMarket.demand.business}
+        leisure={s.cityMarket.demand.leisure}
+        event={s.cityMarket.demand.event}
+        group={s.cityMarket.demand.group}
+        low={s.cityMarket.forecast.low}
+        high={s.cityMarket.forecast.high}
+        connectivityIndex={connectivityIndex(s.cityMarket.transport)}
+        informationQuality={s.cityMarket.informationQuality}
+      />
+      <CompetitorTable
+        rows={s.competitors}
+        playerRateMinor={singleRateMinor}
+        playerOccupancyBp={s.metrics.occupancyBasisPoints}
+      />
       <RevenueDashboard
         adrMinor={s.metrics.adrMinor}
         revParMinor={s.metrics.revParMinor}
@@ -94,12 +119,15 @@ export function App() {
       <StaffDashboard
         staff={s.staff}
         roles={STAFF_ROLES}
+        marketWageMinor={cityWageMinor}
         onHire={(role) =>
           game.send({
             type: "HIRE",
             role,
             shift: "morning",
-            monthlyWageMinor: 250_000,
+            // The house never offers under the going rate; a tight labour
+            // market is paid for, not worked around.
+            monthlyWageMinor: Math.max(250_000, cityWageMinor),
           })
         }
       />

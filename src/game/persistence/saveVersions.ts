@@ -3,10 +3,10 @@
  * migration read it, so keeping it a leaf stops the schema and the migrations
  * from importing each other.
  */
-export const SAVE_VERSION = 2 as const;
-export const CONTENT_VERSION = "hotel-depth-1991-v2" as const;
+export const SAVE_VERSION = 3 as const;
+export const CONTENT_VERSION = "city-market-1991-v3" as const;
 /** Save versions this build knows how to bring forward, oldest first. */
-export const MIGRATABLE_SAVE_VERSIONS = [1] as const;
+export const MIGRATABLE_SAVE_VERSIONS = [1, 2] as const;
 
 export type RngStreamName =
   "guests" | "staffing" | "failures" | "economy" | "events" | "weather" | "AI";

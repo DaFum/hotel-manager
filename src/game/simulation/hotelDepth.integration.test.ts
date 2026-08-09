@@ -4,6 +4,7 @@ import { migrateV1ToV2 } from "../persistence/migrations/v1-to-v2";
 import {
   SAVE_VERSION,
   isCompatible,
+  migrateEnvelope,
   type SaveEnvelope,
 } from "../persistence/saveSchema";
 import saveV1Fixture from "../persistence/fixtures/save-v1.json";
@@ -56,7 +57,11 @@ it("restores a migrated v1 save into a runnable simulation", () => {
   ])
     expect(legacyState[v2Only]).toBeUndefined();
 
-  const migrated = migrateV1ToV2(legacy);
+  // v1 is two versions behind now, so the whole chain has to run: one step
+  // alone produces a v2 state this build can no longer load.
+  const stepped = migrateV1ToV2(legacy);
+  expect(stepped.saveVersion).toBe(2);
+  const migrated = migrateEnvelope(legacy);
   expect(migrated.saveVersion).toBe(SAVE_VERSION);
   expect(isCompatible(migrated)).toBe(true);
 
@@ -83,7 +88,7 @@ it("keeps a save loadable when it names a category content no longer has", () =>
   ).hotel.rooms;
   // One unknown room must not cost the player the whole slot.
   expect(typeof migratedRooms[0].moduleId).toBe("string");
-  expect(isCompatible(migrated)).toBe(true);
+  expect(isCompatible(migrateEnvelope(legacy))).toBe(true);
 });
 
 it("defaults plant nameplates a stored asset left undefined", () => {

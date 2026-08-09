@@ -24,6 +24,17 @@ it("keeps a scale whole so a city index never drifts on floats", () => {
   ).toBe(true);
 });
 
+it("pulls a shrunken actor back toward the city's neutral scale", () => {
+  // Neutral demand and no profit: the only force left is the pull home.
+  expect(
+    nextActorScale({ scale: 40, demand: 100, profitBp: 0 }),
+  ).toBeGreaterThan(40);
+  expect(nextActorScale({ scale: 160, demand: 100, profitBp: 0 })).toBeLessThan(
+    160,
+  );
+  expect(nextActorScale({ scale: 100, demand: 100, profitBp: 0 })).toBe(100);
+});
+
 it("rejects an actor whose state is not finite", () => {
   expect(() =>
     nextActorScale({ scale: Number.NaN, demand: 100, profitBp: 0 }),

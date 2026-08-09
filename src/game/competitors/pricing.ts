@@ -91,9 +91,10 @@ export function allocateRoomNights(
   );
 
   while (remaining > 0 && open.length > 0) {
-    // Guests trade appeal against price: twice the rate needs twice the
-    // appeal to win the same share.
-    const weights = open.map((h) => (h.appealBp * 1e6) / h.rateMinor);
+    // Guests trade appeal against price, and a house can only be chosen for
+    // the rooms it has: twice the rate needs twice the appeal to win the same
+    // share, and twice the rooms draw twice the nights at the same product.
+    const weights = open.map((h) => (h.rooms * h.appealBp * 1e6) / h.rateMinor);
     const totalWeight = weights.reduce((n, w) => n + w, 0);
     if (totalWeight <= 0) break;
 

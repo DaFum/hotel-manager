@@ -4,7 +4,7 @@
   "protocolVersion": 2,
   "rngState": {
     "guests": 664291926,
-    "staffing": 3791842552,
+    "staffing": 815383901,
     "failures": 3668344193,
     "economy": 441993275,
     "events": 836529317,
@@ -23412,8 +23412,8 @@
       "score": 70,
       "causes": []
     },
-    "housekeepingMinutes": 166680,
-    "receptionCapacity": 39,
+    "housekeepingMinutes": 163800,
+    "receptionCapacity": 37.5,
     "renovation": null,
     "alerts": [
       {
@@ -23561,7 +23561,7 @@
     "elapsedMinutes": 57600,
     "rngState": {
       "guests": 664291926,
-      "staffing": 3791842552,
+      "staffing": 815383901,
       "failures": 3668344193,
       "economy": 441993275,
       "events": 836529317,
@@ -26023,6 +26023,179 @@
       },
       "media": {},
       "channel": {}
+    },
+    "workforce": {
+      "employees": [
+        {
+          "id": "employee.staff.fnb.1",
+          "staffId": "staff.fnb.1",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 245000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 55,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.housekeeping.1",
+          "staffId": "staff.housekeeping.1",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 260000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 65,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.housekeeping.101",
+          "staffId": "staff.housekeeping.101",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 300000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 82,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.housekeeping.2",
+          "staffId": "staff.housekeeping.2",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 250000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 55,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.kitchen.1",
+          "staffId": "staff.kitchen.1",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 280000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 60,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.laundry.1",
+          "staffId": "staff.laundry.1",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 235000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 50,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.reception.1",
+          "staffId": "staff.reception.1",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 320000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 70,
+          "morale": 65,
+          "overtimeHours": 5,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.reception.2",
+          "staffId": "staff.reception.2",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 300000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 60,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        },
+        {
+          "id": "employee.staff.technician.1",
+          "staffId": "staff.technician.1",
+          "contract": {
+            "kind": "permanent",
+            "monthlyWageMinor": 295000,
+            "contractedHoursPerWeek": 40,
+            "endDateKey": null,
+            "annualLeaveDays": 24
+          },
+          "status": "working",
+          "skill": 65,
+          "morale": 65,
+          "overtimeHours": 6,
+          "leaveDaysTaken": 0,
+          "trainingCompleted": [],
+          "statusCause": null
+        }
+      ],
+      "employerEvents": []
+    },
+    "procurement": {
+      "contracts": [],
+      "reorderRules": [],
+      "lots": [],
+      "stockouts": []
     }
   }
 }

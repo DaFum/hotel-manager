@@ -9,6 +9,12 @@ import { createInsuranceState } from "../../risk/insurance";
 import { createUtilityContracts } from "../../utilities/consumption";
 import { createCommercialState } from "../../commercial/commercialState";
 import { createReputationState } from "../../reputation/dimensions";
+import {
+  createContract,
+  createWorkforceState,
+  employ,
+} from "../../staff/employeeLifecycle";
+import { createProcurementState } from "../../purchasing/contracts";
 import { compareIds } from "../../domain/ids";
 
 /**
@@ -51,6 +57,16 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
       outages: Array.isArray(state.outages) ? state.outages : [],
       commercial: normalisedSection(state.commercial, createCommercialState()),
       reputation: normalisedSection(state.reputation, createReputationState()),
+      // A v4 save has staff but no employment records; each of them gets a
+      // contract on the terms the save already knows they are paid.
+      workforce: normalisedSection(
+        state.workforce,
+        workforceForLegacyStaff(state.staff),
+      ),
+      procurement: normalisedSection(
+        state.procurement,
+        createProcurementState(),
+      ),
     },
   };
 }
@@ -71,6 +87,31 @@ function normalisedSection<T extends object>(raw: unknown, created: T): T {
   return raw && typeof raw === "object"
     ? { ...created, ...(raw as T) }
     : created;
+}
+
+/**
+ * Gives everybody on a v4 payroll the contract they were implicitly working
+ * under. Their wage and skill are already in the save, so nothing is invented
+ * beyond the terms the game has always applied to them.
+ */
+function workforceForLegacyStaff(raw: unknown) {
+  const staff = Array.isArray(raw)
+    ? (raw as { id: string; monthlyWageMinor: number; skill: number }[])
+    : [];
+  return staff.reduce(
+    (workforce, member) =>
+      employ(workforce, {
+        id: `employee.${member.id}`,
+        staffId: member.id,
+        contract: createContract({
+          monthlyWageMinor: Number.isSafeInteger(member.monthlyWageMinor)
+            ? member.monthlyWageMinor
+            : 0,
+        }),
+        skill: Number.isSafeInteger(member.skill) ? member.skill : 50,
+      }),
+    createWorkforceState(),
+  );
 }
 
 function migratedCompany(raw: unknown, hotelId: string): unknown {

@@ -163,6 +163,19 @@ import {
 import { earnPoints, releaseBreakageMinor } from "../commercial/loyalty";
 import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
+  createContract as createEmploymentContract,
+  createWorkforceState,
+  employ,
+  markSick,
+  fallsSick,
+  resign,
+  returnToWork,
+  startEmploymentMonth,
+  willResign,
+  workOvertime,
+} from "../staff/employeeLifecycle";
+import { createProcurementState } from "../purchasing/contracts";
+import {
   applyCompanyCommand,
   isCompanyCommand,
   validateCompanyCommand,
@@ -305,6 +318,8 @@ export class GameSimulation implements CommandExecutor {
     state.outages ??= [];
     state.commercial ??= createCommercialState();
     state.reputation ??= createReputationState();
+    state.workforce ??= createWorkforceState();
+    state.procurement ??= createProcurementState();
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -681,6 +696,15 @@ export class GameSimulation implements CommandExecutor {
           monthlyWageMinor: hired.monthlyWageMinor,
           absent: false,
         });
+        // A new hire is a person under a contract, not another rota row.
+        s.workforce = employ(s.workforce, {
+          id: `employee.${hired.id}`,
+          staffId: hired.id,
+          contract: createEmploymentContract({
+            monthlyWageMinor: hired.monthlyWageMinor,
+          }),
+          skill: hired.skill,
+        });
         this.emit(
           {
             type: "STAFF_HIRED",
@@ -832,6 +856,7 @@ export class GameSimulation implements CommandExecutor {
       s.eventHousekeepingWorkedMinutes = 0;
       s.utilities.waterUsed = 0;
       s.utilities.energyUsed = 0;
+      this.runEmploymentDay();
     }
     // A fit-out dates by the calendar, not by wear: on every new year every
     // room is one year further from being current.
@@ -1618,6 +1643,56 @@ export class GameSimulation implements CommandExecutor {
       water: waterUnits,
       waste: wasteKilos,
     });
+  }
+
+  /**
+   * Everybody's day. Absence is not a coin flip against a staff row: it is
+   * the consequence of the hours the player rostered, drawn from the staffing
+   * stream, and it puts a named reason on the person who is missing.
+   */
+  private runEmploymentDay(): void {
+    const s = this.state;
+    // A busy house works its people beyond their contract, and that is what
+    // eventually makes them ill and then makes them leave.
+    const strain = s.stays.length > s.hotel.rooms.length / 2 ? 1 : 0;
+    for (const employee of [...s.workforce.employees].sort((a, b) =>
+      compareIds(a.id, b.id),
+    )) {
+      if (employee.status === "resigned" || employee.status === "dismissed")
+        continue;
+      if (strain > 0 && employee.status === "working")
+        s.workforce = workOvertime(s.workforce, employee.id, strain);
+
+      const current = s.workforce.employees.find((e) => e.id === employee.id)!;
+      if (current.status === "sick" || current.status === "onLeave") {
+        s.workforce = returnToWork(s.workforce, current.id);
+        continue;
+      }
+      if (fallsSick(current, this.streams.staffing)) {
+        s.workforce = markSick(
+          s.workforce,
+          current.id,
+          `off after ${current.overtimeHours} hours of overtime`,
+        );
+        continue;
+      }
+      if (willResign(current, this.streams.staffing)) {
+        s.workforce = resign(
+          s.workforce,
+          current.id,
+          `morale at ${current.morale}`,
+        );
+        // Somebody who has left is off the rota for good.
+        s.staff = s.staff.filter((member) => member.id !== current.staffId);
+      }
+    }
+    // The rota is the employment record's shadow, never its own truth.
+    for (const member of s.staff) {
+      const employee = s.workforce.employees.find(
+        (e) => e.staffId === member.id,
+      );
+      member.absent = employee ? employee.status !== "working" : member.absent;
+    }
   }
 
   /**
@@ -2484,6 +2559,7 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
+    this.runEmploymentMonth();
     this.runCommercialMonth();
     this.chargeInsuranceAndDepreciation(s.lastMonthlyClose.periodKey);
     // The company's month runs on the closed period, after the flagship has
@@ -2537,6 +2613,17 @@ export class GameSimulation implements CommandExecutor {
     // The period stamp moves even when nothing was left to depreciate, so the
     // guard above still holds for a fully written-down hotel.
     s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
+  }
+
+  /**
+   * The employment month: what the workforce did to the group's standing as
+   * an employer, and then a clean sheet of hours for the month ahead.
+   */
+  private runEmploymentMonth(): void {
+    const s = this.state;
+    for (const event of s.workforce.employerEvents)
+      this.moveReputation("employer", s.hotel.id, event.delta, event.cause);
+    s.workforce = startEmploymentMonth(s.workforce);
   }
 
   /**

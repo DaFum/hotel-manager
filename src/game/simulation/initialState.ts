@@ -39,6 +39,16 @@ import {
   type ReputationState,
 } from "../reputation/dimensions";
 import {
+  createContract,
+  createWorkforceState,
+  employ,
+  type WorkforceState,
+} from "../staff/employeeLifecycle";
+import {
+  createProcurementState,
+  type ProcurementState,
+} from "../purchasing/contracts";
+import {
   createUtilityContracts,
   type MeterReadings,
   type UtilityContracts,
@@ -250,6 +260,10 @@ export interface GameState {
   commercial: CommercialState;
   /** Every reputation dimension, scoped and with its causes. */
   reputation: ReputationState;
+  /** Contracts, hours, absence and development for everybody on the payroll. */
+  workforce: WorkforceState;
+  /** Supplier contracts, standing orders, stock lots and stockouts. */
+  procurement: ProcurementState;
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -366,6 +380,20 @@ export function createInitialGameState(seed: number): GameState {
     outages: [],
     commercial: createCommercialState(),
     reputation: createReputationState(),
+    // Everybody the house starts with is on a real contract from day one.
+    workforce: STARTER_STAFF.reduce(
+      (workforce, member) =>
+        employ(workforce, {
+          id: `employee.${member.id}`,
+          staffId: member.id,
+          contract: createContract({
+            monthlyWageMinor: member.monthlyWageMinor,
+          }),
+          skill: member.skill,
+        }),
+      createWorkforceState(),
+    ),
+    procurement: createProcurementState(),
   };
 }
 

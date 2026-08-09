@@ -1,6 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import {
   CONFORMANCE_STATUSES,
@@ -36,25 +35,11 @@ function rows(): readonly ConformanceRow[] {
 }
 
 function activeTestTitles(source: string): Set<string> {
-  const file = ts.createSourceFile(
-    "evidence.test.ts",
-    source,
-    ts.ScriptTarget.Latest,
-    true,
-  );
   const titles = new Set<string>();
-  const visit = (node: ts.Node): void => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isIdentifier(node.expression) &&
-      (node.expression.text === "it" || node.expression.text === "test") &&
-      node.arguments[0] &&
-      ts.isStringLiteralLike(node.arguments[0])
-    )
-      titles.add(node.arguments[0].text);
-    ts.forEachChild(node, visit);
-  };
-  visit(file);
+  for (const match of source.matchAll(
+    /\b(?:it|test)\s*\(\s*(["'])(?<title>.*?)\1/gs,
+  ))
+    if (match.groups?.title) titles.add(match.groups.title);
   return titles;
 }
 

@@ -1,4 +1,8 @@
-import { captureRngState, restoreRngStreams } from "../domain/rng";
+import {
+  captureRngState,
+  createRngStreams,
+  restoreRngStreams,
+} from "../domain/rng";
 import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
@@ -145,7 +149,26 @@ import {
 import { createNarrativeState } from "../narrative/narrativeState";
 import { detectMilestones } from "../milestones/milestoneEngine";
 import { appendChronicleEntry } from "../chronicle/chronicle";
-import { assessCareerOutcome } from "../campaign/careerOutcome";
+import {
+  chooseEndlessContinuation,
+  type RecoveryPath,
+} from "../campaign/careerOutcome";
+import {
+  careerFacts,
+  applyRecoveryPath,
+  validateRecoveryPath,
+} from "../campaign/recovery";
+import {
+  createCampaignConfig,
+  adjustedStartingCapitalMinor,
+  DIFFICULTY_IDS,
+} from "../campaign/campaignConfig";
+import {
+  refreshCareerOutcome,
+  resolveNarrativeChoice,
+  runNarrativeMonth,
+  validateNarrativeChoice,
+} from "../narrative/narrativeSystem";
 import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
@@ -356,7 +379,10 @@ export class GameSimulation implements CommandExecutor {
     state.procurement ??= createProcurementState();
     state.guestRelations ??= createGuestRelationsState();
     state.recoveries ??= [];
-    state.narrative ??= createNarrativeState();
+    // A loaded game's career reading comes from the position it is actually
+    // in, never from an optimistic constant a fresh game would have had.
+    state.narrative ??= createNarrativeState({ career: careerFacts(state) });
+    state.rngState.narrative ??= createRngStreams(state.seed).narrative.state;
     state.commercialSpaces ??= createCommercialSpaceState();
     state.lobby ??= {
       served: 0,
@@ -554,6 +580,25 @@ export class GameSimulation implements CommandExecutor {
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         }
+        case "SET_CAMPAIGN_DIFFICULTY":
+          if (!DIFFICULTY_IDS.includes(command.difficulty))
+            return { ok: false, reason: "unknown difficulty" };
+          // Difficulty is part of what the campaign is. Changing it after the
+          // first day would make the run unreplayable and the career a lie.
+          if (s.elapsedMinutes > 0)
+            return { ok: false, reason: "the career has already started" };
+          return { ok: true };
+        case "RESOLVE_NARRATIVE_EVENT":
+          return validateNarrativeChoice(s, command.eventId, command.choiceId);
+        case "TAKE_RECOVERY_MEASURE":
+          return validateRecoveryPath(s, command.path);
+        case "CONTINUE_ENDLESS_CAREER":
+          if (!s.narrative.career.careerMilestone2026)
+            return {
+              ok: false,
+              reason: "the 2026 review has not been reached",
+            };
+          return { ok: true };
         default:
           if (isCompanyCommand(command))
             return validateCompanyCommand(s, command);
@@ -862,6 +907,77 @@ export class GameSimulation implements CommandExecutor {
           },
           [projectId, command.technologyId],
         );
+        return;
+      }
+      case "SET_CAMPAIGN_DIFFICULTY": {
+        const campaign = createCampaignConfig(
+          command.difficulty,
+          s.narrative.campaign.sandbox,
+        );
+        s.narrative.campaign = campaign;
+        // The disclosed inputs are the whole of what difficulty does: the
+        // opening balance and what the bank charges, both visible up front.
+        const opening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          campaign,
+        );
+        // Posted, not assigned: the opening balance is the ledger's business
+        // too, and cash that appears beside it is cash that cannot be audited.
+        const delta = opening - s.finance.cashMinor;
+        if (delta !== 0) {
+          s.finance.cashMinor += delta;
+          s.finance.ledger = postEntry(s.finance.ledger, {
+            day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+            account: "capital",
+            amountMinor: delta,
+            memo: `opening capital at ${campaign.difficulty}`,
+          });
+        }
+        s.loan = {
+          ...s.loan,
+          annualRateBasisPoints: Math.trunc(
+            (STARTER_HOTEL.startingLoan.annualRateBasisPoints *
+              campaign.inputs.creditSpreadBasisPoints) /
+              10_000,
+          ),
+        };
+        syncTreasury(s);
+        refreshCareerOutcome(s);
+        return;
+      }
+      case "RESOLVE_NARRATIVE_EVENT": {
+        resolveNarrativeChoice(s, command.eventId, command.choiceId, {
+          emit: (payload, entities) => this.emit(payload, entities),
+          spend: (amountMinor, account, memo) =>
+            this.spend(amountMinor, account, memo),
+          earn: (amountMinor, account, memo) =>
+            this.earn(amountMinor, account, memo),
+        });
+        syncTreasury(s);
+        refreshCareerOutcome(s);
+        return;
+      }
+      case "TAKE_RECOVERY_MEASURE": {
+        const taken = applyRecoveryPath(s, command.path as RecoveryPath, {
+          earn: (amountMinor, account, memo) =>
+            this.earn(amountMinor, account, memo),
+          spend: (amountMinor, account, memo) =>
+            this.spend(amountMinor, account, memo),
+        });
+        syncTreasury(s);
+        refreshCareerOutcome(s);
+        this.emit(
+          {
+            type: "RECOVERY_MEASURE_TAKEN",
+            measure: taken.measure,
+            amountMinor: taken.amountMinor,
+          },
+          [s.company.companyId],
+        );
+        return;
+      }
+      case "CONTINUE_ENDLESS_CAREER": {
+        s.narrative.career = chooseEndlessContinuation(s.narrative.career);
         return;
       }
       default: {
@@ -2819,10 +2935,24 @@ export class GameSimulation implements CommandExecutor {
         operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
         grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
       };
+    // The period that just closed, not the day the close is being posted on:
+    // December's close happens on 1 January and belongs to December's year.
+    const closedYear = Number(periodKey.slice(0, 4));
+    const annual = s.narrative.annualProfit;
+    if (annual.year !== closedYear) {
+      annual.year = closedYear;
+      annual.operatingProfitMinor = 0;
+    }
+    annual.operatingProfitMinor += s.lastMonthlyClose.operatingProfitMinor;
+    // A year is only profitable once it has finished being a year.
+    if (Number(periodKey.slice(5, 7)) === 12)
+      annual.lastCompletedYearProfitMinor = annual.operatingProfitMinor;
     const milestoneIds = detectMilestones({
-      annualProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
+      // A profitable year, not a profitable month: one good March is not a
+      // milestone, and the accumulator resets when the calendar turns.
+      annualProfitMinor: annual.lastCompletedYearProfitMinor,
       hotelCount: s.company.portfolio.hotelIds.length,
-      year: Number(s.calendar.dateKey.slice(0, 4)),
+      year: closedYear,
       achieved: s.narrative.achievedMilestones,
     });
     for (const milestoneId of milestoneIds) {
@@ -2831,15 +2961,25 @@ export class GameSimulation implements CommandExecutor {
         id: `milestone.${milestoneId}`,
         date: s.calendar.dateKey,
         scope: "company",
-        textKey: `milestone.${milestoneId}`,
+        textKey: `chronicle.milestone.${milestoneId}`,
       });
+      this.emit(
+        {
+          type: "MILESTONE_ACHIEVED",
+          milestoneId,
+          dateKey: s.calendar.dateKey,
+        },
+        [milestoneId],
+      );
     }
-    s.narrative.career = assessCareerOutcome({
-      cashMinor: s.finance.cashMinor,
-      hotelCount: s.company.portfolio.hotelIds.length,
-      year: Number(s.calendar.dateKey.slice(0, 4)),
-      creditAvailable: s.loan.principalMinor > 0,
+    runNarrativeMonth(s, this.streams.narrative, {
+      emit: (payload, entities) => this.emit(payload, entities),
+      spend: (amountMinor, account, memo) =>
+        this.spend(amountMinor, account, memo),
+      earn: (amountMinor, account, memo) =>
+        this.earn(amountMinor, account, memo),
     });
+    refreshCareerOutcome(s);
     this.emit(
       {
         type: "MONTH_CLOSED",

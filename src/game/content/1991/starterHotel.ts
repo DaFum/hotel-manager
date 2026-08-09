@@ -8,6 +8,12 @@ export const STARTER_HOTEL = {
   breakfastSeats: 36,
   kitchenCovers: 30,
   startingCashMinor: 40_000_000,
+  /** The mortgage the house comes with, and what the bank charges for it. */
+  startingLoan: {
+    principalMinor: 10_000_000,
+    annualRateBasisPoints: 900,
+    termMonths: 120,
+  },
   defaultRateMinor: { single: 9000, double: 12000 } as Record<string, number>,
   breakfastPriceMinor: 1800,
   /** Charged per failed asset per day while a repair is outstanding. */

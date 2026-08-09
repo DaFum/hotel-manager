@@ -25,6 +25,7 @@ export function createRngStreams(seed: number) {
     events: new XorShift32(mix(seed, 5)),
     weather: new XorShift32(mix(seed, 6)),
     AI: new XorShift32(mix(seed, 7)),
+    narrative: new XorShift32(mix(seed, 8)),
   };
 }
 
@@ -41,6 +42,7 @@ export function restoreRngStreams(state: RngStateRecord) {
     events: new XorShift32(state.events),
     weather: new XorShift32(state.weather),
     AI: new XorShift32(state.AI),
+    narrative: new XorShift32(state.narrative),
   };
 }
 

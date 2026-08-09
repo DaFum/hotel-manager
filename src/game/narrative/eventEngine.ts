@@ -1,11 +1,20 @@
+import { compareIds } from "../domain/ids";
 import type { NarrativeDefinition } from "./eventTypes";
 
+/**
+ * Which stories the world currently permits. An event fires because the
+ * simulation reached a state that satisfies its declared conditions, never
+ * because a script decided it was time.
+ */
 export function eligibleEvents(
   definitions: readonly NarrativeDefinition[],
   facts: Readonly<Record<string, number>>,
   fired: Readonly<Record<string, string>> = {},
   dateKey = "9999-12-31",
 ): NarrativeDefinition[] {
+  for (const [key, value] of Object.entries(facts))
+    if (!Number.isSafeInteger(value))
+      throw new Error(`invalid narrative fact ${key}`);
   return definitions
     .filter((definition) => {
       if (
@@ -21,16 +30,24 @@ export function eligibleEvents(
       const last = fired[definition.id];
       return !last || monthsBetween(last, dateKey) >= definition.cooldownMonths;
     })
-    .sort((a, b) => b.priority - a.priority || a.id.localeCompare(b.id));
+    .sort((a, b) => b.priority - a.priority || compareIds(a.id, b.id));
 }
 
+/**
+ * Picks one of the eligible stories from a drawn number. The draw comes from a
+ * seeded stream, so the same world always tells the same story; ids are
+ * compared without locale collation for the same reason.
+ */
 export function selectNarrativeEvent(
   eligible: readonly NarrativeDefinition[],
   draw: number,
 ): NarrativeDefinition | null {
+  if (!Number.isSafeInteger(draw) || draw < 0)
+    throw new Error("invalid narrative draw");
   if (eligible.length === 0) return null;
-  return eligible[Math.abs(Math.trunc(draw)) % eligible.length];
+  return eligible[draw % eligible.length];
 }
+
 function monthsBetween(a: string, b: string): number {
   return (
     (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 +

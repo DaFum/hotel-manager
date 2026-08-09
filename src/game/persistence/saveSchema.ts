@@ -96,15 +96,44 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  const narrative = state.narrative;
   if (
-    !state.narrative ||
-    !Array.isArray(state.narrative.chronicle) ||
-    !Array.isArray(state.narrative.activeEvents) ||
-    !Array.isArray(state.narrative.achievedMilestones) ||
-    !state.narrative.campaign ||
-    !state.narrative.career
+    !narrative ||
+    !Array.isArray(narrative.chronicle) ||
+    !Array.isArray(narrative.activeEvents) ||
+    !Array.isArray(narrative.achievedMilestones) ||
+    !Array.isArray(narrative.rivals) ||
+    !Array.isArray(narrative.keyPeople) ||
+    !Array.isArray(narrative.opportunities) ||
+    !narrative.lastFiredByDefinition ||
+    !narrative.media ||
+    !narrative.prestige ||
+    !narrative.annualProfit ||
+    !narrative.campaign ||
+    !narrative.campaign.inputs ||
+    !narrative.campaign.sandbox ||
+    !narrative.career ||
+    !Array.isArray(narrative.career.availableRecoveryPaths)
   )
     problems.push("the state has no complete Plan 06 narrative");
+  // The campaign's numbers decide what a replay does; a fractional or
+  // non-finite one is a corrupt save rather than a playable one.
+  else if (
+    ![
+      narrative.annualProfit.year,
+      narrative.annualProfit.operatingProfitMinor,
+      narrative.annualProfit.lastCompletedYearProfitMinor,
+      narrative.prestige.personal,
+      narrative.prestige.company,
+      ...Object.values(
+        narrative.campaign.inputs as unknown as Record<string, number>,
+      ),
+      ...Object.values(
+        narrative.campaign.sandbox as unknown as Record<string, number>,
+      ),
+    ].every((value) => Number.isSafeInteger(value))
+  )
+    problems.push("the narrative carries a value that is not a whole number");
   const company = state.company;
   if (
     !company ||

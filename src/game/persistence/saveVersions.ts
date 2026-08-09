@@ -9,7 +9,14 @@ export const CONTENT_VERSION = "plan-06-v6" as const;
 export const MIGRATABLE_SAVE_VERSIONS = [1, 2, 3, 4, 5] as const;
 
 export type RngStreamName =
-  "guests" | "staffing" | "failures" | "economy" | "events" | "weather" | "AI";
+  | "guests"
+  | "staffing"
+  | "failures"
+  | "economy"
+  | "events"
+  | "weather"
+  | "AI"
+  | "narrative";
 
 export interface SaveEnvelope {
   saveVersion: number;
@@ -32,4 +39,5 @@ export const RNG_STREAM_NAMES: readonly RngStreamName[] = [
   "events",
   "weather",
   "AI",
+  "narrative",
 ];

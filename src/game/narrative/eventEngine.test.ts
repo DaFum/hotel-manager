@@ -41,4 +41,27 @@ describe("narrative event eligibility", () => {
         ?.id,
     ).toBe("b");
   });
+
+  it("orders equal-priority ids without locale collation", () => {
+    // German collation sorts "ä" next to "a"; ASCII order does not. A replay
+    // must not depend on which of those the host happens to implement.
+    const collationSensitive = [
+      { ...defs[1], id: "ärger-im-haus" },
+      { ...defs[1], id: "zimmerbrand" },
+      { ...defs[1], id: "abriss" },
+    ];
+    expect(
+      eligibleEvents(collationSensitive, { guests: 4 }).map((x) => x.id),
+    ).toEqual(["abriss", "zimmerbrand", "ärger-im-haus"]);
+  });
+
+  it("refuses facts and draws that would make a selection meaningless", () => {
+    expect(() => eligibleEvents(defs, { guests: Number.NaN })).toThrow();
+    expect(() => eligibleEvents(defs, { guests: 3.5 })).toThrow();
+    expect(() => eligibleEvents(defs, { guests: Number.MAX_VALUE })).toThrow();
+    const eligible = eligibleEvents(defs, { guests: 4, reach: 30 });
+    expect(() => selectNarrativeEvent(eligible, -1)).toThrow();
+    expect(() => selectNarrativeEvent(eligible, 1.5)).toThrow();
+    expect(() => selectNarrativeEvent(eligible, Number.NaN)).toThrow();
+  });
 });

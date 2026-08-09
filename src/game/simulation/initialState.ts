@@ -60,6 +60,7 @@ import {
   createNarrativeState,
   type NarrativeState,
 } from "../narrative/narrativeState";
+import { CREDIT_LINE_MINOR } from "../campaign/recovery";
 import type { RecoveryRecord } from "../guests/recoveryAuthority";
 import {
   addSpace,
@@ -358,11 +359,7 @@ export function createInitialGameState(seed: number): GameState {
         availableRoomNights: STARTER_HOTEL.roomCount,
       },
     },
-    loan: {
-      principalMinor: 10_000_000,
-      annualRateBasisPoints: 900,
-      termMonths: 120,
-    },
+    loan: { ...STARTER_HOTEL.startingLoan },
     facilities: [],
     utilities: createUtilityState(),
     renderDescriptors: createRenderDescriptors(
@@ -433,7 +430,21 @@ export function createInitialGameState(seed: number): GameState {
     procurement: createProcurementState(),
     guestRelations: createGuestRelationsState(),
     recoveries: [],
-    narrative: createNarrativeState(),
+    narrative: createNarrativeState({
+      career: {
+        // The opening position, stated rather than assumed: the starting
+        // balance, the undrawn half of the credit line, no second hotel to
+        // sell and nobody on the payroll yet.
+        netLiquidityMinor: STARTER_HOTEL.startingCashMinor,
+        creditHeadroomMinor: Math.max(
+          0,
+          CREDIT_LINE_MINOR - STARTER_HOTEL.startingLoan.principalMinor,
+        ),
+        sellableHotelCount: 0,
+        reducibleStaffCount: 0,
+        year: Number(CITY.startDateKey.slice(0, 4)),
+      },
+    }),
     commercialSpaces: STARTER_COMMERCIAL_SPACES.reduce(
       (state, space) =>
         addSpace(state, { ...space, operator: { ...space.operator } }),

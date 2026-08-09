@@ -68,3 +68,20 @@ it("charges construction noise to every guest still in the house", () => {
   expect(noisePenaltyBp({ ...site, phase: "acceptance" }, 10)).toBe(0);
   expect(PHASE_MINUTES.construction).toBeGreaterThan(0);
 });
+
+it("refuses elapsed minutes that are not whole and non-negative", () => {
+  const site: Project = {
+    phase: "construction",
+    remainingMinutes: 100,
+    affected: ["101"],
+  };
+  // A NaN would survive every comparison in the loop and walk the project
+  // straight to complete, skipping the whole lifecycle.
+  expect(() => advanceProject(site, Number.NaN)).toThrow(/elapsed minutes/);
+  expect(() => advanceProject(site, 2.5)).toThrow(/elapsed minutes/);
+  expect(() => advanceProject(site, -5)).toThrow(/elapsed minutes/);
+  expect(() => advanceProject(site, Number.POSITIVE_INFINITY)).toThrow(
+    /elapsed minutes/,
+  );
+  expect(advanceProject(site, 0)).toEqual(site);
+});

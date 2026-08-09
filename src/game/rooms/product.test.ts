@@ -59,3 +59,28 @@ it("derives room products from content modules, not hard-coded numbers", () => {
   expect(roomAppeal(suite).appeal).toBeGreaterThan(roomAppeal(standard).appeal);
   expect(MODULE_LIBRARY.map((m) => m.id)).toContain("room.suite.junior");
 });
+
+it("refuses a product that would score as NaN", () => {
+  const sound = {
+    comfort: 60,
+    bath: 60,
+    technology: 60,
+    condition: 60,
+    styleAgeYears: 0,
+  };
+  // A NaN passes straight through clamping and would corrupt the star rating.
+  expect(() => roomAppeal({ ...sound, comfort: Number.NaN })).toThrow(
+    /comfort/,
+  );
+  expect(() => roomAppeal({ ...sound, condition: 101 })).toThrow(/condition/);
+  expect(() => roomAppeal({ ...sound, bath: -1 })).toThrow(/bath/);
+  expect(() => roomAppeal({ ...sound, technology: 12.5 })).toThrow(
+    /technology/,
+  );
+  expect(() => roomAppeal({ ...sound, styleAgeYears: -1 })).toThrow(
+    /style age/,
+  );
+  expect(() =>
+    segmentFitBp({ ...sound, bath: Number.NaN }, "segment.business"),
+  ).toThrow(/bath/);
+});

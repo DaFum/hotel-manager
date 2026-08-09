@@ -94,10 +94,10 @@ When executing a plan:
 
 ### Current repository state
 
-Plan 01 (1991 single-hotel vertical slice, rev 1.1) and Plan 02 (hotel depth and
-specialization, Tasks 1-13) are implemented and their verification gates are green.
-Plan 03 is the next plan; do not start it before re-running the Plan 02 gate in a fresh
-session.
+Plan 01 (1991 single-hotel vertical slice, rev 1.1), Plan 02 (hotel depth and
+specialization) and Plan 03 (city market and competitors) are implemented and their
+verification gates are green. Plan 04 is the next plan; do not start it before re-running
+the Plan 03 gate in a fresh session.
 
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
@@ -105,6 +105,15 @@ demand), linen and laundry logistics, wellness and fitness, conference sales and
 execution load, engineering capacity with preventive maintenance, staff areas, mobility
 and security, classification and specialization, the facility board in the snapshot,
 Pixi and DOM, and the v1-to-v2 save migration.
+
+Plan 03 added: source-based city demand, the labour market and its wage floor on hiring,
+lagged property prices and build costs, transport connectivity and route changes, the
+external actors that generate travel, saturating and delayed hotel-to-city feedback,
+forecast bands with paid information quality, competitor strategies with bounded market
+knowledge, shared pricing/investment/lifecycle economics for rivals, entry, exit and
+remembered rivalries, the city and competitor dashboards, and the v2-to-v3 save
+migration. The city runs one month at a time inside the demand phase; each day's room
+nights are split across every house, the player included, by one shared allocation.
 
 Layout as built:
 
@@ -115,15 +124,18 @@ src/game/content/1991/  Frankfurt, starter hotel, guest segments, suppliers
 src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb,
                         maintenance, finance, building, explanations, facilities,
                         laundry, wellness, eventsales, engineering, classification,
-                        renovation
+                        renovation, city, labor, property, transport, actors,
+                        competitors, marketResearch
 src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
-src/game/persistence/migrations/  versioned save migrations (v1 -> v2)
+src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3);
+                        each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository
 src/render/      isoProjection, PixiHotelScene
 src/ui/          TopBar, HotelView, dashboards, AlertsPanel, MonthlyCloseModal
 src/ui/facilities/, src/render/facilities/  facility board and Pixi load strip
-e2e/, scripts/   Playwright slice and hotel-depth specs, deterministic benchmark
+src/ui/market/   city dashboard and competitor table
+e2e/, scripts/   Playwright slice, hotel-depth and city-market specs, benchmark
 ```
 
 Available scripts:

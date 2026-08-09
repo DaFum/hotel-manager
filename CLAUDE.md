@@ -14,9 +14,9 @@ Web Worker. Design authority, in order: the user, `AGENTS.md`,
 `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`, then the
 active plan in `docs/superpowers/plans/`.
 
-Plan 01 (vertical slice) and Plan 02 (hotel depth and specialization) are complete and
-green. Plan 03 (city market and competitors) is next; don't start it without re-running
-Plan 02's gate first.
+Plans 01 (vertical slice), 02 (hotel depth and specialization) and 03 (city market and
+competitors) are complete and green. Plan 04 (technology and alternative history) is
+next; don't start it without re-running Plan 03's gate first.
 
 ## Commands
 
@@ -42,15 +42,15 @@ reformatted.
 
 ## Where things live
 
-| Path                                            | Responsibility                                                               |
-| ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| `src/game/simulation/GameSimulation.ts`         | the thirteen-phase quantum; all systems are called from here                 |
-| `src/game/simulation/simulation.worker.ts`      | the only place the protocol is spoken worker-side                            |
-| `src/app/GameClient.ts`, `src/app/gameStore.ts` | UI-side protocol handle and snapshot mirror                                  |
-| `src/game/domain/`                              | money, calendar, ids, RNG streams, protocol, commands, events                |
-| `src/game/content/1991/`                        | Frankfurt, starter hotel, guest segments, suppliers — data, not conditionals |
-| `src/game/<system>/`                            | one domain per directory (rooms, staff, revenue, fnb, finance, …)            |
-| `src/ui/`, `src/render/`                        | React surfaces and the Pixi scene; presentation only                         |
+| Path                                            | Responsibility                                                                            |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `src/game/simulation/GameSimulation.ts`         | the thirteen-phase quantum; all systems are called from here                              |
+| `src/game/simulation/simulation.worker.ts`      | the only place the protocol is spoken worker-side                                         |
+| `src/app/GameClient.ts`, `src/app/gameStore.ts` | UI-side protocol handle and snapshot mirror                                               |
+| `src/game/domain/`                              | money, calendar, ids, RNG streams, protocol, commands, events                             |
+| `src/game/content/1991/`                        | Frankfurt, starter hotel, guest segments, suppliers, city market — data, not conditionals |
+| `src/game/<system>/`                            | one domain per directory (rooms, staff, revenue, fnb, finance, …)                         |
+| `src/ui/`, `src/render/`                        | React surfaces and the Pixi scene; presentation only                                      |
 
 ## Non-negotiables in this codebase
 

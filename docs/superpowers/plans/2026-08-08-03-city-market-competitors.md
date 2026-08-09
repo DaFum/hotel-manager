@@ -61,13 +61,13 @@ e2e/city-market.spec.ts
 - Create: `src/game/city/demand.ts`
 - Test: `src/game/city/demand.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {totalRoomNights} from './demand';it('sums source demand',()=>{expect(totalRoomNights({business:1200,leisure:800,event:500,group:300})).toBe(2800);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/city/demand.test.ts
@@ -75,7 +75,7 @@ npm run test:run -- src/game/city/demand.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/city/demand.ts`:
 
@@ -83,14 +83,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function totalRoomNights(i:{business:number;leisure:number;event:number;group:number}){return i.business+i.leisure+i.event+i.group;}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/city/demand.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/city/demand.test.ts src/game/city/demand.ts
@@ -106,13 +106,13 @@ git commit -m "feat: add city demand"
 - Modify: `src/game/staff/staffing.ts`
 - Test: `src/game/labor/market.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {wagePressureBp} from './market';it('raises wages when vacancies exceed labor supply',()=>{expect(wagePressureBp(200,100)).toBeGreaterThan(10000);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/labor/market.test.ts
@@ -120,7 +120,7 @@ npm run test:run -- src/game/labor/market.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/labor/market.ts`:
 
@@ -128,14 +128,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function wagePressureBp(vacancies:number,workers:number){return Math.round(10000*Math.min(1.5,Math.max(.75,vacancies/Math.max(1,workers))));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/labor/market.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/labor/market.test.ts src/game/labor/market.ts src/game/staff/staffing.ts
@@ -150,13 +150,13 @@ git commit -m "feat: add labor market"
 - Create: `src/game/property/market.ts`
 - Test: `src/game/property/market.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {nextPrice} from './market';it('caps monthly land-price movement',()=>{expect(nextPrice(10000000,20000000,300)).toBe(10300000);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/property/market.test.ts
@@ -164,7 +164,7 @@ npm run test:run -- src/game/property/market.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/property/market.ts`:
 
@@ -172,14 +172,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function nextPrice(current:number,target:number,maxMoveBp:number){const lim=Math.round(current*maxMoveBp/10000),d=target-current;return current+Math.sign(d)*Math.min(Math.abs(d),lim);}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/property/market.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/property/market.test.ts src/game/property/market.ts
@@ -194,13 +194,13 @@ git commit -m "feat: add property market"
 - Create: `src/game/transport/network.ts`
 - Test: `src/game/transport/network.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {connectivityIndex} from './network';it('weights rail airport road and local transit',()=>{expect(connectivityIndex({rail:70,airport:80,road:60,local:75})).toBe(72);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/transport/network.test.ts
@@ -208,7 +208,7 @@ npm run test:run -- src/game/transport/network.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/transport/network.ts`:
 
@@ -216,14 +216,18 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function connectivityIndex(i:{rail:number;airport:number;road:number;local:number}){return Math.round(i.rail*.3+i.airport*.35+i.road*.15+i.local*.2);}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+> Implementation note: these weights over the test's ratings give 73, not the
+> 72 the step above quotes. The weights are the contract, so the shipped test
+> asserts 73.
+
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/transport/network.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/transport/network.test.ts src/game/transport/network.ts
@@ -238,13 +242,13 @@ git commit -m "feat: add transport market"
 - Create: `src/game/actors/evolution.ts`
 - Test: `src/game/actors/evolution.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {nextActorScale} from './evolution';it('allows demand actors to grow and shrink',()=>{expect(nextActorScale({scale:100,demand:120,profitBp:800})).toBeGreaterThan(100);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/actors/evolution.test.ts
@@ -252,7 +256,7 @@ npm run test:run -- src/game/actors/evolution.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/actors/evolution.ts`:
 
@@ -260,14 +264,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function nextActorScale(i:{scale:number;demand:number;profitBp:number}){return Math.max(0,i.scale+Math.round((i.demand-100)*.2+i.profitBp/1000));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/actors/evolution.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/actors/evolution.test.ts src/game/actors/evolution.ts
@@ -282,13 +286,13 @@ git commit -m "feat: add city economic actors"
 - Create: `src/game/city/feedback.ts`
 - Test: `src/game/city/feedback.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {conferenceEffect} from './feedback';it('has diminishing returns',()=>{expect(conferenceEffect(1000)-conferenceEffect(500)).toBeLessThan(conferenceEffect(500));});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/city/feedback.test.ts
@@ -296,7 +300,7 @@ npm run test:run -- src/game/city/feedback.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/city/feedback.ts`:
 
@@ -304,14 +308,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function conferenceEffect(cap:number){return Math.round(1000*(1-Math.exp(-Math.max(0,cap)/600)));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/city/feedback.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/city/feedback.test.ts src/game/city/feedback.ts
@@ -326,13 +330,13 @@ git commit -m "feat: add city feedback"
 - Create: `src/game/marketResearch/forecast.ts`
 - Test: `src/game/marketResearch/forecast.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {forecastBand} from './forecast';it('narrows with better information',()=>{expect(forecastBand(1000,90).high-forecastBand(1000,90).low).toBeLessThan(forecastBand(1000,40).high-forecastBand(1000,40).low);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/marketResearch/forecast.test.ts
@@ -340,7 +344,7 @@ npm run test:run -- src/game/marketResearch/forecast.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/marketResearch/forecast.ts`:
 
@@ -348,14 +352,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function forecastBand(base:number,q:number){const s=Math.round(base*(1-Math.min(100,Math.max(0,q))/100)*.4);return{low:base-s,base,high:base+s};}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/marketResearch/forecast.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/marketResearch/forecast.test.ts src/game/marketResearch/forecast.ts
@@ -370,13 +374,13 @@ git commit -m "feat: add uncertain forecasts"
 - Create: `src/game/competitors/strategies.ts`
 - Test: `src/game/competitors/strategies.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {targetLeverageBp} from './strategies';it('gives aggressive investors more leverage tolerance',()=>{expect(targetLeverageBp('aggressive')).toBeGreaterThan(targetLeverageBp('family'));});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/competitors/strategies.test.ts
@@ -384,7 +388,7 @@ npm run test:run -- src/game/competitors/strategies.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/competitors/strategies.ts`:
 
@@ -392,14 +396,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export type Strategy='budget'|'luxury'|'family'|'lifestyle'|'aggressive';export function targetLeverageBp(s:Strategy){return({budget:4500,luxury:3000,family:1800,lifestyle:3500,aggressive:6500})[s];}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/competitors/strategies.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/competitors/strategies.test.ts src/game/competitors/strategies.ts
@@ -415,13 +419,13 @@ git commit -m "feat: add competitor strategies"
 - Create: `src/game/competitors/investment.ts`
 - Test: `src/game/competitors/investment.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {chooseInvestment} from './investment';it('holds when debt exceeds risk tolerance',()=>{expect(chooseInvestment({returnBp:1200,debtBp:8500,toleranceBp:5000})).toBe('hold');});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/competitors/investment.test.ts
@@ -429,7 +433,7 @@ npm run test:run -- src/game/competitors/investment.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/competitors/investment.ts`:
 
@@ -437,14 +441,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function chooseInvestment(i:{returnBp:number;debtBp:number;toleranceBp:number}){if(i.debtBp>i.toleranceBp)return'hold';return i.returnBp>=900?'expand':i.returnBp>=400?'renovate':'hold';}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/competitors/investment.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/competitors/investment.test.ts src/game/competitors/investment.ts src/game/competitors/pricing.ts
@@ -460,13 +464,13 @@ git commit -m "feat: add competitor investment"
 - Create: `src/game/competitors/relations.ts`
 - Test: `src/game/competitors/lifecycle.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {lifecycleAction} from './lifecycle';it('exits when cash and refinancing are exhausted',()=>{expect(lifecycleAction({cash:-100,credit:0,burn:50})).toBe('exit');});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/competitors/lifecycle.test.ts
@@ -474,7 +478,7 @@ npm run test:run -- src/game/competitors/lifecycle.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/competitors/lifecycle.ts`:
 
@@ -482,14 +486,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function lifecycleAction(i:{cash:number;credit:number;burn:number}){if(i.cash+i.credit<0)return'exit';if(i.burn>0&&i.cash<i.burn*2)return'restructure';return'operate';}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/competitors/lifecycle.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/competitors/lifecycle.test.ts src/game/competitors/lifecycle.ts src/game/competitors/relations.ts
@@ -505,13 +509,13 @@ git commit -m "feat: add competitor lifecycle"
 - Create: `src/ui/market/CompetitorTable.tsx`
 - Test: `src/ui/market/CityDashboard.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {render,screen} from '@testing-library/react';import {CityDashboard} from './CityDashboard';it('shows demand drivers and uncertainty',()=>{render(<CityDashboard business={1200} leisure={800} low={1800} high={2300}/>);expect(screen.getByText(/Business 1200/)).toBeTruthy();});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/ui/market/CityDashboard.test.tsx
@@ -519,7 +523,7 @@ npm run test:run -- src/ui/market/CityDashboard.test.tsx
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/ui/market/CityDashboard.tsx`:
 
@@ -527,14 +531,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function CityDashboard(p:{business:number;leisure:number;low:number;high:number}){return <section><p>Business {p.business}</p><p>Leisure {p.leisure}</p><p>Forecast {p.low}–{p.high}</p></section>}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/ui/market/CityDashboard.test.tsx
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/ui/market/CityDashboard.test.tsx src/ui/market/CityDashboard.tsx src/ui/market/CompetitorTable.tsx
@@ -550,13 +554,13 @@ git commit -m "feat: add market dashboards"
 - Create: `src/game/city/cityMarket.integration.test.ts`
 - Create: `e2e/city-market.spec.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {runCityYears} from '../test/cityScenario';it('keeps a functioning market for ten years',()=>{const r=runCityYears(10,4242);expect(r.activeCompetitors).toBeGreaterThan(2);expect(r.hotelSupply).toBeGreaterThan(0);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/city/cityMarket.integration.test.ts && npm run test:e2e -- e2e/city-market.spec.ts
@@ -564,7 +568,7 @@ npm run test:run -- src/game/city/cityMarket.integration.test.ts && npm run test
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/persistence/migrations/v2-to-v3.ts`:
 
@@ -572,14 +576,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function migrateV2ToV3(s:Record<string,unknown>){return{...s,saveVersion:3,cityMarket:(s.cityMarket as object|undefined)??{},competitors:(s.competitors as unknown[]|undefined)??[]};}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/city/cityMarket.integration.test.ts && npm run test:e2e -- e2e/city-market.spec.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add e2e/city-market.spec.ts src/game/city/cityMarket.integration.test.ts src/game/persistence/migrations/v2-to-v3.ts

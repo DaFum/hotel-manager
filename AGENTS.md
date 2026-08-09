@@ -97,22 +97,80 @@ When executing a plan:
 
 Plan 01 (1991 single-hotel vertical slice, rev 1.1), Plan 02 (hotel depth and
 specialization), Plan 03 (city market and competitors), Plan 03.5 (conformance
-remediation), Plan 04 (technology and alternative history) and Plan 05
-(multi-hotel company and brands) are implemented.
+remediation), Plan 04 (technology and alternative history), Plan 05
+(multi-hotel company and brands) and Plan 06 (emergent campaign and narrative)
+are implemented.
 
-Fresh verification of the Plan 05 gate on 2026-08-09 produced these exact
+Fresh verification of the Plan 06 gate on 2026-08-09 produced these exact
 results:
 
-- `npm run test:run` — passed (117 files, 710 tests).
+- `npm run test:run` — passed (132 files, 773 tests).
 - `npm run typecheck` — passed.
 - `npm run lint` — passed.
 - `npm run build` — passed.
-- `npm run test:e2e` — passed (20 tests).
-- `npm run benchmark` — passed (a simulated year in 6.4s against a 30s budget).
-- `scripts/replay-plans-01-03.ts` — passed twice with an identical hash.
+- `npm run test:e2e` — passed (22 tests).
+- `npm run benchmark` — passed (a simulated year in 4.1s against a 30s budget).
+- `scripts/replay-plans-01-03.ts` — passed with hash `add41d5f`.
 - `scripts/verify-plans-01-03-long-run.ts` — passed.
 
-Plan 06 (emergent campaign and narrative) is next.
+Plan 07 (content and authoring pipeline) is next.
+
+Plan 06 also carries scope its own plan named but this build does not model.
+Say so rather than implying otherwise: of the eight MASTER 4.5 recovery
+measures, only `refinance`, `sell-hotel` and `staff-reduction` are implemented;
+the other five are refused at the command boundary. Sandbox options are
+configured, validated and persisted, but no UI edits them.
+
+### Plan 06: the campaign above the company
+
+Plan 06 added the career narrative. It observes the simulation; it never
+becomes a second set of economic rules. What later work must respect:
+
+- **The narrative section** (`src/game/narrative/narrativeState.ts`) is
+  authoritative save state: chronicle, active stories and their cooldowns, the
+  year-to-date profit accumulator, rivals, key people, media reach, prestige,
+  strategic opportunities, the frozen campaign configuration and the career
+  reading.
+- **Stories fire from state, never from a script or a date.**
+  `narrativeSystem.ts` reads facts out of the running game, `eventEngine.ts`
+  decides which definitions the world permits, and one is drawn from the
+  seeded `narrative` stream in the monthly close. Definitions live in
+  `src/game/content/1991/narrative.ts` as data.
+- **A choice is never its own executor.** `outcomes.ts` returns typed effects
+  and the finance and reputation systems post them. A story must not invent a
+  command type: if it needs one, add it to `GameCommand` and give it rules in
+  the same place every other command has them.
+- **Difficulty is part of the run.** `SET_CAMPAIGN_DIFFICULTY` is refused once
+  `elapsedMinutes > 0`, the configuration is deep-frozen at creation, and the
+  opening balance is _posted through the ledger_ rather than assigned — cash
+  that appears beside the ledger breaks the invariant.
+- **Difficulty changes disclosed inputs only.** There is no field for hidden AI
+  money or hidden AI knowledge, and adding one is out of scope for every plan.
+- **Distress is cash less payables.** `spend()` turns a shortfall into a
+  payable and floors cash at zero, so a reading taken from the balance alone
+  would never see trouble at all. Game over is the point where no measure is
+  left, not the point where the account looks bad.
+- **Offer only what is modelled.** `MODELLED_RECOVERY_PATHS` is the list the
+  UI may show; anything else is refused with a reason. A button that does
+  nothing is worse than an absent one.
+- **A profitable year is a finished year.** The monthly close accumulates into
+  `narrative.annualProfit` and banks the total in December; milestones read the
+  banked figure and the _closed period's_ year, not the day the close is
+  posted.
+- **Save version 6.** `v5-to-v6.ts` guards every narrative field individually
+  rather than spreading a malformed section through, seeds the new `narrative`
+  stream from the save's own seed, and derives the career reading from the
+  state it is carrying forward. Its fixture (`fixtures/save-v6.json`) is
+  recorded by `scripts/record-save-fixture.ts`.
+- **Four new domain events** (`MILESTONE_ACHIEVED`, `NARRATIVE_EVENT_RAISED`,
+  `NARRATIVE_EVENT_RESOLVED`, `RECOVERY_MEASURE_TAKEN`) bring the declared
+  total to 49; `campaignScenario()` in `eventBuffer.test.ts` drives them.
+- **Authoritative state holds keys, not sentences.** Chronicle entries, story
+  titles, choice labels and rival names are localization keys; the UI resolves
+  them with `translateKey` at the presentation edge.
+- **Ordering is compared, not collated.** Use `compareIds` for chronicle and
+  story ordering. `localeCompare` sorts the same history differently on two
+  ICU builds, which a replay cannot survive.
 
 ### Plan 05: the company above the hotels
 
@@ -136,7 +194,7 @@ work must respect:
   acquisition that fails halfway leaves nothing behind. `companyCommands.ts`
   holds their rules; `companyMonth.ts` holds the monthly corporate step.
 - **Fifteen new domain events** cover the corporate transitions, and every one
-  of the 45 declared types is reachable in a real game — `companyScenario()` in
+  of the declared types is reachable in a real game — `companyScenario()` in
   `eventBuffer.test.ts` drives the corporate ones.
 - **The replay corpus is an observation, not a hand-edited file.** When a plan
   adds real transitions, re-record it with `scripts/record-replay-corpus.ts`
@@ -211,14 +269,17 @@ Layout as built:
 ```text
 src/app/         React shell, GameClient (worker handle), useGameStore
 src/game/domain/ money, calendar, ids, rng streams, protocol, commands, events, snapshot
-src/game/content/1991/  Frankfurt, starter hotel, guest segments, suppliers
+src/game/content/1991/  Frankfurt, starter hotel, guest segments, suppliers, stories
 src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb,
                         maintenance, finance, building, explanations, facilities,
                         laundry, wellness, eventsales, engineering, classification,
                         renovation, city, labor, property, transport, actors,
                         competitors, marketResearch
 src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
-src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3 -> v4);
+src/game/campaign/      campaign configuration, career outcome, recovery measures
+src/game/narrative/     story definitions, event engine, outcomes, narrative state
+src/game/<campaign>/    chronicle, milestones, rivals, people, media, prestige
+src/game/persistence/migrations/  versioned save migrations (v1 -> ... -> v6);
                         each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository
@@ -226,6 +287,8 @@ src/render/      isoProjection, PixiHotelScene
 src/ui/          TopBar, HotelView, dashboards, AlertsPanel, MonthlyCloseModal
 src/ui/facilities/, src/render/facilities/  facility board and Pixi load strip
 src/ui/market/   city dashboard and competitor table
+src/ui/story/    campaign setup, story inbox, chronicle, milestone toast, outcome
+src/ui/localization.ts  the key-to-text catalogue every surface resolves through
 e2e/, scripts/   Playwright slice, hotel-depth and city-market specs, benchmark
 ```
 
@@ -450,7 +513,8 @@ Use seeded, isolated subsystem streams. Canonical stream families include:
 - `economy`,
 - `events`,
 - `weather`,
-- `AI`.
+- `AI`,
+- `narrative`.
 
 A new cosmetic random choice must not alter guest demand, maintenance failures, macroeconomics, or another subsystem's future RNG sequence.
 

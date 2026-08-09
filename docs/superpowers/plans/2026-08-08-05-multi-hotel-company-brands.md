@@ -84,7 +84,7 @@ e2e/multi-hotel.spec.ts
 - Create: `src/game/company/legalEntities.ts`
 - Test: `src/game/company/portfolio.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -100,7 +100,7 @@ describe('company portfolio', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/company/portfolio.test.ts
@@ -108,7 +108,7 @@ npm run test:run -- src/game/company/portfolio.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/company/portfolio.ts`:
 
@@ -136,14 +136,14 @@ export function addHotelToPortfolio(
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/company/portfolio.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/company/legalEntities.ts src/game/company/portfolio.test.ts src/game/company/portfolio.ts
@@ -158,7 +158,7 @@ git commit -m "feat: add company portfolio model"
 - Create: `src/game/ownership/models.ts`
 - Test: `src/game/ownership/models.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -172,7 +172,7 @@ describe('ownership models', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/ownership/models.test.ts
@@ -180,7 +180,7 @@ npm run test:run -- src/game/ownership/models.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/ownership/models.ts`:
 
@@ -201,14 +201,14 @@ export function monthlyOwnershipCashFlows(model: OperatingModel, roomRevenueMino
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/ownership/models.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/ownership/models.test.ts src/game/ownership/models.ts
@@ -224,7 +224,7 @@ git commit -m "feat: add hotel operating models"
 - Create: `src/game/brands/brandAudit.ts`
 - Test: `src/game/brands/brandAudit.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -242,7 +242,7 @@ describe('brand audit', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/brands/brandAudit.test.ts
@@ -250,7 +250,7 @@ npm run test:run -- src/game/brands/brandAudit.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/brands/brandAudit.ts`:
 
@@ -273,14 +273,14 @@ export function auditBrand(standard: BrandStandard, hotel: BrandAuditInput) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/brands/brandAudit.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/brands/brandAudit.test.ts src/game/brands/brandAudit.ts src/game/brands/brandTypes.ts
@@ -295,7 +295,7 @@ git commit -m "feat: add brand standards and audits"
 - Create: `src/game/development/feasibility.ts`
 - Test: `src/game/development/feasibility.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -310,7 +310,7 @@ describe('development feasibility', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/development/feasibility.test.ts
@@ -318,7 +318,7 @@ npm run test:run -- src/game/development/feasibility.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/development/feasibility.ts`:
 
@@ -341,14 +341,14 @@ export function calculateFeasibility(input: FeasibilityInput) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/development/feasibility.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/development/feasibility.test.ts src/game/development/feasibility.ts
@@ -363,7 +363,7 @@ git commit -m "feat: add hotel feasibility analysis"
 - Create: `src/game/development/preOpening.ts`
 - Test: `src/game/development/preOpening.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -378,7 +378,7 @@ describe('pre-opening', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/development/preOpening.test.ts
@@ -386,7 +386,7 @@ npm run test:run -- src/game/development/preOpening.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/development/preOpening.ts`:
 
@@ -410,14 +410,14 @@ export function evaluateOpeningReadiness(input: OpeningReadiness) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/development/preOpening.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/development/preOpening.test.ts src/game/development/preOpening.ts
@@ -432,7 +432,7 @@ git commit -m "feat: add pre opening gate"
 - Create: `src/game/development/rampUp.ts`
 - Test: `src/game/development/rampUp.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -447,7 +447,7 @@ describe('hotel ramp up', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/development/rampUp.test.ts
@@ -455,7 +455,7 @@ npm run test:run -- src/game/development/rampUp.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/development/rampUp.ts`:
 
@@ -467,14 +467,14 @@ export function rampUpDemandFactorBasisPoints(monthsOpen: number): number {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/development/rampUp.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/development/rampUp.test.ts src/game/development/rampUp.ts
@@ -489,7 +489,7 @@ git commit -m "feat: model hotel ramp up"
 - Create: `src/game/company/sharedServices.ts`
 - Test: `src/game/company/sharedServices.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -504,7 +504,7 @@ describe('shared services', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/company/sharedServices.test.ts
@@ -512,7 +512,7 @@ npm run test:run -- src/game/company/sharedServices.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/company/sharedServices.ts`:
 
@@ -523,14 +523,14 @@ export function purchasingDiscountBasisPoints(hotelCount: number): number {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/company/sharedServices.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/company/sharedServices.test.ts src/game/company/sharedServices.ts
@@ -545,7 +545,7 @@ git commit -m "feat: add corporate shared services"
 - Create: `src/game/company/budgets.ts`
 - Test: `src/game/company/budgets.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -558,7 +558,7 @@ describe('hotel budgets', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/company/budgets.test.ts
@@ -566,7 +566,7 @@ npm run test:run -- src/game/company/budgets.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/company/budgets.ts`:
 
@@ -577,14 +577,14 @@ export function canSpendCapex(budget: HotelBudget, amountMinor: number): boolean
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/company/budgets.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/company/budgets.test.ts src/game/company/budgets.ts
@@ -600,7 +600,7 @@ git commit -m "feat: add hotel budgets"
 - Create: `src/game/management/escalation.ts`
 - Test: `src/game/management/escalation.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -613,7 +613,7 @@ describe('manager escalation', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/management/escalation.test.ts
@@ -621,7 +621,7 @@ npm run test:run -- src/game/management/escalation.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/management/escalation.ts`:
 
@@ -634,14 +634,14 @@ export function decideEscalation(authority: ManagerAuthority, decision: LocalDec
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/management/escalation.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/management/escalation.test.ts src/game/management/escalation.ts src/game/management/managerAuthority.ts
@@ -657,7 +657,7 @@ git commit -m "feat: add manager authority limits"
 - Create: `src/game/treasury/internalFunding.ts`
 - Test: `src/game/treasury/internalFunding.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -672,7 +672,7 @@ describe('internal funding', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/treasury/internalFunding.test.ts
@@ -680,7 +680,7 @@ npm run test:run -- src/game/treasury/internalFunding.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/treasury/internalFunding.ts`:
 
@@ -694,14 +694,14 @@ export function transferInternalFunding(
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/treasury/internalFunding.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/treasury/internalFunding.test.ts src/game/treasury/internalFunding.ts src/game/treasury/treasury.ts
@@ -717,7 +717,7 @@ git commit -m "feat: add internal funding"
 - Create: `src/game/ma/dueDiligence.ts`
 - Test: `src/game/ma/valuation.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -732,7 +732,7 @@ describe('hotel valuation', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/ma/valuation.test.ts
@@ -740,7 +740,7 @@ npm run test:run -- src/game/ma/valuation.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/ma/valuation.ts`:
 
@@ -757,14 +757,14 @@ export function valueHotel(input: HotelValuationInput) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/ma/valuation.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/ma/dueDiligence.ts src/game/ma/valuation.test.ts src/game/ma/valuation.ts
@@ -780,7 +780,7 @@ git commit -m "feat: add acquisition valuation"
 - Test: `src/game/ma/acquisition.test.ts`
 - Modify: `src/game/simulation/GameSimulation.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -795,7 +795,7 @@ describe('acquisition transaction', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/ma/acquisition.test.ts
@@ -803,7 +803,7 @@ npm run test:run -- src/game/ma/acquisition.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/ma/acquisition.ts`:
 
@@ -816,14 +816,14 @@ export function executeAcquisition(state: AcquisitionState, deal: { hotelId: str
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/ma/acquisition.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/ma/acquisition.test.ts src/game/ma/acquisition.ts src/game/simulation/GameSimulation.ts
@@ -841,7 +841,7 @@ git commit -m "feat: add atomic hotel acquisitions"
 - Create: `src/ui/company/ManagerGovernancePanel.tsx`
 - Test: `src/ui/company/PortfolioDashboard.test.tsx`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { render, screen } from '@testing-library/react';
@@ -858,7 +858,7 @@ describe('PortfolioDashboard', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/ui/company/PortfolioDashboard.test.tsx
@@ -866,7 +866,7 @@ npm run test:run -- src/ui/company/PortfolioDashboard.test.tsx
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/ui/company/PortfolioDashboard.tsx`:
 
@@ -883,14 +883,14 @@ export function PortfolioDashboard(props: {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/ui/company/PortfolioDashboard.test.tsx
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/ui/company/BrandDashboard.tsx src/ui/company/DevelopmentDashboard.tsx src/ui/company/ManagerGovernancePanel.tsx src/ui/company/PortfolioDashboard.test.tsx src/ui/company/PortfolioDashboard.tsx
@@ -916,7 +916,7 @@ contracts, capacity, staffing, maintenance and classification. If an earlier dev
 v5 save can exist, specify and test idempotent load-time normalization for that exact
 shape instead of silently accepting partial v5 state.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -931,7 +931,7 @@ describe('v4 to v5 migration', () => {
 });
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/persistence/migrations/v4-to-v5.test.ts && npm run test:e2e -- e2e/multi-hotel.spec.ts
@@ -939,7 +939,7 @@ npm run test:run -- src/game/persistence/migrations/v4-to-v5.test.ts && npm run 
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/persistence/migrations/v4-to-v5.ts`:
 
@@ -953,14 +953,14 @@ export function migrateV4ToV5(oldSave: { saveVersion:4; hotel:{ id:string } }) {
 }
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/persistence/migrations/v4-to-v5.test.ts && npm run test:e2e -- e2e/multi-hotel.spec.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add e2e/multi-hotel.spec.ts src/game/persistence/migrations/v4-to-v5.test.ts src/game/persistence/migrations/v4-to-v5.ts
@@ -994,18 +994,18 @@ treasury schedules, insurance policies/claims, utility contracts/meters/outages,
 their stable company/hotel references. Assert balance equations and no duplicated
 postings after migration plus reload.
 
-- [ ] Write failing invariant tests for P&L, cash flow, balance sheet, depreciation,
+- [x] Write failing invariant tests for P&L, cash flow, balance sheet, depreciation,
   receivables/payables, tax abstraction, debt schedules, collateral, insolvency and
   restructuring; add deterministic policy/claim/underinsurance tests and metered
   energy, water, outage, waste, sustainability, and supply-contract tests.
-- [ ] Run `npm run test:run -- src/game/finance src/game/risk src/game/utilities` and
+- [x] Run `npm run test:run -- src/game/finance src/game/risk src/game/utilities` and
   confirm the new contracts fail.
-- [ ] Implement integer-minor-unit postings and fixed-point rates. Claims and outages
+- [x] Implement integer-minor-unit postings and fixed-point rates. Claims and outages
   consume isolated RNG streams; sustainability has operational causes, not one score.
   Persist all authoritative schedules and contracts in the v4-to-v5 migration.
-- [ ] Run the focused suites, finance invariants, migration test, multi-hotel E2E, and
+- [x] Run the focused suites, finance invariants, migration test, multi-hotel E2E, and
   `npm run typecheck`.
-- [ ] Commit as `feat: complete finance risk and utilities`.
+- [x] Commit as `feat: complete finance risk and utilities`.
 
 #### Task 16: Complete Sales, Marketing, CRM, Loyalty, and reputation
 
@@ -1026,15 +1026,15 @@ active sales contracts and campaigns, CRM consent/history, loyalty balances/liab
 and every reputation dimension/contributor. Assert stable account/guest IDs, preserved
 ledger liabilities, and no repeated earn/burn or attribution on reload.
 
-- [ ] Write failing causal tests for early/late channel availability, campaign target,
+- [x] Write failing causal tests for early/late channel availability, campaign target,
   duration, budget, attribution uncertainty, negotiated accounts, CRM consent/data,
   loyalty earn/burn/liability, and separate hotel/brand/group/employer/media/channel
   reputations. Reputation dimensions must not collapse into prestige.
-- [ ] Run `npm run test:run -- src/game/commercial src/game/reputation` and confirm fail.
-- [ ] Implement typed commands, domain events, ledger postings, explainable demand and
+- [x] Run `npm run test:run -- src/game/commercial src/game/reputation` and confirm fail.
+- [x] Implement typed commands, domain events, ledger postings, explainable demand and
   access effects, and automation limits. Persist balances and histories in v4-to-v5.
-- [ ] Run focused tests, migration, E2E, `npm run typecheck`, and `npm run lint`.
-- [ ] Commit as `feat: add commercial lifecycle and reputation dimensions`.
+- [x] Run focused tests, migration, E2E, `npm run typecheck`, and `npm run lint`.
+- [x] Commit as `feat: add commercial lifecycle and reputation dimensions`.
 
 #### Task 17: Complete employee and supplier lifecycles
 
@@ -1047,14 +1047,14 @@ contracts, inventory ownership, reorder/lead-time/spoilage state, and central-pu
 delegation. The fixture must contain active employees, an in-flight order, inventory, and
 an active supplier contract rather than only empty defaults.
 
-- [ ] Write failing tests for contracts, overtime, sickness, leave, training,
+- [x] Write failing tests for contracts, overtime, sickness, leave, training,
   promotion, resignation/dismissal, employer reputation, supplier terms, lead time,
   spoilage, reorder rules, stockouts, and central-purchasing trade-offs.
-- [ ] Run the two focused suites and confirm the expected failures.
-- [ ] Implement stable-ID processing and shared hotel/company primitives; manager
+- [x] Run the two focused suites and confirm the expected failures.
+- [x] Implement stable-ID processing and shared hotel/company primitives; manager
   automation obeys budgets and authority limits and never receives hidden inventory.
-- [ ] Run focused/system tests, migration, E2E, and typecheck.
-- [ ] Commit as `feat: complete people and procurement lifecycles`.
+- [x] Run focused/system tests, migration, E2E, and typecheck.
+- [x] Commit as `feat: complete people and procurement lifecycles`.
 
 #### Task 18: Complete guest, complaint, and service-recovery depth
 
@@ -1075,12 +1075,12 @@ concierge, inspection, Lost & Found, and delayed release. Satisfaction and compl
 retain stage-specific contributors, cause, severity, response, authority, recovery cost,
 and outcome; recovery may mitigate but never erase the original failure.
 
-- [ ] Write failing journey tests for party composition, needs, comparison, arrival,
+- [x] Write failing journey tests for party composition, needs, comparison, arrival,
   stay, complaints, authority-bounded recovery, checkout, review, loyalty, and CRM.
-- [ ] Implement all mutations through commands/events and expose causal contributors;
+- [x] Implement all mutations through commands/events and expose causal contributors;
   recovery costs post to the ledger and rejected authority actions are atomic.
-- [ ] Run guest/commercial/finance tests, migration, E2E, and typecheck.
-- [ ] Commit as `feat: complete guest journey and recovery`.
+- [x] Run guest/commercial/finance tests, migration, E2E, and typecheck.
+- [x] Commit as `feat: complete guest journey and recovery`.
 
 #### Task 19: Complete lobby, shops, outdoor areas, and operator models
 
@@ -1101,47 +1101,47 @@ shops, concessions/leases, outdoor areas, and security declare capacity, hours, 
 contract economics, staffing, maintenance, fit, and visible effects. Classification is
 an auditable requirement result, never XP; specialization is a dependency/fit trade-off.
 
-- [ ] Write failing capacity/economic tests for lobby/reception automation, parking and
+- [x] Write failing capacity/economic tests for lobby/reception automation, parking and
   mobility dependencies, shops with self-operation/lease/concession economics, outdoor
   areas, security load, and classification/specialization effects.
-- [ ] Implement via generic facility throughput and shared ownership/contract rules;
+- [x] Implement via generic facility throughput and shared ownership/contract rules;
   all critical actions retain a semantic DOM path.
-- [ ] Run facility/classification/ownership tests, visual E2E assertions, typecheck,
+- [x] Run facility/classification/ownership tests, visual E2E assertions, typecheck,
   lint, and build.
-- [ ] Commit as `feat: close remaining hotel facility depth`.
+- [x] Commit as `feat: close remaining hotel facility depth`.
 
 #### Task 20: Close F&B, wellness, events, laundry, and engineering edge contracts
 
 **Files:** Extend existing Plan 02 systems/tests, facility snapshot, ledger integration,
 `v4-to-v5.ts`, and `e2e/multi-hotel.spec.ts`.
 
-- [ ] Write a failing matrix for concepts/hours, reservations/waitlists, external guests,
+- [x] Write a failing matrix for concepts/hours, reservations/waitlists, external guests,
   recipes/stations, breakfast/board plans, mise-en-place, allergies, menu engineering,
   waste, bar/lounge, and room-service transport/elevator load.
-- [ ] Add failing contracts for wellness resource/specialist/maintenance load and slots;
+- [x] Add failing contracts for wellness resource/specialist/maintenance load and slots;
   event negotiation, deposits, cancellation, blocks, technology, execution peaks, and
   delayed city effect; laundry floor stock/internal-external trade-offs; and engineering
   safety, revenue, and follow-on-damage priorities.
-- [ ] Implement through shared capacity, inventory, staffing, maintenance, demand, and
+- [x] Implement through shared capacity, inventory, staffing, maintenance, demand, and
   ledger primitives while preserving hotel-day/opening-hour boundaries.
-- [ ] Run `npm run test:run -- src/game/fnb src/game/wellness src/game/eventsales src/game/laundry src/game/engineering`, migration, E2E, typecheck, and determinism.
-- [ ] Commit as `feat: complete deep hotel operating contracts`.
+- [x] Run `npm run test:run -- src/game/fnb src/game/wellness src/game/eventsales src/game/laundry src/game/engineering`, migration, E2E, typecheck, and determinism.
+- [x] Commit as `feat: complete deep hotel operating contracts`.
 
 #### Task 21: Complete the operational isometric-world contract
 
 **Files:** Extend `src/render/`, snapshot/protocol, semantic DOM, renderer/navigation
 tests, and `e2e/multi-hotel.spec.ts`.
 
-- [ ] Write failures for pan/zoom and room/person/problem focus; floor selection, cutaway,
+- [x] Write failures for pan/zoom and room/person/problem focus; floor selection, cutaway,
   service highlighting; stable click/touch targets; navigation via doors, corridors,
   stairs, elevators, and closures; elevator capacity/time/queue/failure; real queues; all
   room/facility states; day/night; and zoom LOD.
-- [ ] Keep visible agents as bounded materializations of authoritative aggregates.
+- [x] Keep visible agents as bounded materializations of authoritative aggregates.
   Animation/pathfinding consumes snapshots and never owns economic rules.
-- [ ] Preserve keyboard and semantic-DOM paths for critical selection/action, with
+- [x] Preserve keyboard and semantic-DOM paths for critical selection/action, with
   non-color-only state semantics.
-- [ ] Run render, protocol, facilities, determinism, browser, typecheck, lint, and build.
-- [ ] Commit as `feat: complete operational isometric world`.
+- [x] Run render, protocol, facilities, determinism, browser, typecheck, lint, and build.
+- [x] Commit as `feat: complete operational isometric world`.
 
 ### Completion-delta command matrix
 

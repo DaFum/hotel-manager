@@ -110,6 +110,48 @@ not prove several contracts claimed by Plans 01-03. Plan 03.5 is therefore the a
 remediation gate. Plans 01-03 remain implemented and playable, but are not fully
 conformant until Plan 03.5 passes. Do not start Plan 04 before that gate is green.
 
+### Plan 03.5 progress
+
+Tasks 1-6 and 9 are implemented and committed on
+`claude/conformance-remediation-tasks-26z2bm`. Tasks 7, 8, 10, 11 and 12 are **not
+started**. The executable registry in `src/release/plans0103Conformance.ts` is the
+authority on what is proven: 46 of its 76 acceptance rows read `verified`, and the
+remaining 30 belong to the unfinished tasks. The gate is therefore **not green** and Plan
+04 must not begin.
+
+Gates as of the last commit on that branch: `npm run test:run` passed (63 files, 346
+tests), `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e` (8
+tests) and `npm run benchmark` all passed. `scripts/verify-plans-01-03-long-run.ts` and
+`scripts/replay-plans-01-03.ts` do not exist yet; they belong to tasks 10 and 11.
+
+What the completed tasks changed, and that later work must respect:
+
+- **Commands** are envelopes (`src/game/commands/`) carrying command id, issued game
+  time, actor, payload and an optional expected state version. `CommandHandler` is the
+  single mutation boundary: validate without mutating, execute against a structuredClone
+  draft with its own RNG streams, commit once, move `stateVersion` once. A rejected or
+  half-failed command leaves everything except the bounded command journal untouched.
+- **Domain events** are completed facts with a stable id, monotonic sequence, game time,
+  entity references and the causing command id. The journal lives in game state, so a
+  rolled-back command takes its events with it. All 28 declared transitions are proven to
+  publish; `AWAITING_TRANSITION` is empty and must stay empty.
+- **Protocol version 2.** `STATE_DELTA` carries a real section delta against a
+  publication number; `REQUEST_DETAILS` answers with one entity or a typed
+  `ENTITY_NOT_FOUND`; `SIMULATION_ERROR` is structured; `PERF_SAMPLE` reports measured
+  tick and command latency. `WHOLE_GAME_ENTITY_ID` is how a client resynchronises.
+- **Saves** have manual, autosave and recovery slots with three rotating generations.
+  `validateEnvelope` names what is wrong rather than answering yes or no, and both
+  `REQUEST_SAVE` and `LOAD_GAME` go through it. A refused load leaves the running game
+  untouched.
+- **Bookings** carry channel, party size, segment, category, stay dates, guarantee terms
+  and full status history. Inventory is checked on every date of the stay. Cancellation,
+  no-show and authorised service recovery are all reachable; a refused recovery posts
+  nothing.
+- **Save version is still 3.** The v3-to-v4 migration belongs to task 12 and does not
+  exist yet. `GameSimulation`'s constructor defensively opens the new command and event
+  journals at zero for a save written before they existed; the migration supersedes that
+  when it lands.
+
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
 demand), linen and laundry logistics, wellness and fitness, conference sales and

@@ -34,6 +34,11 @@ import { BrandDashboard } from "../ui/company/BrandDashboard";
 import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
 import { ManagerGovernancePanel } from "../ui/company/ManagerGovernancePanel";
 import { CommercialDashboard } from "../ui/company/CommercialDashboard";
+import { CampaignSetup } from "../ui/story/CampaignSetup";
+import { StoryInbox } from "../ui/story/StoryInbox";
+import { ChronicleView } from "../ui/story/ChronicleView";
+import { MilestoneToast } from "../ui/story/MilestoneToast";
+import { CareerOutcomeModal } from "../ui/story/CareerOutcomeModal";
 import {
   brandAuditRows,
   brandRows,
@@ -255,6 +260,30 @@ export function App() {
           loyaltyMembers={s.commercial.loyalty.members.length}
           marketableGuests={marketableGuestCount(s)}
         />
+        <CampaignSetup difficulty={s.narrative.campaign.difficulty} />
+        <StoryInbox
+          events={s.narrative.activeEvents.map((event) => ({
+            id: event.id,
+            title: event.definitionId,
+            body: `Triggered ${event.triggeredDateKey}`,
+            choices: event.choices.map((choice) => ({
+              id: choice.id,
+              label: choice.labelKey,
+            })),
+          }))}
+        />
+        <MilestoneToast
+          milestone={s.narrative.achievedMilestones.at(-1) ?? null}
+        />
+        <ChronicleView
+          entries={s.narrative.chronicle.map((entry) => ({
+            id: entry.id,
+            date: entry.date,
+            text: entry.textKey,
+            scope: entry.scope,
+          }))}
+        />
+        <CareerOutcomeModal outcome={s.narrative.career} />
         <TechnologyPanel
           technologies={s.world.technologies}
           projects={s.technologyProjects}

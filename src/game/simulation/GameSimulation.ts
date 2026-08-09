@@ -142,6 +142,10 @@ import {
   type RoomRecord,
   type StayRecord,
 } from "./initialState";
+import { createNarrativeState } from "../narrative/narrativeState";
+import { detectMilestones } from "../milestones/milestoneEngine";
+import { appendChronicleEntry } from "../chronicle/chronicle";
+import { assessCareerOutcome } from "../campaign/careerOutcome";
 import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
@@ -352,6 +356,7 @@ export class GameSimulation implements CommandExecutor {
     state.procurement ??= createProcurementState();
     state.guestRelations ??= createGuestRelationsState();
     state.recoveries ??= [];
+    state.narrative ??= createNarrativeState();
     state.commercialSpaces ??= createCommercialSpaceState();
     state.lobby ??= {
       served: 0,
@@ -2814,6 +2819,27 @@ export class GameSimulation implements CommandExecutor {
         operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
         grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
       };
+    const milestoneIds = detectMilestones({
+      annualProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
+      hotelCount: s.company.portfolio.hotelIds.length,
+      year: Number(s.calendar.dateKey.slice(0, 4)),
+      achieved: s.narrative.achievedMilestones,
+    });
+    for (const milestoneId of milestoneIds) {
+      s.narrative.achievedMilestones.push(milestoneId);
+      s.narrative.chronicle = appendChronicleEntry(s.narrative.chronicle, {
+        id: `milestone.${milestoneId}`,
+        date: s.calendar.dateKey,
+        scope: "company",
+        textKey: `milestone.${milestoneId}`,
+      });
+    }
+    s.narrative.career = assessCareerOutcome({
+      cashMinor: s.finance.cashMinor,
+      hotelCount: s.company.portfolio.hotelIds.length,
+      year: Number(s.calendar.dateKey.slice(0, 4)),
+      creditAvailable: s.loan.principalMinor > 0,
+    });
     this.emit(
       {
         type: "MONTH_CLOSED",

@@ -31,14 +31,14 @@ describe("v4 to v5 migration", () => {
     ).toEqual(["hotel.frankfurt.1"]);
   });
 
-  it("brings a real v4 save all the way to a valid v5 save", () => {
+  it("stamps a real v4 save as v5 before the next migration", () => {
     const migrated = migrateV4ToV5(v4());
     expect(migrated).toMatchObject({
       saveVersion: 5,
       contentVersion: "plan-05-v5",
       protocolVersion: 2,
     });
-    expect(validateEnvelope(migrated)).toEqual([]);
+    expect(validateEnvelope(migrateEnvelope(migrated))).toEqual([]);
     const company = (migrated.state as GameState).company;
     expect(company.portfolio.hotelIds).toEqual([
       (v4().state as GameState).hotel.id,
@@ -52,7 +52,7 @@ describe("v4 to v5 migration", () => {
 
   it("stamps only its own target version, never the build's", () => {
     expect(migrateV4ToV5(v4()).saveVersion).toBe(5);
-    expect(SAVE_VERSION).toBe(5);
+    expect(SAVE_VERSION).toBe(6);
   });
 
   it("carries a v1 save through every step to the current version", () => {

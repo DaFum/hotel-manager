@@ -1,5 +1,5 @@
 /**
- * Records the non-empty v5 save fixture from a real game.
+ * Records the non-empty v6 save fixture from a real game.
  *
  * A fixture written by hand only proves that the migration copes with what
  * its author imagined. This one is the state of an actual group — a second
@@ -129,13 +129,13 @@ if (problems.length > 0)
   throw new Error(`the recorded fixture is not valid: ${problems.join("; ")}`);
 
 writeFileSync(
-  new URL("../src/game/persistence/fixtures/save-v5.json", import.meta.url),
+  new URL("../src/game/persistence/fixtures/save-v6.json", import.meta.url),
   `${JSON.stringify(envelope, null, 2)}\n`,
 );
 
 const state = envelope.state as ReturnType<GameSimulation["snapshot"]>;
 process.stdout.write(
-  `recorded v5 fixture: hotels=${state.company.portfolio.hotelIds.length} ` +
+  `recorded v6 fixture: hotels=${state.company.portfolio.hotelIds.length} ` +
     `results=${Object.keys(state.company.hotelResults).length} ` +
     `audits=${state.company.brandAudits.length} ` +
     `escalations=${state.company.escalations.length} ` +

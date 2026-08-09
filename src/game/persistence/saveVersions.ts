@@ -4,7 +4,7 @@
  * from importing each other.
  */
 export const SAVE_VERSION = 4 as const;
-export const CONTENT_VERSION = "plans-01-03-v4" as const;
+export const CONTENT_VERSION = "plan-04-v4" as const;
 /** Save versions this build knows how to bring forward, oldest first. */
 export const MIGRATABLE_SAVE_VERSIONS = [1, 2, 3] as const;
 

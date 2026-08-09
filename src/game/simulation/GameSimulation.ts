@@ -140,6 +140,17 @@ import {
   type ReservationRecord,
   type RoomRecord,
 } from "./initialState";
+import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
+import {
+  adoptionCostMinor,
+  advanceTechnologyProject,
+} from "../technology/adoption";
+import {
+  advanceBookingChannels,
+  availableChannels,
+  netChannelRevenueMinor,
+} from "../distribution/channelEvolution";
+import { createRevenuePolicy } from "../revenue/revenuePolicy";
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -247,6 +258,10 @@ export class GameSimulation implements CommandExecutor {
     state.renderDescriptors ??= createRenderDescriptors(state.hotel.rooms);
     state.savePolicy ??= createSavePolicyMetadata();
     state.linen.floorStock ??= 0;
+    state.world ??= createWorldState();
+    state.revenuePolicy ??= createRevenuePolicy();
+    state.technologyProjects ??= [];
+    state.technologyImplementations ??= [];
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -410,6 +425,33 @@ export class GameSimulation implements CommandExecutor {
           if (s.finance.cashMinor < REPORT_COST_MINOR)
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
+        case "ADOPT_TECHNOLOGY": {
+          const technology = s.world.technologies.find(
+            (candidate) => candidate.id === command.technologyId,
+          );
+          if (!technology) return { ok: false, reason: "unknown technology" };
+          if (technology.adoptionBp < 500)
+            return {
+              ok: false,
+              reason: "technology is not commercially available",
+            };
+          if (
+            s.technologyImplementations.includes(command.technologyId) ||
+            s.technologyProjects.some(
+              (project) => project.technologyId === command.technologyId,
+            )
+          )
+            return {
+              ok: false,
+              reason: "technology already adopted or in progress",
+            };
+          if (
+            s.finance.cashMinor <
+            adoptionCostMinor(2_000_000, technology.adoptionBp)
+          )
+            return { ok: false, reason: "insufficient cash" };
+          return { ok: true };
+        }
         default:
           return { ok: false, reason: "unknown command" };
       }
@@ -679,6 +721,33 @@ export class GameSimulation implements CommandExecutor {
             costMinor: REPORT_COST_MINOR,
           },
           [s.hotel.id],
+        );
+        return;
+      }
+      case "ADOPT_TECHNOLOGY": {
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
+        const technology = s.world.technologies.find(
+          (candidate) => candidate.id === command.technologyId,
+        )!;
+        const costMinor = adoptionCostMinor(2_000_000, technology.adoptionBp);
+        this.spend(costMinor, "capex", command.technologyId);
+        const projectId = `technology-project.${command.technologyId}`;
+        s.technologyProjects.push({
+          id: projectId,
+          technologyId: command.technologyId,
+          status: "planned",
+          remainingMonths: 6,
+          costMinor,
+        });
+        this.emit(
+          {
+            type: "TECHNOLOGY_ADOPTION_STARTED",
+            projectId,
+            technologyId: command.technologyId,
+            costMinor,
+          },
+          [projectId, command.technologyId],
         );
         return;
       }
@@ -1464,8 +1533,15 @@ export class GameSimulation implements CommandExecutor {
     }
 
     for (const stay of s.stays) {
-      this.earn(stay.rateMinor, "roomRevenue", stay.roomId);
-      s.finance.month.roomRevenueMinor += stay.rateMinor;
+      const booking = s.reservations.find(
+        (candidate) => candidate.id === stay.bookingId,
+      );
+      const recognized = netChannelRevenueMinor(
+        stay.rateMinor,
+        booking?.commissionBp ?? 0,
+      );
+      this.earn(recognized, "roomRevenue", stay.roomId);
+      s.finance.month.roomRevenueMinor += recognized;
       s.finance.month.soldRoomNights += 1;
       // The city closes on the same occupied nights as the hotel ledger. An
       // accepted booking is not a sale until the guest actually stays.
@@ -1529,7 +1605,27 @@ export class GameSimulation implements CommandExecutor {
       // Walk-ins draw on the same inventory as anyone else; they simply have
       // no lead time in which to have held it.
       if (leadDays === 0 && !canWalkIn(this.sameDayInventory())) continue;
-      const channel: BookingChannel = leadDays === 0 ? "walkIn" : "directPhone";
+      const channels = availableChannels({
+        technologyAdoptionBp: Object.fromEntries(
+          s.world.technologies.map((technology) => [
+            technology.id,
+            technology.adoptionBp,
+          ]),
+        ),
+        hotelImplementations: new Set(s.technologyImplementations),
+        standardNetworkBp:
+          s.world.technologies.find(
+            (technology) => technology.id === "internet",
+          )?.adoptionBp ?? 0,
+      });
+      const advanceChannels = advanceBookingChannels(channels);
+      const channelDefinition =
+        leadDays === 0
+          ? channels.find((candidate) => candidate.id === "walkIn")!
+          : advanceChannels[
+              this.streams.guests.nextUint32() % advanceChannels.length
+            ];
+      const channel = channelDefinition.id as BookingChannel;
       const bookingId = `booking.${s.elapsedMinutes}.${i}`;
       try {
         const reservation: ReservationRecord = reserve(
@@ -1559,6 +1655,11 @@ export class GameSimulation implements CommandExecutor {
               lateChargeBp: LATE_CHARGE_BP,
             },
             atMinutes: s.elapsedMinutes,
+            bookingDateKey: s.calendar.dateKey,
+            ratePlanId: "flexible",
+            commissionBp: channelDefinition.commissionBp,
+            depositMinor: 0,
+            specialRequirements: [],
           },
         );
         s.reservations.push(reservation);
@@ -1730,6 +1831,26 @@ export class GameSimulation implements CommandExecutor {
         economy: this.streams.economy,
         ai: this.streams.AI,
       },
+    );
+    s.world = new WorldSimulation(this.streams).stepMonth(s.world);
+    s.technologyProjects = s.technologyProjects.map(advanceTechnologyProject);
+    for (const project of s.technologyProjects)
+      if (
+        project.status === "complete" &&
+        !s.technologyImplementations.includes(project.technologyId)
+      ) {
+        s.technologyImplementations.push(project.technologyId);
+        this.emit(
+          {
+            type: "TECHNOLOGY_ADOPTION_COMPLETED",
+            projectId: project.id,
+            technologyId: project.technologyId,
+          },
+          [project.id, project.technologyId],
+        );
+      }
+    s.technologyProjects = s.technologyProjects.filter(
+      (project) => project.status !== "complete",
     );
 
     this.emit(

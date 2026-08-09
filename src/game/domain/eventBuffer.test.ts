@@ -153,6 +153,11 @@ function busyReceptionScenario(): DomainEvent[] {
     // Guaranteed, so every one of them turns up and the queue is real.
     terms: { guaranteed: true, freeCancellationDays: 1, lateChargeBp: 10000 },
     history: [{ status: "confirmed" as const, atMinutes: 0 }],
+    bookingDateKey: state.calendar.dateKey,
+    ratePlanId: "flexible",
+    commissionBp: 0,
+    depositMinor: 0,
+    specialRequirements: [],
   }));
   const s = new GameSimulation(state);
   s.refreshDerivedState();
@@ -171,6 +176,18 @@ function routeChangeScenario(): DomainEvent[] {
   const s = new GameSimulation(state);
   s.refreshDerivedState();
   return runDays(s, DAYS_TO_FIRST_CITY_MONTH);
+}
+
+function technologyAdoptionScenario(): DomainEvent[] {
+  const s = sim(13);
+  expect(
+    submit(s, { type: "ADOPT_TECHNOLOGY", technologyId: "personal-computer" })
+      .status,
+  ).toBe("accepted");
+  const collected = s.takeDomainEvents();
+  s.state.technologyProjects[0].remainingMonths = 1;
+  collected.push(...runDays(s, DAYS_TO_FIRST_CITY_MONTH));
+  return collected;
 }
 
 describe("domain event buffer", () => {
@@ -287,6 +304,7 @@ describe("domain event buffer", () => {
     record(wornPlantScenario());
     record(distressedRivalScenario());
     record(routeChangeScenario());
+    record(technologyAdoptionScenario());
 
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);

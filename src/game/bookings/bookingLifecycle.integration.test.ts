@@ -29,6 +29,11 @@ function reservation(
     nights: 2,
     terms: { guaranteed: true, freeCancellationDays: 1, lateChargeBp: 10000 },
     history: [{ status: "confirmed", atMinutes: 0 }],
+    bookingDateKey: "1990-12-20",
+    ratePlanId: "flexible",
+    commissionBp: 0,
+    depositMinor: 0,
+    specialRequirements: [],
     ...overrides,
   };
 }

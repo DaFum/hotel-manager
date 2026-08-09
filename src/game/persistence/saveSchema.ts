@@ -74,6 +74,26 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("cash is not whole Pfennig");
   if (state.finance && !Array.isArray(state.finance.ledger))
     problems.push("the state has no ledger");
+  if (
+    !state.world ||
+    !Array.isArray(state.world.technologies) ||
+    !state.world.macro ||
+    !Array.isArray(state.world.trends) ||
+    !Array.isArray(state.world.activeShocks) ||
+    !state.world.weather ||
+    !state.world.commonCurrency
+  )
+    problems.push("the state has no complete Plan 04 world");
+  if (
+    !state.revenuePolicy ||
+    !Array.isArray(state.revenuePolicy.ratePlans) ||
+    !Array.isArray(state.revenuePolicy.rules)
+  )
+    problems.push("the state has no revenue policy");
+  if (!Array.isArray(state.technologyProjects))
+    problems.push("the state has no technology projects");
+  if (!Array.isArray(state.technologyImplementations))
+    problems.push("the state has no technology implementations");
 
   // Every stay must point at a room that exists, or the hotel restores with
   // guests in rooms it does not have.
@@ -118,6 +138,8 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     3: migrateV3ToV4,
   };
   let current = envelope;
+  if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
+    current = migrateV3ToV4(current);
   while (
     (MIGRATABLE_SAVE_VERSIONS as readonly number[]).includes(
       current.saveVersion,

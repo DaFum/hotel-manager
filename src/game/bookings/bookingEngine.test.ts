@@ -58,6 +58,11 @@ const booking = (overrides: Partial<Booking> = {}): Booking => ({
   nights: 2,
   terms: TERMS,
   history: [{ status: "confirmed", atMinutes: 0 }],
+  bookingDateKey: "1991-03-01",
+  ratePlanId: "flexible",
+  commissionBp: 0,
+  depositMinor: 0,
+  specialRequirements: [],
   ...overrides,
 });
 
@@ -191,5 +196,17 @@ describe("booking engine", () => {
   it("allows walk in only with clean same day inventory", () => {
     expect(canWalkIn({ cleanRooms: 1, confirmedArrivals: 1 })).toBe(false);
     expect(canWalkIn({ cleanRooms: 2, confirmedArrivals: 1 })).toBe(true);
+  });
+
+  it("defaults invalid commercial numeric metadata before persistence", () => {
+    expect(
+      reserve(flat(2), request({ commissionBp: -1, depositMinor: -1 })),
+    ).toMatchObject({ commissionBp: 0, depositMinor: 0 });
+    expect(
+      reserve(
+        flat(2),
+        request({ commissionBp: 10_001, depositMinor: Number.NaN }),
+      ),
+    ).toMatchObject({ commissionBp: 0, depositMinor: 0 });
   });
 });

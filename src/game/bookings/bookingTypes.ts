@@ -1,7 +1,14 @@
 import type { RoomCategory } from "../revenue/rates";
 
 export type BookingChannel =
-  "directPhone" | "travelAgency" | "corporate" | "walkIn";
+  | "directPhone"
+  | "travelAgency"
+  | "corporate"
+  | "walkIn"
+  | "directWeb"
+  | "ota"
+  | "group"
+  | "allotment";
 
 export type BookingStatus =
   "confirmed" | "cancelled" | "noShow" | "checkedIn" | "completed";
@@ -51,6 +58,11 @@ export interface Booking {
   terms: GuaranteeTerms;
   /** Every status this booking has held, oldest first. */
   history: BookingStatusChange[];
+  bookingDateKey: string;
+  ratePlanId: string;
+  commissionBp: number;
+  depositMinor: number;
+  specialRequirements: string[];
 }
 
 export interface ReservationRequest {
@@ -67,6 +79,11 @@ export interface ReservationRequest {
   terms: GuaranteeTerms;
   /** Game time the reservation was taken, for the first history entry. */
   atMinutes: number;
+  bookingDateKey?: string;
+  ratePlanId?: string;
+  commissionBp?: number;
+  depositMinor?: number;
+  specialRequirements?: readonly string[];
 }
 
 /** Rooms free in one category, asked date by date. */

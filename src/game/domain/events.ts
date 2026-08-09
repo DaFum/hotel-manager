@@ -88,7 +88,18 @@ export type DomainEventPayload =
   // --- how the house is judged -------------------------------------------
   | { type: "CLASSIFICATION_CHANGED"; from: number; to: number }
   | { type: "SPECIALIZATION_SET"; specializationId: string | null }
-  | { type: "FACILITY_EXPANDED"; area: string; addedSqm: number };
+  | { type: "FACILITY_EXPANDED"; area: string; addedSqm: number }
+  | {
+      type: "TECHNOLOGY_ADOPTION_STARTED";
+      projectId: string;
+      technologyId: string;
+      costMinor: number;
+    }
+  | {
+      type: "TECHNOLOGY_ADOPTION_COMPLETED";
+      projectId: string;
+      technologyId: string;
+    };
 
 export type DomainEventType = DomainEventPayload["type"];
 
@@ -130,6 +141,8 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   CLASSIFICATION_CHANGED: true,
   SPECIALIZATION_SET: true,
   FACILITY_EXPANDED: true,
+  TECHNOLOGY_ADOPTION_STARTED: true,
+  TECHNOLOGY_ADOPTION_COMPLETED: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -161,6 +174,8 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "CLASSIFICATION_CHANGED",
   "SPECIALIZATION_SET",
   "FACILITY_EXPANDED",
+  "TECHNOLOGY_ADOPTION_STARTED",
+  "TECHNOLOGY_ADOPTION_COMPLETED",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

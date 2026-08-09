@@ -1,6 +1,6 @@
 # 04 Technology & Alternative History Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make post-1991 technology, trends, macroeconomics, regulation, crises and currencies evolve systemically.
 
@@ -69,13 +69,13 @@ e2e/alternative-history.spec.ts
 - Create: `src/game/technology/graph.ts`
 - Test: `src/game/technology/graph.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {canEmerge} from './graph';it('blocks online booking without payment prerequisite',()=>{expect(canEmerge(['internet','payment'],new Set(['internet']))).toBe(false);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/technology/graph.test.ts
@@ -83,7 +83,7 @@ npm run test:run -- src/game/technology/graph.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/technology/graph.ts`:
 
@@ -91,14 +91,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function canEmerge(requires:string[],available:Set<string>){return requires.every(x=>available.has(x));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/technology/graph.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/technology/graph.test.ts src/game/technology/graph.ts
@@ -113,13 +113,13 @@ git commit -m "feat: add tech prerequisites"
 - Create: `src/game/technology/lifecycle.ts`
 - Test: `src/game/technology/lifecycle.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {nextAdoptionBp} from './lifecycle';it('keeps adoption within 0..10000',()=>{expect(nextAdoptionBp(9900,15000)).toBeLessThanOrEqual(10000);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/technology/lifecycle.test.ts
@@ -127,7 +127,7 @@ npm run test:run -- src/game/technology/lifecycle.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/technology/lifecycle.ts`:
 
@@ -135,14 +135,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function nextAdoptionBp(current:number,push:number){return Math.max(0,Math.min(10000,current+Math.round((10000-current)*.03+push/100)));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/technology/lifecycle.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/technology/lifecycle.test.ts src/game/technology/lifecycle.ts
@@ -157,13 +157,13 @@ git commit -m "feat: add tech lifecycle"
 - Create: `src/game/technology/standards.ts`
 - Test: `src/game/technology/standards.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {networkValueBp} from './standards';it('rises with hotel and guest participation',()=>{expect(networkValueBp(7000,6000)).toBeGreaterThan(networkValueBp(2000,2000));});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/technology/standards.test.ts
@@ -171,7 +171,7 @@ npm run test:run -- src/game/technology/standards.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/technology/standards.ts`:
 
@@ -179,14 +179,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function networkValueBp(hotelBp:number,guestBp:number){return Math.round(Math.sqrt(hotelBp*guestBp));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/technology/standards.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/technology/standards.test.ts src/game/technology/standards.ts
@@ -202,13 +202,13 @@ git commit -m "feat: add technology standards"
 - Modify: `src/game/renovation/projects.ts`
 - Test: `src/game/technology/adoption.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {adoptionCostMinor} from './adoption';it('makes mature tech cheaper',()=>{expect(adoptionCostMinor(10000000,8000)).toBeLessThan(adoptionCostMinor(10000000,1000));});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/technology/adoption.test.ts
@@ -216,7 +216,7 @@ npm run test:run -- src/game/technology/adoption.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/technology/adoption.ts`:
 
@@ -224,14 +224,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function adoptionCostMinor(base:number,marketBp:number){return Math.max(1,Math.round(base*(1.35-marketBp/20000)));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/technology/adoption.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/renovation/projects.ts src/game/technology/adoption.test.ts src/game/technology/adoption.ts
@@ -246,13 +246,13 @@ git commit -m "feat: add tech adoption cost"
 - Create: `src/game/world/trends.ts`
 - Test: `src/game/world/trends.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {segmentDemandBp} from './trends';it('applies segment affinity to trend adoption',()=>{expect(segmentDemandBp(7000,12000)).toBeGreaterThan(7000);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/world/trends.test.ts
@@ -260,7 +260,7 @@ npm run test:run -- src/game/world/trends.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/world/trends.ts`:
 
@@ -268,14 +268,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function segmentDemandBp(globalBp:number,affinityBp:number){return Math.min(15000,Math.round(globalBp*affinityBp/10000));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/world/trends.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/world/trends.test.ts src/game/world/trends.ts
@@ -290,13 +290,13 @@ git commit -m "feat: add societal trends"
 - Create: `src/game/world/macro.ts`
 - Test: `src/game/world/macro.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {nextBounded} from './macro';it('caps monthly moves',()=>{expect(nextBounded(500,900,50)).toBe(550);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/world/macro.test.ts
@@ -304,7 +304,7 @@ npm run test:run -- src/game/world/macro.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/world/macro.ts`:
 
@@ -312,14 +312,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function nextBounded(current:number,target:number,maxMove:number){const d=target-current;return current+Math.sign(d)*Math.min(Math.abs(d),maxMove);}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/world/macro.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/world/macro.test.ts src/game/world/macro.ts
@@ -335,13 +335,13 @@ git commit -m "feat: add macroeconomy"
 - Create: `src/game/world/shocks.ts`
 - Test: `src/game/world/crises.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {crisisRiskBp} from './crises';it('raises risk from leverage overcapacity and refinance stress',()=>{expect(crisisRiskBp(8000,7000,8000)).toBeGreaterThan(6000);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/world/crises.test.ts
@@ -349,7 +349,7 @@ npm run test:run -- src/game/world/crises.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/world/crises.ts`:
 
@@ -357,14 +357,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function crisisRiskBp(leverage:number,overcapacity:number,refi:number){return Math.min(10000,Math.round(leverage*.4+overcapacity*.25+refi*.35));}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/world/crises.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/world/crises.test.ts src/game/world/crises.ts src/game/world/shocks.ts
@@ -394,7 +394,7 @@ git commit -m "feat: add systemic crises"
 - Rule changes arise from world state, never hard-coded post-1991 dates. The player gets
   an explainable gap and remediation path; one opaque `compliant` flag is insufficient.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 import {expect,it} from 'vitest';import {complianceStatus} from './compliance';it('flags a hotel below a legal requirement',()=>{expect(complianceStatus(60,75)).toBe('noncompliant');});
@@ -405,7 +405,7 @@ weather draws do not advance any non-weather RNG stream, and weather effects pro
 through demand, transport reliability, utilities, outdoor facilities, incidents, and
 insurance in stable phase/ID order.
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climate.test.ts src/game/world/climate.integration.test.ts
@@ -413,7 +413,7 @@ npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climat
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 Implement jurisdiction-scoped regulation definitions and per-hotel compliance cases.
 Evaluation returns requirement, measured state, gap, effective/grace dates, inspection
@@ -421,14 +421,14 @@ risk, remediation options, cost, and consequences. Integrate weather/climate thr
 own RNG stream into demand, transport, utilities, facilities, incidents, and insurance.
 The one-value comparison used by the first unit test is only a leaf rule, not the system.
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climate.test.ts src/game/world/climate.integration.test.ts src/game/world/WorldSimulation.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/regulation/compliance.test.ts src/game/regulation/compliance.ts src/game/world/climate.integration.test.ts src/game/world/climate.test.ts src/game/world/climate.ts src/game/world/WorldSimulation.test.ts
@@ -444,13 +444,13 @@ git commit -m "feat: add climate and compliance"
 - Create: `src/game/currency/paths.ts`
 - Test: `src/game/currency/exchange.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {convertMinor} from './exchange';it('converts integer minor units with fixed-point basis',()=>{expect(convertMinor(10000,19550)).toBe(19550);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/currency/exchange.test.ts
@@ -458,7 +458,7 @@ npm run test:run -- src/game/currency/exchange.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/currency/exchange.ts`:
 
@@ -466,14 +466,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function convertMinor(amount:number,rateBasis:number){if(!Number.isInteger(amount)||!Number.isInteger(rateBasis))throw new Error('integer inputs required');return Math.round(amount*rateBasis/10000);}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/currency/exchange.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/currency/exchange.test.ts src/game/currency/exchange.ts src/game/currency/paths.ts
@@ -489,13 +489,13 @@ git commit -m "feat: add world currencies"
 - Modify: `src/ui/ManagementShell.tsx`
 - Test: `src/ui/era/eraCapabilities.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {eraCapabilities} from './eraCapabilities';it('hides mobile check-in at low smartphone adoption',()=>{expect(eraCapabilities(1000).mobileCheckIn).toBe(false);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/ui/era/eraCapabilities.test.ts
@@ -503,7 +503,7 @@ npm run test:run -- src/ui/era/eraCapabilities.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/ui/era/eraCapabilities.ts`:
 
@@ -511,14 +511,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function eraCapabilities(smartphoneBp:number){return{mobileCheckIn:smartphoneBp>=3500,smartphoneVisuals:smartphoneBp>=2000};}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/ui/era/eraCapabilities.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/ui/ManagementShell.tsx src/ui/era/eraCapabilities.test.ts src/ui/era/eraCapabilities.ts
@@ -534,13 +534,13 @@ git commit -m "feat: derive era ui from adoption"
 - Modify: `src/game/simulation/GameSimulation.ts`
 - Test: `src/game/world/WorldSimulation.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {worldStepOrder} from './WorldSimulation';it('keeps stable yearly update order',()=>{expect(worldStepOrder).toEqual(['macro','regulation','technology','trends','actors','crises','currency']);});
 ```
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/world/WorldSimulation.test.ts
@@ -548,7 +548,7 @@ npm run test:run -- src/game/world/WorldSimulation.test.ts
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/world/WorldSimulation.ts`:
 
@@ -556,14 +556,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export const worldStepOrder=['macro','regulation','technology','trends','actors','crises','currency'] as const;export class WorldSimulation{stepYear(){return[...worldStepOrder];}}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/world/WorldSimulation.test.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/game/simulation/GameSimulation.ts src/game/world/WorldSimulation.test.ts src/game/world/WorldSimulation.ts
@@ -591,7 +591,7 @@ v4 round-trip fixture; do not rely on `undefined` or load-time guesses. If a v4 
 an earlier development build can already exist, add versioned load-time normalization
 and a fixture for that exact v4 shape before accepting it as current.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 import {expect,it} from 'vitest';import {runWorldYears} from '../test/worldScenario';it('keeps bounded macro and technology values for 50 years',()=>{const r=runWorldYears(50,9001);expect(r.maxInflationBp).toBeLessThan(5000);expect(r.maxTechnologyBp).toBeLessThanOrEqual(10000);});
@@ -601,7 +601,7 @@ Add migration failures using `save-v3-active-reservations.json`: assert every ac
 reservation is normalized to the frozen v4 schema, revenue policies are explicit, stable
 IDs and original economics are preserved, and migrate-save-reload is idempotent.
 
-- [ ] **Step 2: Run the targeted test and verify the expected failure**
+- [x] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
 npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migrations/v3-to-v4.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
@@ -609,7 +609,7 @@ npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migratio
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
 
-- [ ] **Step 3: Implement the smallest production-shaped change**
+- [x] **Step 3: Implement the smallest production-shaped change**
 
 `src/game/persistence/migrations/v3-to-v4.ts`:
 
@@ -617,14 +617,14 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 export function migrateV3ToV4(s:Record<string,unknown>){return{...s,saveVersion:4,world:(s.world as object|undefined)??{},currencies:(s.currencies as object|undefined)??{}};}
 ```
 
-- [ ] **Step 4: Run targeted tests plus typecheck**
+- [x] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
 npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migrations/v3-to-v4.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add e2e/alternative-history.spec.ts src/game/persistence/fixtures/save-v3-active-reservations.json src/game/persistence/fixtures/save-v4.json src/game/persistence/migrations/v3-to-v4.test.ts src/game/persistence/migrations/v3-to-v4.ts src/game/world/longRun.test.ts
@@ -662,23 +662,23 @@ git commit -m "feat: integrate alternative history"
   a perfect-information optimizer. Displacement routes accommodation, transport,
   compensation, complaints, reputation, channel, and loyalty through normal systems.
 
-- [ ] **Step 1: Write failing tests** for travel agencies, corporate contracts, group
+- [x] **Step 1: Write failing tests** for travel agencies, corporate contracts, group
   blocks, allotments, adoption-gated OTA availability, commission, shared channel
   inventory, rate plans/restrictions, forecast causes, automatic revenue rules,
   overbooking, and deterministic displaced-guest compensation. Assert that channel
   availability follows technology state rather than the calendar year.
-- [ ] **Step 2: Run the expected failures:**
+- [x] **Step 2: Run the expected failures:**
 
 ```bash
 npm run test:run -- src/game/distribution/channelEvolution.test.ts src/game/revenue/revenuePolicy.test.ts
 ```
 
-- [ ] **Step 3: Implement through typed commands and the existing booking/demand
+- [x] **Step 3: Implement through typed commands and the existing booking/demand
   phases.** Reuse one inventory and pricing model for player and competitor hotels;
   emit causes for conversion, commission, rejection, displacement, and recovery. Add
   persisted policies and full active-reservation normalization to the complete v3-to-v4
   migration without consuming another save version.
-- [ ] **Step 4: Verify the focused systems, determinism, E2E, and types:**
+- [x] **Step 4: Verify the focused systems, determinism, E2E, and types:**
 
 ```bash
 npm run test:run -- src/game/distribution src/game/revenue src/game/simulation
@@ -687,7 +687,7 @@ npm run test:e2e -- e2e/alternative-history.spec.ts
 npm run typecheck
 ```
 
-- [ ] **Step 5: Commit:**
+- [x] **Step 5: Commit:**
 
 ```bash
 git add src/game/distribution src/game/revenue src/game/simulation/GameSimulation.ts src/game/persistence/fixtures/save-v3-active-reservations.json src/game/persistence/fixtures/save-v4.json src/game/persistence/migrations/v3-to-v4.test.ts src/game/persistence/migrations/v3-to-v4.ts e2e/alternative-history.spec.ts

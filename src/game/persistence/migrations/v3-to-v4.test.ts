@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import v2 from "../fixtures/save-v2.json";
 import { migrateV2ToV3 } from "./v2-to-v3";
 import { migrateV3ToV4 } from "./v3-to-v4";
+import { migrateV4ToV5 } from "./v4-to-v5";
 import { validateEnvelope } from "../saveSchema";
 import type { SaveEnvelope } from "../saveVersions";
 import frozenV4 from "../fixtures/save-v4.json";
@@ -31,7 +32,9 @@ describe("v3 to v4 migration", () => {
     expect(state.eventJournal).toBeTruthy();
     expect(state.utilities).toBeTruthy();
     expect(state.renderDescriptors).toBeTruthy();
-    expect(validateEnvelope(migrated)).toEqual([]);
+    // v4 is no longer the current schema; a v4 save is valid once the chain
+    // has carried it the rest of the way.
+    expect(validateEnvelope(migrateV4ToV5(migrated))).toEqual([]);
   });
 });
 
@@ -53,7 +56,9 @@ it("normalizes active reservations and the complete Plan 04 world schema idempot
   expect(state.world).toBeTruthy();
   expect(state.revenuePolicy).toBeTruthy();
   expect(migrateV3ToV4(migrated)).toEqual(migrated);
-  expect(validateEnvelope(frozenV4 as unknown as SaveEnvelope)).toEqual([]);
+  expect(
+    validateEnvelope(migrateV4ToV5(frozenV4 as unknown as SaveEnvelope)),
+  ).toEqual([]);
 });
 
 it.each([
@@ -75,7 +80,7 @@ it.each([
 it("rejects a current save with incomplete Plan 04 state", () => {
   const fixture = structuredClone(frozenV4) as unknown as SaveEnvelope;
   (fixture.state as Record<string, unknown>).world = {};
-  expect(validateEnvelope(fixture)).toContain(
+  expect(validateEnvelope(migrateV4ToV5(fixture))).toContain(
     "the state has no complete Plan 04 world",
   );
 });

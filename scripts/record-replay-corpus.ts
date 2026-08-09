@@ -13,11 +13,6 @@ import { replayCorpus, type ReplayCorpus } from "../src/game/debug/replay";
 import { stateHash } from "../src/game/debug/stateHash";
 import { GameSimulation } from "../src/game/simulation/GameSimulation";
 import { createInitialGameState } from "../src/game/simulation/initialState";
-import {
-  CONTENT_VERSION,
-  SAVE_VERSION,
-} from "../src/game/persistence/saveVersions";
-import { PROTOCOL_VERSION } from "../src/game/domain/protocol";
 
 const corpus = corpusJson as unknown as ReplayCorpus;
 
@@ -50,9 +45,9 @@ for (let index = 0; index < corpus.commands.length; index++) {
 
 const rerecorded: ReplayCorpus = {
   ...corpus,
-  saveVersion: SAVE_VERSION,
-  contentVersion: CONTENT_VERSION,
-  protocolVersion: PROTOCOL_VERSION,
+  // The declared versions stay as recorded: they describe the build that
+  // first took this corpus, and the replay runs from an initial state rather
+  // than from a stored save.
   orderedEvents,
   monthlyCheckpoints,
   finalStateHash: stateHash(simulation.snapshot()),

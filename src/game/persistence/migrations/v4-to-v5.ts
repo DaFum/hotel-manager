@@ -1,0 +1,235 @@
+import type { SaveEnvelope } from "../saveVersions";
+import { createCompanyState } from "../../company/companyState";
+import { createManagedHotel } from "../../company/managedHotels";
+import { createLegalEntity } from "../../company/legalEntities";
+import { createOperatingContract } from "../../ownership/models";
+import { createManagerAuthority } from "../../management/managerAuthority";
+import { compareIds } from "../../domain/ids";
+
+/**
+ * v4 saves are of a single hotel with no company above it. The migration
+ * wraps that hotel — id unchanged — in a player portfolio and supplies every
+ * section the corporate layer depends on. Later tasks in this plan extend the
+ * same step with the sections they add; there is no intermediate version.
+ *
+ * Nothing already in the save is reinterpreted: an old field keeps its old
+ * meaning, and everything new is created at its documented default or, where
+ * the save already carries the information, derived from it explicitly.
+ */
+export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
+  const state = structuredClone((save.state ?? {}) as Record<string, unknown>);
+  const hotel = (state.hotel ?? {}) as { id?: string; name?: string };
+  const hotelId =
+    typeof hotel.id === "string" && hotel.id ? hotel.id : "hotel.frankfurt.1";
+
+  return {
+    ...save,
+    saveVersion: 5,
+    // This migration's target is historical schema data, not a moving build
+    // constant: stamping the current version would silently retarget it.
+    contentVersion: "plan-05-v5",
+    protocolVersion: 2,
+    state: {
+      ...state,
+      company: migratedCompany(state.company, hotelId),
+    },
+  };
+}
+
+/**
+ * Brings an existing company section forward, or creates one. A development
+ * v5 save can already carry a partial company, so every field is normalised
+ * rather than accepted: loading twice must produce the same state as loading
+ * once, whatever shape the earlier build wrote.
+ */
+function migratedCompany(raw: unknown, hotelId: string): unknown {
+  const created = createCompanyState();
+  const existing =
+    raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+
+  const portfolio = normalisedPortfolio(existing.portfolio, hotelId, created);
+  const legalEntities = Array.isArray(existing.legalEntities)
+    ? existing.legalEntities.map((entity) =>
+        createLegalEntity(entity as ReturnType<typeof createLegalEntity>),
+      )
+    : created.legalEntities;
+
+  const managedHotels = Array.isArray(existing.managedHotels)
+    ? existing.managedHotels
+        .map((hotel) =>
+          createManagedHotel(hotel as ReturnType<typeof createManagedHotel>),
+        )
+        // A managed house that is not in the portfolio would break the
+        // invariant, so the portfolio is the authority on membership.
+        .filter((hotel) => portfolio.hotelIds.includes(hotel.hotelId))
+    : created.managedHotels;
+
+  const operatingModels: Record<string, unknown> = {};
+  for (const id of portfolio.hotelIds) {
+    const declared = (existing.operatingModels as Record<string, unknown>)?.[
+      id
+    ];
+    operatingModels[id] = declared
+      ? createOperatingContract(
+          declared as Parameters<typeof createOperatingContract>[0],
+        )
+      : { kind: "owned" };
+  }
+
+  const treasury = normalisedTreasury(
+    existing.treasury,
+    portfolio.hotelIds,
+    created,
+  );
+
+  return {
+    ...created,
+    ...existing,
+    companyId:
+      typeof existing.companyId === "string"
+        ? existing.companyId
+        : created.companyId,
+    name: typeof existing.name === "string" ? existing.name : created.name,
+    portfolio,
+    legalEntities,
+    operatingModels,
+    brands: Array.isArray(existing.brands) ? existing.brands : created.brands,
+    brandAssignments: Array.isArray(existing.brandAssignments)
+      ? existing.brandAssignments.filter((assignment) =>
+          portfolio.hotelIds.includes(
+            (assignment as { hotelId: string }).hotelId,
+          ),
+        )
+      : [],
+    brandAudits: Array.isArray(existing.brandAudits)
+      ? existing.brandAudits
+      : [],
+    managedHotels,
+    developments: Array.isArray(existing.developments)
+      ? existing.developments
+      : [],
+    budgets: Array.isArray(existing.budgets) ? existing.budgets : [],
+    managers: normalisedManagers(
+      existing.managers,
+      portfolio.hotelIds,
+      created,
+    ),
+    escalations: Array.isArray(existing.escalations)
+      ? existing.escalations
+      : [],
+    treasury,
+    acquisitionTargets: Array.isArray(existing.acquisitionTargets)
+      ? existing.acquisitionTargets
+      : created.acquisitionTargets,
+    dueDiligence:
+      existing.dueDiligence && typeof existing.dueDiligence === "object"
+        ? existing.dueDiligence
+        : {},
+    headquarters:
+      existing.headquarters && typeof existing.headquarters === "object"
+        ? { ...created.headquarters, ...(existing.headquarters as object) }
+        : created.headquarters,
+    hotelResults:
+      existing.hotelResults && typeof existing.hotelResults === "object"
+        ? existing.hotelResults
+        : {},
+    sequence: Number.isSafeInteger(existing.sequence)
+      ? (existing.sequence as number)
+      : 0,
+  };
+}
+
+function normalisedPortfolio(
+  raw: unknown,
+  hotelId: string,
+  created: ReturnType<typeof createCompanyState>,
+): ReturnType<typeof createCompanyState>["portfolio"] {
+  const existing =
+    raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const declaredIds = Array.isArray(existing.hotelIds)
+    ? (existing.hotelIds as string[]).filter(
+        (id) => typeof id === "string" && id,
+      )
+    : [];
+  // The save's own hotel is always a member; that is the whole point of the
+  // migration, and it keeps its id.
+  const hotelIds = [...new Set([hotelId, ...declaredIds])].sort(compareIds);
+  const declaredEntity = (existing.hotelLegalEntity ?? {}) as Record<
+    string,
+    string
+  >;
+  const declaredRegion = (existing.hotelRegion ?? {}) as Record<string, string>;
+  const hotelLegalEntity: Record<string, string> = {};
+  const hotelRegion: Record<string, string> = {};
+  for (const id of hotelIds) {
+    hotelLegalEntity[id] =
+      declaredEntity[id] ??
+      created.portfolio.hotelLegalEntity[hotelId] ??
+      "entity.de.1";
+    const region = declaredRegion[id] ?? created.portfolio.hotelRegion[hotelId];
+    if (region) hotelRegion[id] = region;
+  }
+  return {
+    companyId:
+      typeof existing.companyId === "string"
+        ? existing.companyId
+        : created.portfolio.companyId,
+    hotelIds,
+    hotelLegalEntity,
+    hotelRegion,
+  };
+}
+
+function normalisedManagers(
+  raw: unknown,
+  hotelIds: readonly string[],
+  created: ReturnType<typeof createCompanyState>,
+): ReturnType<typeof createCompanyState>["managers"] {
+  const declared = Array.isArray(raw)
+    ? (raw as ReturnType<typeof createCompanyState>["managers"])
+    : [];
+  const managers = declared
+    .filter((manager) => manager && hotelIds.includes(manager.hotelId))
+    .map((manager) => ({
+      ...manager,
+      authority: createManagerAuthority(manager.authority ?? {}),
+    }));
+  // Every house in the portfolio has somebody accountable for it.
+  for (const hotelId of hotelIds)
+    if (!managers.some((manager) => manager.hotelId === hotelId))
+      managers.push(
+        created.managers.find((m) => m.hotelId === hotelId) ?? {
+          id: `manager.${hotelId}`,
+          name: `Manager, ${hotelId}`,
+          hotelId,
+          competence: 55,
+          authority: createManagerAuthority(),
+        },
+      );
+  return managers.sort((a, b) => compareIds(a.id, b.id));
+}
+
+function normalisedTreasury(
+  raw: unknown,
+  hotelIds: readonly string[],
+  created: ReturnType<typeof createCompanyState>,
+): ReturnType<typeof createCompanyState>["treasury"] {
+  const existing =
+    raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
+  const declared = (existing.hotelCashMinor ?? {}) as Record<string, number>;
+  const hotelCashMinor: Record<string, number> = {};
+  for (const id of hotelIds)
+    hotelCashMinor[id] = Number.isSafeInteger(declared[id]) ? declared[id] : 0;
+  return {
+    // Headquarters' balance is restated from group cash on the first quantum
+    // after the load, so an old or missing figure cannot survive as a lie.
+    hqMinor: Number.isSafeInteger(existing.hqMinor)
+      ? (existing.hqMinor as number)
+      : created.treasury.hqMinor,
+    hotelCashMinor,
+    reportingCurrency:
+      typeof existing.reportingCurrency === "string"
+        ? existing.reportingCurrency
+        : created.treasury.reportingCurrency,
+  };
+}

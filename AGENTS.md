@@ -94,10 +94,15 @@ When executing a plan:
 
 ### Current repository state
 
-Plan 01 (1991 single-hotel vertical slice, rev 1.1) and Plan 02 (hotel depth and
-specialization, Tasks 1-13) are implemented and their verification gates are green.
-Plan 03 is the next plan; do not start it before re-running the Plan 02 gate in a fresh
-session.
+Plan 01 (1991 single-hotel vertical slice, rev 1.1), Plan 02 (hotel depth and
+specialization) and Plan 03 (city market and competitors) are implemented. Plan 03's
+gate is **verified**. Fresh verification on 2026-08-09 produced these exact results:
+
+- `npm run test:run` — passed (54 files, 274 tests).
+- `npm run typecheck` — passed.
+- `npm run lint` — passed.
+- `npm run build` — passed.
+- `npm run test:e2e` — passed (8 tests).
 
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
@@ -105,6 +110,15 @@ demand), linen and laundry logistics, wellness and fitness, conference sales and
 execution load, engineering capacity with preventive maintenance, staff areas, mobility
 and security, classification and specialization, the facility board in the snapshot,
 Pixi and DOM, and the v1-to-v2 save migration.
+
+Plan 03 added: source-based city demand, the labour market and its wage floor on hiring,
+lagged property prices and build costs, transport connectivity and route changes, the
+external actors that generate travel, saturating and delayed hotel-to-city feedback,
+forecast bands with paid information quality, competitor strategies with bounded market
+knowledge, shared pricing/investment/lifecycle economics for rivals, entry, exit and
+remembered rivalries, the city and competitor dashboards, and the v2-to-v3 save
+migration. The city runs one month at a time inside the demand phase; each day's room
+nights are split across every house, the player included, by one shared allocation.
 
 Layout as built:
 
@@ -115,15 +129,18 @@ src/game/content/1991/  Frankfurt, starter hotel, guest segments, suppliers
 src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb,
                         maintenance, finance, building, explanations, facilities,
                         laundry, wellness, eventsales, engineering, classification,
-                        renovation
+                        renovation, city, labor, property, transport, actors,
+                        competitors, marketResearch
 src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
-src/game/persistence/migrations/  versioned save migrations (v1 -> v2)
+src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3);
+                        each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository
 src/render/      isoProjection, PixiHotelScene
 src/ui/          TopBar, HotelView, dashboards, AlertsPanel, MonthlyCloseModal
 src/ui/facilities/, src/render/facilities/  facility board and Pixi load strip
-e2e/, scripts/   Playwright slice and hotel-depth specs, deterministic benchmark
+src/ui/market/   city dashboard and competitor table
+e2e/, scripts/   Playwright slice, hotel-depth and city-market specs, benchmark
 ```
 
 Available scripts:
@@ -137,8 +154,8 @@ npm run test:e2e     # Playwright against the built preview server
 npm run benchmark    # one simulated year through the real simulation
 ```
 
-In this container Playwright uses the preinstalled browser:
-`CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e`.
+In this container, install the Playwright browser and its system dependencies when they
+are absent, then run `npm run test:e2e`.
 
 ---
 

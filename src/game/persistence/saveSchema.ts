@@ -1,4 +1,5 @@
 import { migrateV1ToV2 } from "./migrations/v1-to-v2";
+import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
@@ -53,6 +54,7 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
   // step is a visible gap rather than a silent no-op.
   const steps: Record<number, (e: SaveEnvelope) => SaveEnvelope> = {
     1: migrateV1ToV2,
+    2: migrateV2ToV3,
   };
   let current = envelope;
   while (

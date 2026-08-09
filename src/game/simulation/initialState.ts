@@ -12,6 +12,12 @@ import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
 import { defaultModuleForCategory } from "../content/rooms/modules";
 import { STARTER_PLANT } from "../content/1991/plant";
+import {
+  createCityMarket,
+  createCompetitors,
+  type CityMarketState,
+  type CompetitorRecord,
+} from "../city/cityMarket";
 
 export interface RoomRecord {
   id: string;
@@ -127,6 +133,10 @@ export interface GameState {
   /** Conference housekeeping the shift has actually worked off today. */
   eventHousekeepingWorkedMinutes: number;
   classification: Classification;
+  /** The city the hotel trades in: demand, land, labour and information. */
+  cityMarket: CityMarketState;
+  /** The rival houses competing for the same room nights. */
+  competitors: CompetitorRecord[];
   specializationId: string | null;
   /** Floor area actually built for a profile; only investment moves it. */
   investedArea: { conferenceSqm: number; wellnessSqm: number };
@@ -222,6 +232,8 @@ export function createInitialGameState(seed: number): GameState {
     eventHousekeepingMinutes: 0,
     eventHousekeepingWorkedMinutes: 0,
     classification: { stars: 0, blockedBy: [] },
+    cityMarket: createCityMarket(CITY.startDateKey),
+    competitors: createCompetitors(),
     specializationId: null,
     investedArea: {
       conferenceSqm: STARTER_HOTEL.conferenceSqm,

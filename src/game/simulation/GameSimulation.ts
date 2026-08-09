@@ -8,8 +8,24 @@ import {
   getRate,
   isRoomCategory,
   setRate,
+  ROOM_CATEGORIES,
   type RoomCategory,
 } from "../revenue/rates";
+import {
+  advanceCityMonth,
+  allocateCityDay,
+  recordPlayerRoomNights,
+  type PlayerHouse,
+} from "../city/cityMarket";
+import { totalRoomNights } from "../city/demand";
+import {
+  forecastBand,
+  MAX_INFORMATION_QUALITY,
+  qualityAfterReport,
+  REPORT_COST_MINOR,
+} from "../marketResearch/forecast";
+import { marketWageMinor } from "../labor/market";
+import { BASE_MONTHLY_WAGE_MINOR } from "../content/1991/cityMarket";
 import {
   adrMinor,
   occupancyBasisPoints,
@@ -128,7 +144,8 @@ export type GameCommand =
     }
   | { type: "START_RENOVATION" }
   | { type: "SET_SPECIALIZATION"; specializationId: string | null }
-  | { type: "EXPAND_FACILITY"; area: ExpandableArea };
+  | { type: "EXPAND_FACILITY"; area: ExpandableArea }
+  | { type: "BUY_MARKET_RESEARCH" };
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
@@ -232,6 +249,9 @@ export class GameSimulation {
             {
               shift: command.shift,
               monthlyWageMinor: command.monthlyWageMinor,
+              // The city's labour market sets the floor; a tight market has
+              // to be paid for, not wished away.
+              marketWageMinor: this.marketWageMinor(),
             },
           );
           return { ok: true };
@@ -256,6 +276,15 @@ export class GameSimulation {
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         }
+        case "BUY_MARKET_RESEARCH":
+          if (s.cityMarket.informationQuality >= MAX_INFORMATION_QUALITY)
+            return {
+              ok: false,
+              reason: "market information is already complete",
+            };
+          if (s.finance.cashMinor < REPORT_COST_MINOR)
+            return { ok: false, reason: "insufficient cash" };
+          return { ok: true };
         default:
           return { ok: false, reason: "unknown command" };
       }
@@ -392,6 +421,7 @@ export class GameSimulation {
           {
             shift: command.shift,
             monthlyWageMinor: command.monthlyWageMinor,
+            marketWageMinor: this.marketWageMinor(),
           },
         );
         s.staff.push({
@@ -435,6 +465,19 @@ export class GameSimulation {
           ...s.investedArea,
           [command.area]: s.investedArea[command.area] + EXPANSION_SQM,
         };
+        return;
+      }
+      case "BUY_MARKET_RESEARCH": {
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
+        this.spend(REPORT_COST_MINOR, "marketResearch", "city market report");
+        s.cityMarket.informationQuality = qualityAfterReport(
+          s.cityMarket.informationQuality,
+        );
+        s.cityMarket.forecast = forecastBand(
+          totalRoomNights(s.cityMarket.demand),
+          s.cityMarket.informationQuality,
+        );
         return;
       }
     }
@@ -958,6 +1001,9 @@ export class GameSimulation {
       this.earn(stay.rateMinor, "roomRevenue", stay.roomId);
       s.finance.month.roomRevenueMinor += stay.rateMinor;
       s.finance.month.soldRoomNights += 1;
+      // The city closes on the same occupied nights as the hotel ledger. An
+      // accepted booking is not a sale until the guest actually stays.
+      recordPlayerRoomNights(s.cityMarket, 1);
     }
 
     // Charge exactly one monthly wage per calendar month, whatever its length.
@@ -984,10 +1030,22 @@ export class GameSimulation {
     const s = this.state;
     if (s.calendar.minuteOfDay !== DEMAND_MINUTE) return;
     this.generateEventLeads();
+    // The city settles its month before the new one's first day trades.
+    const endedMonthKey = addDays(s.calendar.dateKey, -1);
+    const endedMonthWasClosed =
+      s.lastMonthlyClose?.periodKey === endedMonthKey.slice(0, 7);
+    if (s.calendar.dateKey.slice(8) === "01" && endedMonthWasClosed)
+      this.runCityMonth();
+    const cityAllocation = this.runCityDay();
+    const shareIndex = cityAllocation.playerShareIndex;
 
     const season = seasonalityBp(s.calendar.dateKey);
-    const parties = Math.round(
-      ((4 + (this.streams.guests.nextUint32() % 5)) * season) / 10000,
+    const parties = Math.max(
+      0,
+      Math.round(
+        ((4 + (this.streams.guests.nextUint32() % 5)) * season * shareIndex) /
+          10000,
+      ),
     );
     for (let i = 0; i < parties; i++) {
       const segment = pickSegment(this.streams.guests.nextUint32() % 10000);
@@ -1066,6 +1124,80 @@ export class GameSimulation {
         m.availableRoomNights,
       ),
     };
+  }
+
+  // --- city market -------------------------------------------------------
+
+  /**
+   * The player's house as the city market weighs it: its size, the rate it is
+   * actually asking, and how appealing its product is against an ordinary
+   * house. It is the same shape a rival has, because the market must not be
+   * able to tell them apart.
+   */
+  private playerHouse(): PlayerHouse {
+    const s = this.state;
+    const rates = ROOM_CATEGORIES.filter((category) =>
+      s.hotel.rooms.some((r) => r.category === category),
+    ).map((category) =>
+      getRate(
+        s.rates,
+        s.calendar.dateKey,
+        category,
+        STARTER_HOTEL.defaultRateMinor[category] ??
+          STARTER_HOTEL.defaultRateMinor.double,
+      ),
+    );
+    return {
+      id: s.hotel.id,
+      rooms: s.hotel.rooms.length,
+      rateMinor: rates.length
+        ? Math.round(rates.reduce((n, r) => n + r, 0) / rates.length)
+        : STARTER_HOTEL.defaultRateMinor.double,
+      // A rated house is a more attractive one; the rating is already the
+      // game's own summary of the product, so it is not re-derived here.
+      appealBp: 9000 + s.classification.stars * 400,
+      conferenceSeats: Math.floor(
+        s.investedArea.conferenceSqm / STARTER_HOTEL.conferenceSqmPerSeat,
+      ),
+    };
+  }
+
+  /** What one post costs in this city this month, in whole Pfennig. */
+  private marketWageMinor(): number {
+    return marketWageMinor(
+      BASE_MONTHLY_WAGE_MINOR,
+      this.state.cityMarket.wagePressureBp,
+    );
+  }
+
+  /** Settles the ended month for the whole city and its rivals. */
+  private runCityMonth(): void {
+    const s = this.state;
+    s.competitors = advanceCityMonth(
+      s.cityMarket,
+      s.competitors,
+      this.playerHouse(),
+      {
+        endedMonthKey: addDays(s.calendar.dateKey, -1),
+        dateKey: s.calendar.dateKey,
+        economy: this.streams.economy,
+        ai: this.streams.AI,
+      },
+    );
+  }
+
+  /**
+   * Splits today's city room nights across every house and returns what
+   * competition did to this hotel's own share of them.
+   */
+  private runCityDay(): ReturnType<typeof allocateCityDay> {
+    const s = this.state;
+    return allocateCityDay(
+      s.cityMarket,
+      s.competitors,
+      this.playerHouse(),
+      s.calendar.dateKey,
+    );
   }
 
   // --- helpers -----------------------------------------------------------

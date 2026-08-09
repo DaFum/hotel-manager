@@ -89,6 +89,21 @@ describe("simulation order", () => {
 });
 
 describe("simulated operations", () => {
+  it("does not settle a city month on the campaign's opening day", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    const before = sim.snapshot();
+    runQuanta(sim, 600 / QUANTUM_MINUTES);
+    const after = sim.snapshot();
+    expect(after.competitors.map((c) => c.cashMinor)).toEqual(
+      before.competitors.map((c) => c.cashMinor),
+    );
+    expect(after.competitors.map((c) => c.monthsSinceBuild)).toEqual(
+      before.competitors.map((c) => c.monthsSinceBuild),
+    );
+    expect(after.rngState.economy).toBe(before.rngState.economy);
+    expect(after.rngState.AI).toBe(before.rngState.AI);
+  });
+
   it("books, checks in, and earns room revenue within the first week", () => {
     const sim = new GameSimulation(createInitialGameState(424242));
     runQuanta(sim, QUANTA_PER_DAY * 7);
@@ -97,6 +112,19 @@ describe("simulated operations", () => {
     expect(s.stays.length).toBeGreaterThan(0);
     expect(s.finance.month.roomRevenueMinor).toBeGreaterThan(0);
     expect(s.metrics.adrMinor).toBeGreaterThan(0);
+  });
+
+  it("credits the city with the same player stay-nights as the hotel ledger", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 10);
+    const s = sim.snapshot();
+    const rivalRoomNights = s.competitors.reduce(
+      (sum, competitor) => sum + competitor.soldRoomNights,
+      0,
+    );
+    expect(s.cityMarket.soldRoomNights - rivalRoomNights).toBe(
+      s.finance.month.soldRoomNights,
+    );
   });
 
   it("produces a monthly close report once the month rolls over", () => {
@@ -154,6 +182,21 @@ describe("simulated operations", () => {
         rateMinor: 9500,
       }),
     ).toEqual({ ok: true });
+  });
+
+  it("buys market research through the command boundary", () => {
+    const sim = new GameSimulation(createInitialGameState(42));
+    const before = sim.snapshot();
+    sim.queueCommand({ type: "BUY_MARKET_RESEARCH" });
+    sim.applyPendingCommands();
+    const after = sim.snapshot();
+    expect(after.finance.cashMinor).toBeLessThan(before.finance.cashMinor);
+    expect(after.cityMarket.informationQuality).toBeGreaterThan(0);
+    expect(
+      after.cityMarket.forecast.high - after.cityMarket.forecast.low,
+    ).toBeLessThan(
+      before.cityMarket.forecast.high - before.cityMarket.forecast.low,
+    );
   });
 
   it("applies a paused command without advancing the calendar", () => {

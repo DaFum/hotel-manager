@@ -15,6 +15,8 @@ export function StaffDashboard(props: {
   staff: readonly StaffMember[];
   /** The roles the hotel can roster; the deep facilities need their own. */
   roles: readonly StaffRole[];
+  /** What the city's labour market is paying for one post this month. */
+  marketWageMinor: number;
   onHire: (role: StaffRole) => void;
 }) {
   const [role, setRole] = useState<StaffRole>(props.roles[0] ?? "housekeeping");
@@ -58,6 +60,10 @@ export function StaffDashboard(props: {
           ))}
         </select>
       </label>
+      <p aria-label="Market wage">
+        The city is paying {formatDm(props.marketWageMinor)} a month for this
+        post. An offer below it is refused.
+      </p>
       <button type="button" onClick={() => props.onHire(role)}>
         Hire applicant
       </button>

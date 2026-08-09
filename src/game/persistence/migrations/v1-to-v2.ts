@@ -1,8 +1,4 @@
-import {
-  CONTENT_VERSION,
-  SAVE_VERSION,
-  type SaveEnvelope,
-} from "../saveVersions";
+import { type SaveEnvelope } from "../saveVersions";
 import { STARTER_HOTEL } from "../../content/1991/starterHotel";
 import {
   STARTER_PLANT,
@@ -83,8 +79,10 @@ export function migrateV1ToV2(s: SaveEnvelope): SaveEnvelope {
 
   return {
     ...s,
-    saveVersion: SAVE_VERSION,
-    contentVersion: CONTENT_VERSION,
+    // Each step stamps its own target version and nothing further. Stamping
+    // the build's current version here would make the chain skip every later
+    // step and hand the game a state two versions short.
+    saveVersion: 2,
     state: {
       ...state,
       hotel: { ...hotel, rooms },

@@ -810,7 +810,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "resolves player and rival economics through the same primitives",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "city.rival.information",
@@ -823,7 +823,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/city/plan03Conformance.test.ts",
       assertion: "reads only strategy, own state and lagged public observation",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "city.rival.identity",
@@ -837,7 +837,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "persists rival identity, memory, debt and lifecycle across a save",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "city.entry.hurdle",
@@ -851,7 +851,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "requires real capital and a cleared hurdle before a rival enters",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "city.exit.freesSupply",
@@ -864,7 +864,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/city/plan03Conformance.test.ts",
       assertion: "frees supply on exit and never hides money for a rival",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "city.feedback.bounded",
@@ -877,7 +877,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/city/plan03Conformance.test.ts",
       assertion: "keeps city feedback saturating, delayed and finitely bounded",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 10: the decade gate -------------------------------------------

@@ -24,6 +24,19 @@ import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
+import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
+import { BrandDashboard } from "../ui/company/BrandDashboard";
+import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
+import { ManagerGovernancePanel } from "../ui/company/ManagerGovernancePanel";
+import {
+  brandAuditRows,
+  brandRows,
+  developmentRows,
+  escalationRows,
+  managerRows,
+  portfolioRows,
+} from "../ui/company/companyViewModel";
+import type { OpeningChecklistItem } from "../game/development/preOpening";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -46,6 +59,8 @@ export function App() {
   // by January's "Continue".
   const [dismissedClose, setDismissedClose] = useState<string | null>(null);
   const [openAlert, setOpenAlert] = useState<string | null>(null);
+  /** Which house the group is currently looking at; the flagship by default. */
+  const [openHotel, setOpenHotel] = useState<string | null>(null);
   const s = game.snapshot;
 
   if (!s)
@@ -142,6 +157,46 @@ export function App() {
           rows={s.competitors}
           playerRateMinor={singleRateMinor}
           playerOccupancyBp={s.metrics.occupancyBasisPoints}
+        />
+        <PortfolioDashboard
+          hotels={portfolioRows(s)}
+          onOpenHotel={setOpenHotel}
+        />
+        <p aria-label="Selected hotel">Viewing: {openHotel ?? s.hotel.id}</p>
+        <BrandDashboard
+          brands={brandRows(s)}
+          audits={brandAuditRows(s)}
+          hotels={portfolioRows(s).map((h) => ({ id: h.id, name: h.name }))}
+          onAssignBrand={(hotelId, brandId) =>
+            game.send({ type: "ASSIGN_BRAND", hotelId, brandId })
+          }
+        />
+        <DevelopmentDashboard
+          developments={developmentRows(s)}
+          onCompleteTask={(developmentId, item) =>
+            game.send({
+              type: "COMPLETE_PRE_OPENING_TASK",
+              developmentId,
+              item: item as OpeningChecklistItem,
+            })
+          }
+          onOpen={(developmentId) =>
+            game.send({ type: "OPEN_DEVELOPMENT", developmentId })
+          }
+        />
+        <ManagerGovernancePanel
+          managers={managerRows(s)}
+          escalations={escalationRows(s)}
+          onSetRepairLimit={(hotelId, repairLimitMinor) =>
+            game.send({
+              type: "SET_MANAGER_AUTHORITY",
+              hotelId,
+              authority: { repairLimitMinor },
+            })
+          }
+          onResolve={(escalationId, approve) =>
+            game.send({ type: "RESOLVE_ESCALATION", escalationId, approve })
+          }
         />
         <TechnologyPanel
           technologies={s.world.technologies}

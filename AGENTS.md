@@ -112,9 +112,7 @@ conformant until Plan 03.5 passes. Do not start Plan 04 before that gate is gree
 
 ### Plan 03.5 progress
 
-Tasks 1-6 and 9 are implemented and committed on
-`claude/conformance-remediation-tasks-26z2bm`. Tasks 7, 8, 10, 11 and 12 are **not
-started**. The executable registry in `src/release/plans0103Conformance.ts` is the
+Tasks 1-6 and 9 are implemented. Tasks 7, 8, 10, 11 and 12 are **not started**. The executable registry in `src/release/plans0103Conformance.ts` is the
 authority on what is proven: 46 of its 76 acceptance rows read `verified`, and the
 remaining 30 belong to the unfinished tasks. The gate is therefore **not green** and Plan
 04 must not begin.

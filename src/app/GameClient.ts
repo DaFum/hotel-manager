@@ -58,6 +58,8 @@ export class GameClient {
   private publication = 0;
   /** After disposal the handle is inert; late worker messages are ignored. */
   private disposed = false;
+  /** True while a whole-game resynchronisation is asked for and unanswered. */
+  private resyncPending = false;
   private requestCounter = 0;
   /** Distinguishes command ids minted by concurrent clients in one session. */
   private readonly sessionId = nextClientId();
@@ -165,7 +167,11 @@ export class GameClient {
       requestId,
       commandId: `cmd.${this.sessionId}.${this.requestCounter}`,
       command,
-      expectedStateVersion: options.expectedStateVersion,
+      // Omitted rather than sent as undefined: declaring no expectation and
+      // expecting version "undefined" are different things to the worker.
+      ...(options.expectedStateVersion === undefined
+        ? {}
+        : { expectedStateVersion: options.expectedStateVersion }),
     });
     return requestId;
   }
@@ -183,7 +189,20 @@ export class GameClient {
     this.detailsListeners = [];
     this.simulationErrorListeners = [];
     this.held = null;
+    this.resyncPending = false;
     this.worker.terminate();
+  }
+
+  /**
+   * Asks to be put back in step, once. The worker keeps publishing deltas
+   * while the snapshot is being prepared, and every one of them would fail
+   * the same way; without this guard the client answers each with another
+   * request, so the burst scales with the publication rate.
+   */
+  private resynchronise(): void {
+    if (this.resyncPending) return;
+    this.resyncPending = true;
+    this.requestDetails(WHOLE_GAME_ENTITY_ID);
   }
 
   private send(message: WorkerRequest): void {
@@ -201,12 +220,13 @@ export class GameClient {
       case "SNAPSHOT":
         this.held = message.snapshot;
         this.publication = message.publication;
+        this.resyncPending = false;
         for (const l of this.snapshotListeners) l(message.snapshot);
         return;
       case "STATE_DELTA": {
         if (!this.held) {
           // Nothing to apply it to; ask to be put back in step.
-          this.requestDetails(WHOLE_GAME_ENTITY_ID);
+          this.resynchronise();
           return;
         }
         try {
@@ -219,7 +239,7 @@ export class GameClient {
           if (!(error instanceof DeltaBaseMismatchError)) throw error;
           // A delta computed against a state this client never held would
           // produce a hotel that never existed. Refuse it and resynchronise.
-          this.requestDetails(WHOLE_GAME_ENTITY_ID);
+          this.resynchronise();
           return;
         }
         this.publication = message.delta.publication;

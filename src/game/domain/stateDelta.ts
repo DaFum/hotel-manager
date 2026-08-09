@@ -36,8 +36,46 @@ export class DeltaBaseMismatchError extends Error {
 type Sections = Record<string, unknown>;
 const sectionsOf = (snapshot: GameSnapshot) => snapshot as unknown as Sections;
 
-const same = (a: unknown, b: unknown) =>
-  a === b || JSON.stringify(a) === JSON.stringify(b);
+/**
+ * Structural equality.
+ *
+ * Serialising both sides would be wrong twice over: `JSON.stringify` drops
+ * properties whose value is `undefined`, so a real change could go
+ * unpublished, and it is order-sensitive, so an unchanged section could be
+ * republished because two keys were inserted in a different order. It is also
+ * the expensive option on a path that runs every publication, over sections
+ * such as the ledger and the command log that grow with the campaign.
+ *
+ * The identity check first is what makes the common case cheap: a section the
+ * quantum never touched is the very same object.
+ */
+function same(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== "object" || typeof b !== "object" || !a || !b)
+    return Number.isNaN(a) && Number.isNaN(b);
+
+  const aArray = Array.isArray(a);
+  if (aArray !== Array.isArray(b)) return false;
+  if (aArray) {
+    const left = a as unknown[];
+    const right = b as unknown[];
+    return (
+      left.length === right.length &&
+      left.every((value, i) => same(value, right[i]))
+    );
+  }
+
+  const left = a as Record<string, unknown>;
+  const right = b as Record<string, unknown>;
+  // Union of keys, so a property present on one side with the value
+  // `undefined` is still compared rather than quietly ignored.
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  for (const key of keys) {
+    if (key in left !== key in right) return false;
+    if (!same(left[key], right[key])) return false;
+  }
+  return true;
+}
 
 export function computeStateDelta(
   base: GameSnapshot,

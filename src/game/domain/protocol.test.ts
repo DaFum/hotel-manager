@@ -139,31 +139,35 @@ describe("worker protocol", () => {
     );
   });
 
-  it("correlates every answered request with the request that asked", () => {
-    const answers: WorkerResponse[] = [
+  it("requires a correlation id on every answered response", () => {
+    // A type-level check, not a check of literals written in this test: if a
+    // response family that answers a request stopped declaring a required
+    // `requestId`, this stops compiling. Whether the producers actually set it
+    // is proven against the running worker in simulation.worker.test.ts.
+    type Answered = Extract<
+      WorkerResponse,
       {
-        protocolVersion: PROTOCOL_VERSION,
-        type: "ENTITY_DETAILS",
-        requestId: "req.2",
-        entityId: "room.101",
-        kind: "room",
-        detail: {},
-      },
-      {
-        protocolVersion: PROTOCOL_VERSION,
-        type: "SAVE_DATA",
-        requestId: "req.3",
-        saveData: null,
-      },
-      {
-        protocolVersion: PROTOCOL_VERSION,
-        type: "COMMAND_ACCEPTED",
-        requestId: "req.4",
-        commandId: "cmd.4",
-        stateVersion: 1,
-      },
-    ];
-    for (const answer of answers)
-      expect(answer).toHaveProperty("requestId", expect.any(String));
+        type:
+          | "ENTITY_DETAILS"
+          | "SAVE_DATA"
+          | "COMMAND_ACCEPTED"
+          | "COMMAND_REJECTED";
+      }
+    >;
+    type HasRequiredRequestId<T> = T extends { requestId: string }
+      ? undefined extends T["requestId"]
+        ? never
+        : T
+      : never;
+    // Assignable only while every answered variant declares a required id.
+    const answered: HasRequiredRequestId<Answered> = {
+      protocolVersion: PROTOCOL_VERSION,
+      type: "ENTITY_DETAILS",
+      requestId: "req.2",
+      entityId: "room.101",
+      kind: "room",
+      detail: {},
+    };
+    expect(answered.requestId).toBe("req.2");
   });
 });

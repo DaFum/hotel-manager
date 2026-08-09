@@ -5,7 +5,8 @@ import {
   type GameState,
   type ReservationRecord,
 } from "../simulation/initialState";
-import { holdsRoomOn, stayDates } from "./bookingEngine";
+import { cancel, holdsRoomOn, markNoShow, stayDates } from "./bookingEngine";
+import { STARTER_HOTEL } from "../content/1991/starterHotel";
 import { balanceMinor } from "../finance/ledger";
 import { QUANTUM_MINUTES } from "../simulation/clock";
 import type { DomainEvent } from "../domain/events";
@@ -103,21 +104,60 @@ describe("booking lifecycle", () => {
     );
   });
 
-  it("releases exactly the held inventory on cancellation and no-show", () => {
+  it("takes every room a party booked, or none of them", () => {
+    const s = houseWith([reservation({ id: "b.party", roomsRequested: 3 })]);
+
+    runDays(s, 1);
+
+    const mine = s.state.stays.filter((x) => x.bookingId === "b.party");
+    // All three rooms, or the party would still be holding two out of sale
+    // for the whole stay without ever being billed for them.
+    expect(mine).toHaveLength(3);
+    expect(new Set(mine.map((x) => x.roomId)).size).toBe(3);
+    for (const stay of mine)
+      expect(s.state.hotel.rooms.find((r) => r.id === stay.roomId)!.state).toBe(
+        "Occupied",
+      );
+  });
+
+  it("keeps a party waiting when the house cannot seat all its rooms", () => {
     const doubles = 12;
+    const s = houseWith(
+      [reservation({ id: "b.toobig", roomsRequested: doubles + 1 })],
+      (state) => {
+        // Nothing else may take a double, so the only reason this party is
+        // not seated is that the house has not got that many.
+        state.rates = {};
+      },
+    );
+
+    runDays(s, 1);
+
+    expect(s.state.stays.some((x) => x.bookingId === "b.toobig")).toBe(false);
+    expect(s.state.reservations.find((b) => b.id === "b.toobig")?.status).toBe(
+      "confirmed",
+    );
+  });
+
+  it("releases exactly the held inventory on cancellation and no-show", () => {
     const s = houseWith([
       reservation({ id: "b.cancel", roomsRequested: 2 }),
       reservation({ id: "b.noshow", roomsRequested: 3 }),
       reservation({ id: "b.stays", roomsRequested: 1 }),
     ]);
+    const doubles = s.state.hotel.rooms.filter(
+      (r) => r.category === "double",
+    ).length;
     expect(doublesFree(s, "1991-01-01")).toBe(doubles - 6);
 
+    // Released through the engine transitions the release path actually uses,
+    // so the guard and the history append are exercised too.
     const cancelled = s.state.reservations.find((b) => b.id === "b.cancel")!;
-    cancelled.status = "cancelled";
+    Object.assign(cancelled, cancel(cancelled, 10));
     expect(doublesFree(s, "1991-01-01")).toBe(doubles - 4);
 
     const noShow = s.state.reservations.find((b) => b.id === "b.noshow")!;
-    noShow.status = "noShow";
+    Object.assign(noShow, markNoShow(noShow, 20));
     // Exactly what each was holding came back: no more, no less.
     expect(doublesFree(s, "1991-01-01")).toBe(doubles - 1);
   });
@@ -207,11 +247,17 @@ describe("booking lifecycle", () => {
     );
     expect(room.length).toBeGreaterThan(0);
     expect(s.state.finance.cashMinor).toBe(
-      40_000_000 + balanceMinor(s.state.finance.ledger),
+      STARTER_HOTEL.startingCashMinor + balanceMinor(s.state.finance.ledger),
     );
     // Leaving turned the room over rather than silently freeing it for sale.
-    const roomId = events.find((e) => e.payload.type === "GUEST_CHECKED_OUT")!
-      .entities[1];
+    // Read from the typed payload, not by position in `entities`.
+    const checkedOut = events.find(
+      (e) => e.payload.type === "GUEST_CHECKED_OUT",
+    )!.payload as Extract<
+      DomainEvent["payload"],
+      { type: "GUEST_CHECKED_OUT" }
+    >;
+    const roomId = checkedOut.roomId;
     const turned = events.find(
       (e) =>
         e.payload.type === "ROOM_STATE_CHANGED" &&

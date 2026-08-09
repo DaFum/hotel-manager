@@ -3,6 +3,7 @@ import { applyBasisPoints, assertNonNegativePfennig } from "../domain/money";
 import type {
   Booking,
   BookingStatus,
+  GuaranteeTerms,
   ReservationRequest,
   SameDayInventory,
   StayInventory,
@@ -41,6 +42,10 @@ export function reserve(
   assertNonNegativePfennig(r.rateMinor, "rate");
   assertNonNegativePfennig(r.willingnessMinor, "willingness to pay");
   if (r.rateMinor > r.willingnessMinor) throw new Error("price rejected");
+  // The terms are persisted and later drive arithmetic in phases that run
+  // outside a command transaction, where a throw would not be rolled back.
+  // They are checked here, at the one boundary that creates a booking.
+  assertTerms(r.terms);
 
   for (const dateKey of stayDates(r.arrivalDateKey, r.nights))
     if (r.roomsRequested > inventory.availableRoomsOn(dateKey))
@@ -60,6 +65,22 @@ export function reserve(
     terms: r.terms,
     history: [{ status: "confirmed", atMinutes: r.atMinutes }],
   };
+}
+
+function assertTerms(terms: GuaranteeTerms): void {
+  if (typeof terms?.guaranteed !== "boolean")
+    throw new Error("a booking must say whether it is guaranteed");
+  if (
+    !Number.isSafeInteger(terms.freeCancellationDays) ||
+    terms.freeCancellationDays < 0
+  )
+    throw new Error("free cancellation days must be whole and non-negative");
+  if (
+    !Number.isSafeInteger(terms.lateChargeBp) ||
+    terms.lateChargeBp < 0 ||
+    terms.lateChargeBp > 10000
+  )
+    throw new Error("the late charge must be basis points of one night");
 }
 
 function transition(

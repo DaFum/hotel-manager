@@ -911,10 +911,23 @@ export class GameSimulation implements CommandExecutor {
         );
         continue;
       }
-      // No clean room of the booked category yet: the party keeps waiting
-      // rather than silently vanishing into a no-show at midnight.
-      const room = assignRoom(s.hotel.rooms, booking.category);
-      if (!room) continue;
+      // A party takes every room it booked, or it keeps waiting. Handing a
+      // three-room booking one room would leave the other two held out of
+      // sale for the whole stay and never billed, so the assignment is all
+      // or nothing.
+      const assigned: RoomRecord[] = [];
+      for (let i = 0; i < booking.roomsRequested; i++) {
+        const free = assignRoom(
+          s.hotel.rooms.filter((r) => !assigned.some((a) => a.id === r.id)),
+          booking.category,
+        );
+        if (!free) break;
+        assigned.push(
+          s.hotel.rooms.find((r) => r.id === free.id) as RoomRecord,
+        );
+      }
+      if (assigned.length < booking.roomsRequested) continue;
+
       // Read the wait before the party leaves the queue: how long check-in
       // took is part of what just happened to this guest.
       const waitedMinutes =
@@ -923,41 +936,43 @@ export class GameSimulation implements CommandExecutor {
       s.receptionQueue = s.receptionQueue.filter(
         (w) => w.bookingId !== bookingId,
       );
-      const target = s.hotel.rooms.find((r) => r.id === room.id) as RoomRecord;
-      const fromState = target.state;
-      target.state = "Occupied";
-      s.elevatorTrips += elevatorTrips({
-        arrivals: 1,
-        departures: 0,
-        serviceRuns: 0,
-      });
       const arrived = checkIn(booking, s.elapsedMinutes);
       booking.status = arrived.status;
       booking.history = arrived.history;
-      this.emit(
-        {
-          type: "GUEST_CHECKED_IN",
+      // The whole party rides up together.
+      s.elevatorTrips += elevatorTrips({
+        arrivals: assigned.length,
+        departures: 0,
+        serviceRuns: 0,
+      });
+      for (const target of assigned) {
+        const fromState = target.state;
+        target.state = "Occupied";
+        this.emit(
+          {
+            type: "GUEST_CHECKED_IN",
+            bookingId: booking.id,
+            roomId: target.id,
+            waitedMinutes,
+          },
+          [booking.id, target.id],
+        );
+        this.emit(
+          {
+            type: "ROOM_STATE_CHANGED",
+            roomId: target.id,
+            from: fromState,
+            to: target.state,
+          },
+          [target.id],
+        );
+        s.stays.push({
           bookingId: booking.id,
           roomId: target.id,
-          waitedMinutes,
-        },
-        [booking.id, target.id],
-      );
-      this.emit(
-        {
-          type: "ROOM_STATE_CHANGED",
-          roomId: target.id,
-          from: fromState,
-          to: target.state,
-        },
-        [target.id],
-      );
-      s.stays.push({
-        bookingId: booking.id,
-        roomId: target.id,
-        rateMinor: booking.rateMinor,
-        departureDateKey: addDays(booking.arrivalDateKey, booking.nights),
-      });
+          rateMinor: booking.rateMinor,
+          departureDateKey: addDays(booking.arrivalDateKey, booking.nights),
+        });
+      }
     }
   }
 

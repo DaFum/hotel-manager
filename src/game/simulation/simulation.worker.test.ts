@@ -95,6 +95,86 @@ describe("simulation worker", () => {
     expect(of(posted, "COMMAND_ACCEPTED")).toHaveLength(0);
   });
 
+  it("refuses a command decided against a stale state version", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    const rate = (
+      commandId: string,
+      requestId: string,
+      expectedStateVersion?: number,
+    ) =>
+      send({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "COMMAND",
+        requestId,
+        commandId,
+        command: {
+          type: "SET_RATE",
+          dateKey: "1991-01-04",
+          category: "double",
+          rateMinor: 17_000,
+        },
+        ...(expectedStateVersion === undefined ? {} : { expectedStateVersion }),
+      });
+
+    // Move the world on, so the version the second command names is behind.
+    rate("cmd.first", "req.first");
+    const applied = of(posted, "COMMAND_ACCEPTED")[0].stateVersion;
+    posted.length = 0;
+
+    rate("cmd.stale", "req.stale", applied - 1);
+
+    const rejected = of(posted, "COMMAND_REJECTED");
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0]).toMatchObject({
+      requestId: "req.stale",
+      commandId: "cmd.stale",
+    });
+    expect(rejected[0].reason).toMatch(/state version/i);
+    expect(of(posted, "COMMAND_ACCEPTED")).toHaveLength(0);
+    // Nothing about the hotel moved, so the version the client holds stands.
+    const delta = of(posted, "STATE_DELTA").at(-1)?.delta;
+    expect(delta?.changed).not.toHaveProperty("stateVersion");
+
+    // The same command against the version that is actually current is taken.
+    posted.length = 0;
+    rate("cmd.fresh", "req.fresh", applied);
+    expect(of(posted, "COMMAND_ACCEPTED")[0].stateVersion).toBe(applied + 1);
+  });
+
+  it("answers both callers when two requests share a command id", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    posted.length = 0;
+    const rate = (requestId: string) =>
+      send({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "COMMAND",
+        requestId,
+        commandId: "cmd.retried",
+        command: {
+          type: "SET_RATE",
+          dateKey: "1991-01-06",
+          category: "double",
+          rateMinor: 16_000,
+        },
+      });
+
+    rate("req.original");
+    rate("req.retry");
+
+    // The original is answered with its acceptance and the retry with the
+    // duplicate rejection; neither caller is left waiting on the other's id.
+    expect(of(posted, "COMMAND_ACCEPTED")[0]).toMatchObject({
+      requestId: "req.original",
+      commandId: "cmd.retried",
+    });
+    const rejected = of(posted, "COMMAND_REJECTED");
+    expect(rejected).toHaveLength(1);
+    expect(rejected[0].requestId).toBe("req.retry");
+    expect(rejected[0].reason).toMatch(/duplicate/i);
+  });
+
   it("publishes the domain events a command caused", async () => {
     const { posted, send } = await bootWorker();
     send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });

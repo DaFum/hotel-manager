@@ -226,6 +226,15 @@ describe("plan 03 city and competitor conformance", () => {
     expect(restored.state.competitors.map((c) => c.id)).toEqual(
       before.map((c) => c.id),
     );
+
+    // Structural equality is not continuity. Both run on from here, and the
+    // restored city has to arrive at the same place as the one that never
+    // stopped — same rivals, same RNG cursors, same everything.
+    playDays(sim, DAYS_FOR_TWO_CITY_MONTHS);
+    playDays(restored, DAYS_FOR_TWO_CITY_MONTHS);
+    expect(restored.state.competitors).toEqual(sim.state.competitors);
+    expect(restored.state.rngState).toEqual(sim.state.rngState);
+    expect(restored.snapshot()).toEqual(sim.snapshot());
   });
 
   it("requires real capital and a cleared hurdle before a rival enters", () => {

@@ -98,13 +98,17 @@ export class CommandHandler {
   }
 
   /**
-   * Records the refusal on the live state. The log is the only thing a
-   * rejection is allowed to move; the state version deliberately does not.
+   * Records the refusal. It goes through `setState` like every other change,
+   * so a consumer that detects change by object identity sees it and the
+   * published snapshot cannot omit it. The state version deliberately does
+   * not move: nothing about the hotel changed, only the journal of what was
+   * asked for.
    */
   private reject(envelope: CommandEnvelope, reason: string): CommandResult {
     const state = this.getState();
-    state.commandSequence += 1;
-    state.commandLog = appendLog(state.commandLog, {
+    const next: GameState = { ...state };
+    next.commandSequence = state.commandSequence + 1;
+    next.commandLog = appendLog(state.commandLog, {
       commandId: envelope.commandId,
       issuedAtMinutes: envelope.issuedAtMinutes,
       actor: envelope.actor,
@@ -113,11 +117,12 @@ export class CommandHandler {
       reason,
       stateVersion: state.stateVersion,
     });
+    this.setState(next);
     return {
       commandId: envelope.commandId,
       status: "rejected",
       reason,
-      stateVersion: state.stateVersion,
+      stateVersion: next.stateVersion,
     };
   }
 }

@@ -24,7 +24,33 @@ export interface SaveStore {
  * a failure part-way through loses at most one generation rather than
  * scrambling the order of the rest.
  */
-export async function rotateRecovery(
+/**
+ * One rotation at a time, per store.
+ *
+ * A rotation is a read-modify-write across several transactions. The store has
+ * no lock of its own, and the caller does not queue: a calendar autosave can
+ * fire while a pre-action save is still rotating. Interleaved, the two can
+ * copy one envelope into two generations or drop one, leaving fewer distinct
+ * generations than RECOVERY_GENERATIONS promises.
+ */
+const rotations = new WeakMap<SaveStore, Promise<void>>();
+
+export function rotateRecovery(
+  store: SaveStore,
+  envelope: SaveEnvelope,
+): Promise<void> {
+  const queued = (rotations.get(store) ?? Promise.resolve())
+    // A failed rotation must not block every rotation after it.
+    .catch(() => undefined)
+    .then(() => rotateNow(store, envelope));
+  rotations.set(
+    store,
+    queued.catch(() => undefined),
+  );
+  return queued;
+}
+
+async function rotateNow(
   store: SaveStore,
   envelope: SaveEnvelope,
 ): Promise<void> {

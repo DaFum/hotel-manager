@@ -1,12 +1,12 @@
 # Plans 01-03 conformance evidence
 
-The authoritative registry is `src/release/plans0103Conformance.ts`, enforced by
-`src/release/plans0103Conformance.test.ts`. This file is a readable projection of it;
-if the two disagree, the registry wins.
+Generated from `src/release/plans0103Conformance.ts` by
+`scripts/generate-conformance-evidence.ts`. Do not edit by hand: the registry test
+regenerates this file and fails if it has drifted.
 
-A row may only read `verified` when the executable file it names exists and contains the
-exact assertion title it claims. The registry test checks that on every run, so a deleted or
-renamed test cannot leave a claim standing.
+A row may only read `verified` when the executable file it names exists and contains
+the exact assertion title it claims. The registry test checks that on every run, so a
+deleted or renamed test cannot leave a claim standing.
 
 ## Task 1
 

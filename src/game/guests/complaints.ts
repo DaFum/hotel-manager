@@ -38,6 +38,12 @@ export interface RecoveryAuthority {
   cashMinor: number;
 }
 
+/** What a ten-percent goodwill discount costs on a given room charge. */
+function discountCostMinor(roomChargeMinor: number): number {
+  assertNonNegativePfennig(roomChargeMinor, "room charge");
+  return applyBasisPoints(roomChargeMinor, DISCOUNT_RECOVERY_BP);
+}
+
 /**
  * Whether this recovery may be made at all.
  *
@@ -54,8 +60,7 @@ export function authorizeRecovery(
   if (authority.frontDeskOnDuty <= 0)
     return { ok: false, reason: "nobody is on the desk to authorise it" };
   if (action === "apologize") return { ok: true, costMinor: 0 };
-  assertNonNegativePfennig(roomChargeMinor, "room charge");
-  const costMinor = applyBasisPoints(roomChargeMinor, DISCOUNT_RECOVERY_BP);
+  const costMinor = discountCostMinor(roomChargeMinor);
   if (authority.cashMinor < costMinor)
     return { ok: false, reason: "the hotel cannot cover the discount" };
   return { ok: true, costMinor };
@@ -68,9 +73,10 @@ export function resolveComplaint(
 ): RecoveryOutcome {
   if (action === "apologize")
     return { expenseMinor: 0, satisfaction: Math.min(100, c.satisfaction + 5) };
-  assertNonNegativePfennig(roomChargeMinor, "room charge");
   return {
-    expenseMinor: applyBasisPoints(roomChargeMinor, DISCOUNT_RECOVERY_BP),
+    // The same rule the authorisation was granted against, so the amount
+    // approved and the amount posted cannot drift apart.
+    expenseMinor: discountCostMinor(roomChargeMinor),
     satisfaction: Math.min(100, c.satisfaction + 15),
   };
 }

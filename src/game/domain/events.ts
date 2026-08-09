@@ -94,39 +94,47 @@ export type DomainEventType = DomainEventPayload["type"];
 
 /**
  * Every transition the simulation must publish. The coverage test drives a
- * real game and requires each of these to actually appear, so adding a name
+ * real game and requires each of these to actually appear, so listing a name
  * here is a commitment, not a declaration of intent.
+ *
+ * One entry per payload variant. A `Record` keyed by the union means adding a
+ * variant without listing it here fails to compile, so the coverage test can
+ * never silently pass over a transition nobody publishes.
  */
-export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
-  "BOOKING_CONFIRMED",
-  "BOOKING_CANCELLED",
-  "BOOKING_NO_SHOW",
-  "GUEST_CHECKED_IN",
-  "GUEST_CHECKED_OUT",
-  "COMPLAINT_RAISED",
-  "SERVICE_RECOVERY_APPLIED",
-  "ROOM_STATE_CHANGED",
-  "FACILITY_CONSTRAINT_CHANGED",
-  "RENOVATION_STARTED",
-  "RENOVATION_COMPLETED",
-  "ASSET_FAILED",
-  "ASSET_REPAIRED",
-  "ASSET_SERVICED",
-  "STAFF_HIRED",
-  "SUPPLY_ORDERED",
-  "SUPPLY_DELIVERED",
-  "MONTH_CLOSED",
-  "CONFERENCE_BOOKED",
-  "CONFERENCE_COMPLETED",
-  "CITY_MONTH_ADVANCED",
-  "MARKET_RESEARCH_PURCHASED",
-  "COMPETITOR_ENTERED",
-  "COMPETITOR_EXITED",
-  "TRANSPORT_ROUTE_CHANGED",
-  "CLASSIFICATION_CHANGED",
-  "SPECIALIZATION_SET",
-  "FACILITY_EXPANDED",
-];
+const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
+  BOOKING_CONFIRMED: true,
+  BOOKING_CANCELLED: true,
+  BOOKING_NO_SHOW: true,
+  GUEST_CHECKED_IN: true,
+  GUEST_CHECKED_OUT: true,
+  COMPLAINT_RAISED: true,
+  SERVICE_RECOVERY_APPLIED: true,
+  ROOM_STATE_CHANGED: true,
+  FACILITY_CONSTRAINT_CHANGED: true,
+  RENOVATION_STARTED: true,
+  RENOVATION_COMPLETED: true,
+  ASSET_FAILED: true,
+  ASSET_REPAIRED: true,
+  ASSET_SERVICED: true,
+  STAFF_HIRED: true,
+  SUPPLY_ORDERED: true,
+  SUPPLY_DELIVERED: true,
+  MONTH_CLOSED: true,
+  CONFERENCE_BOOKED: true,
+  CONFERENCE_COMPLETED: true,
+  CITY_MONTH_ADVANCED: true,
+  MARKET_RESEARCH_PURCHASED: true,
+  COMPETITOR_ENTERED: true,
+  COMPETITOR_EXITED: true,
+  TRANSPORT_ROUTE_CHANGED: true,
+  CLASSIFICATION_CHANGED: true,
+  SPECIALIZATION_SET: true,
+  FACILITY_EXPANDED: true,
+};
+
+export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = Object.keys(
+  EVENT_TYPE_REGISTRY,
+) as DomainEventType[];
 
 /**
  * Payloads that are typed and ready but have no reachable transition yet.

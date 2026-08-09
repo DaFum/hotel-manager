@@ -65,6 +65,24 @@ describe("save recovery", () => {
     expect(store.data.has(recoverySlot(RECOVERY_GENERATIONS))).toBe(false);
   });
 
+  it("keeps the generations distinct when rotations overlap", async () => {
+    const store = memoryStore();
+    // The store awaits nothing between its own reads and writes, and the real
+    // caller does not queue: a calendar autosave can start while a pre-action
+    // save is still rotating.
+    await Promise.all(
+      [5, 10, 15, 20].map((m) => rotateRecovery(store, envelopeAt(m))),
+    );
+
+    const held = Array.from({ length: RECOVERY_GENERATIONS }, (_, g) =>
+      elapsedOf(store.data.get(recoverySlot(g))!),
+    );
+    expect(new Set(held).size).toBe(RECOVERY_GENERATIONS);
+    // Newest first, whatever order the rotations were started in.
+    expect([...held].sort((a, b) => b - a)).toEqual(held);
+    expect(held[0]).toBe(20);
+  });
+
   it("falls back to the newest intact generation when the primary is corrupt", async () => {
     const store = memoryStore();
     const slot = manualSlot("before the refit");

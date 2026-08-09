@@ -9,6 +9,10 @@ import {
   unverifiedRows,
   type ConformanceRow,
 } from "./plans0103Conformance";
+import {
+  EVIDENCE_PATH,
+  renderEvidence,
+} from "../../scripts/generate-conformance-evidence";
 
 const REPO_ROOT = resolve(__dirname, "../..");
 
@@ -100,6 +104,14 @@ describe("plans 01-03 conformance registry", () => {
         row.evidence.assertion,
       );
     }
+  });
+
+  it("keeps the readable evidence file in step with the registry", () => {
+    const path = resolve(REPO_ROOT, EVIDENCE_PATH);
+    expect(existsSync(path), EVIDENCE_PATH).toBe(true);
+    // Regenerated and compared, so the projection cannot drift from the
+    // registry and present a claim, a path or a status that is no longer true.
+    expect(readFileSync(path, "utf8")).toBe(renderEvidence());
   });
 
   it("reports every row that is not yet verified", () => {

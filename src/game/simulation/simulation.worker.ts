@@ -58,8 +58,14 @@ function prepareEnvelope(state: GameState): SaveEnvelope {
 let simulation: GameSimulation | null = null;
 let speed: 0 | 1 | 2 | 4 | 16 = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
-/** Command id to the request that carried it, so replies can be correlated. */
-const correlation = new Map<string, string>();
+/**
+ * Command id to the requests that carried it, oldest first.
+ *
+ * Two requests can share a command id — a retry, say — and both are waiting
+ * for an answer. Keeping only the newest would answer the retry with the
+ * original's verdict and leave the original caller waiting for ever.
+ */
+const correlation = new Map<string, string[]>();
 /** When each in-flight command arrived, for latency reporting only. */
 const arrivedAt = new Map<string, number>();
 /** The last snapshot the UI was given, and which publication it was. */
@@ -134,11 +140,14 @@ function publishDomainEvents() {
 function publishCommandResults() {
   if (!simulation) return;
   for (const result of simulation.takeCommandResults()) {
-    const requestId = correlation.get(result.commandId);
+    const waiting = correlation.get(result.commandId) ?? [];
+    // Each verdict answers the oldest request still waiting on that id, so a
+    // duplicate's rejection reaches the caller that sent the duplicate.
+    const requestId = waiting.shift();
+    if (waiting.length === 0) correlation.delete(result.commandId);
     const arrived = arrivedAt.get(result.commandId);
-    correlation.delete(result.commandId);
-    arrivedAt.delete(result.commandId);
     if (arrived !== undefined) lastCommandLatencyMs = now() - arrived;
+    if (waiting.length === 0) arrivedAt.delete(result.commandId);
     // A verdict the UI never asked for — a standing order, say — has nothing
     // to correlate against and is reported through domain events instead.
     if (requestId === undefined) continue;
@@ -283,8 +292,12 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       }
       // The correlation id is remembered, not stored on the envelope: it is a
       // transport concern and must not become the command's identity.
-      correlation.set(envelope.commandId, m.requestId);
-      arrivedAt.set(envelope.commandId, now());
+      correlation.set(envelope.commandId, [
+        ...(correlation.get(envelope.commandId) ?? []),
+        m.requestId,
+      ]);
+      if (!arrivedAt.has(envelope.commandId))
+        arrivedAt.set(envelope.commandId, now());
       simulation.queueEnvelope(envelope);
       // A paused game applies the command without advancing the calendar; a
       // running one decides it in the next commands phase. Either way the

@@ -63,7 +63,7 @@ describe("GameClient protocol", () => {
     expect(errors).toEqual(["protocol mismatch"]);
   });
 
-  it("sends commands with a stable request id and a separate command id", () => {
+  it("mints a fresh request id and a separate command id", () => {
     const worker = fakeWorker();
     const client = new GameClient(worker);
     expect(client.sendCommand(SET_RATE)).toBe("req.1");
@@ -136,6 +136,7 @@ describe("GameClient protocol", () => {
           protocolVersion: PROTOCOL_VERSION,
           type: "SNAPSHOT",
           snapshot: { cashMinor: 1 },
+          publication: 1,
         },
       } as MessageEvent);
 

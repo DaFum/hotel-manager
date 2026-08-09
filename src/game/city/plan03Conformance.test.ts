@@ -259,13 +259,37 @@ describe("plan 03 city and competitor conformance", () => {
       }),
     ).toBe(false);
 
-    // And an entrant is financed, not conjured: its debt is its strategy's
-    // leverage against what the building actually cost.
-    const capital = buildCostMinor({ rooms: 45, landPriceMinor: 10_000_000 });
-    for (const strategy of ["budget", "luxury"] as const)
-      expect(
-        Math.round((capital * targetLeverageBp(strategy)) / 10000),
-      ).toBeLessThan(capital);
+    // And an entrant is financed, not conjured. Driven through the real
+    // simulation: a house that appears in the city has to carry the debt the
+    // shared build-cost and leverage primitives say it took on.
+    const sim = new GameSimulation(createInitialGameState(11));
+    sim.refreshDerivedState();
+    let entered: CompetitorRecord | null = null;
+    let landPriceAtEntry = sim.state.cityMarket.landPriceMinor;
+    for (let day = 0; day < 120 && !entered; day++) {
+      const before = new Set(sim.state.competitors.map((c) => c.id));
+      for (let q = 0; q < QUANTA_PER_DAY; q++) sim.advanceQuantum();
+      const fresh = sim.state.competitors.find((c) => !before.has(c.id));
+      if (fresh) {
+        entered = fresh;
+        // The city settles land before it decides who wants in, so a builder
+        // pays the price that came out of the month it entered on.
+        landPriceAtEntry = sim.state.cityMarket.landPriceMinor;
+      }
+    }
+    if (!entered) throw new Error("no rival entered the city in 120 days");
+
+    const entrantCapital = buildCostMinor({
+      rooms: entered.rooms,
+      landPriceMinor: landPriceAtEntry,
+    });
+    expect(entered.debtMinor).toBe(
+      Math.round((entrantCapital * targetLeverageBp(entered.strategy)) / 10000),
+    );
+    // Levered, not free money: it owes less than the building cost, and it
+    // owes something.
+    expect(entered.debtMinor).toBeGreaterThan(0);
+    expect(entered.debtMinor).toBeLessThan(entrantCapital);
   });
 
   it("frees supply on exit and never hides money for a rival", () => {

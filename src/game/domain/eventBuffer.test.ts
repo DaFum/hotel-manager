@@ -15,6 +15,7 @@ import { GameSimulation } from "../simulation/GameSimulation";
 import { createInitialGameState } from "../simulation/initialState";
 import { commandEnvelope, type GameCommand } from "../commands/commandEnvelope";
 import { QUANTUM_MINUTES } from "../simulation/clock";
+import type { RoomCategory } from "../revenue/rates";
 import { XorShift32 } from "./rng";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
@@ -146,7 +147,7 @@ function busyReceptionScenario(): DomainEvent[] {
     channel: "walkIn" as const,
     partySize: 2,
     segmentId: "segment.leisure",
-    category: room.category,
+    category: room.category as RoomCategory,
     arrivalDateKey: state.calendar.dateKey,
     nights: 1,
     // Guaranteed, so every one of them turns up and the queue is real.

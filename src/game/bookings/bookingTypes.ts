@@ -1,3 +1,5 @@
+import type { RoomCategory } from "../revenue/rates";
+
 export type BookingChannel =
   "directPhone" | "travelAgency" | "corporate" | "walkIn";
 
@@ -43,7 +45,7 @@ export interface Booking {
   partySize: number;
   segmentId: string;
   /** The rate category the rooms were held against. */
-  category: string;
+  category: RoomCategory;
   arrivalDateKey: string;
   nights: number;
   terms: GuaranteeTerms;
@@ -59,7 +61,7 @@ export interface ReservationRequest {
   channel: BookingChannel;
   partySize: number;
   segmentId: string;
-  category: string;
+  category: RoomCategory;
   arrivalDateKey: string;
   nights: number;
   terms: GuaranteeTerms;

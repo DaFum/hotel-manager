@@ -176,6 +176,18 @@ import {
 } from "../staff/employeeLifecycle";
 import { createProcurementState } from "../purchasing/contracts";
 import {
+  beginStay,
+  createGuestRelationsState,
+  createParty,
+  recordStayEvent,
+  registerParty,
+} from "../guests/partyLifecycle";
+import {
+  applyRecovery,
+  openComplaint,
+  satisfactionAfterRecovery,
+} from "../guests/recoveryAuthority";
+import {
   applyCompanyCommand,
   isCompanyCommand,
   validateCompanyCommand,
@@ -320,6 +332,8 @@ export class GameSimulation implements CommandExecutor {
     state.reputation ??= createReputationState();
     state.workforce ??= createWorkforceState();
     state.procurement ??= createProcurementState();
+    state.guestRelations ??= createGuestRelationsState();
+    state.recoveries ??= [];
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -1108,6 +1122,7 @@ export class GameSimulation implements CommandExecutor {
       const arrived = checkIn(booking, s.elapsedMinutes);
       booking.status = arrived.status;
       booking.history = arrived.history;
+      this.openPartyStay(booking, assigned[0].id, waitedMinutes);
       // The whole party rides up together.
       s.elevatorTrips += elevatorTrips({
         arrivals: assigned.length,
@@ -1576,15 +1591,55 @@ export class GameSimulation implements CommandExecutor {
       "discount10",
       roomChargeMinor,
     );
-    if (outcome.expenseMinor > 0)
+    // The manager's own authority decides whether the gesture may be made at
+    // all. A refused authorisation posts nothing and leaves the record saying
+    // it went up, which is the point of having a limit.
+    const manager = this.state.company.managers.find(
+      (candidate) => candidate.hotelId === s.hotel.id,
+    );
+    const record = applyRecovery(
+      openComplaint({
+        id: complaintId,
+        bookingId,
+        stage: "checkIn",
+        cause: "waited too long at reception",
+        severity: "serious",
+        raisedAtMinutes: s.elapsedMinutes,
+      }),
+      {
+        id: `offer.${complaintId}`,
+        complaintId,
+        remedy: "goodwill discount",
+        costMinor: outcome.expenseMinor,
+      },
+      manager?.authority ?? { repairLimitMinor: 0, recoveryLimitMinor: 0 },
+      manager?.id ?? "unmanaged",
+    );
+    s.recoveries = [...s.recoveries, record].slice(-HANDLED_COMPLAINT_LIMIT);
+    if (record.status !== "accepted") {
+      this.pushAlert({
+        id: `alert.recovery.${complaintId}`,
+        severity: "warning",
+        title: "Recovery escalated",
+        cause: `the manager may not authorise ${outcome.expenseMinor}`,
+      });
+      return;
+    }
+    if (record.postedCostMinor > 0)
       this.spend(
-        outcome.expenseMinor,
+        record.postedCostMinor,
         "serviceRecovery",
         `goodwill discount for ${bookingId}`,
       );
+    const explained = satisfactionAfterRecovery({
+      before: Math.round(s.guestSatisfaction.score),
+      severity: "serious",
+      recoveryCostMinor: record.postedCostMinor,
+      fullRemedyCostMinor: Math.max(1, roomChargeMinor),
+    });
     this.moveSatisfaction(
       outcome.satisfaction - s.guestSatisfaction.score,
-      `recovery for ${bookingId}`,
+      `recovery for ${bookingId}: ${explained.causes.join("; ")}`,
     );
     this.emit(
       {
@@ -1595,6 +1650,51 @@ export class GameSimulation implements CommandExecutor {
       },
       [complaintId, bookingId],
     );
+  }
+
+  /**
+   * Opens the guest-relations record for an arriving party: who they are,
+   * what they need, and what check-in was actually like for them. The record
+   * is what later explains a review, so it starts the moment they arrive.
+   */
+  private openPartyStay(
+    booking: ReservationRecord,
+    roomId: string,
+    waitedMinutes: number,
+  ): void {
+    const s = this.state;
+    const partyId = `party.${booking.id}`;
+    if (!s.guestRelations.parties.some((party) => party.id === partyId))
+      s.guestRelations = registerParty(
+        s.guestRelations,
+        createParty({
+          id: partyId,
+          segmentId: booking.segmentId,
+          adults: Math.max(1, booking.partySize),
+          children: 0,
+          budgetPerNightMinor: booking.rateMinor,
+          needs: [...booking.specialRequirements].sort(),
+          preferences: [],
+          // A party that paid more is less forgiving of a poor arrival.
+          tolerance: 60,
+          loyalty: 0,
+          bookingId: booking.id,
+        }),
+      );
+
+    let stay = beginStay({ partyId, bookingId: booking.id, roomId });
+    stay = recordStayEvent(stay, {
+      stage: "checkIn",
+      cause:
+        waitedMinutes > 0
+          ? `waited ${waitedMinutes} minutes at reception`
+          : "checked in without waiting",
+      delta: waitedMinutes > 20 ? -8 : waitedMinutes > 0 ? -2 : 2,
+    });
+    s.guestRelations = {
+      ...s.guestRelations,
+      stays: [...s.guestRelations.stays, stay].slice(-HANDLED_COMPLAINT_LIMIT),
+    };
   }
 
   /** Moves goodwill and records why, so the number is always explainable. */

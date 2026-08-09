@@ -15,6 +15,7 @@ import {
   employ,
 } from "../../staff/employeeLifecycle";
 import { createProcurementState } from "../../purchasing/contracts";
+import { createGuestRelationsState } from "../../guests/partyLifecycle";
 import { compareIds } from "../../domain/ids";
 
 /**
@@ -67,6 +68,11 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
         state.procurement,
         createProcurementState(),
       ),
+      guestRelations: normalisedSection(
+        state.guestRelations,
+        createGuestRelationsState(),
+      ),
+      recoveries: Array.isArray(state.recoveries) ? state.recoveries : [],
     },
   };
 }

@@ -49,6 +49,11 @@ import {
   type ProcurementState,
 } from "../purchasing/contracts";
 import {
+  createGuestRelationsState,
+  type GuestRelationsState,
+} from "../guests/partyLifecycle";
+import type { RecoveryRecord } from "../guests/recoveryAuthority";
+import {
   createUtilityContracts,
   type MeterReadings,
   type UtilityContracts,
@@ -264,6 +269,10 @@ export interface GameState {
   workforce: WorkforceState;
   /** Supplier contracts, standing orders, stock lots and stockouts. */
   procurement: ProcurementState;
+  /** Parties, their stays and the lost property they left behind. */
+  guestRelations: GuestRelationsState;
+  /** Every complaint and what was actually done about it. */
+  recoveries: RecoveryRecord[];
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -394,6 +403,8 @@ export function createInitialGameState(seed: number): GameState {
       createWorkforceState(),
     ),
     procurement: createProcurementState(),
+    guestRelations: createGuestRelationsState(),
+    recoveries: [],
   };
 }
 

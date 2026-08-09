@@ -26196,6 +26196,5222 @@
       "reorderRules": [],
       "lots": [],
       "stockouts": []
-    }
+    },
+    "guestRelations": {
+      "parties": [
+        {
+          "id": "party.booking.10680.0",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.10680.0"
+        },
+        {
+          "id": "party.booking.10680.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.10680.3"
+        },
+        {
+          "id": "party.booking.12120.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.0"
+        },
+        {
+          "id": "party.booking.12120.1",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.1"
+        },
+        {
+          "id": "party.booking.12120.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.2"
+        },
+        {
+          "id": "party.booking.12120.3",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.3"
+        },
+        {
+          "id": "party.booking.12120.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.4"
+        },
+        {
+          "id": "party.booking.12120.5",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.5"
+        },
+        {
+          "id": "party.booking.12120.6",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.6"
+        },
+        {
+          "id": "party.booking.12120.7",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.7"
+        },
+        {
+          "id": "party.booking.12120.8",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.12120.8"
+        },
+        {
+          "id": "party.booking.13560.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.13560.2"
+        },
+        {
+          "id": "party.booking.13560.3",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.13560.3"
+        },
+        {
+          "id": "party.booking.15000.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.15000.0"
+        },
+        {
+          "id": "party.booking.15000.1",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.15000.1"
+        },
+        {
+          "id": "party.booking.15000.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.15000.3"
+        },
+        {
+          "id": "party.booking.16440.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.0"
+        },
+        {
+          "id": "party.booking.16440.1",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.1"
+        },
+        {
+          "id": "party.booking.16440.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.2"
+        },
+        {
+          "id": "party.booking.16440.3",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.3"
+        },
+        {
+          "id": "party.booking.16440.4",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.4"
+        },
+        {
+          "id": "party.booking.16440.6",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.6"
+        },
+        {
+          "id": "party.booking.16440.7",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.7"
+        },
+        {
+          "id": "party.booking.16440.8",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.16440.8"
+        },
+        {
+          "id": "party.booking.17880.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.17880.0"
+        },
+        {
+          "id": "party.booking.17880.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.17880.2"
+        },
+        {
+          "id": "party.booking.17880.4",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.17880.4"
+        },
+        {
+          "id": "party.booking.19320.0",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.19320.0"
+        },
+        {
+          "id": "party.booking.19320.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.19320.1"
+        },
+        {
+          "id": "party.booking.19320.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.19320.2"
+        },
+        {
+          "id": "party.booking.2040.2",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.2040.2"
+        },
+        {
+          "id": "party.booking.2040.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.2040.3"
+        },
+        {
+          "id": "party.booking.2040.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.2040.4"
+        },
+        {
+          "id": "party.booking.2040.5",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.2040.5"
+        },
+        {
+          "id": "party.booking.2040.6",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.2040.6"
+        },
+        {
+          "id": "party.booking.2040.7",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.2040.7"
+        },
+        {
+          "id": "party.booking.20760.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.20760.0"
+        },
+        {
+          "id": "party.booking.20760.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.20760.2"
+        },
+        {
+          "id": "party.booking.20760.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.20760.3"
+        },
+        {
+          "id": "party.booking.22200.0",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.22200.0"
+        },
+        {
+          "id": "party.booking.22200.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.22200.1"
+        },
+        {
+          "id": "party.booking.22200.6",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.22200.6"
+        },
+        {
+          "id": "party.booking.22200.7",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.22200.7"
+        },
+        {
+          "id": "party.booking.23640.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.23640.0"
+        },
+        {
+          "id": "party.booking.23640.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.23640.1"
+        },
+        {
+          "id": "party.booking.23640.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.23640.3"
+        },
+        {
+          "id": "party.booking.23640.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.23640.4"
+        },
+        {
+          "id": "party.booking.23640.5",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.23640.5"
+        },
+        {
+          "id": "party.booking.23640.6",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.23640.6"
+        },
+        {
+          "id": "party.booking.25080.0",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.25080.0"
+        },
+        {
+          "id": "party.booking.25080.1",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.25080.1"
+        },
+        {
+          "id": "party.booking.25080.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.25080.2"
+        },
+        {
+          "id": "party.booking.25080.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.25080.3"
+        },
+        {
+          "id": "party.booking.26520.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.26520.0"
+        },
+        {
+          "id": "party.booking.26520.2",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.26520.2"
+        },
+        {
+          "id": "party.booking.26520.4",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.26520.4"
+        },
+        {
+          "id": "party.booking.26520.5",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.26520.5"
+        },
+        {
+          "id": "party.booking.26520.7",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.26520.7"
+        },
+        {
+          "id": "party.booking.27960.1",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.27960.1"
+        },
+        {
+          "id": "party.booking.27960.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.27960.3"
+        },
+        {
+          "id": "party.booking.29400.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.29400.0"
+        },
+        {
+          "id": "party.booking.29400.2",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.29400.2"
+        },
+        {
+          "id": "party.booking.29400.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.29400.3"
+        },
+        {
+          "id": "party.booking.30840.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.30840.0"
+        },
+        {
+          "id": "party.booking.30840.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.30840.2"
+        },
+        {
+          "id": "party.booking.30840.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.30840.3"
+        },
+        {
+          "id": "party.booking.30840.4",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.30840.4"
+        },
+        {
+          "id": "party.booking.30840.5",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.30840.5"
+        },
+        {
+          "id": "party.booking.30840.7",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.30840.7"
+        },
+        {
+          "id": "party.booking.32280.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.32280.0"
+        },
+        {
+          "id": "party.booking.32280.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.32280.3"
+        },
+        {
+          "id": "party.booking.33720.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.33720.0"
+        },
+        {
+          "id": "party.booking.33720.1",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.33720.1"
+        },
+        {
+          "id": "party.booking.33720.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.33720.2"
+        },
+        {
+          "id": "party.booking.33720.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.33720.4"
+        },
+        {
+          "id": "party.booking.3480.0",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.0"
+        },
+        {
+          "id": "party.booking.3480.1",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.1"
+        },
+        {
+          "id": "party.booking.3480.2",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.2"
+        },
+        {
+          "id": "party.booking.3480.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.4"
+        },
+        {
+          "id": "party.booking.3480.5",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.5"
+        },
+        {
+          "id": "party.booking.3480.6",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.6"
+        },
+        {
+          "id": "party.booking.3480.7",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.7"
+        },
+        {
+          "id": "party.booking.3480.8",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.3480.8"
+        },
+        {
+          "id": "party.booking.35160.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.35160.0"
+        },
+        {
+          "id": "party.booking.35160.1",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.35160.1"
+        },
+        {
+          "id": "party.booking.35160.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.35160.3"
+        },
+        {
+          "id": "party.booking.35160.4",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.35160.4"
+        },
+        {
+          "id": "party.booking.35160.5",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.35160.5"
+        },
+        {
+          "id": "party.booking.36600.0",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.36600.0"
+        },
+        {
+          "id": "party.booking.36600.1",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.36600.1"
+        },
+        {
+          "id": "party.booking.36600.2",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.36600.2"
+        },
+        {
+          "id": "party.booking.38040.0",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.0"
+        },
+        {
+          "id": "party.booking.38040.1",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.1"
+        },
+        {
+          "id": "party.booking.38040.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.2"
+        },
+        {
+          "id": "party.booking.38040.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.3"
+        },
+        {
+          "id": "party.booking.38040.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.4"
+        },
+        {
+          "id": "party.booking.38040.5",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.5"
+        },
+        {
+          "id": "party.booking.38040.7",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.7"
+        },
+        {
+          "id": "party.booking.38040.8",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.38040.8"
+        },
+        {
+          "id": "party.booking.39480.0",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.39480.0"
+        },
+        {
+          "id": "party.booking.39480.1",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.39480.1"
+        },
+        {
+          "id": "party.booking.39480.3",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.39480.3"
+        },
+        {
+          "id": "party.booking.39480.4",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.39480.4"
+        },
+        {
+          "id": "party.booking.39480.6",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.39480.6"
+        },
+        {
+          "id": "party.booking.40920.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.40920.0"
+        },
+        {
+          "id": "party.booking.40920.2",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.40920.2"
+        },
+        {
+          "id": "party.booking.40920.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.40920.3"
+        },
+        {
+          "id": "party.booking.40920.4",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.40920.4"
+        },
+        {
+          "id": "party.booking.40920.5",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.40920.5"
+        },
+        {
+          "id": "party.booking.42360.0",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.0"
+        },
+        {
+          "id": "party.booking.42360.1",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.1"
+        },
+        {
+          "id": "party.booking.42360.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.2"
+        },
+        {
+          "id": "party.booking.42360.3",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.3"
+        },
+        {
+          "id": "party.booking.42360.5",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.5"
+        },
+        {
+          "id": "party.booking.42360.6",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.6"
+        },
+        {
+          "id": "party.booking.42360.7",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.7"
+        },
+        {
+          "id": "party.booking.42360.8",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.42360.8"
+        },
+        {
+          "id": "party.booking.43800.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.43800.0"
+        },
+        {
+          "id": "party.booking.43800.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.43800.1"
+        },
+        {
+          "id": "party.booking.43800.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.43800.2"
+        },
+        {
+          "id": "party.booking.43800.4",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.43800.4"
+        },
+        {
+          "id": "party.booking.43800.5",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.43800.5"
+        },
+        {
+          "id": "party.booking.45240.0",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.45240.0"
+        },
+        {
+          "id": "party.booking.45240.1",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.45240.1"
+        },
+        {
+          "id": "party.booking.45240.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.45240.2"
+        },
+        {
+          "id": "party.booking.46680.0",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.46680.0"
+        },
+        {
+          "id": "party.booking.46680.1",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.46680.1"
+        },
+        {
+          "id": "party.booking.46680.2",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.46680.2"
+        },
+        {
+          "id": "party.booking.46680.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.46680.3"
+        },
+        {
+          "id": "party.booking.46680.5",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.46680.5"
+        },
+        {
+          "id": "party.booking.48120.0",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.48120.0"
+        },
+        {
+          "id": "party.booking.48120.1",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.48120.1"
+        },
+        {
+          "id": "party.booking.48120.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.48120.2"
+        },
+        {
+          "id": "party.booking.48120.3",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.48120.3"
+        },
+        {
+          "id": "party.booking.48120.4",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.48120.4"
+        },
+        {
+          "id": "party.booking.48120.6",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.48120.6"
+        },
+        {
+          "id": "party.booking.4920.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.4920.1"
+        },
+        {
+          "id": "party.booking.4920.3",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.4920.3"
+        },
+        {
+          "id": "party.booking.4920.4",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.4920.4"
+        },
+        {
+          "id": "party.booking.49560.1",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.49560.1"
+        },
+        {
+          "id": "party.booking.49560.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.49560.2"
+        },
+        {
+          "id": "party.booking.49560.3",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.49560.3"
+        },
+        {
+          "id": "party.booking.49560.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.49560.4"
+        },
+        {
+          "id": "party.booking.49560.6",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.49560.6"
+        },
+        {
+          "id": "party.booking.49560.7",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.49560.7"
+        },
+        {
+          "id": "party.booking.51000.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.51000.1"
+        },
+        {
+          "id": "party.booking.51000.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.51000.2"
+        },
+        {
+          "id": "party.booking.51000.4",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.51000.4"
+        },
+        {
+          "id": "party.booking.51000.6",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.51000.6"
+        },
+        {
+          "id": "party.booking.51000.7",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.51000.7"
+        },
+        {
+          "id": "party.booking.52440.3",
+          "segmentId": "segment.leisure",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.52440.3"
+        },
+        {
+          "id": "party.booking.52440.5",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.52440.5"
+        },
+        {
+          "id": "party.booking.52440.7",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.52440.7"
+        },
+        {
+          "id": "party.booking.53880.1",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.53880.1"
+        },
+        {
+          "id": "party.booking.53880.4",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.53880.4"
+        },
+        {
+          "id": "party.booking.53880.5",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.53880.5"
+        },
+        {
+          "id": "party.booking.55320.4",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.55320.4"
+        },
+        {
+          "id": "party.booking.55320.5",
+          "segmentId": "segment.corporate",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.55320.5"
+        },
+        {
+          "id": "party.booking.600.1",
+          "segmentId": "segment.leisure",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.600.1"
+        },
+        {
+          "id": "party.booking.6360.2",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.6360.2"
+        },
+        {
+          "id": "party.booking.6360.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 12000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.6360.3"
+        },
+        {
+          "id": "party.booking.6360.7",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.6360.7"
+        },
+        {
+          "id": "party.booking.7800.1",
+          "segmentId": "segment.corporate",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.7800.1"
+        },
+        {
+          "id": "party.booking.7800.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.7800.2"
+        },
+        {
+          "id": "party.booking.7800.3",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.7800.3"
+        },
+        {
+          "id": "party.booking.7800.4",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.7800.4"
+        },
+        {
+          "id": "party.booking.7800.5",
+          "segmentId": "segment.business",
+          "adults": 1,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.7800.5"
+        },
+        {
+          "id": "party.booking.9240.2",
+          "segmentId": "segment.business",
+          "adults": 2,
+          "children": 0,
+          "budgetPerNightMinor": 9000,
+          "needs": [],
+          "preferences": [],
+          "tolerance": 60,
+          "loyalty": 0,
+          "bookingId": "booking.9240.2"
+        }
+      ],
+      "stays": [
+        {
+          "partyId": "party.booking.600.1",
+          "bookingId": "booking.600.1",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.2040.5",
+          "bookingId": "booking.2040.5",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.4",
+          "bookingId": "booking.3480.4",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.6",
+          "bookingId": "booking.3480.6",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.7",
+          "bookingId": "booking.3480.7",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.2040.3",
+          "bookingId": "booking.2040.3",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.0",
+          "bookingId": "booking.3480.0",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.1",
+          "bookingId": "booking.3480.1",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.2040.2",
+          "bookingId": "booking.2040.2",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.2040.6",
+          "bookingId": "booking.2040.6",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.6360.2",
+          "bookingId": "booking.6360.2",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.2040.4",
+          "bookingId": "booking.2040.4",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.2040.7",
+          "bookingId": "booking.2040.7",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.7800.5",
+          "bookingId": "booking.7800.5",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.5",
+          "bookingId": "booking.3480.5",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.8",
+          "bookingId": "booking.3480.8",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.4920.3",
+          "bookingId": "booking.4920.3",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.4920.4",
+          "bookingId": "booking.4920.4",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.3480.2",
+          "bookingId": "booking.3480.2",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.4920.1",
+          "bookingId": "booking.4920.1",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.6360.7",
+          "bookingId": "booking.6360.7",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.7800.3",
+          "bookingId": "booking.7800.3",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.7800.4",
+          "bookingId": "booking.7800.4",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.1",
+          "bookingId": "booking.12120.1",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.6360.3",
+          "bookingId": "booking.6360.3",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.7800.1",
+          "bookingId": "booking.7800.1",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.0",
+          "bookingId": "booking.12120.0",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.3",
+          "bookingId": "booking.12120.3",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.7",
+          "bookingId": "booking.12120.7",
+          "roomId": "room.109",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.4",
+          "bookingId": "booking.12120.4",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.7800.2",
+          "bookingId": "booking.7800.2",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.9240.2",
+          "bookingId": "booking.9240.2",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.10680.0",
+          "bookingId": "booking.10680.0",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.5",
+          "bookingId": "booking.12120.5",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.15000.0",
+          "bookingId": "booking.15000.0",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.7",
+          "bookingId": "booking.16440.7",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.8",
+          "bookingId": "booking.12120.8",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.13560.2",
+          "bookingId": "booking.13560.2",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.17880.2",
+          "bookingId": "booking.17880.2",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.10680.3",
+          "bookingId": "booking.10680.3",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.13560.3",
+          "bookingId": "booking.13560.3",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.6",
+          "bookingId": "booking.16440.6",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.19320.0",
+          "bookingId": "booking.19320.0",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.19320.1",
+          "bookingId": "booking.19320.1",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.2",
+          "bookingId": "booking.12120.2",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.12120.6",
+          "bookingId": "booking.12120.6",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.0",
+          "bookingId": "booking.16440.0",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.1",
+          "bookingId": "booking.16440.1",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.17880.0",
+          "bookingId": "booking.17880.0",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.20760.2",
+          "bookingId": "booking.20760.2",
+          "roomId": "room.109",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.17880.4",
+          "bookingId": "booking.17880.4",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.19320.2",
+          "bookingId": "booking.19320.2",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.22200.0",
+          "bookingId": "booking.22200.0",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.15000.1",
+          "bookingId": "booking.15000.1",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.15000.3",
+          "bookingId": "booking.15000.3",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.4",
+          "bookingId": "booking.16440.4",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.20760.0",
+          "bookingId": "booking.20760.0",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.22200.1",
+          "bookingId": "booking.22200.1",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.22200.7",
+          "bookingId": "booking.22200.7",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.23640.3",
+          "bookingId": "booking.23640.3",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.2",
+          "bookingId": "booking.16440.2",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.3",
+          "bookingId": "booking.16440.3",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.16440.8",
+          "bookingId": "booking.16440.8",
+          "roomId": "room.109",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.20760.3",
+          "bookingId": "booking.20760.3",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.23640.4",
+          "bookingId": "booking.23640.4",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.23640.6",
+          "bookingId": "booking.23640.6",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.23640.0",
+          "bookingId": "booking.23640.0",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.23640.5",
+          "bookingId": "booking.23640.5",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.26520.2",
+          "bookingId": "booking.26520.2",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.23640.1",
+          "bookingId": "booking.23640.1",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.22200.6",
+          "bookingId": "booking.22200.6",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.25080.0",
+          "bookingId": "booking.25080.0",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.27960.3",
+          "bookingId": "booking.27960.3",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.30840.4",
+          "bookingId": "booking.30840.4",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.25080.3",
+          "bookingId": "booking.25080.3",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.26520.0",
+          "bookingId": "booking.26520.0",
+          "roomId": "room.117",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.26520.7",
+          "bookingId": "booking.26520.7",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.27960.1",
+          "bookingId": "booking.27960.1",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.25080.1",
+          "bookingId": "booking.25080.1",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.25080.2",
+          "bookingId": "booking.25080.2",
+          "roomId": "room.118",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.29400.0",
+          "bookingId": "booking.29400.0",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.29400.3",
+          "bookingId": "booking.29400.3",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.30840.0",
+          "bookingId": "booking.30840.0",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.30840.3",
+          "bookingId": "booking.30840.3",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.33720.1",
+          "bookingId": "booking.33720.1",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.26520.4",
+          "bookingId": "booking.26520.4",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.26520.5",
+          "bookingId": "booking.26520.5",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.30840.5",
+          "bookingId": "booking.30840.5",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.29400.2",
+          "bookingId": "booking.29400.2",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.30840.2",
+          "bookingId": "booking.30840.2",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.30840.7",
+          "bookingId": "booking.30840.7",
+          "roomId": "room.117",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.32280.0",
+          "bookingId": "booking.32280.0",
+          "roomId": "room.118",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.35160.5",
+          "bookingId": "booking.35160.5",
+          "roomId": "room.119",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.32280.3",
+          "bookingId": "booking.32280.3",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.33720.0",
+          "bookingId": "booking.33720.0",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.2",
+          "bookingId": "booking.38040.2",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.33720.2",
+          "bookingId": "booking.33720.2",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.33720.4",
+          "bookingId": "booking.33720.4",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.35160.0",
+          "bookingId": "booking.35160.0",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.35160.1",
+          "bookingId": "booking.35160.1",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.0",
+          "bookingId": "booking.38040.0",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.4",
+          "bookingId": "booking.38040.4",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.5",
+          "bookingId": "booking.38040.5",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.39480.0",
+          "bookingId": "booking.39480.0",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.36600.0",
+          "bookingId": "booking.36600.0",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.36600.2",
+          "bookingId": "booking.36600.2",
+          "roomId": "room.109",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.7",
+          "bookingId": "booking.38040.7",
+          "roomId": "room.110",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.39480.3",
+          "bookingId": "booking.39480.3",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.40920.0",
+          "bookingId": "booking.40920.0",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.40920.2",
+          "bookingId": "booking.40920.2",
+          "roomId": "room.111",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.35160.3",
+          "bookingId": "booking.35160.3",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.39480.6",
+          "bookingId": "booking.39480.6",
+          "roomId": "room.117",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.40920.5",
+          "bookingId": "booking.40920.5",
+          "roomId": "room.118",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.35160.4",
+          "bookingId": "booking.35160.4",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.1",
+          "bookingId": "booking.38040.1",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.1",
+          "bookingId": "booking.42360.1",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.5",
+          "bookingId": "booking.42360.5",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.43800.2",
+          "bookingId": "booking.43800.2",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.36600.1",
+          "bookingId": "booking.36600.1",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.39480.4",
+          "bookingId": "booking.39480.4",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.2",
+          "bookingId": "booking.42360.2",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.3",
+          "bookingId": "booking.38040.3",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.38040.8",
+          "bookingId": "booking.38040.8",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.0",
+          "bookingId": "booking.42360.0",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.3",
+          "bookingId": "booking.42360.3",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.8",
+          "bookingId": "booking.42360.8",
+          "roomId": "room.109",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.43800.0",
+          "bookingId": "booking.43800.0",
+          "roomId": "room.110",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.43800.4",
+          "bookingId": "booking.43800.4",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.45240.0",
+          "bookingId": "booking.45240.0",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.39480.1",
+          "bookingId": "booking.39480.1",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.40920.3",
+          "bookingId": "booking.40920.3",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.7",
+          "bookingId": "booking.42360.7",
+          "roomId": "room.117",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.48120.1",
+          "bookingId": "booking.48120.1",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.48120.2",
+          "bookingId": "booking.48120.2",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.48120.3",
+          "bookingId": "booking.48120.3",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.40920.4",
+          "bookingId": "booking.40920.4",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.48120.6",
+          "bookingId": "booking.48120.6",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.49560.7",
+          "bookingId": "booking.49560.7",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.42360.6",
+          "bookingId": "booking.42360.6",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.43800.5",
+          "bookingId": "booking.43800.5",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.45240.2",
+          "bookingId": "booking.45240.2",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.46680.0",
+          "bookingId": "booking.46680.0",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.46680.1",
+          "bookingId": "booking.46680.1",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.46680.2",
+          "bookingId": "booking.46680.2",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.48120.0",
+          "bookingId": "booking.48120.0",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.49560.1",
+          "bookingId": "booking.49560.1",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.43800.1",
+          "bookingId": "booking.43800.1",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.46680.5",
+          "bookingId": "booking.46680.5",
+          "roomId": "room.117",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.48120.4",
+          "bookingId": "booking.48120.4",
+          "roomId": "room.118",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.51000.6",
+          "bookingId": "booking.51000.6",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.52440.5",
+          "bookingId": "booking.52440.5",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.45240.1",
+          "bookingId": "booking.45240.1",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.49560.3",
+          "bookingId": "booking.49560.3",
+          "roomId": "room.114",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.49560.4",
+          "bookingId": "booking.49560.4",
+          "roomId": "room.116",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.49560.6",
+          "bookingId": "booking.49560.6",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.51000.4",
+          "bookingId": "booking.51000.4",
+          "roomId": "room.119",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.52440.7",
+          "bookingId": "booking.52440.7",
+          "roomId": "room.103",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.53880.1",
+          "bookingId": "booking.53880.1",
+          "roomId": "room.105",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.53880.4",
+          "bookingId": "booking.53880.4",
+          "roomId": "room.120",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.46680.3",
+          "bookingId": "booking.46680.3",
+          "roomId": "room.113",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.49560.2",
+          "bookingId": "booking.49560.2",
+          "roomId": "room.104",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.51000.1",
+          "bookingId": "booking.51000.1",
+          "roomId": "room.106",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.51000.2",
+          "bookingId": "booking.51000.2",
+          "roomId": "room.107",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.52440.3",
+          "bookingId": "booking.52440.3",
+          "roomId": "room.108",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.53880.5",
+          "bookingId": "booking.53880.5",
+          "roomId": "room.115",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.55320.4",
+          "bookingId": "booking.55320.4",
+          "roomId": "room.121",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.51000.7",
+          "bookingId": "booking.51000.7",
+          "roomId": "room.101",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        },
+        {
+          "partyId": "party.booking.55320.5",
+          "bookingId": "booking.55320.5",
+          "roomId": "room.102",
+          "earlyArrival": false,
+          "lateDeparture": false,
+          "luggageStored": false,
+          "conciergeRequests": [],
+          "roomChanges": 0,
+          "lostAndFound": [],
+          "events": [
+            {
+              "stage": "checkIn",
+              "cause": "waited 5 minutes at reception",
+              "delta": -2
+            }
+          ],
+          "satisfaction": 68
+        }
+      ],
+      "lostAndFound": []
+    },
+    "recoveries": []
   }
 }

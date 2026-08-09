@@ -80,6 +80,78 @@ describe("GameClient protocol", () => {
     );
   });
 
+  it("delivers accepted commands and domain events to their listeners", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    const accepted: unknown[] = [];
+    const events: unknown[] = [];
+    client.onCommandAccepted((a) => accepted.push(a));
+    client.onDomainEvents((e) => events.push(...e));
+
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "COMMAND_ACCEPTED",
+        requestId: "req.1",
+        commandId: "cmd.1.1",
+        stateVersion: 7,
+      },
+    } as MessageEvent);
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "DOMAIN_EVENTS",
+        events: [{ eventId: "evt.1", sequence: 1 }],
+      },
+    } as MessageEvent);
+
+    expect(accepted).toEqual([
+      { requestId: "req.1", commandId: "cmd.1.1", stateVersion: 7 },
+    ]);
+    expect(events).toEqual([{ eventId: "evt.1", sequence: 1 }]);
+  });
+
+  it("stops delivering events to unsubscribed and disposed listeners", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    const events: unknown[] = [];
+    const snapshots: unknown[] = [];
+    const unsubscribe = client.onDomainEvents((e) => events.push(...e));
+    client.onSnapshot((s) => snapshots.push(s));
+
+    const deliverEvent = () =>
+      worker.onmessage!({
+        data: {
+          protocolVersion: PROTOCOL_VERSION,
+          type: "DOMAIN_EVENTS",
+          events: [{ eventId: "evt.1" }],
+        },
+      } as MessageEvent);
+    const deliverSnapshot = () =>
+      worker.onmessage!({
+        data: {
+          protocolVersion: PROTOCOL_VERSION,
+          type: "SNAPSHOT",
+          snapshot: { cashMinor: 1 },
+        },
+      } as MessageEvent);
+
+    deliverEvent();
+    unsubscribe();
+    deliverEvent();
+    // Unsubscribing twice is safe and leaves the other listeners alone.
+    unsubscribe();
+    deliverSnapshot();
+    expect(events).toHaveLength(1);
+    expect(snapshots).toHaveLength(1);
+
+    client.dispose();
+    deliverSnapshot();
+    deliverEvent();
+    expect(snapshots).toHaveLength(1);
+    expect(events).toHaveLength(1);
+  });
+
   it("passes an expected state version through when the caller declares one", () => {
     const worker = fakeWorker();
     const client = new GameClient(worker);

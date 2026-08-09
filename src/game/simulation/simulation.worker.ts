@@ -46,6 +46,18 @@ function reply(message: WorkerResponse) {
   self.postMessage(message);
 }
 
+/** Hands the completed facts recorded since the last drain to the UI. */
+function publishDomainEvents() {
+  if (!simulation) return;
+  const events = simulation.takeDomainEvents();
+  if (events.length === 0) return;
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "DOMAIN_EVENTS",
+    events,
+  });
+}
+
 /**
  * Publishes the verdicts of commands the simulation has actually decided.
  * COMMAND_ACCEPTED therefore means applied, not queued.
@@ -93,6 +105,7 @@ function tick() {
     return;
   }
   publishCommandResults();
+  publishDomainEvents();
   reply({
     protocolVersion: PROTOCOL_VERSION,
     type: "STATE_DELTA",
@@ -124,6 +137,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         type: "READY",
         snapshot: simulation.snapshot(),
       });
+      publishDomainEvents();
       return;
     }
     case "LOAD_GAME": {
@@ -143,6 +157,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         type: "SNAPSHOT",
         snapshot: simulation.snapshot(),
       });
+      publishDomainEvents();
       return;
     }
     case "COMMAND": {
@@ -187,6 +202,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       if (speed === 0) {
         simulation.applyPendingCommands();
         publishCommandResults();
+        publishDomainEvents();
         reply({
           protocolVersion: PROTOCOL_VERSION,
           type: "STATE_DELTA",

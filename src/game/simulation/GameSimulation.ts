@@ -109,6 +109,12 @@ import {
 } from "../commands/commandHandler";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
+import {
+  createEventJournal,
+  drainEvents,
+  emitEvent,
+} from "../domain/eventBuffer";
+import type { DomainEvent, DomainEventPayload } from "../domain/events";
 import type {
   AlertRecord,
   EventRecord,
@@ -193,8 +199,18 @@ export class GameSimulation implements CommandExecutor {
   private monthRolled = false;
   /** The one boundary through which authoritative state may change. */
   private readonly commands: CommandHandler;
+  /** The command currently executing, so its events can name their cause. */
+  private causingCommandId: string | undefined;
 
   constructor(public state: GameState) {
+    // A save written before the command and event journals existed carries
+    // neither. Opening it at zero is the honest reading — nothing is known
+    // about decisions taken before the journal did — and it keeps a migrated
+    // old save runnable rather than crashing on its first derived section.
+    state.stateVersion ??= 0;
+    state.commandSequence ??= 0;
+    state.commandLog ??= [];
+    state.eventJournal ??= createEventJournal();
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -221,6 +237,23 @@ export class GameSimulation implements CommandExecutor {
     const decided = this.decided;
     this.decided = [];
     return decided;
+  }
+
+  /** Publishes the completed facts recorded since the last drain, in order. */
+  takeDomainEvents(): DomainEvent[] {
+    return drainEvents(this.state.eventJournal);
+  }
+
+  /**
+   * Records a completed transition. Called only after the write it describes,
+   * and inside a command it inherits that command as its cause.
+   */
+  private emit(payload: DomainEventPayload, entities: readonly string[]): void {
+    emitEvent(this.state.eventJournal, payload, {
+      atMinutes: this.state.elapsedMinutes,
+      entities,
+      causedBy: this.causingCommandId,
+    });
   }
 
   /**
@@ -372,11 +405,13 @@ export class GameSimulation implements CommandExecutor {
     const liveStreams = this.streams;
     this.state = draft;
     this.streams = streams;
+    this.causingCommandId = envelope.commandId;
     try {
       this.applyCommand(envelope.payload);
     } finally {
       this.state = liveState;
       this.streams = liveStreams;
+      this.causingCommandId = undefined;
     }
   }
 
@@ -493,6 +528,15 @@ export class GameSimulation implements CommandExecutor {
           `${command.quantity} ${command.sku}`,
         );
         s.pendingOrders.push(result.order);
+        this.emit(
+          {
+            type: "SUPPLY_ORDERED",
+            sku: command.sku,
+            quantity: command.quantity,
+            costMinor: s.finance.cashMinor - result.cashMinor,
+          },
+          [supplier.id, command.sku],
+        );
         return;
       }
       case "HIRE": {
@@ -520,6 +564,15 @@ export class GameSimulation implements CommandExecutor {
           monthlyWageMinor: hired.monthlyWageMinor,
           absent: false,
         });
+        this.emit(
+          {
+            type: "STAFF_HIRED",
+            staffId: hired.id,
+            role: hired.role,
+            shift: hired.shift,
+          },
+          [hired.id],
+        );
         return;
       }
       case "START_RENOVATION": {
@@ -531,12 +584,27 @@ export class GameSimulation implements CommandExecutor {
           "module conversion",
         );
         s.renovation = started.job;
+        this.emit(
+          {
+            type: "RENOVATION_STARTED",
+            projectId: started.job.id,
+            targetModuleId: started.job.targetModuleId,
+          },
+          [started.job.id],
+        );
         return;
       }
       case "SET_SPECIALIZATION": {
         const verdict = this.validateCommand(command);
         if (!verdict.ok) throw new Error(verdict.reason);
         s.specializationId = command.specializationId;
+        this.emit(
+          {
+            type: "SPECIALIZATION_SET",
+            specializationId: command.specializationId,
+          },
+          [s.hotel.id],
+        );
         return;
       }
       case "EXPAND_FACILITY": {
@@ -553,6 +621,14 @@ export class GameSimulation implements CommandExecutor {
           ...s.investedArea,
           [command.area]: s.investedArea[command.area] + EXPANSION_SQM,
         };
+        this.emit(
+          {
+            type: "FACILITY_EXPANDED",
+            area: command.area,
+            addedSqm: EXPANSION_SQM,
+          },
+          [s.hotel.id],
+        );
         return;
       }
       case "BUY_MARKET_RESEARCH": {
@@ -565,6 +641,14 @@ export class GameSimulation implements CommandExecutor {
         s.cityMarket.forecast = forecastBand(
           totalRoomNights(s.cityMarket.demand),
           s.cityMarket.informationQuality,
+        );
+        this.emit(
+          {
+            type: "MARKET_RESEARCH_PURCHASED",
+            informationQuality: s.cityMarket.informationQuality,
+            costMinor: REPORT_COST_MINOR,
+          },
+          [s.hotel.id],
         );
         return;
       }
@@ -605,9 +689,27 @@ export class GameSimulation implements CommandExecutor {
       for (const stay of leaving) {
         const room = s.hotel.rooms.find((r) => r.id === stay.roomId);
         if (room) {
+          const from = room.state;
           room.state = "VacantDirty";
           room.cleanliness = 40;
           turned.push({ moduleId: room.moduleId });
+          this.emit(
+            {
+              type: "GUEST_CHECKED_OUT",
+              bookingId: stay.bookingId,
+              roomId: room.id,
+            },
+            [stay.bookingId, room.id],
+          );
+          this.emit(
+            {
+              type: "ROOM_STATE_CHANGED",
+              roomId: room.id,
+              from,
+              to: room.state,
+            },
+            [room.id],
+          );
         }
       }
       s.linen.dirty += linenSoiled(turned);
@@ -645,6 +747,14 @@ export class GameSimulation implements CommandExecutor {
         ) {
           const updated = markNoShow(booking);
           booking.status = updated.status;
+          this.emit(
+            {
+              type: "BOOKING_NO_SHOW",
+              bookingId: booking.id,
+              releasedRooms: booking.roomsRequested,
+            },
+            [booking.id],
+          );
         }
       }
       s.reservations = s.reservations.filter(
@@ -711,7 +821,17 @@ export class GameSimulation implements CommandExecutor {
         },
       );
       s.housekeepingMinutes -= ROOM_CLEAN_MINUTES;
+      const wasState = dirty.state;
       dirty.state = cleaned.room.state;
+      this.emit(
+        {
+          type: "ROOM_STATE_CHANGED",
+          roomId: dirty.id,
+          from: wasState,
+          to: dirty.state,
+        },
+        [dirty.id],
+      );
       dirty.cleanliness = cleaned.room.cleanliness;
       s.stock = consume(s.stock, "cleaning-unit", 1);
       s.linen.clean -= pieces;
@@ -754,10 +874,16 @@ export class GameSimulation implements CommandExecutor {
       // rather than silently vanishing into a no-show at midnight.
       const room = assignRoom(s.hotel.rooms, booking.category);
       if (!room) continue;
+      // Read the wait before the party leaves the queue: how long check-in
+      // took is part of what just happened to this guest.
+      const waitedMinutes =
+        s.receptionQueue.find((w) => w.bookingId === bookingId)
+          ?.waitedMinutes ?? 0;
       s.receptionQueue = s.receptionQueue.filter(
         (w) => w.bookingId !== bookingId,
       );
       const target = s.hotel.rooms.find((r) => r.id === room.id) as RoomRecord;
+      const fromState = target.state;
       target.state = "Occupied";
       s.elevatorTrips += elevatorTrips({
         arrivals: 1,
@@ -765,6 +891,24 @@ export class GameSimulation implements CommandExecutor {
         serviceRuns: 0,
       });
       booking.status = "checkedIn";
+      this.emit(
+        {
+          type: "GUEST_CHECKED_IN",
+          bookingId: booking.id,
+          roomId: target.id,
+          waitedMinutes,
+        },
+        [booking.id, target.id],
+      );
+      this.emit(
+        {
+          type: "ROOM_STATE_CHANGED",
+          roomId: target.id,
+          from: fromState,
+          to: target.state,
+        },
+        [target.id],
+      );
       s.stays.push({
         bookingId: booking.id,
         roomId: target.id,
@@ -933,8 +1077,17 @@ export class GameSimulation implements CommandExecutor {
     const due = s.pendingOrders.filter(
       (o) => o.dueAtMinutes <= s.elapsedMinutes,
     );
-    for (const order of due)
+    for (const order of due) {
       s.stock = deliverOrder(s.stock, order, s.elapsedMinutes);
+      this.emit(
+        {
+          type: "SUPPLY_DELIVERED",
+          sku: order.sku,
+          quantity: order.quantity,
+        },
+        [order.supplierId, order.sku],
+      );
+    }
     if (due.length)
       s.pendingOrders = s.pendingOrders.filter((o) => !due.includes(o));
 
@@ -981,12 +1134,24 @@ export class GameSimulation implements CommandExecutor {
         degraded.condition < 2000
       ) {
         const roll = this.streams.failures.nextUint32() % 10000;
-        if (roll < DAILY_FAILURE_BP)
+        if (roll < DAILY_FAILURE_BP) {
+          this.emit({ type: "ASSET_FAILED", assetId: degraded.id }, [
+            degraded.id,
+          ]);
           return { ...degraded, status: "failed" as const };
+        }
       }
       if (degraded.status !== "operational") {
         const technicianMinutes = this.dayRolled ? REPAIR_MINUTES_PER_DAY : 0;
-        return { ...degraded, ...repairAsset(degraded, technicianMinutes) };
+        const repaired = {
+          ...degraded,
+          ...repairAsset(degraded, technicianMinutes),
+        };
+        if (repaired.status === "operational")
+          this.emit({ type: "ASSET_REPAIRED", assetId: repaired.id }, [
+            repaired.id,
+          ]);
+        return repaired;
       }
       // Planned service happens before a failure, not after one, and costs
       // technician time and money up front.
@@ -1006,11 +1171,11 @@ export class GameSimulation implements CommandExecutor {
     for (const id of serviced) {
       const asset = s.assets.find((a) => a.id === id);
       if (!asset) continue;
-      this.spend(
-        preventiveCostMinor({ replacementMinor: asset.replacementMinor }),
-        "maintenance",
-        `preventive service on ${id}`,
-      );
+      const costMinor = preventiveCostMinor({
+        replacementMinor: asset.replacementMinor,
+      });
+      this.spend(costMinor, "maintenance", `preventive service on ${id}`);
+      this.emit({ type: "ASSET_SERVICED", assetId: id, costMinor }, [id]);
     }
 
     if (this.dayRolled) {
@@ -1076,12 +1241,22 @@ export class GameSimulation implements CommandExecutor {
         waiting.waitedMinutes,
       );
       if (!complaint) continue;
-      this.pushAlert({
-        id: `alert.${complaint.id}`,
-        severity: "warning",
-        title: "Long check-in",
-        cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
-      });
+      if (
+        this.pushAlert({
+          id: `alert.${complaint.id}`,
+          severity: "warning",
+          title: "Long check-in",
+          cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
+        })
+      )
+        this.emit(
+          {
+            type: "COMPLAINT_RAISED",
+            complaintId: complaint.id,
+            bookingId: waiting.bookingId,
+          },
+          [complaint.id, waiting.bookingId],
+        );
     }
   }
 
@@ -1177,6 +1352,19 @@ export class GameSimulation implements CommandExecutor {
           segmentId: segment.id,
         };
         s.reservations.push(reservation);
+        this.emit(
+          {
+            type: "BOOKING_CONFIRMED",
+            bookingId: reservation.id,
+            arrivalDateKey,
+            nights: reservation.nights,
+            category,
+            roomsRequested: reservation.roomsRequested,
+            rateMinor,
+            segmentId: segment.id,
+          },
+          [reservation.id],
+        );
       } catch {
         /* demand lost to price or inventory; the slice does not yet count
            the causes, so this is intentionally silent */
@@ -1265,17 +1453,69 @@ export class GameSimulation implements CommandExecutor {
   /** Settles the ended month for the whole city and its rivals. */
   private runCityMonth(): void {
     const s = this.state;
+    // The city is compared with itself across the settlement so entry, exit
+    // and route changes are reported as the facts they are, rather than being
+    // reconstructed later from a difference in supply.
+    const before = new Map(
+      s.competitors.map((c) => [c.id, { rooms: c.rooms, status: c.status }]),
+    );
+    const transportBefore = { ...s.cityMarket.transport };
+    const endedMonthKey = addDays(s.calendar.dateKey, -1);
+    const roomNightsBefore = s.cityMarket.soldRoomNights;
+
     s.competitors = advanceCityMonth(
       s.cityMarket,
       s.competitors,
       this.playerHouse(),
       {
-        endedMonthKey: addDays(s.calendar.dateKey, -1),
+        endedMonthKey,
         dateKey: s.calendar.dateKey,
         economy: this.streams.economy,
         ai: this.streams.AI,
       },
     );
+
+    this.emit(
+      {
+        type: "CITY_MONTH_ADVANCED",
+        periodKey: endedMonthKey.slice(0, 7),
+        roomNights: roomNightsBefore,
+      },
+      [CITY.id],
+    );
+
+    const after = new Map(s.competitors.map((c) => [c.id, c]));
+    for (const competitor of s.competitors)
+      if (!before.has(competitor.id))
+        this.emit(
+          {
+            type: "COMPETITOR_ENTERED",
+            competitorId: competitor.id,
+            rooms: competitor.rooms,
+          },
+          [competitor.id],
+        );
+    // A house that has failed is dropped from the city's list, so its exit is
+    // read from the gap it leaves rather than from a status it no longer has.
+    for (const [id, was] of before)
+      if (!after.has(id) || after.get(id)?.status === "exit")
+        this.emit(
+          {
+            type: "COMPETITOR_EXITED",
+            competitorId: id,
+            releasedRooms: was.rooms,
+          },
+          [id],
+        );
+
+    for (const [mode, points] of Object.entries(s.cityMarket.transport)) {
+      const was = transportBefore[mode as keyof typeof transportBefore];
+      if (was !== points)
+        this.emit(
+          { type: "TRANSPORT_ROUTE_CHANGED", mode, from: was, to: points },
+          [CITY.id, mode],
+        );
+    }
   }
 
   /**
@@ -1374,6 +1614,14 @@ export class GameSimulation implements CommandExecutor {
         });
         this.earn(event.valueMinor, "eventRevenue", `conference ${event.id}`);
         s.finance.month.otherRevenueMinor += event.valueMinor;
+        this.emit(
+          {
+            type: "CONFERENCE_COMPLETED",
+            eventId: event.id,
+            valueMinor: event.valueMinor,
+          },
+          [event.id],
+        );
       }
     }
     s.events = s.events.filter((e) => e.status !== "complete");
@@ -1409,8 +1657,9 @@ export class GameSimulation implements CommandExecutor {
     if (!qualifyLead(lead).ok) return;
     const offer = offerPriceMinor({ guests, nights, roomsBlocked });
     if (!leadConverts(lead, offer)) return;
+    const eventId = `event.${s.elapsedMinutes}`;
     s.events.push({
-      id: `event.${s.elapsedMinutes}`,
+      id: eventId,
       guests,
       nights,
       roomsBlocked,
@@ -1419,6 +1668,16 @@ export class GameSimulation implements CommandExecutor {
       valueMinor: offer,
       status: "confirmed",
     });
+    this.emit(
+      {
+        type: "CONFERENCE_BOOKED",
+        eventId,
+        guests,
+        roomsBlocked,
+        valueMinor: offer,
+      },
+      [eventId],
+    );
     this.pushAlert({
       id: `alert.event.${s.elapsedMinutes}`,
       severity: "info",
@@ -1430,6 +1689,7 @@ export class GameSimulation implements CommandExecutor {
   /** The board rows the UI and the Pixi layer both read. */
   private refreshFacilities(): void {
     const s = this.state;
+    const previousCause = new Map(s.facilities.map((f) => [f.id, f.cause]));
     const inHouse = s.stays.length;
     const eventCovers = this.eventBreakfastCovers();
     const housekeepers = this.onDuty("housekeeping");
@@ -1571,6 +1831,19 @@ export class GameSimulation implements CommandExecutor {
         ],
       }),
     ];
+
+    // What binds an area is the fact worth telling: a load that moved without
+    // changing the constraint is not news.
+    for (const facility of s.facilities)
+      if (previousCause.get(facility.id) !== facility.cause)
+        this.emit(
+          {
+            type: "FACILITY_CONSTRAINT_CHANGED",
+            facilityId: facility.id,
+            cause: facility.cause,
+          },
+          [facility.id],
+        );
   }
 
   /** The star rating and the standard that is holding it back. */
@@ -1608,12 +1881,22 @@ export class GameSimulation implements CommandExecutor {
         (s.investedArea.conferenceSqm + s.investedArea.wellnessSqm) / 5,
       ),
     );
+    const before = s.classification.stars;
     s.classification = classify({
       room: roomScore,
       reception,
       maintenance,
       facilities,
     });
+    if (s.classification.stars !== before)
+      this.emit(
+        {
+          type: "CLASSIFICATION_CHANGED",
+          from: before,
+          to: s.classification.stars,
+        },
+        [s.hotel.id],
+      );
   }
 
   /**
@@ -1642,6 +1925,14 @@ export class GameSimulation implements CommandExecutor {
     }
 
     if (step.roomsAdded > 0) {
+      this.emit(
+        {
+          type: "RENOVATION_COMPLETED",
+          projectId: step.job.id,
+          roomsAdded: step.roomsAdded,
+        },
+        [step.job.id],
+      );
       const nextNumber = STARTER_HOTEL.firstRoomNumber + s.hotel.rooms.length;
       for (let i = 0; i < step.roomsAdded; i++)
         s.hotel.rooms.push({
@@ -1669,6 +1960,15 @@ export class GameSimulation implements CommandExecutor {
       soldRoomNights: m.soldRoomNights,
       availableRoomNights: m.availableRoomNights,
     });
+    this.emit(
+      {
+        type: "MONTH_CLOSED",
+        periodKey: s.lastMonthlyClose.periodKey,
+        profitMinor: s.lastMonthlyClose.operatingProfitMinor,
+        occupancyBasisPoints: s.lastMonthlyClose.occupancyBasisPoints,
+      },
+      [s.hotel.id],
+    );
     s.finance.month = {
       openingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: 0,
@@ -1788,9 +2088,11 @@ export class GameSimulation implements CommandExecutor {
     this.state.alerts = this.state.alerts.filter((a) => !ids.includes(a.id));
   }
 
-  private pushAlert(alert: AlertRecord): void {
-    if (this.state.alerts.some((a) => a.id === alert.id)) return;
+  /** Adds an alert once. Returns true when this is the first time it is said. */
+  private pushAlert(alert: AlertRecord): boolean {
+    if (this.state.alerts.some((a) => a.id === alert.id)) return false;
     this.state.alerts.push(alert);
+    return true;
   }
 }
 

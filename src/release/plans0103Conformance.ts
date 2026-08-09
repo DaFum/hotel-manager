@@ -211,7 +211,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/eventBuffer.test.ts",
       assertion: "stamps every event with a stable id, game time and entities",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "event.causation.command",
@@ -224,7 +224,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/eventBuffer.test.ts",
       assertion: "carries the causing command id on every command-caused event",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "event.rejection.silent",
@@ -236,7 +236,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/eventBuffer.test.ts",
       assertion: "emits no success event for a rejected command",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "event.order.stable",
@@ -250,7 +250,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "drains events in emission order with monotonic sequence numbers",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "event.coverage.transitions",
@@ -263,7 +263,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/eventBuffer.test.ts",
       assertion: "publishes an event for every declared simulation transition",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "worker.accepted.afterApply",
@@ -276,7 +276,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/simulation/simulation.worker.test.ts",
       assertion: "acknowledges a command only after it has been applied",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "client.listeners.disposalSafe",
@@ -290,7 +290,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "stops delivering events to unsubscribed and disposed listeners",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 4: protocol ---------------------------------------------------

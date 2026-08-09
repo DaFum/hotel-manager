@@ -1,5 +1,6 @@
 import { createRngStreams, type RngStateRecord } from "../domain/rng";
 import type { CommandLogEntry } from "../commands/commandEnvelope";
+import { createEventJournal, type EventJournal } from "../domain/eventBuffer";
 import { CITY } from "../content/1991/frankfurt";
 import { STARTER_HOTEL, STARTER_STAFF } from "../content/1991/starterHotel";
 import type { RoomState } from "../rooms/roomState";
@@ -109,6 +110,12 @@ export interface GameState {
    * even after the log window has scrolled past them.
    */
   commandSequence: number;
+  /**
+   * Completed facts waiting to be published, and the sequence they are
+   * numbered from. It is authoritative state so that events emitted inside a
+   * command belong to that command's transaction and vanish with a rollback.
+   */
+  eventJournal: EventJournal;
   calendar: { dateKey: string; minuteOfDay: number };
   hotel: { id: string; name: string; rooms: RoomRecord[] };
   rates: RateGrid;
@@ -186,6 +193,7 @@ export function createInitialGameState(seed: number): GameState {
     stateVersion: 0,
     commandLog: [],
     commandSequence: 0,
+    eventJournal: createEventJournal(),
     calendar: { dateKey: CITY.startDateKey, minuteOfDay: 0 },
     hotel: {
       id: STARTER_HOTEL.id,

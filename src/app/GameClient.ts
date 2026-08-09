@@ -1,5 +1,6 @@
 import type { GameCommand } from "../game/domain/commands";
 import type { GameSnapshot } from "../game/domain/snapshot";
+import type { DomainEvent } from "../game/domain/events";
 import {
   PROTOCOL_VERSION,
   type WorkerRequest,
@@ -14,6 +15,15 @@ type RejectionListener = (rejection: {
   commandId: string;
   reason: string;
 }) => void;
+type AcceptanceListener = (acceptance: {
+  requestId: string;
+  commandId: string;
+  stateVersion: number;
+}) => void;
+type DomainEventListener = (events: readonly DomainEvent[]) => void;
+
+/** Removes a listener. Calling it twice is safe and does nothing. */
+export type Unsubscribe = () => void;
 
 let clients = 0;
 const nextClientId = () => ++clients;
@@ -27,6 +37,10 @@ export class GameClient {
   private errorListeners: ErrorListener[] = [];
   private saveListeners: SaveListener[] = [];
   private rejectionListeners: RejectionListener[] = [];
+  private acceptanceListeners: AcceptanceListener[] = [];
+  private domainEventListeners: DomainEventListener[] = [];
+  /** After disposal the handle is inert; late worker messages are ignored. */
+  private disposed = false;
   private requestCounter = 0;
   /** Distinguishes command ids minted by concurrent clients in one session. */
   private readonly sessionId = nextClientId();
@@ -36,20 +50,36 @@ export class GameClient {
       this.handle(event.data);
   }
 
-  onSnapshot(listener: SnapshotListener): void {
-    this.snapshotListeners.push(listener);
+  onSnapshot(listener: SnapshotListener): Unsubscribe {
+    return this.subscribe(this.snapshotListeners, listener);
   }
 
-  onError(listener: ErrorListener): void {
-    this.errorListeners.push(listener);
+  onError(listener: ErrorListener): Unsubscribe {
+    return this.subscribe(this.errorListeners, listener);
   }
 
-  onSaveData(listener: SaveListener): void {
-    this.saveListeners.push(listener);
+  onSaveData(listener: SaveListener): Unsubscribe {
+    return this.subscribe(this.saveListeners, listener);
   }
 
-  onCommandRejected(listener: RejectionListener): void {
-    this.rejectionListeners.push(listener);
+  onCommandRejected(listener: RejectionListener): Unsubscribe {
+    return this.subscribe(this.rejectionListeners, listener);
+  }
+
+  onCommandAccepted(listener: AcceptanceListener): Unsubscribe {
+    return this.subscribe(this.acceptanceListeners, listener);
+  }
+
+  onDomainEvents(listener: DomainEventListener): Unsubscribe {
+    return this.subscribe(this.domainEventListeners, listener);
+  }
+
+  private subscribe<L>(listeners: L[], listener: L): Unsubscribe {
+    listeners.push(listener);
+    return () => {
+      const at = listeners.indexOf(listener);
+      if (at >= 0) listeners.splice(at, 1);
+    };
   }
 
   init(seed: number): void {
@@ -100,6 +130,15 @@ export class GameClient {
   }
 
   dispose(): void {
+    this.disposed = true;
+    // Dropping the listeners as well as the worker means a message already in
+    // flight cannot reach a component that has been unmounted.
+    this.snapshotListeners = [];
+    this.errorListeners = [];
+    this.saveListeners = [];
+    this.rejectionListeners = [];
+    this.acceptanceListeners = [];
+    this.domainEventListeners = [];
     this.worker.terminate();
   }
 
@@ -108,6 +147,7 @@ export class GameClient {
   }
 
   private handle(message: WorkerResponse): void {
+    if (this.disposed) return;
     if (message?.protocolVersion !== PROTOCOL_VERSION) {
       for (const l of this.errorListeners) l("protocol mismatch");
       return;
@@ -125,6 +165,17 @@ export class GameClient {
             commandId: message.commandId,
             reason: message.reason,
           });
+        return;
+      case "COMMAND_ACCEPTED":
+        for (const l of this.acceptanceListeners)
+          l({
+            requestId: message.requestId,
+            commandId: message.commandId,
+            stateVersion: message.stateVersion,
+          });
+        return;
+      case "DOMAIN_EVENTS":
+        for (const l of this.domainEventListeners) l(message.events);
         return;
       case "SAVE_DATA":
         for (const l of this.saveListeners) l(message.saveData);

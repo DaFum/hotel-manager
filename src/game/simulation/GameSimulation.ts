@@ -151,6 +151,13 @@ import {
   netChannelRevenueMinor,
 } from "../distribution/channelEvolution";
 import { createRevenuePolicy } from "../revenue/revenuePolicy";
+import { createCompanyState } from "../company/companyState";
+import {
+  applyCompanyCommand,
+  isCompanyCommand,
+  validateCompanyCommand,
+} from "../company/companyCommands";
+import { runCompanyMonth, syncTreasury } from "../company/companyMonth";
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -262,6 +269,7 @@ export class GameSimulation implements CommandExecutor {
     state.revenuePolicy ??= createRevenuePolicy();
     state.technologyProjects ??= [];
     state.technologyImplementations ??= [];
+    state.company ??= createCompanyState();
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -453,6 +461,8 @@ export class GameSimulation implements CommandExecutor {
           return { ok: true };
         }
         default:
+          if (isCompanyCommand(command))
+            return validateCompanyCommand(s, command);
           return { ok: false, reason: "unknown command" };
       }
     } catch (error) {
@@ -749,6 +759,20 @@ export class GameSimulation implements CommandExecutor {
           },
           [projectId, command.technologyId],
         );
+        return;
+      }
+      default: {
+        if (!isCompanyCommand(command))
+          throw new Error(`unknown command ${(command as GameCommand).type}`);
+        // The corporate layer writes through the same draft, so an
+        // acquisition that fails halfway takes the whole command with it.
+        applyCompanyCommand(s, command, {
+          emit: (payload, entities) => this.emit(payload, entities),
+          spend: (amountMinor, account, memo) =>
+            this.spend(amountMinor, account, memo),
+        });
+        // Group cash moved; the treasury has to say so in the same breath.
+        syncTreasury(s);
         return;
       }
     }
@@ -1753,6 +1777,9 @@ export class GameSimulation implements CommandExecutor {
   private refreshMetrics(): void {
     this.refreshFacilities();
     this.refreshClassification();
+    // Group cash is one number wherever it moved this quantum; the treasury
+    // only records where inside the group it sits.
+    syncTreasury(this.state);
     const m = this.state.finance.month;
     this.state.metrics = {
       adrMinor: adrMinor(m.roomRevenueMinor, m.soldRoomNights),
@@ -2350,6 +2377,15 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
+    // The company's month runs on the closed period, after the flagship has
+    // published what it earned and before the new month starts accumulating.
+    runCompanyMonth(s, `${s.lastMonthlyClose.periodKey}-01`, {
+      emit: (payload, entities) => this.emit(payload, entities),
+      earn: (amountMinor, account, memo) =>
+        this.earn(amountMinor, account, memo),
+      spend: (amountMinor, account, memo) =>
+        this.spend(amountMinor, account, memo),
+    });
     s.finance.month = {
       openingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: 0,
@@ -2359,6 +2395,7 @@ export class GameSimulation implements CommandExecutor {
       // The first day of the new month is added right after this close.
       availableRoomNights: 0,
     };
+    syncTreasury(s);
   }
 
   private nextStaffId(role: string): string {

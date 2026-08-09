@@ -1,6 +1,7 @@
 import type { GameState } from "./initialState";
 import { balanceMinor } from "../finance/ledger";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
+import { consolidatedCashMinor } from "../treasury/treasury";
 
 /**
  * Invariants are checked after every quantum so a determinism break surfaces
@@ -61,6 +62,28 @@ export function assertInvariants(state: GameState): void {
       throw new Error(`competitor ${c.id} debt must be whole Pfennig`);
     if (!Number.isSafeInteger(c.rateMinor) || c.rateMinor <= 0)
       throw new Error(`competitor ${c.id} rate must be whole Pfennig`);
+  }
+
+  // The corporate layer must describe the same money the hotel holds. A
+  // treasury that has drifted would let the group fund a hotel out of cash
+  // that is not there.
+  const company = state.company;
+  if (company) {
+    if (consolidatedCashMinor(company.treasury) !== cash)
+      throw new Error("the treasury has drifted from group cash");
+    const portfolio = new Set<string>();
+    for (const hotelId of company.portfolio.hotelIds) {
+      if (portfolio.has(hotelId))
+        throw new Error(`duplicate portfolio hotel ${hotelId}`);
+      portfolio.add(hotelId);
+      if (!company.portfolio.hotelLegalEntity[hotelId])
+        throw new Error(`hotel ${hotelId} is held by no legal entity`);
+    }
+    for (const hotel of company.managedHotels)
+      if (!portfolio.has(hotel.hotelId))
+        throw new Error(
+          `managed hotel ${hotel.hotelId} is not in the portfolio`,
+        );
   }
 
   const minute = state.calendar.minuteOfDay;

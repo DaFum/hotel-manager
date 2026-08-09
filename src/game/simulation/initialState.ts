@@ -27,6 +27,7 @@ import {
   type RevenuePolicy,
 } from "../revenue/revenuePolicy";
 import type { TechnologyProject } from "../technology/adoption";
+import { createCompanyState, type CompanyState } from "../company/companyState";
 
 export interface RoomRecord {
   id: string;
@@ -215,6 +216,12 @@ export interface GameState {
   revenuePolicy: RevenuePolicy;
   technologyProjects: TechnologyProject[];
   technologyImplementations: string[];
+  /**
+   * The corporate layer above the hotels: portfolio, brands, development,
+   * delegation, treasury and M&A. Hotels never read it; it reads their
+   * published results.
+   */
+  company: CompanyState;
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -323,6 +330,7 @@ export function createInitialGameState(seed: number): GameState {
     revenuePolicy: createRevenuePolicy(),
     technologyProjects: [],
     technologyImplementations: [],
+    company: createCompanyState(),
   };
 }
 

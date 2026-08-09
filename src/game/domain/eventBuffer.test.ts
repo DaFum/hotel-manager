@@ -190,6 +190,96 @@ function technologyAdoptionScenario(): DomainEvent[] {
   return collected;
 }
 
+/**
+ * The corporate layer end to end: flag a brand, delegate, fund, develop, buy,
+ * and let a month close on top of it all. Everything here is a real player
+ * decision, so the coverage it produces is coverage of reachable transitions.
+ */
+function companyScenario(): DomainEvent[] {
+  const s = sim(23);
+  const collected: DomainEvent[] = [];
+  const run = (payload: GameCommand) => {
+    const result = submit(s, payload);
+    expect([payload.type, result.status]).toEqual([payload.type, "accepted"]);
+    collected.push(...s.takeDomainEvents());
+  };
+  const hotelId = s.state.hotel.id;
+
+  run({ type: "ASSIGN_BRAND", hotelId, brandId: "brand.rheinstern" });
+  run({
+    type: "SET_OPERATING_MODEL",
+    hotelId,
+    model: { kind: "franchise", royaltyBasisPoints: 400 },
+  });
+  run({
+    type: "SET_HOTEL_BUDGET",
+    hotelId,
+    capexBudgetMinor: 2_000_000,
+    operatingBudgetMinor: 8_000_000,
+  });
+  run({
+    type: "SET_MANAGER_AUTHORITY",
+    hotelId,
+    authority: { repairLimitMinor: 900_000 },
+  });
+  run({
+    type: "TRANSFER_INTERNAL_FUNDING",
+    hotelId,
+    amountMinor: 1_000_000,
+    direction: "fund",
+  });
+  run({
+    type: "RUN_DUE_DILIGENCE",
+    targetId: "target.offenbach.1",
+    areas: ["building", "environment"],
+  });
+  run({
+    type: "ACQUIRE_HOTEL",
+    targetId: "target.offenbach.1",
+    priceMinor: 30_000_000,
+  });
+  run({
+    type: "START_DEVELOPMENT",
+    developmentId: "development.hanau.1",
+    name: "Hanau Park",
+    cityId: "city.frankfurt.de",
+    rooms: 60,
+    investmentMinor: 4_000_000,
+    expectedAdrMinor: 14_000,
+    occupancyBasisPoints: 6500,
+    targetOpenDateKey: "1992-06-01",
+  });
+  for (const item of [
+    "staff",
+    "suppliers",
+    "inventory",
+    "technology",
+    "sales",
+  ] as const)
+    run({
+      type: "COMPLETE_PRE_OPENING_TASK",
+      developmentId: "development.hanau.1",
+      item,
+    });
+  run({ type: "OPEN_DEVELOPMENT", developmentId: "development.hanau.1" });
+
+  // Two closes: the first flags the brand failure, the second takes the flag.
+  collected.push(...runDays(s, 70));
+
+  const escalation = s.state.company.escalations.find(
+    (e) => e.status === "open",
+  );
+  expect(escalation).toBeDefined();
+  run({
+    type: "RESOLVE_ESCALATION",
+    escalationId: escalation!.id,
+    approve: false,
+  });
+  run({ type: "ASSIGN_BRAND", hotelId, brandId: "brand.mainblick" });
+  run({ type: "REMOVE_BRAND", hotelId });
+  return collected;
+}
+
 describe("domain event buffer", () => {
   it("stamps every event with a stable id, game time and entities", () => {
     const journal = createEventJournal();
@@ -305,6 +395,7 @@ describe("domain event buffer", () => {
     record(distressedRivalScenario());
     record(routeChangeScenario());
     record(technologyAdoptionScenario());
+    record(companyScenario());
 
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);

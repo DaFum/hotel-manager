@@ -9,12 +9,19 @@ import type { Loan } from "../finance/loans";
 import type { Asset } from "../maintenance/maintenance";
 import type { RenovationJob } from "../building/renovations";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
+import type { Classification } from "../classification/quality";
+import { defaultModuleForCategory } from "../content/rooms/modules";
+import { STARTER_PLANT } from "../content/1991/plant";
 
 export interface RoomRecord {
   id: string;
   category: string;
   state: RoomState;
   cleanliness: number;
+  /** The room product this module is fitted out to. */
+  moduleId: string;
+  /** Years since the fit-out was current; only a renovation resets it. */
+  styleAgeYears: number;
 }
 
 export interface StaffRecord {
@@ -39,6 +46,28 @@ export interface ReservationRecord extends Booking {
   arrivalDateKey: string;
   nights: number;
   segmentId: string;
+}
+
+/** One serviced area as the player sees it: load, capacity and the binding cause. */
+export interface FacilityRecord {
+  id: string;
+  name: string;
+  demand: number;
+  capacity: number;
+  cause: string;
+}
+
+/** A signed conference, from the day it is booked to the day it moves out. */
+export interface EventRecord {
+  id: string;
+  guests: number;
+  nights: number;
+  roomsBlocked: number;
+  /** The rate category those rooms come out of. */
+  blockedCategory: string;
+  startDateKey: string;
+  valueMinor: number;
+  status: "confirmed" | "running" | "complete";
 }
 
 export interface AlertRecord {
@@ -74,7 +103,33 @@ export interface GameState {
     dueAtMinutes: number;
   }[];
   staff: StaffRecord[];
-  assets: (Asset & { id: string })[];
+  assets: (Asset & {
+    id: string;
+    /** Nameplate throughput, in the unit its consumer measures. */
+    rated: number;
+    replacementMinor: number;
+  })[];
+  /** Serviced areas recomputed every snapshot; never a source of truth itself. */
+  facilities: FacilityRecord[];
+  /** Linen pieces in circulation. */
+  linen: { clean: number; dirty: number };
+  events: EventRecord[];
+  wellness: {
+    treatmentRooms: number;
+    therapists: number;
+    openMinutes: number;
+    booked: number;
+  };
+  /** Lift trips generated today; reset at midnight. */
+  elevatorTrips: number;
+  /** Conference housekeeping still outstanding, in simulated minutes. */
+  eventHousekeepingMinutes: number;
+  /** Conference housekeeping the shift has actually worked off today. */
+  eventHousekeepingWorkedMinutes: number;
+  classification: Classification;
+  specializationId: string | null;
+  /** Floor area actually built for a profile; only investment moves it. */
+  investedArea: { conferenceSqm: number; wellnessSqm: number };
   finance: {
     cashMinor: number;
     /** Expenses recognised but not yet payable in cash. */
@@ -107,12 +162,18 @@ export function createInitialGameState(seed: number): GameState {
     hotel: {
       id: STARTER_HOTEL.id,
       name: STARTER_HOTEL.name,
-      rooms: Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => ({
-        id: `room.${STARTER_HOTEL.firstRoomNumber + i}`,
-        category: i < STARTER_HOTEL.singleRooms ? "single" : "double",
-        state: "VacantClean" as RoomState,
-        cleanliness: 100,
-      })),
+      rooms: Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => {
+        const category = i < STARTER_HOTEL.singleRooms ? "single" : "double";
+        return {
+          id: `room.${STARTER_HOTEL.firstRoomNumber + i}`,
+          category,
+          state: "VacantClean" as RoomState,
+          cleanliness: 100,
+          moduleId: defaultModuleForCategory(category).id,
+          // The house was last done out in the mid seventies.
+          styleAgeYears: 16,
+        };
+      }),
     },
     rates: {},
     reservations: [],
@@ -121,10 +182,14 @@ export function createInitialGameState(seed: number): GameState {
     stock: { "cleaning-unit": 240, "breakfast-portion": 180 },
     pendingOrders: [],
     staff: STARTER_STAFF.map((s) => ({ ...s, absent: false })),
-    assets: [
-      { id: "asset.boiler", condition: 9000, status: "operational" },
-      { id: "asset.lift", condition: 9500, status: "operational" },
-    ],
+    assets: STARTER_PLANT.map((a) => ({
+      id: a.id,
+      condition: a.startingCondition,
+      status: "operational" as const,
+      minutesSinceService: 0,
+      rated: a.rated,
+      replacementMinor: a.replacementMinor,
+    })),
     finance: {
       cashMinor: STARTER_HOTEL.startingCashMinor,
       payableMinor: 0,
@@ -143,6 +208,24 @@ export function createInitialGameState(seed: number): GameState {
       principalMinor: 10_000_000,
       annualRateBasisPoints: 900,
       termMonths: 120,
+    },
+    facilities: [],
+    linen: { clean: STARTER_HOTEL.startingLinenPieces, dirty: 0 },
+    events: [],
+    wellness: {
+      treatmentRooms: STARTER_HOTEL.treatmentRooms,
+      therapists: 0,
+      openMinutes: STARTER_HOTEL.wellnessOpenMinutes,
+      booked: 0,
+    },
+    elevatorTrips: 0,
+    eventHousekeepingMinutes: 0,
+    eventHousekeepingWorkedMinutes: 0,
+    classification: { stars: 0, blockedBy: [] },
+    specializationId: null,
+    investedArea: {
+      conferenceSqm: STARTER_HOTEL.conferenceSqm,
+      wellnessSqm: STARTER_HOTEL.wellnessSqm,
     },
     housekeepingMinutes: 0,
     receptionCapacity: 0,

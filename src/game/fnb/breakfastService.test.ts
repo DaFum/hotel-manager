@@ -10,8 +10,15 @@ describe("breakfast", () => {
         kitchenCovers: 30,
         stock: 28,
         priceMinor: 1800,
+        ingredientMinor: 650,
       }),
-    ).toEqual({ served: 28, queue: 22, stockLeft: 0, revenueMinor: 50400 });
+    ).toEqual({
+      served: 28,
+      queue: 22,
+      stockLeft: 0,
+      revenueMinor: 50400,
+      contributionMinor: 32200,
+    });
   });
 
   it("is closed outside 0630 to 1030", () => {
@@ -47,7 +54,13 @@ describe("breakfast", () => {
         priceMinor: 1800,
         minuteOfDay: 480,
       }),
-    ).toEqual({ served: 0, queue: 24, stockLeft: 0, revenueMinor: 0 });
+    ).toEqual({
+      served: 0,
+      queue: 24,
+      stockLeft: 0,
+      revenueMinor: 0,
+      contributionMinor: 0,
+    });
   });
 
   it("serves the full demand when nothing constrains it", () => {
@@ -60,6 +73,26 @@ describe("breakfast", () => {
         priceMinor: 1800,
         minuteOfDay: 390,
       }),
-    ).toEqual({ served: 10, queue: 0, stockLeft: 20, revenueMinor: 18000 });
+    ).toEqual({
+      served: 10,
+      queue: 0,
+      stockLeft: 20,
+      revenueMinor: 18000,
+      contributionMinor: 18000,
+    });
+  });
+
+  it("loses covers to seats a conference has blocked for the service", () => {
+    const blocked = serveBreakfast({
+      demand: 30,
+      seats: 36,
+      kitchenCovers: 30,
+      stock: 60,
+      priceMinor: 1800,
+      minuteOfDay: 480,
+      reservedSeats: 34,
+    });
+    expect(blocked.served).toBe(16);
+    expect(blocked.queue).toBe(14);
   });
 });

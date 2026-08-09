@@ -1,26 +1,21 @@
-export const SAVE_VERSION = 1 as const;
-export const CONTENT_VERSION = "vertical-slice-1991-v1" as const;
+import { migrateV1ToV2 } from "./migrations/v1-to-v2";
+import {
+  CONTENT_VERSION,
+  MIGRATABLE_SAVE_VERSIONS,
+  RNG_STREAM_NAMES,
+  SAVE_VERSION,
+  type RngStreamName,
+  type SaveEnvelope,
+} from "./saveVersions";
 
-export type RngStreamName =
-  "guests" | "staffing" | "failures" | "economy" | "events" | "weather" | "AI";
-
-export interface SaveEnvelope {
-  saveVersion: 1;
-  contentVersion: string;
-  protocolVersion: 1;
-  rngState: Record<RngStreamName, number>;
-  state: unknown;
-}
-
-export const RNG_STREAM_NAMES: readonly RngStreamName[] = [
-  "guests",
-  "staffing",
-  "failures",
-  "economy",
-  "events",
-  "weather",
-  "AI",
-];
+export {
+  CONTENT_VERSION,
+  MIGRATABLE_SAVE_VERSIONS,
+  RNG_STREAM_NAMES,
+  SAVE_VERSION,
+  type RngStreamName,
+  type SaveEnvelope,
+} from "./saveVersions";
 
 /** Every stream must be present and whole, or a replay silently diverges. */
 export function isCompleteRngState(
@@ -46,4 +41,28 @@ export function isCompatible(envelope: SaveEnvelope): boolean {
 
 export function assertCompatible(envelope: SaveEnvelope): void {
   if (!isCompatible(envelope)) throw new Error("incompatible save version");
+}
+
+/**
+ * Brings a stored envelope forward to this build. Migration is explicit and
+ * ordered: a save is never silently reinterpreted, it is rewritten.
+ */
+export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
+  if (!envelope) return envelope;
+  // One step per declared version, so adding a version to the list without a
+  // step is a visible gap rather than a silent no-op.
+  const steps: Record<number, (e: SaveEnvelope) => SaveEnvelope> = {
+    1: migrateV1ToV2,
+  };
+  let current = envelope;
+  while (
+    (MIGRATABLE_SAVE_VERSIONS as readonly number[]).includes(
+      current.saveVersion,
+    )
+  ) {
+    const step = steps[current.saveVersion];
+    if (!step) break;
+    current = step(current);
+  }
+  return current;
 }

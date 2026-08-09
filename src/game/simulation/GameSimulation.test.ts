@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { GameSimulation, PHASE_ORDER } from "./GameSimulation";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
-import { createInitialGameState } from "./initialState";
+import { createInitialGameState, type GameState } from "./initialState";
+import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -322,10 +323,111 @@ describe("simulated operations", () => {
     expect(Math.abs(wages - monthly)).toBeLessThanOrEqual(31);
   });
 
-  it("converts the free module into two extra rooms", () => {
+  it("converts the free module into two extra rooms after the full lifecycle", () => {
     const sim = new GameSimulation(createInitialGameState(424242));
     sim.queueCommand({ type: "START_RENOVATION" });
+    // Planning and approval run before any building starts, so the rooms are
+    // still nine days away.
     runQuanta(sim, QUANTA_PER_DAY * 4);
+    expect(sim.snapshot().hotel.rooms).toHaveLength(24);
+    runQuanta(sim, QUANTA_PER_DAY * 6);
     expect(sim.snapshot().hotel.rooms).toHaveLength(26);
+  });
+});
+
+describe("hotel depth", () => {
+  function stateWith(mutate: (s: GameState) => void): GameSimulation {
+    const state = createInitialGameState(424242);
+    mutate(state);
+    return new GameSimulation(state);
+  }
+
+  it("takes a conference block out of one category only", () => {
+    const sim = stateWith((s) => {
+      s.events.push({
+        id: "event.block",
+        guests: 40,
+        nights: 2,
+        roomsBlocked: 6,
+        blockedCategory: "double",
+        startDateKey: s.calendar.dateKey,
+        valueMinor: 100_000,
+        status: "confirmed",
+      });
+    });
+    const s = sim.state;
+    const singles = s.hotel.rooms.filter((r) => r.category === "single").length;
+    const doubles = s.hotel.rooms.filter((r) => r.category === "double").length;
+
+    // The block belongs to doubles; singles must be untouched by it.
+    const available = (category: string) =>
+      (
+        sim as unknown as {
+          availableRooms: (d: string, c: string) => number;
+        }
+      ).availableRooms(s.calendar.dateKey, category);
+    expect(available("single")).toBe(singles);
+    expect(available("double")).toBe(doubles - 6);
+  });
+
+  it("spends a technician's shift once, not once per asset", () => {
+    const sim = stateWith((s) => {
+      // Both plant items fall due on the same day, with one technician on.
+      for (const asset of s.assets)
+        asset.minutesSinceService = SERVICE_INTERVAL_MINUTES;
+      s.staff = s.staff.filter((m) => m.role !== "technician");
+      s.staff.push({
+        id: "staff.technician.1",
+        role: "technician",
+        shift: "morning",
+        skill: 60,
+        monthlyWageMinor: 290_000,
+        absent: false,
+      });
+    });
+    runQuanta(sim, QUANTA_PER_DAY + 1);
+    const serviced = sim.state.assets.filter(
+      (a) => (a.minutesSinceService ?? 0) < SERVICE_INTERVAL_MINUTES,
+    );
+    // One technician contributes 240 minutes and a service takes 180, so only
+    // one of the two assets can be serviced that day.
+    expect(serviced).toHaveLength(1);
+  });
+
+  it("ages every room's fit-out on the calendar year rollover", () => {
+    const sim = stateWith((s) => {
+      s.calendar = { dateKey: "1991-12-31", minuteOfDay: 1380 };
+    });
+    const before = sim.state.hotel.rooms[0].styleAgeYears;
+    runQuanta(sim, QUANTA_PER_DAY);
+    expect(sim.state.calendar.dateKey.slice(0, 4)).toBe("1992");
+    expect(
+      sim.state.hotel.rooms.every((r) => r.styleAgeYears === before + 1),
+    ).toBe(true);
+  });
+
+  it("works conference housekeeping off the same shift the rooms use", () => {
+    const sim = stateWith((s) => {
+      s.calendar = { dateKey: s.calendar.dateKey, minuteOfDay: 835 };
+      s.events.push({
+        id: "event.load",
+        guests: 120,
+        nights: 1,
+        roomsBlocked: 20,
+        blockedCategory: "double",
+        startDateKey: s.calendar.dateKey,
+        valueMinor: 500_000,
+        status: "confirmed",
+      });
+    });
+    runQuanta(sim, 2);
+    const s = sim.state;
+    // The load was booked as real work and the shift has started on it.
+    expect(
+      s.eventHousekeepingMinutes + s.eventHousekeepingWorkedMinutes,
+    ).toBeGreaterThan(0);
+    expect(s.eventHousekeepingWorkedMinutes).toBeGreaterThan(0);
+    // Labour spent on the hall is no longer available for room turnaround.
+    expect(s.housekeepingMinutes).toBe(0);
   });
 });

@@ -56,6 +56,24 @@ export function deliverOrder(
   return { ...stock, [o.sku]: (stock[o.sku] ?? 0) + o.quantity };
 }
 
+/**
+ * Linen is the one consumable two systems compete for: housekeeping needs it
+ * to make a room up, and the laundry needs the same pile back. Reserving is
+ * read-only on purpose — it answers "is there enough" without moving stock,
+ * so a rejected turnaround cannot leak pieces.
+ */
+export function reserveLinen(
+  stock: Record<string, number>,
+  pieces: number,
+  sku = "linen-piece",
+): { available: number } {
+  assertNonNegativeCount(pieces, "pieces");
+  const held = stock[sku] ?? 0;
+  assertNonNegativeCount(held, `${sku} stock`);
+  if (held < pieces) throw new Error(`insufficient linen: ${held} < ${pieces}`);
+  return { available: held - pieces };
+}
+
 export function consume(stock: Record<string, number>, sku: string, q: number) {
   assertPositiveCount(q, "quantity");
   if ((stock[sku] ?? 0) < q) throw new Error("stockout");

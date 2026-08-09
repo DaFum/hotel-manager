@@ -1,5 +1,6 @@
 import { Application, Container, Graphics } from "pixi.js";
 import { isoProject } from "./isoProjection";
+import { FacilityLayer, type FacilityTile } from "./facilities/FacilityLayer";
 
 export const TILE_WIDTH = 64;
 export const TILE_HEIGHT = 32;
@@ -27,14 +28,22 @@ const STATE_COLOURS: Record<string, number> = {
 export class PixiHotelScene {
   private app = new Application();
   private tiles = new Container();
+  private facilities = new FacilityLayer();
 
   async attach(canvasHost: HTMLElement): Promise<void> {
     await this.app.init({ background: 0x1b1b1f, resizeTo: canvasHost });
     canvasHost.appendChild(this.app.canvas);
     this.app.stage.addChild(this.tiles);
+    this.facilities.container.position.set(8, 8);
+    this.app.stage.addChild(this.facilities.container);
   }
 
-  render(rooms: readonly SceneRoom[], columns = 6): void {
+  render(
+    rooms: readonly SceneRoom[],
+    facilities: readonly FacilityTile[] = [],
+    columns = 6,
+  ): void {
+    this.facilities.render(facilities);
     this.tiles.removeChildren();
     rooms.forEach((room, index) => {
       const { x, y } = isoProject(

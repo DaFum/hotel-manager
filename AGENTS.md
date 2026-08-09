@@ -94,9 +94,17 @@ When executing a plan:
 
 ### Current repository state
 
-Plan 01 (1991 single-hotel vertical slice, rev 1.1) is implemented through Task 21 and its
-verification gate is green. Plan 02 is the next plan; do not start it before re-running the
-Plan 01 gate in a fresh session.
+Plan 01 (1991 single-hotel vertical slice, rev 1.1) and Plan 02 (hotel depth and
+specialization, Tasks 1-13) are implemented and their verification gates are green.
+Plan 03 is the next plan; do not start it before re-running the Plan 02 gate in a fresh
+session.
+
+Plan 02 added: room modules and commercial aging, the planning/approval/construction/
+acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
+demand), linen and laundry logistics, wellness and fitness, conference sales and
+execution load, engineering capacity with preventive maintenance, staff areas, mobility
+and security, classification and specialization, the facility board in the snapshot,
+Pixi and DOM, and the v1-to-v2 save migration.
 
 Layout as built:
 
@@ -105,12 +113,17 @@ src/app/         React shell, GameClient (worker handle), useGameStore
 src/game/domain/ money, calendar, ids, rng streams, protocol, commands, events, snapshot
 src/game/content/1991/  Frankfurt, starter hotel, guest segments, suppliers
 src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb,
-                        maintenance, finance, building, explanations, facilities
+                        maintenance, finance, building, explanations, facilities,
+                        laundry, wellness, eventsales, engineering, classification,
+                        renovation
+src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
+src/game/persistence/migrations/  versioned save migrations (v1 -> v2)
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository
 src/render/      isoProjection, PixiHotelScene
 src/ui/          TopBar, HotelView, dashboards, AlertsPanel, MonthlyCloseModal
-e2e/, scripts/   Playwright slice spec, deterministic benchmark
+src/ui/facilities/, src/render/facilities/  facility board and Pixi load strip
+e2e/, scripts/   Playwright slice and hotel-depth specs, deterministic benchmark
 ```
 
 Available scripts:

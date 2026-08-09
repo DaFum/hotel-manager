@@ -24,6 +24,14 @@ export const SUPPLIERS: readonly Supplier[] = [
     leadMinutes: 720,
     minimumQuantity: 60,
   },
+  {
+    id: "supplier.waeschehaus-offenbach",
+    name: "Wäschehaus Offenbach",
+    sku: "linen-piece",
+    unitPriceMinor: 900,
+    leadMinutes: 2880,
+    minimumQuantity: 100,
+  },
 ];
 
 export function supplierForSku(sku: string): Supplier {

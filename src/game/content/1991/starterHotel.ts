@@ -12,6 +12,40 @@ export const STARTER_HOTEL = {
   breakfastPriceMinor: 1800,
   /** Charged per failed asset per day while a repair is outstanding. */
   dailyRepairCostMinor: 25_000,
+
+  // --- deep facilities ---------------------------------------------------
+  restaurantSeats: 48,
+  barSeats: 24,
+  /** Covers the bar draws from the city at market price and average repute. */
+  barBaseExternalCovers: 20,
+  /** The bar's price against the comparable city price, in basis points. */
+  barPriceIndexBp: 10000,
+  /** The bar's standing with non-resident guests, in basis points. */
+  barReputationBp: 5000,
+  /** Treatment rooms and the daily opening window of the small spa. */
+  treatmentRooms: 2,
+  wellnessOpenMinutes: 6 * 60,
+  wellnessSqm: 90,
+  wellnessTreatmentPriceMinor: 5500,
+  /** Gym floor and stations. */
+  fitnessSqm: 48,
+  fitnessStations: 6,
+  /** The one conference room the house starts with. */
+  conferenceSqm: 180,
+  /** Floor area one seated delegate needs in the hall. */
+  conferenceSqmPerSeat: 1.5,
+  /** In-house laundry: pieces per day by machine and per laundry hand. */
+  laundryMachinePieces: 220,
+  laundryPiecesPerStaff: 120,
+  /** Contract laundry will take this much overflow a day. */
+  externalLaundryPieces: 400,
+  startingLinenPieces: 600,
+  /** Guest lifts. */
+  elevatorCars: 1,
+  /** Back-of-house area available to the largest shift. */
+  staffAreaSqm: 36,
+  /** Guards rostered before any event or VIP load. */
+  baseSecurityStaff: 1,
 } as const;
 
 export const STARTER_STAFF = [
@@ -49,5 +83,26 @@ export const STARTER_STAFF = [
     shift: "morning",
     skill: 60,
     monthlyWageMinor: 280_000,
+  },
+  {
+    id: "staff.fnb.1",
+    role: "fnb",
+    shift: "evening",
+    skill: 55,
+    monthlyWageMinor: 245_000,
+  },
+  {
+    id: "staff.laundry.1",
+    role: "laundry",
+    shift: "morning",
+    skill: 50,
+    monthlyWageMinor: 235_000,
+  },
+  {
+    id: "staff.technician.1",
+    role: "technician",
+    shift: "morning",
+    skill: 65,
+    monthlyWageMinor: 295_000,
   },
 ] as const;

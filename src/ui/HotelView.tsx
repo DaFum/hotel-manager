@@ -7,8 +7,19 @@ export interface HotelViewRoom {
   cleanliness: number;
 }
 
+export interface HotelViewFacility {
+  id: string;
+  name: string;
+  demand: number;
+  capacity: number;
+  cause: string;
+}
+
 interface PixiScene {
-  render: (rooms: readonly HotelViewRoom[]) => void;
+  render: (
+    rooms: readonly HotelViewRoom[],
+    facilities: readonly HotelViewFacility[],
+  ) => void;
   destroy: () => void;
 }
 
@@ -18,6 +29,7 @@ export function humanRoomState(state: string): string {
 
 export function HotelView(props: {
   rooms: readonly HotelViewRoom[];
+  facilities?: readonly HotelViewFacility[];
   onSelect?: (roomId: string) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
@@ -53,8 +65,8 @@ export function HotelView(props: {
   }, []);
 
   useEffect(() => {
-    if (sceneReady) scene.current?.render(props.rooms);
-  }, [props.rooms, sceneReady]);
+    if (sceneReady) scene.current?.render(props.rooms, props.facilities ?? []);
+  }, [props.rooms, props.facilities, sceneReady]);
 
   const detail = props.rooms.find((r) => r.id === selected);
 

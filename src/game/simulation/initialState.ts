@@ -56,6 +56,10 @@ import {
   createGuestRelationsState,
   type GuestRelationsState,
 } from "../guests/partyLifecycle";
+import {
+  createNarrativeState,
+  type NarrativeState,
+} from "../narrative/narrativeState";
 import type { RecoveryRecord } from "../guests/recoveryAuthority";
 import {
   addSpace,
@@ -282,6 +286,8 @@ export interface GameState {
   guestRelations: GuestRelationsState;
   /** Every complaint and what was actually done about it. */
   recoveries: RecoveryRecord[];
+  /** The deterministic campaign, its people, events and remembered history. */
+  narrative: NarrativeState;
   /** Shops, parking, outdoor areas and who operates each of them. */
   commercialSpaces: CommercialSpaceState;
   /**
@@ -427,6 +433,7 @@ export function createInitialGameState(seed: number): GameState {
     procurement: createProcurementState(),
     guestRelations: createGuestRelationsState(),
     recoveries: [],
+    narrative: createNarrativeState(),
     commercialSpaces: STARTER_COMMERCIAL_SPACES.reduce(
       (state, space) =>
         addSpace(state, { ...space, operator: { ...space.operator } }),

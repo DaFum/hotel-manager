@@ -4,6 +4,7 @@ import { migrateV1ToV2 } from "./migrations/v1-to-v2";
 import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import { migrateV3ToV4 } from "./migrations/v3-to-v4";
 import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
+import { migrateV5ToV6 } from "./migrations/v5-to-v6";
 import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
@@ -95,6 +96,15 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  if (
+    !state.narrative ||
+    !Array.isArray(state.narrative.chronicle) ||
+    !Array.isArray(state.narrative.activeEvents) ||
+    !Array.isArray(state.narrative.achievedMilestones) ||
+    !state.narrative.campaign ||
+    !state.narrative.career
+  )
+    problems.push("the state has no complete Plan 06 narrative");
   const company = state.company;
   if (
     !company ||
@@ -163,6 +173,7 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     2: migrateV2ToV3,
     3: migrateV3ToV4,
     4: migrateV4ToV5,
+    5: migrateV5ToV6,
   };
   let current = envelope;
   // Early v5 builds wrote fields whose accounting and unit upgrades must be

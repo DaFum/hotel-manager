@@ -16,7 +16,7 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plan 03.5 conformance-remediation final verification**. The original Plan 03 green gate alone is insufficient after the implementation audit.
 
-MASTER-spec coverage: MASTER chapters 34–39, plus the technology-dependent chapter 6–7 completion delta. See `2026-08-09-MASTER-spec-coverage-audit.md`.
+MASTER-spec coverage: MASTER chapters 34–39, plus the technology-dependent chapter 6–7 completion delta. See `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
 
 ## Implementation fidelity rule
 
@@ -378,6 +378,8 @@ git commit -m "feat: add systemic crises"
 **Files:**
 - Create: `src/game/world/climate.ts`
 - Create: `src/game/regulation/compliance.ts`
+- Test: `src/game/world/climate.test.ts`
+- Test: `src/game/world/climate.integration.test.ts`
 - Test: `src/game/regulation/compliance.test.ts`
 
 **MASTER completion contract:**
@@ -392,16 +394,21 @@ git commit -m "feat: add systemic crises"
 - Rule changes arise from world state, never hard-coded post-1991 dates. The player gets
   an explainable gap and remediation path; one opaque `compliant` flag is insufficient.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing tests**
 
 ```ts
 import {expect,it} from 'vitest';import {complianceStatus} from './compliance';it('flags a hotel below a legal requirement',()=>{expect(complianceStatus(60,75)).toBe('noncompliant');});
 ```
 
+Also add focused climate tests proving that the same seed reproduces weather outcomes,
+weather draws do not advance any non-weather RNG stream, and weather effects propagate
+through demand, transport reliability, utilities, outdoor facilities, incidents, and
+insurance in stable phase/ID order.
+
 - [ ] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
-npm run test:run -- src/game/regulation/compliance.test.ts
+npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climate.test.ts src/game/world/climate.integration.test.ts
 ```
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
@@ -417,14 +424,14 @@ The one-value comparison used by the first unit test is only a leaf rule, not th
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
-npm run test:run -- src/game/regulation/compliance.test.ts
+npm run test:run -- src/game/regulation/compliance.test.ts src/game/world/climate.test.ts src/game/world/climate.integration.test.ts src/game/world/WorldSimulation.test.ts
 npm run typecheck
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/game/regulation/compliance.test.ts src/game/regulation/compliance.ts src/game/world/climate.ts
+git add src/game/regulation/compliance.test.ts src/game/regulation/compliance.ts src/game/world/climate.integration.test.ts src/game/world/climate.test.ts src/game/world/climate.ts src/game/world/WorldSimulation.test.ts
 git commit -m "feat: add climate and compliance"
 ```
 
@@ -569,8 +576,20 @@ git commit -m "feat: orchestrate world simulation"
 
 **Files:**
 - Create: `src/game/persistence/migrations/v3-to-v4.ts`
+- Test: `src/game/persistence/migrations/v3-to-v4.test.ts`
+- Create: `src/game/persistence/fixtures/save-v3-active-reservations.json`
+- Create: `src/game/persistence/fixtures/save-v4.json`
 - Create: `src/game/world/longRun.test.ts`
 - Create: `e2e/alternative-history.spec.ts`
+
+**Target-schema freeze:** Before implementing this migration, finalize the complete v4
+schema for Tasks 1-13. The v3-to-v4 migration owns world/currency state, revenue policies,
+and normalization of every non-empty v3 reservation into the authoritative Task 13
+shape, including channel, rate plan, commission, deposit, guarantee/cancellation terms,
+and explicit defaults with documented economic meaning. Add a non-empty v3 fixture and a
+v4 round-trip fixture; do not rely on `undefined` or load-time guesses. If a v4 save from
+an earlier development build can already exist, add versioned load-time normalization
+and a fixture for that exact v4 shape before accepting it as current.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -578,10 +597,14 @@ git commit -m "feat: orchestrate world simulation"
 import {expect,it} from 'vitest';import {runWorldYears} from '../test/worldScenario';it('keeps bounded macro and technology values for 50 years',()=>{const r=runWorldYears(50,9001);expect(r.maxInflationBp).toBeLessThan(5000);expect(r.maxTechnologyBp).toBeLessThanOrEqual(10000);});
 ```
 
+Add migration failures using `save-v3-active-reservations.json`: assert every active
+reservation is normalized to the frozen v4 schema, revenue policies are explicit, stable
+IDs and original economics are preserved, and migrate-save-reload is idempotent.
+
 - [ ] **Step 2: Run the targeted test and verify the expected failure**
 
 ```bash
-npm run test:run -- src/game/world/longRun.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
+npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migrations/v3-to-v4.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
 ```
 
 Expected: FAIL because the new contract or behavior is not implemented yet.
@@ -597,18 +620,19 @@ export function migrateV3ToV4(s:Record<string,unknown>){return{...s,saveVersion:
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
-npm run test:run -- src/game/world/longRun.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
+npm run test:run -- src/game/world/longRun.test.ts src/game/persistence/migrations/v3-to-v4.test.ts && npm run test:e2e -- e2e/alternative-history.spec.ts
 npm run typecheck
 ```
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add e2e/alternative-history.spec.ts src/game/persistence/migrations/v3-to-v4.ts src/game/world/longRun.test.ts
+git add e2e/alternative-history.spec.ts src/game/persistence/fixtures/save-v3-active-reservations.json src/game/persistence/fixtures/save-v4.json src/game/persistence/migrations/v3-to-v4.test.ts src/game/persistence/migrations/v3-to-v4.ts src/game/world/longRun.test.ts
 git commit -m "feat: integrate alternative history"
 ```
 
 ---
+
 ### Task 13: Complete adoption-driven distribution and revenue management
 
 **Files:**
@@ -616,6 +640,7 @@ git commit -m "feat: integrate alternative history"
 - Create: `src/game/revenue/revenuePolicy.ts`
 - Test: `src/game/distribution/channelEvolution.test.ts`
 - Test: `src/game/revenue/revenuePolicy.test.ts`
+- Test: `src/game/persistence/migrations/v3-to-v4.test.ts`
 - Modify: `src/game/simulation/GameSimulation.ts`
 - Modify: `src/game/persistence/migrations/v3-to-v4.ts`
 - Modify: `e2e/alternative-history.spec.ts`
@@ -651,11 +676,13 @@ npm run test:run -- src/game/distribution/channelEvolution.test.ts src/game/reve
 - [ ] **Step 3: Implement through typed commands and the existing booking/demand
   phases.** Reuse one inventory and pricing model for player and competitor hotels;
   emit causes for conversion, commission, rejection, displacement, and recovery. Add
-  persisted policies to the v3-to-v4 migration without consuming another save version.
+  persisted policies and full active-reservation normalization to the complete v3-to-v4
+  migration without consuming another save version.
 - [ ] **Step 4: Verify the focused systems, determinism, E2E, and types:**
 
 ```bash
 npm run test:run -- src/game/distribution src/game/revenue src/game/simulation
+npm run test:run -- src/game/persistence/migrations/v3-to-v4.test.ts
 npm run test:e2e -- e2e/alternative-history.spec.ts
 npm run typecheck
 ```
@@ -663,7 +690,7 @@ npm run typecheck
 - [ ] **Step 5: Commit:**
 
 ```bash
-git add src/game/distribution src/game/revenue src/game/simulation/GameSimulation.ts src/game/persistence/migrations/v3-to-v4.ts e2e/alternative-history.spec.ts
+git add src/game/distribution src/game/revenue src/game/simulation/GameSimulation.ts src/game/persistence/fixtures/save-v3-active-reservations.json src/game/persistence/fixtures/save-v4.json src/game/persistence/migrations/v3-to-v4.test.ts src/game/persistence/migrations/v3-to-v4.ts e2e/alternative-history.spec.ts
 git commit -m "feat: complete evolving distribution and revenue"
 ```
 

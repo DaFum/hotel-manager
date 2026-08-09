@@ -16,7 +16,7 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-04 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 22-28 and 40-44, including the audited Plan 01-02 depth completion delta; implementation decomposition chapters 88 and 91. See `2026-08-09-MASTER-spec-coverage-audit.md`.
+MASTER-spec coverage: MASTER chapters 22-28 and 40-44, including the audited Plan 01-02 depth completion delta; implementation decomposition chapters 88 and 91. See `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
 
 ## Implementation fidelity rule
 
@@ -906,6 +906,16 @@ git commit -m "feat: add corporate portfolio ui"
 - Test: `src/game/persistence/migrations/v4-to-v5.test.ts`
 - Create: `e2e/multi-hotel.spec.ts`
 
+**Target-schema freeze:** Before implementing this migration, finalize the complete v5
+schema for Tasks 1-21. The v4-to-v5 migration and its non-empty fixture own every new
+persistent company and completion-delta field: portfolio/legal entities; ownership and
+operating contracts; brands/audits; development/ramp-up; shared services, budgets,
+authority/escalations and treasury; finance/insurance/utilities; CRM/loyalty/reputation;
+employees and suppliers; parties, complaints and recoveries; facilities/operator
+contracts, capacity, staffing, maintenance and classification. If an earlier development
+v5 save can exist, specify and test idempotent load-time normalization for that exact
+shape instead of silently accepting partial v5 state.
+
 - [ ] **Step 1: Write the failing test**
 
 ```ts
@@ -978,6 +988,12 @@ exclusions, underinsurance, evidence, delay, settlement, and ledger effects. Ene
 water, waste, contracts, outages, efficiency investment, and consequences remain
 separate; there is no universal green score.
 
+**Migration ownership:** Extend `v4-to-v5.ts` and its non-empty round-trip fixture with
+ledger accounts/postings, statements, assets/depreciation, receivables/payables, debt and
+treasury schedules, insurance policies/claims, utility contracts/meters/outages, and
+their stable company/hotel references. Assert balance equations and no duplicated
+postings after migration plus reload.
+
 - [ ] Write failing invariant tests for P&L, cash flow, balance sheet, depreciation,
   receivables/payables, tax abstraction, debt schedules, collateral, insolvency and
   restructuring; add deterministic policy/claim/underinsurance tests and metered
@@ -1005,6 +1021,11 @@ loyalty models earn, burn, tiers, benefits, liability, breakage, and cross-hotel
 Hotel, brand, group, employer, media, channel reputation, and personal prestige remain
 separate with scoped causes, decay/repair, and effects.
 
+**Migration ownership:** Extend `v4-to-v5.ts` and its non-empty round-trip fixture with
+active sales contracts and campaigns, CRM consent/history, loyalty balances/liabilities,
+and every reputation dimension/contributor. Assert stable account/guest IDs, preserved
+ledger liabilities, and no repeated earn/burn or attribution on reload.
+
 - [ ] Write failing causal tests for early/late channel availability, campaign target,
   duration, budget, attribution uncertainty, negotiated accounts, CRM consent/data,
   loyalty earn/burn/liability, and separate hotel/brand/group/employer/media/channel
@@ -1020,6 +1041,12 @@ separate with scoped causes, decay/repair, and effects.
 **Files:** Create `src/game/staff/employeeLifecycle.ts` and
 `src/game/purchasing/contracts.ts`; add tests; modify shared-services and governance UI.
 
+**Migration ownership:** Extend `v4-to-v5.ts` and its round-trip fixture with employee
+contracts, lifecycle/absence/development state, employer-reputation references, supplier
+contracts, inventory ownership, reorder/lead-time/spoilage state, and central-purchasing
+delegation. The fixture must contain active employees, an in-flight order, inventory, and
+an active supplier contract rather than only empty defaults.
+
 - [ ] Write failing tests for contracts, overtime, sickness, leave, training,
   promotion, resignation/dismissal, employer reputation, supplier terms, lead time,
   spoilage, reorder rules, stockouts, and central-purchasing trade-offs.
@@ -1033,6 +1060,12 @@ separate with scoped causes, decay/repair, and effects.
 
 **Files:** Create `src/game/guests/partyLifecycle.ts` and
 `src/game/guests/recoveryAuthority.ts`; add tests; modify CRM/reputation integration.
+
+**Migration ownership:** Extend `v4-to-v5.ts` and its round-trip fixture with non-empty
+party/stay lifecycle, complaint and recovery records, authority decisions, CRM consent
+and history, loyalty balances/liabilities, reputation contributors, and their ledger
+postings. Assert stable guest/booking IDs and that migrated recovery costs are neither
+lost nor posted twice.
 
 **MASTER completion contract:** Parties have stable identity/membership, segment, needs,
 budget, preferences, tolerance, loyalty, and booking context. Search/comparison uses
@@ -1054,6 +1087,12 @@ and outcome; recovery may mitigate but never erase the original failure.
 **Files:** Create `src/game/facilities/lobbyAutomation.ts`,
 `src/game/facilities/commercialSpaces.ts`, and tests; extend facility snapshot, DOM/Pixi,
 classification, brand audit, and `e2e/multi-hotel.spec.ts`.
+
+**Migration ownership:** Extend `v4-to-v5.ts` and its round-trip fixture with ownership
+or operator contracts, facility capacity/hours/prices, staffing assignments, maintenance
+state, lobby automation adoption, security/mobility dependencies, classification inputs,
+and specialization state. Use a non-empty operated or leased facility so contract and
+ledger links are verified.
 
 **MASTER completion contract:** Lobby demand includes arrival, orientation, waiting,
 reception, checkout, baggage, and concierge. Capacity expansions and adoption-gated

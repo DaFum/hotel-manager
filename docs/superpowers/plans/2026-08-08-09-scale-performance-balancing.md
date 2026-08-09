@@ -16,7 +16,7 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-08 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 30, 33-37, 63-77; implementation decomposition chapter 90. Cross-plan ownership is recorded in `2026-08-09-MASTER-spec-coverage-audit.md`.
+MASTER-spec coverage: MASTER chapters 30, 33-37, 63-77; implementation decomposition chapter 90. Cross-plan ownership is recorded in `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
 
 ## Implementation fidelity rule
 

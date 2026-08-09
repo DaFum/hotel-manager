@@ -16,7 +16,7 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-09 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 73-83 and 91-94 plus all 54 traceability requirements, using the implementation ownership ledger in `2026-08-09-MASTER-spec-coverage-audit.md`.
+MASTER-spec coverage: MASTER chapters 73-83 and 91-94 plus all 54 traceability requirements, using the implementation ownership ledger in `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
 
 ## Implementation fidelity rule
 
@@ -79,6 +79,7 @@ CHANGELOG.md
 
 **Files:**
 - Create: `src/release/acceptanceRegistry.ts`
+- Create: `fixtures/release/master-acceptance.json`
 - Test: `src/release/acceptanceRegistry.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -86,17 +87,23 @@ CHANGELOG.md
 ```ts
 import { describe, expect, it } from 'vitest';
 import { RELEASE_ACCEPTANCE } from './acceptanceRegistry';
+import expected from '../../fixtures/release/master-acceptance.json';
 
 describe('release acceptance registry', () => {
   it('contains every numbered requirement with distinct implementation and verification evidence', () => {
     expect(RELEASE_ACCEPTANCE).toHaveLength(54);
     expect(new Set(RELEASE_ACCEPTANCE.map(x=>x.id)).size).toBe(54);
     expect(RELEASE_ACCEPTANCE.map(x=>x.id)).toEqual(Array.from({length:54},(_,i)=>i+1));
+    expect(RELEASE_ACCEPTANCE.map(({id,name,masterChapters,implementationEvidence,automatedEvidence})=>
+      ({id,name,masterChapters,implementationEvidence,automatedEvidence}))).toEqual(expected);
     for (const requirement of RELEASE_ACCEPTANCE) {
-      expect(requirement.masterChapters.length).toBeGreaterThan(0);
-      expect(requirement.implementationEvidence.length).toBeGreaterThan(0);
-      expect(requirement.automatedEvidence.length).toBeGreaterThan(0);
-      expect(requirement.name).not.toMatch(/^MASTER requirement /);
+      const implementation = new Set(requirement.implementationEvidence);
+      const automated = new Set(requirement.automatedEvidence);
+      expect([...implementation].filter(x=>automated.has(x))).toEqual([]);
+      for (const target of implementation)
+        expect(resolveConcreteImplementationTarget(target)).toBe(true);
+      for (const target of automated)
+        expect(resolveConcreteAutomatedTarget(target)).toBe(true);
     }
   });
 });
@@ -119,6 +126,14 @@ all 54 named rows explicitly and in numeric order from MASTER chapter 91 and the
 ownership ledger. Do not generate placeholder names, use glob-only evidence, or treat a
 traceability document as proof that production behavior exists.
 
+Generate `fixtures/release/master-acceptance.json` by reviewed transcription from
+`docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`, then commit it as the
+canonical ordered ownership fixture. Test helpers resolve repository-relative
+implementation paths and automated test paths or allow-listed executable npm/script
+commands; reject missing paths, directory-only/glob targets, arbitrary prose, duplicate
+categories, and self-reference to the registry test. Require reviewed evidence for the
+few claims explicitly classified as not fully automatable.
+
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
 ```bash
@@ -129,7 +144,7 @@ npm run typecheck
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/release/acceptanceRegistry.test.ts src/release/acceptanceRegistry.ts
+git add fixtures/release/master-acceptance.json src/release/acceptanceRegistry.test.ts src/release/acceptanceRegistry.ts
 git commit -m "test: encode release traceability registry"
 ```
 
@@ -193,6 +208,12 @@ git commit -m "test: lock verified original parity terms"
 
 **Files:**
 - Create: `fixtures/saves/v1.json`
+- Create: `fixtures/saves/v2.json`
+- Create: `fixtures/saves/v3.json`
+- Create: `fixtures/saves/v4.json`
+- Create: `fixtures/saves/v5.json`
+- Create: `fixtures/saves/v6.json`
+- Create: `fixtures/saves/v7.json`
 - Create: `fixtures/saves/current.json`
 - Create: `src/game/persistence/migrateToCurrent.ts`
 - Create: `scripts/verify-migrations.ts`
@@ -245,7 +266,7 @@ npm run typecheck
 - [ ] **Step 5: Commit**
 
 ```bash
-git add fixtures/saves/current.json fixtures/saves/v1.json scripts/verify-migrations.ts src/game/persistence/migrateToCurrent.ts src/game/persistence/migrationChain.test.ts
+git add fixtures/saves/v1.json fixtures/saves/v2.json fixtures/saves/v3.json fixtures/saves/v4.json fixtures/saves/v5.json fixtures/saves/v6.json fixtures/saves/v7.json fixtures/saves/current.json scripts/verify-migrations.ts src/game/persistence/migrateToCurrent.ts src/game/persistence/migrationChain.test.ts
 git commit -m "test: verify complete save migration chain"
 ```
 

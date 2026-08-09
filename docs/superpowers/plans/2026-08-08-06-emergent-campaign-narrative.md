@@ -16,7 +16,7 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-05 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 4, 33.9-33.11 and 45-50; implementation decomposition chapter 89. See `2026-08-09-MASTER-spec-coverage-audit.md`.
+MASTER-spec coverage: MASTER chapters 4, 33.9-33.11 and 45-50; implementation decomposition chapter 89. See `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`.
 
 ## Implementation fidelity rule
 
@@ -700,6 +700,13 @@ git commit -m "feat: add narrative ui"
 - Create: `src/game/persistence/migrations/v5-to-v6.ts`
 - Test: `src/game/persistence/migrations/v5-to-v6.test.ts`
 - Create: `e2e/campaign.spec.ts`
+
+**Target-schema freeze:** Before implementing this migration, finalize the complete v6
+schema for Tasks 1-13. The v5-to-v6 migration and round-trip fixture include narrative
+collections plus immutable campaign configuration, disclosed difficulty and sandbox
+inputs, career/outcome state, distress/recovery progress, the 2026 milestone, and endless
+continuation state. If an earlier development v6 save can exist, normalize and test that
+specific partial shape at load time; do not infer difficulty from current content.
 
 - [ ] **Step 1: Write the failing test**
 

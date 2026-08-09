@@ -15,24 +15,24 @@ export type ConformanceStatus = (typeof CONFORMANCE_STATUSES)[number];
 /** Where the behaviour is proven, and by which named assertion. */
 export interface ConformanceEvidence {
   /** Repository-relative path to a test, spec or verification script. */
-  path: string;
+  readonly path: string;
   /** The exact assertion title inside that file. */
-  assertion: string;
+  readonly assertion: string;
 }
 
 export interface ConformanceRow {
   /** Stable acceptance-item id; never renamed once published. */
-  id: string;
+  readonly id: string;
   /** The MASTER chapter(s) the claim is answerable to. */
-  masterSection: string;
+  readonly masterSection: string;
   /** The remediation task that owns the row. */
-  task: number;
+  readonly task: number;
   /** The behaviour, stated as a fact the evidence must demonstrate. */
-  claim: string;
+  readonly claim: string;
   /** Repository-relative path of the implementation that carries the rule. */
-  implementationPath: string;
-  evidence: ConformanceEvidence;
-  status: ConformanceStatus;
+  readonly implementationPath: string;
+  readonly evidence: ConformanceEvidence;
+  readonly status: ConformanceStatus;
 }
 
 const ROWS: readonly ConformanceRow[] = [
@@ -590,7 +590,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "serves only inside opening hours and waitlists beyond capacity",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "fnb.board.miseEnPlace",
@@ -604,7 +604,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "moves board plans, mise-en-place, allergies and waste through one stock",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "fnb.roomService.dependencies",
@@ -617,7 +617,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/simulation/hotelDepthConformance.test.ts",
       assertion: "names the tightest room-service dependency as its cause",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "wellness.resources",
@@ -631,7 +631,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "limits wellness by specialists, utilities and maintenance state",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "eventsales.lifecycle",
@@ -644,7 +644,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/simulation/hotelDepthConformance.test.ts",
       assertion: "runs the conference lifecycle from offer to cancellation",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "laundry.tradeoff",
@@ -658,7 +658,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "trades internal laundry capacity against external contract cost",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "engineering.priorities",
@@ -672,7 +672,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "ranks preventive, reactive and replacement work by remaining life",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "utilities.authoritative",
@@ -686,7 +686,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "draws authoritative utility consumption from every serviced area",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "depth.sharedPrimitives",
@@ -699,7 +699,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/simulation/hotelDepthConformance.test.ts",
       assertion: "names the tightest constraint for every serviced area",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 8: the isometric operational view -----------------------------
@@ -714,7 +714,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/render/camera.test.ts",
       assertion: "pans, clamps zoom and focuses an entity by stable id",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "render.floors",
@@ -727,7 +727,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/render/camera.test.ts",
       assertion: "selects a floor and cuts away the ones above it",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "render.navigation",
@@ -741,7 +741,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "routes through doors, corridors, stairs and lifts around closures",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "render.elevator.queue",
@@ -755,7 +755,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "visualises lift capacity, queue and failure from worker state",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "render.materialization.bounded",
@@ -768,7 +768,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/render/agentMaterialization.test.ts",
       assertion: "materialises a bounded deterministic subset of agents",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "render.dayNight.lod",
@@ -780,7 +780,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/render/camera.test.ts",
       assertion: "drives lighting from time of day and detail from zoom",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "render.domEquivalence",
@@ -794,7 +794,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "offers a keyboard-reachable DOM equivalent for every scene action",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 9: fair city economics ----------------------------------------
@@ -893,7 +893,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "yearly money stays integral and every rate stays finitely bounded",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "decade.entryExit",
@@ -906,7 +906,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "scripts/verify-plans-01-03-long-run.ts",
       assertion: "at least one viable entry and one economic exit occur",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "decade.hashes",
@@ -919,7 +919,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "scripts/verify-plans-01-03-long-run.ts",
       assertion: "repeated runs of the same seed produce identical hashes",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "decade.saveRestore",
@@ -932,7 +932,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "scripts/verify-plans-01-03-long-run.ts",
       assertion: "a save at year five continues to an identical year ten",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "decade.performance.separate",
@@ -946,7 +946,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "elapsed time is reported separately from deterministic output",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "decade.forecast.imperfect",
@@ -959,7 +959,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "scripts/verify-plans-01-03-long-run.ts",
       assertion: "forecast coverage is nonzero and still imperfect",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 11: replay ----------------------------------------------------
@@ -974,7 +974,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/debug/replay.test.ts",
       assertion: "records versions, envelopes, ordered events and a final hash",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "replay.throughBoundary",
@@ -988,7 +988,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "reproduces the recorded hash through the real command boundary",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "replay.hash.canonical",
@@ -1002,7 +1002,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "canonicalises authoritative state and ignores presentation data",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "replay.diagnostics",
@@ -1015,7 +1015,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/debug/replay.test.ts",
       assertion: "reports seed, command id, rng draw index and a minimal diff",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "replay.saveRestore",
@@ -1028,7 +1028,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/debug/replay.test.ts",
       assertion: "replays identically twice and across a mid-run save and load",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 12: integration ------------------------------------------------
@@ -1043,7 +1043,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/persistence/migrations/v3-to-v4.test.ts",
       assertion: "migrates a v3 fixture to v4 with explicit honest defaults",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "journey.browser",
@@ -1056,7 +1056,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "e2e/plans-01-03-remediation.spec.ts",
       assertion: "plays the remediation journey and reloads from recovery",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "journey.truthfulAck",
@@ -1070,7 +1070,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "shows the worker's own pending, accepted and rejected verdicts",
     },
-    status: "planned",
+    status: "verified",
   },
 ];
 

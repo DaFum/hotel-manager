@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { runCityYears } from "../test/cityScenario";
-import { migrateV2ToV3 } from "../persistence/migrations/v2-to-v3";
+import { migrateEnvelope } from "../persistence/saveSchema";
 import {
   SAVE_VERSION,
   isCompatible,
@@ -92,7 +92,7 @@ it("restores a migrated v2 save into a runnable market", () => {
   expect(legacyState.cityMarket).toBeUndefined();
   expect(legacyState.competitors).toBeUndefined();
 
-  const migrated = migrateV2ToV3(legacy);
+  const migrated = migrateEnvelope(legacy);
   expect(migrated.saveVersion).toBe(SAVE_VERSION);
   expect(isCompatible(migrated)).toBe(true);
 

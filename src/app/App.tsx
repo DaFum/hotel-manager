@@ -30,6 +30,13 @@ function seedFromLocation(): number {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 424242;
 }
 
+function rendererDisabled(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("renderer") === "off"
+  );
+}
+
 export function App() {
   const [seed] = useState(seedFromLocation);
   const game = useGameStore(seed);
@@ -67,6 +74,9 @@ export function App() {
       <p role="status" aria-live="polite">
         {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
       </p>
+      <p aria-label="Command status" aria-live="polite">
+        Command: {game.commandStatus}
+      </p>
       <p aria-label="Saves committed">Saves committed: {game.savedCount}</p>
       <TopBar
         city={CITY.name}
@@ -85,7 +95,11 @@ export function App() {
         onSave={(slot) => game.save(slot)}
         onLoad={(slot) => game.load(slot)}
       />
-      <HotelView rooms={s.hotel.rooms} facilities={s.facilities} />
+      <HotelView
+        rooms={s.hotel.rooms}
+        facilities={s.facilities}
+        disableRenderer={rendererDisabled()}
+      />
       <FacilitiesDashboard rows={s.facilities} />
       <ClassificationPanel
         classification={s.classification}

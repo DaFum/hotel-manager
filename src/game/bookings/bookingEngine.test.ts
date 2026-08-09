@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   cancel,
   canWalkIn,
+  checkIn,
+  checkOut,
+  holdsRoomOn,
+  lateChargeMinor,
   markNoShow,
   reserve,
   stayDates,
@@ -133,6 +137,55 @@ describe("booking engine", () => {
     expect(() => markNoShow(booking({ status: "checkedIn" }), 700)).toThrow(
       /cannot become noShow/,
     );
+  });
+
+  it("checks in only confirmed bookings and checks out only checked-in ones", () => {
+    const arrived = checkIn(booking(), 600);
+    expect(arrived.status).toBe("checkedIn");
+    expect(arrived.history.at(-1)).toEqual({
+      status: "checkedIn",
+      atMinutes: 600,
+    });
+    expect(() => checkIn(booking({ status: "cancelled" }), 600)).toThrow(
+      /cannot become checkedIn/,
+    );
+
+    const departed = checkOut(arrived, 900);
+    expect(departed.status).toBe("completed");
+    expect(departed.history.at(-1)).toEqual({
+      status: "completed",
+      atMinutes: 900,
+    });
+    expect(() => checkOut(booking(), 900)).toThrow(/cannot become completed/);
+  });
+
+  it("holds rooms only for active booking nights", () => {
+    const b = booking();
+    expect(holdsRoomOn(b, "1991-03-09")).toBe(false);
+    expect(holdsRoomOn(b, "1991-03-10")).toBe(true);
+    expect(holdsRoomOn(b, "1991-03-11")).toBe(true);
+    expect(holdsRoomOn(b, "1991-03-12")).toBe(false);
+    expect(holdsRoomOn({ ...b, status: "cancelled" }, "1991-03-10")).toBe(
+      false,
+    );
+  });
+
+  it("charges at and after the inclusive cancellation deadline", () => {
+    const b = booking({ rateMinor: 9000 });
+    expect(lateChargeMinor(b, "1991-03-08")).toBe(0);
+    expect(lateChargeMinor(b, "1991-03-09")).toBe(9000);
+    expect(lateChargeMinor(b, "1991-03-10")).toBe(9000);
+  });
+
+  it("rejects invalid guarantee terms when the reservation is created", () => {
+    for (const terms of [
+      { ...TERMS, freeCancellationDays: -1 },
+      { ...TERMS, freeCancellationDays: 0.5 },
+      { ...TERMS, lateChargeBp: -1 },
+      { ...TERMS, lateChargeBp: 10001 },
+      { ...TERMS, lateChargeBp: Number.NaN },
+    ])
+      expect(() => reserve(flat(5), request({ terms }))).toThrow();
   });
 
   it("allows walk in only with clean same day inventory", () => {

@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 import { HotelView } from "./HotelView";
 
 const rooms = [
@@ -24,5 +24,58 @@ describe("hotel view", () => {
   it("lists every room so the view is usable without the canvas", () => {
     render(<HotelView rooms={rooms} />);
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  });
+
+  it("offers a keyboard-reachable DOM equivalent for every scene action", () => {
+    const onRoom = vi.fn();
+    const onFacility = vi.fn();
+    render(
+      <HotelView
+        rooms={rooms}
+        facilities={[
+          {
+            id: "facility.breakfast",
+            name: "Breakfast room",
+            demand: 30,
+            capacity: 20,
+            cause: "staff",
+          },
+        ]}
+        onSelect={onRoom}
+        onSelectFacility={onFacility}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single vacant clean/i }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /Breakfast room, 30 demand, 20 capacity, limited by staff/i,
+      }),
+    );
+    expect(onRoom).toHaveBeenCalledWith("room.101");
+    expect(onFacility).toHaveBeenCalledWith("facility.breakfast");
+  });
+
+  it("shows facility selection even when no callback is supplied", () => {
+    render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        facilities={[
+          {
+            id: "facility.breakfast",
+            name: "Breakfast room",
+            demand: 30,
+            capacity: 20,
+            cause: "staff",
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /Breakfast room, 30 demand/i }),
+    );
+    expect(screen.getByText(/Breakfast room: 30 demand/i)).toBeTruthy();
   });
 });

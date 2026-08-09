@@ -112,15 +112,15 @@ conformant until Plan 03.5 passes. Do not start Plan 04 before that gate is gree
 
 ### Plan 03.5 progress
 
-Tasks 1-6 and 9 are implemented. Tasks 7, 8, 10, 11 and 12 are **not started**. The executable registry in `src/release/plans0103Conformance.ts` is the
-authority on what is proven: 46 of its 76 acceptance rows read `verified`, and the
-remaining 30 belong to the unfinished tasks. The gate is therefore **not green** and Plan
-04 must not begin.
+Tasks 1-12 are implemented. The executable registry in
+`src/release/plans0103Conformance.ts` is the authority on what is proven: all 76
+acceptance rows read `verified`. The Plan 03.5 gate is green, so Plan 04 may begin after
+this work is committed on the repository's default branch.
 
-Gates as of the last commit on that branch: `npm run test:run` passed (63 files, 346
-tests), `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e` (8
-tests) and `npm run benchmark` all passed. `scripts/verify-plans-01-03-long-run.ts` and
-`scripts/replay-plans-01-03.ts` do not exist yet; they belong to tasks 10 and 11.
+Fresh verification on 2026-08-09 passed `npm run test:run` (69 files, 395 tests),
+`npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e` (10 tests),
+`npm run benchmark`, `scripts/verify-plans-01-03-long-run.ts`, and
+`scripts/replay-plans-01-03.ts`.
 
 What the completed tasks changed, and that later work must respect:
 
@@ -145,10 +145,9 @@ What the completed tasks changed, and that later work must respect:
   and full status history. Inventory is checked on every date of the stay. Cancellation,
   no-show and authorised service recovery are all reachable; a refused recovery posts
   nothing.
-- **Save version is still 3.** The v3-to-v4 migration belongs to task 12 and does not
-  exist yet. `GameSimulation`'s constructor defensively opens the new command and event
-  journals at zero for a save written before they existed; the migration supersedes that
-  when it lands.
+- **Save version 4.** The v3-to-v4 migration supplies the Plan 03.5 state introduced
+  after v3. `GameSimulation`'s constructor still defensively supplies those defaults for
+  legacy in-memory states, while persisted saves migrate explicitly.
 
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
@@ -178,7 +177,7 @@ src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb
                         renovation, city, labor, property, transport, actors,
                         competitors, marketResearch
 src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
-src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3);
+src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3 -> v4);
                         each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository

@@ -73,6 +73,17 @@ let published: GameSnapshot | null = null;
 let publication = 0;
 let lastTickMs = 0;
 let lastCommandLatencyMs = 0;
+interface TickFailure {
+  thrown: unknown;
+  message: string;
+}
+let tickFailure: TickFailure | null = null;
+
+const failureMessage = (thrown: unknown): string => {
+  if (thrown instanceof Error && thrown.message.trim()) return thrown.message;
+  if (typeof thrown === "string" && thrown.trim()) return thrown;
+  return "unknown simulation tick failure";
+};
 
 function reply(message: WorkerResponse) {
   self.postMessage(message);
@@ -190,8 +201,9 @@ function tick() {
       simulation.advanceQuantum();
   } catch (error) {
     speed = 0;
+    tickFailure = { thrown: error, message: failureMessage(error) };
     reply(
-      simulationError("TICK_FAILED", (error as Error).message, {
+      simulationError("TICK_FAILED", tickFailure.message, {
         recoverable: false,
       }),
     );
@@ -222,6 +234,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
   switch (m.type) {
     case "INIT_GAME": {
+      tickFailure = null;
       simulation = new GameSimulation(createInitialGameState(m.seed));
       simulation.refreshDerivedState();
       ensureTimer();
@@ -252,7 +265,19 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       // deriving cannot leave the worker holding half a hotel.
       const restored = new GameSimulation(accepted.state);
       restored.refreshDerivedState();
+      for (const [commandId, requests] of correlation)
+        for (const requestId of requests)
+          reply({
+            protocolVersion: PROTOCOL_VERSION,
+            type: "COMMAND_REJECTED",
+            requestId,
+            commandId,
+            reason: "simulation replaced by load",
+          });
+      correlation.clear();
+      arrivedAt.clear();
       simulation = restored;
+      tickFailure = null;
       ensureTimer();
       publishSnapshot();
       publishDomainEvents();
@@ -266,6 +291,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
           requestId: m.requestId,
           commandId: m.commandId,
           reason: "simulation not initialised",
+        });
+        return;
+      }
+      if (tickFailure !== null) {
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "COMMAND_REJECTED",
+          requestId: m.requestId,
+          commandId: m.commandId,
+          reason: `simulation halted after tick failure: ${tickFailure.message}`,
         });
         return;
       }
@@ -311,6 +346,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "SET_SPEED": {
+      if (tickFailure !== null) return;
       speed = m.speed;
       return;
     }
@@ -319,6 +355,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "RESUME": {
+      if (tickFailure !== null) return;
       speed = speed || 1;
       return;
     }
@@ -365,6 +402,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
             recoverable: true,
             requestId: m.requestId,
           }),
+        );
+        return;
+      }
+      if (tickFailure !== null) {
+        reply(
+          simulationError(
+            "TICK_FAILED",
+            `cannot save a simulation halted after tick failure: ${tickFailure.message}`,
+            { recoverable: false, requestId: m.requestId },
+          ),
         );
         return;
       }

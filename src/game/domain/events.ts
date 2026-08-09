@@ -132,9 +132,41 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   FACILITY_EXPANDED: true,
 };
 
-export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = Object.keys(
-  EVENT_TYPE_REGISTRY,
-) as DomainEventType[];
+export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
+  "BOOKING_CONFIRMED",
+  "BOOKING_CANCELLED",
+  "BOOKING_NO_SHOW",
+  "GUEST_CHECKED_IN",
+  "GUEST_CHECKED_OUT",
+  "COMPLAINT_RAISED",
+  "SERVICE_RECOVERY_APPLIED",
+  "ROOM_STATE_CHANGED",
+  "FACILITY_CONSTRAINT_CHANGED",
+  "RENOVATION_STARTED",
+  "RENOVATION_COMPLETED",
+  "ASSET_FAILED",
+  "ASSET_REPAIRED",
+  "ASSET_SERVICED",
+  "STAFF_HIRED",
+  "SUPPLY_ORDERED",
+  "SUPPLY_DELIVERED",
+  "MONTH_CLOSED",
+  "CONFERENCE_BOOKED",
+  "CONFERENCE_COMPLETED",
+  "CITY_MONTH_ADVANCED",
+  "MARKET_RESEARCH_PURCHASED",
+  "COMPETITOR_ENTERED",
+  "COMPETITOR_EXITED",
+  "TRANSPORT_ROUTE_CHANGED",
+  "CLASSIFICATION_CHANGED",
+  "SPECIALIZATION_SET",
+  "FACILITY_EXPANDED",
+];
+
+// Retain the exhaustive record separately from the ordered public list. The
+// record makes a new payload variant a compile error; the array keeps the
+// established publication/coverage order stable for consumers.
+void EVENT_TYPE_REGISTRY;
 
 /**
  * Payloads that are typed and ready but have no reachable transition yet.

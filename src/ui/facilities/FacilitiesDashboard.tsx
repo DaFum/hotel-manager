@@ -1,5 +1,6 @@
 import { utilizationBp } from "../../game/facilities/capacity";
 import { formatBasisPoints } from "../money";
+import { ENGLISH_TEXT, type LocalizationKey } from "../localization";
 
 export interface FacilityRow {
   id: string;
@@ -45,7 +46,10 @@ export function FacilitiesDashboard({
                 {r.demand}/{r.capacity} ({formatBasisPoints(loadBp)})
                 {over ? " — over capacity" : ""}
               </p>
-              <p>Limited by: {r.cause}</p>
+              <p>
+                Limited by:{" "}
+                {ENGLISH_TEXT[r.cause as LocalizationKey] ?? r.cause}
+              </p>
             </li>
           );
         })}

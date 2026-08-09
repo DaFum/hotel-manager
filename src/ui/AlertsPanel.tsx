@@ -5,6 +5,10 @@ export interface Alert {
   cause: string;
 }
 
+function causeText(cause: string): string {
+  return translateAlertCause(cause);
+}
+
 export function AlertsPanel(props: {
   alerts: readonly Alert[];
   onOpen: (id: string) => void;
@@ -17,7 +21,7 @@ export function AlertsPanel(props: {
         <article key={a.id}>
           <strong>{a.title}</strong>
           <span>{a.severity}</span>
-          <p>{a.cause}</p>
+          <p>{causeText(a.cause)}</p>
           <button
             type="button"
             onClick={() => props.onOpen(a.id)}
@@ -28,7 +32,7 @@ export function AlertsPanel(props: {
           </button>
           {props.openAlertId === a.id ? (
             <p aria-live="polite">
-              {a.id} · {a.severity} · {a.cause}
+              {a.id} · {a.severity} · {causeText(a.cause)}
             </p>
           ) : null}
         </article>
@@ -36,3 +40,4 @@ export function AlertsPanel(props: {
     </section>
   );
 }
+import { translateAlertCause } from "./localization";

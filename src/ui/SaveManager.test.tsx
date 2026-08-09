@@ -80,4 +80,56 @@ describe("save manager", () => {
 
     expect(screen.getByRole("status").textContent).toMatch(/generation 1/);
   });
+
+  it("shows a pending load and blocks duplicate load requests", async () => {
+    let finish!: () => void;
+    const onLoad = vi.fn(
+      () => new Promise<void>((resolve) => (finish = resolve)),
+    );
+    render(
+      <SaveManager
+        slots={[manualSlot("checkpoint"), recoverySlot(0)]}
+        recoveredFrom={null}
+        validationFailure={null}
+        onSave={noop}
+        onLoad={onLoad}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Load checkpoint" }));
+    expect(
+      screen.getByRole("button", { name: "Loading…" }).hasAttribute("disabled"),
+    ).toBe(true);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Recover generation 0" }),
+    );
+    expect(onLoad).toHaveBeenCalledTimes(1);
+    finish();
+    await screen.findByRole("button", { name: "Load checkpoint" });
+  });
+
+  it("clears pending state after synchronous and asynchronous failures", async () => {
+    const onLoad = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("sync");
+      })
+      .mockRejectedValueOnce(new Error("async"));
+    render(
+      <SaveManager
+        slots={[manualSlot("checkpoint")]}
+        recoveredFrom={null}
+        validationFailure={null}
+        onSave={noop}
+        onLoad={onLoad}
+      />,
+    );
+    const button = () =>
+      screen.getByRole("button", { name: "Load checkpoint" });
+    fireEvent.click(button());
+    expect(button().hasAttribute("disabled")).toBe(false);
+    fireEvent.click(button());
+    await screen.findByRole("button", { name: "Load checkpoint" });
+    expect(onLoad).toHaveBeenCalledTimes(2);
+  });
 });

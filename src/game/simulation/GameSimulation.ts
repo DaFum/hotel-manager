@@ -75,6 +75,7 @@ import {
   SERVICE_MINUTES,
 } from "../maintenance/maintenance";
 import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
+import { createUtilityState, meterUtilities } from "../facilities/utilities";
 import {
   requiredSecurityStaff,
   securityGapAlert,
@@ -129,14 +130,16 @@ import {
   emitEvent,
 } from "../domain/eventBuffer";
 import type { DomainEvent, DomainEventPayload } from "../domain/events";
-import type {
-  AlertRecord,
-  EventRecord,
-  GameState,
-  ReservationRecord,
-  RoomRecord,
+import {
+  createGuestSatisfaction,
+  createRenderDescriptors,
+  createSavePolicyMetadata,
+  type AlertRecord,
+  type EventRecord,
+  type GameState,
+  type ReservationRecord,
+  type RoomRecord,
 } from "./initialState";
-
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -212,6 +215,10 @@ const ARRIVAL_ALERT_IDS = [
   "alert.staff-areas-crowded",
   "alert.construction-noise",
 ];
+const HANDLED_COMPLAINT_LIMIT = 256;
+
+const WATER_UNIT_MINOR = 2;
+const ENERGY_UNIT_MINOR = 3;
 
 export class GameSimulation implements CommandExecutor {
   private queued: CommandEnvelope[] = [];
@@ -233,6 +240,13 @@ export class GameSimulation implements CommandExecutor {
     state.commandSequence ??= 0;
     state.commandLog ??= [];
     state.eventJournal ??= createEventJournal();
+    state.guestSatisfaction ??= createGuestSatisfaction();
+    state.handledComplaintIds ??= [];
+    state.utilities ??= createUtilityState();
+    state.utilities.pendingExpenseMinor ??= 0;
+    state.renderDescriptors ??= createRenderDescriptors(state.hotel.rooms);
+    state.savePolicy ??= createSavePolicyMetadata();
+    state.linen.floorStock ??= 0;
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -688,6 +702,8 @@ export class GameSimulation implements CommandExecutor {
       // Outstanding conference work does not evaporate overnight; only the
       // day's worked total starts again at zero.
       s.eventHousekeepingWorkedMinutes = 0;
+      s.utilities.waterUsed = 0;
+      s.utilities.energyUsed = 0;
     }
     // A fit-out dates by the calendar, not by wear: on every new year every
     // room is one year further from being current.
@@ -780,7 +796,7 @@ export class GameSimulation implements CommandExecutor {
           // The terms the booking was taken on decide what may be charged.
           const charge = lateChargeMinor(booking, yesterday);
           if (charge > 0) {
-            this.earn(charge, "roomRevenue", `no-show ${booking.id}`);
+            this.earn(charge, "otherRevenue", `no-show ${booking.id}`);
             s.finance.month.otherRevenueMinor += charge;
           }
           this.emit(
@@ -987,6 +1003,34 @@ export class GameSimulation implements CommandExecutor {
     this.runRoomService();
     this.runWellness();
     this.runLaundry();
+    if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
+      this.meterDailyUtilities();
+  }
+
+  private meterDailyUtilities(): void {
+    const s = this.state;
+    const metered = meterUtilities(
+      s.utilities,
+      [
+        {
+          id: "facility.kitchen",
+          waterUnits: s.stays.length + this.eventBreakfastCovers(),
+          energyUnits: s.stays.length * 2,
+        },
+        {
+          id: "facility.laundry",
+          waterUnits: s.linen.dirty,
+          energyUnits: Math.ceil(s.linen.dirty / 2),
+        },
+        {
+          id: "facility.wellness",
+          waterUnits: s.wellness.booked * 3,
+          energyUnits: s.wellness.booked * 2,
+        },
+      ],
+      { waterMinor: WATER_UNIT_MINOR, energyMinor: ENERGY_UNIT_MINOR },
+    );
+    s.utilities = metered.state;
   }
 
   private runBreakfast(): void {
@@ -1120,8 +1164,13 @@ export class GameSimulation implements CommandExecutor {
       ),
       staffed: this.onDuty("laundry") * STARTER_HOTEL.laundryPiecesPerStaff,
       externalPieces: STARTER_HOTEL.externalLaundryPieces,
+      floorStock: s.linen.floorStock,
     });
-    s.linen = { clean: day.clean, dirty: day.dirty };
+    s.linen = {
+      clean: day.clean,
+      floorStock: day.floorStock,
+      dirty: day.dirty,
+    };
     if (day.externalCostMinor > 0)
       this.spend(
         day.externalCostMinor,
@@ -1299,15 +1348,15 @@ export class GameSimulation implements CommandExecutor {
         waiting.waitedMinutes,
       );
       if (!complaint) continue;
-      if (
-        !this.pushAlert({
-          id: `alert.${complaint.id}`,
-          severity: "warning",
-          title: "Long check-in",
-          cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
-        })
-      )
-        continue;
+      this.pushAlert({
+        id: `alert.${complaint.id}`,
+        severity: "warning",
+        title: "Long check-in",
+        cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
+      });
+      if (s.handledComplaintIds.includes(complaint.id)) continue;
+      s.handledComplaintIds.push(complaint.id);
+      this.pruneHandledComplaints();
       this.emit(
         {
           type: "COMPLAINT_RAISED",
@@ -1320,6 +1369,26 @@ export class GameSimulation implements CommandExecutor {
       this.moveSatisfaction(-4, `${complaint.cause} at reception`);
       this.attemptRecovery(complaint.id, waiting.bookingId);
     }
+  }
+
+  private pruneHandledComplaints(): void {
+    const s = this.state;
+    if (s.handledComplaintIds.length <= HANDLED_COMPLAINT_LIMIT) return;
+    const active = new Set(
+      s.receptionQueue
+        .map((waiting) =>
+          complaintForWait(waiting.bookingId, waiting.waitedMinutes),
+        )
+        .filter((complaint) => complaint !== null)
+        .map((complaint) => complaint.id),
+    );
+    const excess = s.handledComplaintIds.length - HANDLED_COMPLAINT_LIMIT;
+    let removed = 0;
+    s.handledComplaintIds = s.handledComplaintIds.filter((id) => {
+      if (removed >= excess || active.has(id)) return true;
+      removed += 1;
+      return false;
+    });
   }
 
   /**
@@ -1338,7 +1407,7 @@ export class GameSimulation implements CommandExecutor {
     if (!verdict.ok) {
       this.pushAlert({
         id: `alert.recovery.${complaintId}`,
-        severity: "warning",
+        severity: "critical",
         title: "Complaint left unanswered",
         cause: verdict.reason,
       });
@@ -1384,6 +1453,15 @@ export class GameSimulation implements CommandExecutor {
   private runFinance(): void {
     if (!this.dayRolled) return;
     const s = this.state;
+
+    if (s.utilities.pendingExpenseMinor > 0) {
+      this.spend(
+        s.utilities.pendingExpenseMinor,
+        "utilities",
+        "metered water and energy",
+      );
+      s.utilities.pendingExpenseMinor = 0;
+    }
 
     for (const stay of s.stays) {
       this.earn(stay.rateMinor, "roomRevenue", stay.roomId);
@@ -1452,11 +1530,12 @@ export class GameSimulation implements CommandExecutor {
       // no lead time in which to have held it.
       if (leadDays === 0 && !canWalkIn(this.sameDayInventory())) continue;
       const channel: BookingChannel = leadDays === 0 ? "walkIn" : "directPhone";
+      const bookingId = `booking.${s.elapsedMinutes}.${i}`;
       try {
         const reservation: ReservationRecord = reserve(
           { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
-            id: `booking.${s.elapsedMinutes}.${i}`,
+            id: bookingId,
             roomsRequested: 1,
             rateMinor,
             // A profile the hotel actually built for lifts what its segment
@@ -1496,9 +1575,21 @@ export class GameSimulation implements CommandExecutor {
           },
           [reservation.id],
         );
-      } catch {
-        /* demand lost to price or inventory; the slice does not yet count
-           the causes, so this is intentionally silent */
+      } catch (error) {
+        const reason = (error as Error).message;
+        if (
+          reason === "price rejected" ||
+          reason.startsWith("no inventory on ")
+        ) {
+          this.pushAlert({
+            id: `alert.booking-refused.${bookingId}`,
+            severity: "info",
+            title: "Booking request refused",
+            cause: reason,
+          });
+          continue;
+        }
+        throw error;
       }
     }
   }
@@ -1524,7 +1615,7 @@ export class GameSimulation implements CommandExecutor {
       booking.status = cancelled.status;
       booking.history = cancelled.history;
       if (charge > 0) {
-        this.earn(charge, "roomRevenue", `late cancellation ${booking.id}`);
+        this.earn(charge, "otherRevenue", `late cancellation ${booking.id}`);
         s.finance.month.otherRevenueMinor += charge;
       }
       this.emit(
@@ -1870,7 +1961,10 @@ export class GameSimulation implements CommandExecutor {
         demand: inHouse + eventCovers,
         constraints: [
           { label: "seating", value: STARTER_HOTEL.breakfastSeats * 8 },
-          { label: "kitchen line", value: STARTER_HOTEL.kitchenCovers },
+          {
+            label: "facility.cause.kitchenLine",
+            value: STARTER_HOTEL.kitchenCovers,
+          },
           {
             label: "portions in stock",
             value: s.stock["breakfast-portion"] ?? 0,
@@ -2091,14 +2185,6 @@ export class GameSimulation implements CommandExecutor {
     }
 
     if (step.roomsAdded > 0) {
-      this.emit(
-        {
-          type: "RENOVATION_COMPLETED",
-          projectId: step.job.id,
-          roomsAdded: step.roomsAdded,
-        },
-        [step.job.id],
-      );
       const nextNumber = STARTER_HOTEL.firstRoomNumber + s.hotel.rooms.length;
       for (let i = 0; i < step.roomsAdded; i++)
         s.hotel.rooms.push({
@@ -2110,6 +2196,14 @@ export class GameSimulation implements CommandExecutor {
           styleAgeYears: 0,
         });
       s.renovation = null;
+      this.emit(
+        {
+          type: "RENOVATION_COMPLETED",
+          projectId: step.job.id,
+          roomsAdded: step.roomsAdded,
+        },
+        [step.job.id],
+      );
     }
   }
 

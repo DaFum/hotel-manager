@@ -58,11 +58,11 @@ export function authorizeRecovery(
   authority: RecoveryAuthority,
 ): { ok: true; costMinor: number } | { ok: false; reason: string } {
   if (authority.frontDeskOnDuty <= 0)
-    return { ok: false, reason: "nobody is on the desk to authorise it" };
+    return { ok: false, reason: "alert.recovery.noFrontDesk" };
   if (action === "apologize") return { ok: true, costMinor: 0 };
   const costMinor = discountCostMinor(roomChargeMinor);
   if (authority.cashMinor < costMinor)
-    return { ok: false, reason: "the hotel cannot cover the discount" };
+    return { ok: false, reason: "alert.recovery.insufficientCash" };
   return { ok: true, costMinor };
 }
 

@@ -1,4 +1,3 @@
-import { PROTOCOL_VERSION } from "../../domain/protocol";
 import type { SaveEnvelope } from "../saveVersions";
 import { createCityMarket, createCompetitors } from "../../city/cityMarket";
 
@@ -18,10 +17,9 @@ export function migrateV2ToV3(s: SaveEnvelope): SaveEnvelope {
     ...s,
     saveVersion: 3,
     contentVersion: "city-market-1991-v3",
-    // A migrated save is rewritten by this build, so it speaks this build's
-    // protocol; leaving the old number would make it fail validation for a
-    // reason that is no longer true of it.
-    protocolVersion: PROTOCOL_VERSION,
+    // This migration's target is historical schema data, not a moving build
+    // constant. A later protocol bump must not rewrite what v3 meant.
+    protocolVersion: 2,
     state: {
       ...state,
       cityMarket: state.cityMarket ?? createCityMarket(dateKey),

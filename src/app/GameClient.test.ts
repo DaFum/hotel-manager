@@ -225,6 +225,44 @@ describe("GameClient protocol", () => {
         entityId: WHOLE_GAME_ENTITY_ID,
       }),
     );
+
+    // A burst of broken deltas shares the in-flight recovery request.
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "STATE_DELTA",
+        delta: {
+          basePublication: 10,
+          publication: 11,
+          changed: { cashMinor: 1000 },
+          removed: [],
+        },
+      },
+    } as MessageEvent);
+    expect(worker.postMessage).toHaveBeenCalledTimes(1);
+
+    // The matching snapshot completes recovery and permits a later one.
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "SNAPSHOT",
+        snapshot: { cashMinor: 5 },
+        publication: 12,
+      },
+    } as MessageEvent);
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "STATE_DELTA",
+        delta: {
+          basePublication: 99,
+          publication: 100,
+          changed: {},
+          removed: [],
+        },
+      },
+    } as MessageEvent);
+    expect(worker.postMessage).toHaveBeenCalledTimes(2);
   });
 
   it("reports the structured form of a simulation error", () => {

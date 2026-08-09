@@ -36,6 +36,8 @@ export interface LaundryDayInput {
   staffed: number;
   /** Pieces the contract laundry will take today. */
   externalPieces: number;
+  /** Clean pieces held on guest floors and unavailable to the laundry. */
+  floorStock?: number;
 }
 
 export interface LaundryDayResult {
@@ -44,6 +46,7 @@ export interface LaundryDayResult {
   washedInHouse: number;
   washedExternally: number;
   externalCostMinor: number;
+  floorStock: number;
 }
 
 /**
@@ -51,6 +54,9 @@ export interface LaundryDayResult {
  * machines and the shift cannot reach goes out to contract at a piece rate.
  */
 export function runLaundryDay(x: LaundryDayInput): LaundryDayResult {
+  const floorStock = x.floorStock ?? 0;
+  if (!Number.isSafeInteger(floorStock) || floorStock < 0)
+    throw new Error("invalid laundry floor stock");
   const washedInHouse = laundryOutput({
     dirty: x.dirty,
     machine: x.machine,
@@ -66,5 +72,6 @@ export function runLaundryDay(x: LaundryDayInput): LaundryDayResult {
     washedInHouse,
     washedExternally,
     externalCostMinor: externalLaundryCostMinor(washedExternally),
+    floorStock,
   };
 }

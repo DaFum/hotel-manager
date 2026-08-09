@@ -18,7 +18,9 @@ describe("alerts", () => {
         onOpen={() => {}}
       />,
     );
-    expect(screen.getByText("6 rooms waiting for cleaning")).toBeTruthy();
+    expect(
+      screen.getByText("An operational issue needs attention."),
+    ).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /open housekeeping backlog/i }),
     ).toBeTruthy();

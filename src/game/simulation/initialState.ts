@@ -20,6 +20,7 @@ import {
   type CityMarketState,
   type CompetitorRecord,
 } from "../city/cityMarket";
+import { createUtilityState, type UtilityState } from "../facilities/utilities";
 
 export interface RoomRecord {
   id: string;
@@ -121,6 +122,8 @@ export interface GameState {
   reservations: ReservationRecord[];
   stays: StayRecord[];
   receptionQueue: { bookingId: string; waitedMinutes: number }[];
+  /** Complaint identities whose one-time authoritative effects were applied. */
+  handledComplaintIds: string[];
   stock: Record<string, number>;
   pendingOrders: {
     supplierId: string;
@@ -138,8 +141,21 @@ export interface GameState {
   })[];
   /** Serviced areas recomputed every snapshot; never a source of truth itself. */
   facilities: FacilityRecord[];
-  /** Linen pieces in circulation. */
-  linen: { clean: number; dirty: number };
+  utilities: UtilityState;
+  renderDescriptors: {
+    floorByRoomId: Record<string, number>;
+    closedNavigationIds: string[];
+    elevator: {
+      id: string;
+      capacity: number;
+      queue: number;
+      travelMinutes: number;
+      failed: boolean;
+    };
+  };
+  savePolicy: { lastManualSlot: string | null; recoveryGeneration: number };
+  /** Linen pieces in central stores, on guest floors, and awaiting wash. */
+  linen: { clean: number; floorStock: number; dirty: number };
   events: EventRecord[];
   wellness: {
     treatmentRooms: number;
@@ -219,6 +235,7 @@ export function createInitialGameState(seed: number): GameState {
     reservations: [],
     stays: [],
     receptionQueue: [],
+    handledComplaintIds: [],
     stock: { "cleaning-unit": 240, "breakfast-portion": 180 },
     pendingOrders: [],
     staff: STARTER_STAFF.map((s) => ({ ...s, absent: false })),
@@ -250,7 +267,18 @@ export function createInitialGameState(seed: number): GameState {
       termMonths: 120,
     },
     facilities: [],
-    linen: { clean: STARTER_HOTEL.startingLinenPieces, dirty: 0 },
+    utilities: createUtilityState(),
+    renderDescriptors: createRenderDescriptors(
+      Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => ({
+        id: `room.${STARTER_HOTEL.firstRoomNumber + i}`,
+      })),
+    ),
+    savePolicy: createSavePolicyMetadata(),
+    linen: {
+      clean: STARTER_HOTEL.startingLinenPieces,
+      floorStock: 0,
+      dirty: 0,
+    },
     events: [],
     wellness: {
       treatmentRooms: STARTER_HOTEL.treatmentRooms,
@@ -269,7 +297,7 @@ export function createInitialGameState(seed: number): GameState {
       conferenceSqm: STARTER_HOTEL.conferenceSqm,
       wellnessSqm: STARTER_HOTEL.wellnessSqm,
     },
-    guestSatisfaction: { score: 70, causes: [] },
+    guestSatisfaction: createGuestSatisfaction(),
     housekeepingMinutes: 0,
     receptionCapacity: 0,
     renovation: null,
@@ -281,4 +309,30 @@ export function createInitialGameState(seed: number): GameState {
       Object.entries(streams).map(([k, v]) => [k, v.state]),
     ) as RngStateRecord,
   };
+}
+
+export function createGuestSatisfaction(): GameState["guestSatisfaction"] {
+  return { score: 70, causes: [] };
+}
+
+export function createRenderDescriptors(
+  rooms: readonly { id: string }[],
+): GameState["renderDescriptors"] {
+  return {
+    floorByRoomId: Object.fromEntries(
+      rooms.map((room, index) => [room.id, Math.floor(index / 12) + 1]),
+    ),
+    closedNavigationIds: [],
+    elevator: {
+      id: "asset.elevator",
+      capacity: 6,
+      queue: 0,
+      travelMinutes: 2,
+      failed: false,
+    },
+  };
+}
+
+export function createSavePolicyMetadata(): GameState["savePolicy"] {
+  return { lastManualSlot: null, recoveryGeneration: 0 };
 }

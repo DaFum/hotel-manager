@@ -118,3 +118,47 @@ test("shows the parts of the hotel that are not bedrooms as a business", async (
   await expect(spaces).toContainText("self");
   await expect(spaces).toContainText("Everything goes through the desk");
 });
+
+test("gives the isometric world a keyboard and screen-reader path", async ({
+  page,
+}) => {
+  await page.goto("/?seed=424242");
+  const world = page.getByRole("region", { name: "World controls" });
+  await expect(world).toBeVisible();
+
+  // The view states itself in words: no meaning carried by colour alone.
+  await expect(world.getByLabel("View state")).toContainText(
+    /Floor \d+, whole building, zoom 1.0 showing rooms, (day|evening|night) light/,
+  );
+  await expect(world.getByLabel("Elevator state")).toContainText(
+    /waiting, \d+ minutes, (available|out of service|queue exceeds car capacity)/,
+  );
+
+  await world.getByRole("button", { name: "Zoom in" }).click();
+  await expect(world.getByLabel("View state")).toContainText("zoom 1.5");
+  await world.getByRole("button", { name: "Zoom in" }).click();
+  await expect(world.getByLabel("View state")).toContainText("showing people");
+
+  // Floor selection and cutaway are real, reachable controls.
+  await world.getByRole("button", { name: "Toggle cutaway" }).click();
+  await expect(world.getByLabel("View state")).toContainText("cut away");
+  const floorTwo = world.getByRole("button", { name: "Show floor 2" });
+  await floorTwo.click();
+  await expect(floorTwo).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    world.getByRole("button", { name: "Show floor 1" }),
+  ).toContainText("(visible)");
+});
+
+test("keeps every room reachable and described without the canvas", async ({
+  page,
+}) => {
+  await page.goto("/?seed=424242&renderer=off");
+  const view = page.getByRole("region", { name: "Hotel view" });
+  const room = view.getByRole("button", { name: /room.101 single/ });
+  // The state is in the label as words, not as a colour swatch.
+  await expect(room).toHaveAttribute("aria-label", /vacant clean|occupied/);
+  await room.focus();
+  await page.keyboard.press("Enter");
+  await expect(view.getByText(/room.101: .*cleanliness/)).toBeVisible();
+});

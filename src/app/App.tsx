@@ -25,6 +25,9 @@ import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
+import { WorldControls } from "../ui/WorldControls";
+import { createCamera, type CameraState } from "../render/camera";
+import { elevatorVisual } from "../render/agentMaterialization";
 import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
 import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
 import { BrandDashboard } from "../ui/company/BrandDashboard";
@@ -68,6 +71,8 @@ export function App() {
   const [openAlert, setOpenAlert] = useState<string | null>(null);
   /** Which house the group is currently looking at; the flagship by default. */
   const [openHotel, setOpenHotel] = useState<string | null>(null);
+  /** Presentation state: where the player is looking, never a game rule. */
+  const [camera, setCamera] = useState<CameraState>(createCamera);
   const s = game.snapshot;
 
   if (!s)
@@ -137,6 +142,24 @@ export function App() {
           rooms={s.hotel.rooms}
           facilities={s.facilities}
           disableRenderer={rendererDisabled()}
+        />
+        <WorldControls
+          camera={camera}
+          floors={[
+            ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
+          ].sort((a, b) => a - b)}
+          minuteOfDay={s.calendar.minuteOfDay}
+          elevator={elevatorVisual(s.renderDescriptors.elevator)}
+          problems={s.alerts.map((alert) => ({
+            id: alert.id,
+            title: alert.title,
+            cause: alert.cause,
+            floor: 1,
+            x: 0,
+            y: 0,
+            kind: "problem" as const,
+          }))}
+          onCamera={setCamera}
         />
         <FacilitiesDashboard rows={s.facilities} />
         <CommercialSpacesPanel

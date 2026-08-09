@@ -118,6 +118,33 @@ describe("v4 to v5 migration", () => {
     expect(after.pendingOrders).toEqual(state.pendingOrders);
   });
 
+  it("reconciles loyalty liability and commercial-space fit in early v5 saves", () => {
+    const early = v5();
+    const state = early.state as GameState;
+    state.commercial.loyalty = {
+      members: [
+        {
+          guestId: "guest.legacy",
+          points: 100,
+          tier: "none",
+          qualifyingNights: 1,
+        },
+      ],
+      liabilityMinor: 640,
+    };
+    const space = state.commercialSpaces
+      .spaces[0] as (typeof state.commercialSpaces.spaces)[number] & {
+      fit?: number;
+    };
+    space.fit = 70;
+    delete (space as Partial<typeof space>).fitBp;
+
+    const migrated = migrateEnvelope(early).state as GameState;
+    expect(migrated.commercial.loyalty.members[0].points).toBe(80);
+    expect(migrated.commercial.loyalty.liabilityMinor).toBe(640);
+    expect(migrated.commercialSpaces.spaces[0].fitBp).toBe(7000);
+  });
+
   it("runs on after a reload without duplicating a posting or losing cash", () => {
     const loaded = migrateEnvelope(v5()).state as GameState;
     const simulation = new GameSimulation(structuredClone(loaded));

@@ -93,7 +93,11 @@ export function scheduleShift(input: {
     done,
     deferred,
     deferredCostMinor: deferred.reduce(
-      (sum, job) => sum + job.deferredCostMinor,
+      (sum, job) =>
+        assertNonNegativeMinor(
+          sum + job.deferredCostMinor,
+          "total deferred cost",
+        ),
       0,
     ),
     cause: blocker,

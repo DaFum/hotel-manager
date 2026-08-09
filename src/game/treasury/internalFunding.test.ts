@@ -33,6 +33,21 @@ describe("internal funding", () => {
     expect(balances).toEqual({ fromMinor: 1_000_000, toMinor: 0 });
   });
 
+  it("rejects invalid balances and an unsafe destination balance", () => {
+    expect(() =>
+      transferInternalFunding({ fromMinor: -1, toMinor: 0 }, 0),
+    ).toThrow(/invalid transfer/);
+    expect(() =>
+      transferInternalFunding({ fromMinor: 1, toMinor: -1 }, 0),
+    ).toThrow(/invalid transfer/);
+    expect(() =>
+      transferInternalFunding(
+        { fromMinor: 1, toMinor: Number.MAX_SAFE_INTEGER },
+        1,
+      ),
+    ).toThrow(/invalid transfer/);
+  });
+
   it("funds a hotel account through the treasury and conserves group cash", () => {
     let treasury = openHotelAccount(
       createTreasury({ hqMinor: 10_000_000, reportingCurrency: "DEM" }),

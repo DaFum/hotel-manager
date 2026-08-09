@@ -159,10 +159,15 @@ export function negotiatedRateMinor(input: {
     earned,
     Math.max(0, 10_000 - input.floorBasisPoints),
   );
+  const retainedBasisPoints = 10_000 - discountBasisPoints;
+  const quotient = Math.trunc(input.listRateMinor / 10_000);
+  const remainder = input.listRateMinor % 10_000;
+  const rateMinor =
+    quotient * retainedBasisPoints +
+    Math.trunc((remainder * retainedBasisPoints) / 10_000);
+  assertNonNegativeMinor(rateMinor, "negotiated rate");
   return {
-    rateMinor: Math.trunc(
-      (input.listRateMinor * (10_000 - discountBasisPoints)) / 10_000,
-    ),
+    rateMinor,
     discountBasisPoints,
   };
 }

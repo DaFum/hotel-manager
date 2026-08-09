@@ -37,8 +37,9 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
   const schedule: DebtInstalment[] = [];
   let outstanding = loan.principalMinor;
   for (let month = 1; month <= loan.termMonths; month += 1) {
-    const interestMinor = Math.round(
-      (outstanding * loan.annualRateBasisPoints) / 10_000 / 12,
+    const interestMinor = roundedRateMinor(
+      outstanding,
+      loan.annualRateBasisPoints,
     );
     const principalMinor =
       month === loan.termMonths ? outstanding : Math.min(perMonth, outstanding);
@@ -52,6 +53,25 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
     outstanding -= principalMinor;
   }
   return schedule;
+}
+
+function roundedRateMinor(
+  outstandingMinor: number,
+  annualRateBasisPoints: number,
+): number {
+  const divisor = 120_000;
+  const quotient = Math.trunc(outstandingMinor / divisor);
+  if (
+    annualRateBasisPoints > 0 &&
+    quotient > Math.trunc(Number.MAX_SAFE_INTEGER / annualRateBasisPoints)
+  )
+    throw new Error("invalid monthly interest");
+  const remainder = outstandingMinor % divisor;
+  return assertNonNegativeMinor(
+    quotient * annualRateBasisPoints +
+      Math.round((remainder * annualRateBasisPoints) / divisor),
+    "monthly interest",
+  );
 }
 
 /** What the lender would actually get back if it took the security today. */
@@ -95,9 +115,13 @@ export function restructure(
   assertBasisPoints(penalty, "restructuring penalty");
   const annualRateBasisPoints = loan.annualRateBasisPoints + penalty;
   assertBasisPoints(annualRateBasisPoints, "restructured loan rate");
+  const termMonths = loan.termMonths + terms.extraMonths;
+  if (!Number.isSafeInteger(termMonths)) throw new Error("invalid loan term");
+  if (termMonths > MAX_LOAN_TERM_MONTHS)
+    throw new Error("loan term exceeds maximum");
   return {
     principalMinor: loan.principalMinor,
     annualRateBasisPoints,
-    termMonths: loan.termMonths + terms.extraMonths,
+    termMonths,
   };
 }

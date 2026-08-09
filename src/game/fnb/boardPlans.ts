@@ -3,6 +3,7 @@ import {
   assertBasisPoints,
   assertCount,
   assertNonNegativeMinor,
+  safeProductMinor,
 } from "../domain/units";
 
 /**
@@ -167,12 +168,19 @@ export function foodWaste(input: {
   assertCount(input.prepared, "prepared covers");
   assertCount(input.sold, "sold covers");
   const wastedCovers = Math.max(0, input.prepared - input.sold);
+  const totalCostMinor = input.recipes.reduce((sum, recipe) => {
+    assertNonNegativeMinor(recipe.ingredientCostMinor, "ingredient cost");
+    return assertNonNegativeMinor(
+      sum + recipe.ingredientCostMinor,
+      "food waste recipe cost",
+    );
+  }, 0);
   const averageCostMinor =
     input.recipes.length === 0
       ? 0
-      : Math.trunc(
-          input.recipes.reduce((sum, r) => sum + r.ingredientCostMinor, 0) /
-            input.recipes.length,
+      : assertNonNegativeMinor(
+          Math.trunc(totalCostMinor / input.recipes.length),
+          "average ingredient cost",
         );
   const byStation: Record<string, number> = {};
   const recipes = [...input.recipes].sort((a, b) =>
@@ -189,7 +197,7 @@ export function foodWaste(input: {
   });
   return {
     wastedCovers,
-    costMinor: wastedCovers * averageCostMinor,
+    costMinor: safeProductMinor(wastedCovers, averageCostMinor, "food waste"),
     byStation,
   };
 }

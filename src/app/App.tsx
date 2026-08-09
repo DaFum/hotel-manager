@@ -175,7 +175,7 @@ export function App() {
               s.commercialSpaces.unitsSold[space.id] ?? 0,
             ).hotelShareMinor,
             unitsSold: s.commercialSpaces.unitsSold[space.id] ?? 0,
-            fitBp: space.fitBp,
+            fitBp: space.fitBp ?? (space.fit ?? 0) * 100,
           }))}
           lobby={s.lobby}
         />

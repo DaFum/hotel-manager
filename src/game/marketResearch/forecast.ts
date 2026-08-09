@@ -1,3 +1,5 @@
+import { saturatingRatio } from "../domain/saturation";
+
 /**
  * What the player is allowed to know about next month's market. A forecast is
  * always a band, never a number: research narrows it, but no amount of money
@@ -18,7 +20,7 @@ const BLIND_SPREAD_BP = 4000;
 const RESIDUAL_SPREAD_BP = 200;
 /** What one market-research report costs, in Pfennig. */
 export const REPORT_COST_MINOR = 150_000;
-/** Research spend at which quality reaches about 63 of its 100 points. */
+/** Research spend at which quality reaches half of its maximum. */
 const QUALITY_SCALE_MINOR = REPORT_COST_MINOR * 2;
 
 /**
@@ -55,7 +57,32 @@ export function reportCostMinor(reports: number): number {
 export function informationQuality(spendMinor: number): number {
   if (!Number.isFinite(spendMinor) || spendMinor < 0)
     throw new Error("invalid research spend");
-  return Math.round(
-    MAX_INFORMATION_QUALITY * (1 - Math.exp(-spendMinor / QUALITY_SCALE_MINOR)),
+  return saturatingRatio(
+    MAX_INFORMATION_QUALITY,
+    spendMinor,
+    QUALITY_SCALE_MINOR,
+  );
+}
+
+/** Applies one more report to the quality already owned by the player. */
+export function qualityAfterReport(currentQuality: number): number {
+  if (
+    !Number.isSafeInteger(currentQuality) ||
+    currentQuality < 0 ||
+    currentQuality > MAX_INFORMATION_QUALITY
+  )
+    throw new Error("invalid current information quality");
+  if (currentQuality === MAX_INFORMATION_QUALITY) return currentQuality;
+  // Invert the same rational curve to recover the effective prior spend.
+  const priorSpendMinor = Math.round(
+    (currentQuality * QUALITY_SCALE_MINOR) /
+      (MAX_INFORMATION_QUALITY - currentQuality),
+  );
+  return Math.min(
+    MAX_INFORMATION_QUALITY,
+    Math.max(
+      currentQuality + 1,
+      informationQuality(priorSpendMinor + REPORT_COST_MINOR),
+    ),
   );
 }

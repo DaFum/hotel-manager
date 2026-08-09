@@ -41,6 +41,19 @@ it("rejects an actor whose state is not finite", () => {
   ).toThrow(/scale/);
 });
 
+it("rejects fractional, negative, and unsafe actor state", () => {
+  for (const input of [
+    { scale: 100.5, demand: 100, profitBp: 0 },
+    { scale: -1, demand: 100, profitBp: 0 },
+    { scale: 100, demand: 100.5, profitBp: 0 },
+    { scale: 100, demand: 100, profitBp: Number.MAX_SAFE_INTEGER + 1 },
+  ])
+    expect(() => nextActorScale(input)).toThrow(/invalid/);
+  expect(() =>
+    scaleByKind([{ id: "actor.bad", kind: "office", scale: 1.5 }]),
+  ).toThrow(/scale/);
+});
+
 it("aggregates the city's actors into one scale per driver", () => {
   const actors = [
     { id: "actor.bank", kind: "office" as const, scale: 120 },

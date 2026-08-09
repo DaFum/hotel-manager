@@ -115,3 +115,14 @@ it("sells nothing when the city has no demand and no house has rooms", () => {
   expect(allocateRoomNights(50, [])).toEqual({});
   expect(() => allocateRoomNights(-1, HOUSES)).toThrow(/room nights/);
 });
+
+it("rejects duplicate house ids and invalid appeal", () => {
+  expect(() => allocateRoomNights(1, [HOUSES[0], HOUSES[0]])).toThrow(
+    /duplicate/,
+  );
+  expect(() =>
+    allocateRoomNights(1, [
+      { ...HOUSES[0], appealBp: Number.POSITIVE_INFINITY },
+    ]),
+  ).toThrow(/appeal/);
+});

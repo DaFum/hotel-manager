@@ -5,6 +5,24 @@
  */
 export type InvestmentAction = "expand" | "renovate" | "hold";
 
+/** Cash and borrowing used for a build, or null when it cannot be funded. */
+export function expansionFunding(
+  costMinor: number,
+  cashAvailableMinor: number,
+  debtHeadroomMinor: number,
+): { cashMinor: number; debtMinor: number } | null {
+  for (const [label, value] of [
+    ["cost", costMinor],
+    ["cash", cashAvailableMinor],
+    ["debt headroom", debtHeadroomMinor],
+  ] as const)
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new Error(`invalid expansion ${label}`);
+  const debtMinor = Math.min(costMinor, debtHeadroomMinor);
+  const cashMinor = costMinor - debtMinor;
+  return cashMinor <= cashAvailableMinor ? { cashMinor, debtMinor } : null;
+}
+
 /** Return that justifies new rooms, in basis points of capital employed. */
 export const EXPANSION_HURDLE_BP = 900;
 /** Return that at least justifies keeping the product current. */

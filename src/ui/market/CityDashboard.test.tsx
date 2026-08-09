@@ -61,3 +61,20 @@ it("explains connectivity in words rather than by colour alone", () => {
   );
   expect(screen.getByLabelText("Connectivity").textContent).toContain("73");
 });
+
+it("offers paid research from the market bulletin", () => {
+  let purchases = 0;
+  render(
+    <CityDashboard
+      business={1200}
+      leisure={800}
+      low={1800}
+      high={2300}
+      informationQuality={0}
+      researchCostMinor={150_000}
+      onBuyResearch={() => purchases++}
+    />,
+  );
+  screen.getByRole("button", { name: /buy market research/i }).click();
+  expect(purchases).toBe(1);
+});

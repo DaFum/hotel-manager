@@ -14,8 +14,16 @@ import {
 import {
   advanceCityMonth,
   allocateCityDay,
+  recordPlayerRoomNights,
   type PlayerHouse,
 } from "../city/cityMarket";
+import { totalRoomNights } from "../city/demand";
+import {
+  forecastBand,
+  MAX_INFORMATION_QUALITY,
+  qualityAfterReport,
+  REPORT_COST_MINOR,
+} from "../marketResearch/forecast";
 import { marketWageMinor } from "../labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../content/1991/cityMarket";
 import {
@@ -136,7 +144,8 @@ export type GameCommand =
     }
   | { type: "START_RENOVATION" }
   | { type: "SET_SPECIALIZATION"; specializationId: string | null }
-  | { type: "EXPAND_FACILITY"; area: ExpandableArea };
+  | { type: "EXPAND_FACILITY"; area: ExpandableArea }
+  | { type: "BUY_MARKET_RESEARCH" };
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
@@ -267,6 +276,15 @@ export class GameSimulation {
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         }
+        case "BUY_MARKET_RESEARCH":
+          if (s.cityMarket.informationQuality >= MAX_INFORMATION_QUALITY)
+            return {
+              ok: false,
+              reason: "market information is already complete",
+            };
+          if (s.finance.cashMinor < REPORT_COST_MINOR)
+            return { ok: false, reason: "insufficient cash" };
+          return { ok: true };
         default:
           return { ok: false, reason: "unknown command" };
       }
@@ -447,6 +465,19 @@ export class GameSimulation {
           ...s.investedArea,
           [command.area]: s.investedArea[command.area] + EXPANSION_SQM,
         };
+        return;
+      }
+      case "BUY_MARKET_RESEARCH": {
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
+        this.spend(REPORT_COST_MINOR, "marketResearch", "city market report");
+        s.cityMarket.informationQuality = qualityAfterReport(
+          s.cityMarket.informationQuality,
+        );
+        s.cityMarket.forecast = forecastBand(
+          totalRoomNights(s.cityMarket.demand),
+          s.cityMarket.informationQuality,
+        );
         return;
       }
     }
@@ -997,8 +1028,13 @@ export class GameSimulation {
     if (s.calendar.minuteOfDay !== DEMAND_MINUTE) return;
     this.generateEventLeads();
     // The city settles its month before the new one's first day trades.
-    if (s.calendar.dateKey.slice(8) === "01") this.runCityMonth();
-    const shareIndex = this.runCityDay();
+    const endedMonthKey = addDays(s.calendar.dateKey, -1);
+    const endedMonthWasClosed =
+      s.lastMonthlyClose?.periodKey === endedMonthKey.slice(0, 7);
+    if (s.calendar.dateKey.slice(8) === "01" && endedMonthWasClosed)
+      this.runCityMonth();
+    const cityAllocation = this.runCityDay();
+    const shareIndex = cityAllocation.playerShareIndex;
 
     const season = seasonalityBp(s.calendar.dateKey);
     const parties = Math.max(
@@ -1008,6 +1044,7 @@ export class GameSimulation {
           10000,
       ),
     );
+    let realizedPlayerRoomNights = 0;
     for (let i = 0; i < parties; i++) {
       const segment = pickSegment(this.streams.guests.nextUint32() % 10000);
       const leadDays = this.streams.guests.nextUint32() % 7;
@@ -1046,11 +1083,16 @@ export class GameSimulation {
           segmentId: segment.id,
         };
         s.reservations.push(reservation);
+        realizedPlayerRoomNights += booking.roomsRequested;
       } catch {
         /* demand lost to price or inventory; the slice does not yet count
            the causes, so this is intentionally silent */
       }
     }
+    recordPlayerRoomNights(
+      s.cityMarket,
+      Math.min(realizedPlayerRoomNights, cityAllocation.playerRoomNights),
+    );
   }
 
   private refreshAlerts(): void {
@@ -1151,14 +1193,14 @@ export class GameSimulation {
    * Splits today's city room nights across every house and returns what
    * competition did to this hotel's own share of them.
    */
-  private runCityDay(): number {
+  private runCityDay(): ReturnType<typeof allocateCityDay> {
     const s = this.state;
     return allocateCityDay(
       s.cityMarket,
       s.competitors,
       this.playerHouse(),
       s.calendar.dateKey,
-    ).playerShareIndex;
+    );
   }
 
   // --- helpers -----------------------------------------------------------

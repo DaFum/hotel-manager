@@ -36,3 +36,14 @@ it("counts every hotel's open posts against the city's workers", () => {
   // An overstaffed house does not create phantom vacancies elsewhere.
   expect(vacancies([{ posts: 5, staffed: 9 }])).toBe(0);
 });
+
+it("rejects non-integer counts and out-of-band pressure", () => {
+  for (const value of [-1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    expect(() => wagePressureBp(value, 10)).toThrow(/vacancies/);
+    expect(() => wagePressureBp(10, value)).toThrow(/workers/);
+  }
+  expect(() => vacancies([{ posts: 1.5, staffed: 1 }])).toThrow(/posts/);
+  expect(() => vacancies([{ posts: 1, staffed: -1 }])).toThrow(/staffed/);
+  for (const pressure of [7499, 15001, 10000.5])
+    expect(() => marketWageMinor(200_000, pressure)).toThrow(/pressure/);
+});

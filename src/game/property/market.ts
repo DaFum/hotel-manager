@@ -49,7 +49,8 @@ export function targetPriceMinor(
     throw new Error("invalid demand pressure");
   // Property overshoots demand: a tight market bids land up faster than the
   // room nights that justify it.
-  const factorBp = 10000 + Math.round((demandPressureBp - 10000) * 1.5);
+  const overshootBp = Math.round(((demandPressureBp - 10000) * 15000) / 10000);
+  const factorBp = 10000 + overshootBp;
   return Math.max(
     1,
     Math.round((baseLandPriceMinor * Math.max(2500, factorBp)) / 10000),

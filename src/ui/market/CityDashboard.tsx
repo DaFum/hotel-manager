@@ -1,4 +1,4 @@
-import { formatBasisPoints } from "../money";
+import { formatBasisPoints, formatDm } from "../money";
 
 /**
  * Design intent (AGENTS §13)
@@ -24,6 +24,9 @@ export function CityDashboard(p: {
   connectivityIndex?: number;
   /** How good the player's information is, 0-100. */
   informationQuality?: number;
+  /** Cost and command callback are supplied together when research is available. */
+  researchCostMinor?: number;
+  onBuyResearch?: () => void;
 }) {
   const event = p.event ?? 0;
   const group = p.group ?? 0;
@@ -56,6 +59,12 @@ export function CityDashboard(p: {
           ? ""
           : ` at information quality ${p.informationQuality}/100`}
       </p>
+      {p.onBuyResearch === undefined ||
+      p.researchCostMinor === undefined ? null : (
+        <button type="button" onClick={p.onBuyResearch}>
+          Buy market research — {formatDm(p.researchCostMinor)}
+        </button>
+      )}
       {p.connectivityIndex === undefined ? null : (
         <p aria-label="Connectivity">
           Connectivity {p.connectivityIndex}/100 — rail, air, road and local

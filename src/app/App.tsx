@@ -20,6 +20,7 @@ import { CityDashboard } from "../ui/market/CityDashboard";
 import { CompetitorTable } from "../ui/market/CompetitorTable";
 import { marketWageMinor } from "../game/labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
+import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -96,6 +97,8 @@ export function App() {
         high={s.cityMarket.forecast.high}
         connectivityIndex={connectivityIndex(s.cityMarket.transport)}
         informationQuality={s.cityMarket.informationQuality}
+        researchCostMinor={REPORT_COST_MINOR}
+        onBuyResearch={() => game.send({ type: "BUY_MARKET_RESEARCH" })}
       />
       <CompetitorTable
         rows={s.competitors}

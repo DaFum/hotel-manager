@@ -15,8 +15,8 @@ Web Worker. Design authority, in order: the user, `AGENTS.md`,
 active plan in `docs/superpowers/plans/`.
 
 Plans 01 (vertical slice), 02 (hotel depth and specialization) and 03 (city market and
-competitors) are complete and green. Plan 04 (technology and alternative history) is
-next; don't start it without re-running Plan 03's gate first.
+competitors) are implemented and verified. Plan 04 (technology and alternative history)
+is next; see `AGENTS.md` for the exact fresh Plan 03 gate evidence.
 
 ## Commands
 
@@ -30,10 +30,12 @@ npm run test:e2e                     # Playwright; needs a build first
 npm run benchmark                    # a simulated year, budget 30s
 ```
 
-Playwright has no bundled browser here — pass the preinstalled one:
+If Playwright's browser or Linux dependencies are absent, install them first:
 
 ```bash
-CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e
+npx playwright install chromium
+npx playwright install-deps chromium
+npm run test:e2e
 ```
 
 Run `npx prettier --write <paths>` on the files you touched, never `prettier --write .`

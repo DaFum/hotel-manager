@@ -50,6 +50,13 @@ export function competitorMonth(
   house: { rooms: number; rateMinor: number; debtMinor: number },
   market: { soldRoomNights: number; wagePressureBp: number },
 ): CompetitorMonth {
+  for (const [label, value] of [
+    ["rooms", house.rooms],
+    ["rate", house.rateMinor],
+    ["debt", house.debtMinor],
+  ] as const)
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new Error(`invalid ${label}`);
   if (!Number.isSafeInteger(market.soldRoomNights) || market.soldRoomNights < 0)
     throw new Error("invalid sold room nights");
   const revenueMinor = market.soldRoomNights * house.rateMinor;
@@ -66,13 +73,23 @@ export function competitorMonth(
           termMonths: 240,
         })
       : 0;
+  for (const [label, value] of [
+    ["revenue", revenueMinor],
+    ["wage", wageMinor],
+    ["opex", opexMinor],
+    ["fixed", fixedMinor],
+    ["interest", interestMinor],
+  ] as const)
+    if (!Number.isSafeInteger(value)) throw new Error(`invalid ${label}`);
+  const profitMinor =
+    revenueMinor - wageMinor - opexMinor - fixedMinor - interestMinor;
+  if (!Number.isSafeInteger(profitMinor)) throw new Error("invalid profit");
   return {
     revenueMinor,
     wageMinor,
     opexMinor,
     fixedMinor,
     interestMinor,
-    profitMinor:
-      revenueMinor - wageMinor - opexMinor - fixedMinor - interestMinor,
+    profitMinor,
   };
 }

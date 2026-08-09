@@ -39,6 +39,11 @@ export function assertInvariants(state: GameState): void {
   if (!market) throw new Error("game state is missing the city market");
   if (!Number.isSafeInteger(market.landPriceMinor) || market.landPriceMinor < 0)
     throw new Error("land price must be whole Pfennig");
+  if (
+    !Number.isSafeInteger(market.wagePressureBp) ||
+    market.wagePressureBp <= 0
+  )
+    throw new Error("wage pressure must be a positive whole basis-point value");
   for (const source of Object.values(market.demand))
     if (!Number.isSafeInteger(source) || source < 0)
       throw new Error("city demand must be whole room nights");

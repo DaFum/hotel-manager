@@ -50,6 +50,18 @@ describe("staffing", () => {
     ).toBe(260000);
   });
 
+  it("rejects an invalid optional market wage", () => {
+    const applicant = { id: "a1", role: "reception", skill: 70 };
+    for (const marketWageMinor of [-1, 1.5, Number.NaN])
+      expect(() =>
+        hireApplicant(applicant, {
+          shift: "morning",
+          monthlyWageMinor: 260000,
+          marketWageMinor,
+        }),
+      ).toThrow(/market wage/);
+  });
+
   it("removes absent staff from throughput", () => {
     expect(
       effectiveCapacity([

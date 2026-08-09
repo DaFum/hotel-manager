@@ -1,8 +1,4 @@
-import {
-  CONTENT_VERSION,
-  SAVE_VERSION,
-  type SaveEnvelope,
-} from "../saveVersions";
+import type { SaveEnvelope } from "../saveVersions";
 import { createCityMarket, createCompetitors } from "../../city/cityMarket";
 
 /**
@@ -19,8 +15,8 @@ export function migrateV2ToV3(s: SaveEnvelope): SaveEnvelope {
 
   return {
     ...s,
-    saveVersion: SAVE_VERSION,
-    contentVersion: CONTENT_VERSION,
+    saveVersion: 3,
+    contentVersion: "city-market-1991-v3",
     state: {
       ...state,
       cityMarket: state.cityMarket ?? createCityMarket(dateKey),

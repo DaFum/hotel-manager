@@ -62,6 +62,23 @@ it("keeps every figure in whole Pfennig", () => {
     expect(Number.isSafeInteger(value)).toBe(true);
 });
 
+it("rejects invalid house money and arithmetic overflow", () => {
+  const market = { soldRoomNights: 1, wagePressureBp: 10000 };
+  expect(() => competitorMonth({ ...HOUSE, debtMinor: -1 }, market)).toThrow(
+    /debt/,
+  );
+  for (const rateMinor of [-1, 1.5, Number.NaN])
+    expect(() => competitorMonth({ ...HOUSE, rateMinor }, market)).toThrow(
+      /rate/,
+    );
+  expect(() =>
+    competitorMonth(
+      { rooms: 1, rateMinor: Number.MAX_SAFE_INTEGER, debtMinor: 0 },
+      { soldRoomNights: 2, wagePressureBp: 10000 },
+    ),
+  ).toThrow(/revenue/);
+});
+
 it("staffs a house by its rooms", () => {
   expect(postsForRooms(100)).toBe(40);
   expect(postsForRooms(0)).toBe(0);

@@ -31,9 +31,13 @@ export function rememberFairPlay(relation: number): number {
 
 /**
  * How hard a house prices against a rival it distrusts, in basis points of
- * extra discount. A trusted rival draws no retaliation at all.
+ * extra discount. Neutral trust and anything above it draw no retaliation;
+ * distrust below that anchor increases the response.
  */
 export function retaliationBp(relation: number): number {
   const trust = clamp(relation);
-  return Math.round(((MAX_RELATION - trust) * 1500) / MAX_RELATION);
+  const neutral = neutralRelation();
+  return trust >= neutral
+    ? 0
+    : Math.round(((neutral - trust) * 1500) / neutral);
 }

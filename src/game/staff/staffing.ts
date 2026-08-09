@@ -25,6 +25,11 @@ export function hireApplicant(
     throw new Error("invalid wage");
   if (
     offer.marketWageMinor !== undefined &&
+    (!Number.isSafeInteger(offer.marketWageMinor) || offer.marketWageMinor < 0)
+  )
+    throw new Error("invalid market wage");
+  if (
+    offer.marketWageMinor !== undefined &&
     offer.monthlyWageMinor < offer.marketWageMinor
   )
     throw new Error(

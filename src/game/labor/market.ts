@@ -14,9 +14,9 @@ export const MAX_PRESSURE_BP = 15000;
  * ends are bounded so one extreme year cannot price labour out of the game.
  */
 export function wagePressureBp(vacancyCount: number, workers: number): number {
-  if (!Number.isFinite(vacancyCount) || vacancyCount < 0)
+  if (!Number.isSafeInteger(vacancyCount) || vacancyCount < 0)
     throw new Error("invalid vacancies");
-  if (!Number.isFinite(workers) || workers < 0)
+  if (!Number.isSafeInteger(workers) || workers < 0)
     throw new Error("invalid workers");
   const ratio = vacancyCount / Math.max(1, workers);
   return Math.round(
@@ -32,6 +32,13 @@ export function wagePressureBp(vacancyCount: number, workers: number): number {
 export function vacancies(
   employers: readonly { posts: number; staffed: number }[],
 ): number {
+  for (const employer of employers)
+    for (const [label, value] of [
+      ["posts", employer.posts],
+      ["staffed", employer.staffed],
+    ] as const)
+      if (!Number.isSafeInteger(value) || value < 0)
+        throw new Error(`invalid employer ${label}`);
   return employers.reduce((n, e) => n + Math.max(0, e.posts - e.staffed), 0);
 }
 
@@ -42,7 +49,11 @@ export function marketWageMinor(
 ): number {
   if (!Number.isSafeInteger(baseMonthlyWageMinor) || baseMonthlyWageMinor <= 0)
     throw new Error("invalid base wage");
-  if (!Number.isFinite(pressureBp) || pressureBp <= 0)
+  if (
+    !Number.isSafeInteger(pressureBp) ||
+    pressureBp < MIN_PRESSURE_BP ||
+    pressureBp > MAX_PRESSURE_BP
+  )
     throw new Error("invalid pressure");
   return Math.round((baseMonthlyWageMinor * pressureBp) / 10000);
 }

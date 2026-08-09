@@ -38,7 +38,8 @@ export function nextActorScale(i: {
     ["demand", i.demand],
     ["profitBp", i.profitBp],
   ] as const)
-    if (!Number.isFinite(value)) throw new Error(`invalid ${label}`);
+    if (!Number.isSafeInteger(value)) throw new Error(`invalid ${label}`);
+  if (i.scale < 0) throw new Error("invalid scale");
 
   // Demand and its own trade move an actor; the pull back toward the city's
   // neutral scale is what stops a run of soft months compounding into a city
@@ -50,7 +51,9 @@ export function nextActorScale(i: {
     -MAX_MONTHLY_ACTOR_MOVE,
     Math.min(MAX_MONTHLY_ACTOR_MOVE, move),
   );
-  return Math.max(0, Math.round(i.scale) + bounded);
+  const next = Math.max(0, i.scale + bounded);
+  if (!Number.isSafeInteger(next)) throw new Error("invalid next scale");
+  return next;
 }
 
 /**
@@ -65,6 +68,9 @@ export function scaleByKind(
     ACTOR_KINDS.map((kind) => {
       const of = actors.filter((a) => a.kind === kind);
       if (of.length === 0) return [kind, 100];
+      for (const actor of of)
+        if (!Number.isSafeInteger(actor.scale) || actor.scale < 0)
+          throw new Error(`invalid scale for ${actor.id}`);
       return [
         kind,
         Math.round(of.reduce((sum, a) => sum + a.scale, 0) / of.length),

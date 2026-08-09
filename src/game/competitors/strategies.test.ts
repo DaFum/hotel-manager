@@ -13,10 +13,10 @@ it("gives aggressive investors more leverage tolerance", () => {
   );
 });
 
-it("names a profile for every strategy the game can create", () => {
+it("provides a stable localization key for every strategy", () => {
   for (const s of STRATEGIES) {
     const profile = strategyProfile(s);
-    expect(profile.name.length).toBeGreaterThan(0);
+    expect(profile.nameKey).toBe(`competitor.strategy.${s}`);
     expect(Number.isSafeInteger(profile.positioningBp)).toBe(true);
     expect(Number.isSafeInteger(targetLeverageBp(s))).toBe(true);
   }

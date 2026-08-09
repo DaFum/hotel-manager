@@ -18,6 +18,14 @@ test("shows the city's demand sources and the uncertainty around them", async ({
     /Forecast \d+–\d+ room nights/,
   );
   await expect(city.getByLabel("Connectivity")).toContainText(/\d+\/100/);
+
+  await expect(city.getByLabel("Room-night forecast")).toContainText(
+    "information quality 0/100",
+  );
+  await city.getByRole("button", { name: /buy market research/i }).click();
+  await expect(city.getByLabel("Room-night forecast")).not.toContainText(
+    "information quality 0/100",
+  );
 });
 
 test("puts the rival houses beside this hotel on the same terms", async ({

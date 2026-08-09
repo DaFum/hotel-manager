@@ -7,6 +7,7 @@ import {
   allocateCityDay,
   createCityMarket,
   createCompetitors,
+  recordPlayerRoomNights,
   averageRateMinor,
   type CompetitorRecord,
   type PlayerHouse,
@@ -78,7 +79,10 @@ export function runCityYears(years: number, seed = 424242): CityScenarioResult {
     // Trade the month day by day, so rivals earn the nights they actually win.
     let dateKey = endedMonthKey;
     for (let day = 0; day < daysInMonth(endedMonthKey); day++) {
-      allocateCityDay(market, competitors, player, dateKey);
+      const allocation = allocateCityDay(market, competitors, player, dateKey);
+      // The aggregate scenario assumes the steady player realizes its whole
+      // allocation; the real simulation records only accepted bookings.
+      recordPlayerRoomNights(market, allocation.playerRoomNights);
       dateKey = addDays(dateKey, 1);
     }
 

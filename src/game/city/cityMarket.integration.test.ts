@@ -11,8 +11,41 @@ import { GameSimulation } from "../simulation/GameSimulation";
 import { createInitialGameState } from "../simulation/initialState";
 import { QUANTUM_MINUTES } from "../simulation/clock";
 import { MINUTES_PER_DAY } from "../domain/calendar";
+import { FEEDBACK_DELAY_MONTHS } from "./feedback";
+import {
+  allocateCityDay,
+  createCityMarket,
+  createCompetitors,
+  recordPlayerRoomNights,
+} from "./cityMarket";
+import { STARTER_HOTEL } from "../content/1991/starterHotel";
 
 const QUANTA_PER_DAY = MINUTES_PER_DAY / QUANTUM_MINUTES;
+
+it("records only player room nights that the booking flow realizes", () => {
+  const market = createCityMarket("1991-01-01");
+  const competitors = createCompetitors();
+  const result = allocateCityDay(
+    market,
+    competitors,
+    {
+      id: STARTER_HOTEL.id,
+      rooms: STARTER_HOTEL.roomCount,
+      rateMinor: STARTER_HOTEL.defaultRateMinor.double,
+      appealBp: 10000,
+      conferenceSeats: 0,
+    },
+    "1991-01-01",
+  );
+  const rivalNights = competitors.reduce(
+    (sum, competitor) => sum + competitor.soldRoomNights,
+    0,
+  );
+  expect(market.soldRoomNights).toBe(rivalNights);
+  recordPlayerRoomNights(market, 3);
+  expect(market.soldRoomNights).toBe(rivalNights + 3);
+  expect(result.playerRoomNights).toBeGreaterThan(0);
+});
 
 it("keeps a functioning market for ten years", () => {
   const r = runCityYears(10, 4242);
@@ -70,5 +103,5 @@ it("restores a migrated v2 save into a runnable market", () => {
   const s = sim.snapshot();
   expect(s.competitors.length).toBeGreaterThan(0);
   expect(s.cityMarket.landPriceMinor).toBeGreaterThan(0);
-  expect(s.cityMarket.feedbackPipeline.length).toBeGreaterThan(0);
+  expect(s.cityMarket.feedbackPipeline).toHaveLength(FEEDBACK_DELAY_MONTHS);
 });

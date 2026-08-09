@@ -95,9 +95,14 @@ When executing a plan:
 ### Current repository state
 
 Plan 01 (1991 single-hotel vertical slice, rev 1.1), Plan 02 (hotel depth and
-specialization) and Plan 03 (city market and competitors) are implemented and their
-verification gates are green. Plan 04 is the next plan; do not start it before re-running
-the Plan 03 gate in a fresh session.
+specialization) and Plan 03 (city market and competitors) are implemented. Plan 03's
+gate is **verified**. Fresh verification on 2026-08-09 produced these exact results:
+
+- `npm run test:run` — passed (54 files, 273 tests).
+- `npm run typecheck` — passed.
+- `npm run lint` — passed.
+- `npm run build` — passed.
+- `npm run test:e2e` — passed (8 tests).
 
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
@@ -149,8 +154,8 @@ npm run test:e2e     # Playwright against the built preview server
 npm run benchmark    # one simulated year through the real simulation
 ```
 
-In this container Playwright uses the preinstalled browser:
-`CHROMIUM_PATH=/opt/pw-browsers/chromium-1194/chrome-linux/chrome npm run test:e2e`.
+In this container, install the Playwright browser and its system dependencies when they
+are absent, then run `npm run test:e2e`.
 
 ---
 

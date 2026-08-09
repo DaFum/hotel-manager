@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import {
   forecastBand,
   informationQuality,
+  qualityAfterReport,
   reportCostMinor,
   MAX_INFORMATION_QUALITY,
 } from "./forecast";
@@ -46,4 +47,10 @@ it("buys information quality with research spend, at diminishing value", () => {
   expect(dear).toBeLessThanOrEqual(MAX_INFORMATION_QUALITY);
   // Four reports cost more than one but do not buy four times the certainty.
   expect(dear - cheap).toBeLessThan(cheap * 3);
+});
+
+it("improves existing information with each paid report", () => {
+  expect(qualityAfterReport(0)).toBeGreaterThan(0);
+  expect(qualityAfterReport(99)).toBe(100);
+  expect(qualityAfterReport(100)).toBe(100);
 });

@@ -75,10 +75,16 @@ export function allocateRoomNights(
     throw new Error("invalid city room nights");
   const sold: Record<string, number> = {};
   for (const h of houses) {
+    if (typeof h.id !== "string" || h.id.length === 0)
+      throw new Error("invalid house id");
+    if (Object.hasOwn(sold, h.id))
+      throw new Error(`duplicate house id ${h.id}`);
     if (!Number.isSafeInteger(h.rooms) || h.rooms < 0)
       throw new Error(`invalid rooms for ${h.id}`);
     if (!Number.isSafeInteger(h.rateMinor) || h.rateMinor <= 0)
       throw new Error(`invalid rate for ${h.id}`);
+    if (!Number.isSafeInteger(h.appealBp) || h.appealBp < 0)
+      throw new Error(`invalid appeal for ${h.id}`);
     sold[h.id] = 0;
   }
 

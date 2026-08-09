@@ -1,6 +1,18 @@
 import { expect, it } from "vitest";
-import { chooseInvestment, returnOnCapitalBp } from "./investment";
+import {
+  chooseInvestment,
+  expansionFunding,
+  returnOnCapitalBp,
+} from "./investment";
 import { targetLeverageBp } from "./strategies";
+
+it("funds expansions only within cash and leverage headroom", () => {
+  expect(expansionFunding(1_000, 400, 700)).toEqual({
+    cashMinor: 300,
+    debtMinor: 700,
+  });
+  expect(expansionFunding(1_000, 100, 700)).toBeNull();
+});
 
 it("holds when debt exceeds risk tolerance", () => {
   expect(

@@ -15,7 +15,7 @@ export const STRATEGIES: readonly Strategy[] = [
 ];
 
 export interface StrategyProfile {
-  name: string;
+  nameKey: `competitor.strategy.${Strategy}`;
   /** Where the house prices itself against the market, in basis points. */
   positioningBp: number;
   /** Debt the owner will carry, in basis points of asset value. */
@@ -26,31 +26,31 @@ export interface StrategyProfile {
 
 const PROFILES: Record<Strategy, StrategyProfile> = {
   budget: {
-    name: "Budget operator",
+    nameKey: "competitor.strategy.budget",
     positioningBp: 7000,
     targetLeverageBp: 4500,
     discountAppetiteBp: 1200,
   },
   luxury: {
-    name: "Luxury house",
+    nameKey: "competitor.strategy.luxury",
     positioningBp: 14000,
     targetLeverageBp: 3000,
     discountAppetiteBp: 400,
   },
   family: {
-    name: "Family hotel",
+    nameKey: "competitor.strategy.family",
     positioningBp: 9500,
     targetLeverageBp: 1800,
     discountAppetiteBp: 600,
   },
   lifestyle: {
-    name: "Lifestyle brand",
+    nameKey: "competitor.strategy.lifestyle",
     positioningBp: 11500,
     targetLeverageBp: 3500,
     discountAppetiteBp: 800,
   },
   aggressive: {
-    name: "Aggressive investor",
+    nameKey: "competitor.strategy.aggressive",
     positioningBp: 10000,
     targetLeverageBp: 6500,
     discountAppetiteBp: 2000,

@@ -14,7 +14,7 @@ import {
 } from "../content/1991/cityMarket";
 import { seasonalityBp } from "../content/1991/frankfurt";
 import { GUEST_SEGMENTS } from "../content/1991/guestSegments";
-import { chooseInvestment } from "../competitors/investment";
+import { chooseInvestment, expansionFunding } from "../competitors/investment";
 import { entryOpportunity, lifecycleAction } from "../competitors/lifecycle";
 import {
   competitorMonth,
@@ -245,7 +245,10 @@ export function allocateCityDay(
   for (const c of competitors)
     if (c.status !== "exit") c.soldRoomNights += sold[c.id] ?? 0;
   const playerRoomNights = sold[player.id] ?? 0;
-  market.soldRoomNights += Object.values(sold).reduce((n, v) => n + v, 0);
+  market.soldRoomNights += competitors.reduce(
+    (sum, competitor) => sum + (sold[competitor.id] ?? 0),
+    0,
+  );
 
   const cityRooms = houses.reduce((n, h) => n + h.rooms, 0);
   const fairShare = cityRooms > 0 ? (nights * player.rooms) / cityRooms : 0;
@@ -255,6 +258,18 @@ export function allocateCityDay(
     playerShareIndex: Math.min(1.6, Math.max(0.4, index)),
     playerRoomNights,
   };
+}
+
+/** Adds only player demand that survived the real booking flow. */
+export function recordPlayerRoomNights(
+  market: CityMarketState,
+  realizedRoomNights: number,
+): void {
+  if (!Number.isSafeInteger(realizedRoomNights) || realizedRoomNights < 0)
+    throw new Error("invalid realized player room nights");
+  market.soldRoomNights += realizedRoomNights;
+  if (!Number.isSafeInteger(market.soldRoomNights))
+    throw new Error("invalid city sold room nights");
 }
 
 /**
@@ -302,6 +317,11 @@ export function advanceCityMonth(
   const seasonBp = seasonalityBp(input.endedMonthKey);
   const deseasoned = (occupancyBp: number) =>
     Math.round((occupancyBp * 10000) / seasonBp);
+  // This is the supply that traded the ending month: later exits remain in
+  // its denominator, while rooms built during settlement do not appear in it.
+  const tradedRoomTotal =
+    competitors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
+    player.rooms;
 
   // --- 1. settle the month every house has just traded -------------------
   for (const c of competitors) {
@@ -342,17 +362,28 @@ export function advanceCityMonth(
         debtBp: Math.round((c.debtMinor * 10000) / Math.max(1, capital)),
         toleranceBp: targetLeverageBp(c.strategy),
       });
+      const expansionCost = buildCostMinor({
+        rooms: EXPANSION_ROOMS,
+        landPriceMinor: market.landPriceMinor,
+      });
+      const funding = expansionFunding(
+        expansionCost,
+        c.cashMinor,
+        Math.min(
+          headroom,
+          creditLineMinor(EXPANSION_ROOMS, market.landPriceMinor),
+        ),
+      );
       // Rooms are only added by a house that is actually turning guests away,
       // and no faster than a building can be put up.
       if (
         action === "expand" &&
+        funding !== null &&
         deseasoned(c.occupancyBp) >= EXPANSION_OCCUPANCY_BP &&
         c.monthsSinceBuild >= BUILD_COOLDOWN_MONTHS
       ) {
-        c.debtMinor += buildCostMinor({
-          rooms: EXPANSION_ROOMS,
-          landPriceMinor: market.landPriceMinor,
-        });
+        c.cashMinor -= funding.cashMinor;
+        c.debtMinor += funding.debtMinor;
         c.rooms += EXPANSION_ROOMS;
         c.monthsSinceBuild = 0;
       } else if (action === "renovate") {
@@ -374,6 +405,9 @@ export function advanceCityMonth(
   }
 
   const survivors = competitors.filter((c) => c.status !== "exit");
+  const survivorRoomTotal =
+    survivors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
+    player.rooms;
 
   // --- 3. what each house remembers about the player ----------------------
   const marketRate = averageRateMinor(survivors, player);
@@ -414,7 +448,7 @@ export function advanceCityMonth(
   // --- 5. the city underneath them ---------------------------------------
   const cityOccupancyBp = occupancyBpOf(
     market.soldRoomNights,
-    (survivors.reduce((n, c) => n + c.rooms, 0) + player.rooms) * nightsInMonth,
+    tradedRoomTotal * nightsInMonth,
   );
   // Every structural decision — employers, land, entry — is taken on the
   // season-adjusted figure rather than on the month just traded.
@@ -466,8 +500,7 @@ export function advanceCityMonth(
   market.feedbackPipeline = matured.pipeline;
   market.eventUpliftBp = matured.applied;
 
-  const totalRooms = survivors.reduce((n, c) => n + c.rooms, 0) + player.rooms;
-  market.wagePressureBp = pressureForRooms(totalRooms, market.actors);
+  market.wagePressureBp = pressureForRooms(survivorRoomTotal, market.actors);
   market.demand = demandFor(
     input.dateKey,
     market.transport,

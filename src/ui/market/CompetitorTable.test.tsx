@@ -70,6 +70,18 @@ it("marks a rival in distress without relying on colour", () => {
   ).toBeTruthy();
 });
 
+it("translates authoritative strategy keys for display", () => {
+  render(
+    <CompetitorTable
+      rows={RIVALS}
+      playerRateMinor={18000}
+      playerOccupancyBp={6000}
+    />,
+  );
+  expect(screen.getByText("Luxury house")).toBeTruthy();
+  expect(screen.getByText("Budget operator")).toBeTruthy();
+});
+
 it("says so plainly when the player has the city to themselves", () => {
   render(
     <CompetitorTable

@@ -1,3 +1,5 @@
+import { saturatingRatio } from "../domain/saturation";
+
 /**
  * What the hotels give back to the city. A house that builds conference space
  * makes the city itself a better congress destination — but not this month,
@@ -10,7 +12,7 @@ export const FEEDBACK_DELAY_MONTHS = 6;
 
 /** Ceiling of the conference feedback, in basis points of city event demand. */
 export const MAX_CONFERENCE_EFFECT_BP = 1000;
-/** Capacity at which roughly 63% of the ceiling is reached, in seats. */
+/** Capacity at which half of the ceiling is reached, in seats. */
 const CONFERENCE_HALF_SCALE = 600;
 
 /**
@@ -20,9 +22,10 @@ const CONFERENCE_HALF_SCALE = 600;
  */
 export function conferenceEffect(capacity: number): number {
   if (!Number.isFinite(capacity)) throw new Error("invalid capacity");
-  return Math.round(
-    MAX_CONFERENCE_EFFECT_BP *
-      (1 - Math.exp(-Math.max(0, capacity) / CONFERENCE_HALF_SCALE)),
+  return saturatingRatio(
+    MAX_CONFERENCE_EFFECT_BP,
+    capacity,
+    CONFERENCE_HALF_SCALE,
   );
 }
 

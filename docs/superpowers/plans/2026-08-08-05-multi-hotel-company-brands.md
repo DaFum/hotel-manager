@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-04 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 22-28 and 40-44; implementation decomposition chapters 88 and 91.
+MASTER-spec coverage: MASTER chapters 22-28 and 40-44, including the audited Plan 01-02 depth completion delta; implementation decomposition chapters 88 and 91. See `2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -39,7 +47,7 @@ MASTER-spec coverage: MASTER chapters 22-28 and 40-44; implementation decomposit
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/game/company/portfolio.ts
@@ -951,6 +959,183 @@ git commit -m "test: cover multi hotel expansion"
 
 ---
 
+### Tasks 15-21: Close the audited hotel, commercial, and presentation depth delta
+
+These tasks are release-blocking. They extend the same v4-to-v5 migration and the
+multi-hotel E2E; they do not create an intermediate save version.
+
+#### Task 15: Complete accounting, risk, insurance, and utilities
+
+**Files:** Create `src/game/finance/statements.ts`, `src/game/risk/insurance.ts`,
+`src/game/utilities/consumption.ts`; add colocated tests; modify the ledger, company
+snapshot, `v4-to-v5.ts`, and `e2e/multi-hotel.spec.ts`.
+
+**MASTER completion contract:** P&L, cash flow, and balance sheet reconcile while
+keeping CapEx/OpEx, depreciation, receivables/payables, tax abstraction, debt schedules,
+rates, amortization, credit, collateral, insolvency, restructuring, internal funding,
+and treasury distinct. Insurance includes coverage, limit, deductible, premium,
+exclusions, underinsurance, evidence, delay, settlement, and ledger effects. Energy,
+water, waste, contracts, outages, efficiency investment, and consequences remain
+separate; there is no universal green score.
+
+- [ ] Write failing invariant tests for P&L, cash flow, balance sheet, depreciation,
+  receivables/payables, tax abstraction, debt schedules, collateral, insolvency and
+  restructuring; add deterministic policy/claim/underinsurance tests and metered
+  energy, water, outage, waste, sustainability, and supply-contract tests.
+- [ ] Run `npm run test:run -- src/game/finance src/game/risk src/game/utilities` and
+  confirm the new contracts fail.
+- [ ] Implement integer-minor-unit postings and fixed-point rates. Claims and outages
+  consume isolated RNG streams; sustainability has operational causes, not one score.
+  Persist all authoritative schedules and contracts in the v4-to-v5 migration.
+- [ ] Run the focused suites, finance invariants, migration test, multi-hotel E2E, and
+  `npm run typecheck`.
+- [ ] Commit as `feat: complete finance risk and utilities`.
+
+#### Task 16: Complete Sales, Marketing, CRM, Loyalty, and reputation
+
+**Files:** Create `src/game/commercial/{campaigns,salesPipeline,crm,loyalty}.ts`,
+`src/game/reputation/dimensions.ts`, colocated tests, and management UI under
+`src/ui/company/`; modify snapshots, commands, migration, and E2E.
+
+**MASTER completion contract:** Campaigns declare objective, target, channel, duration,
+budget, creative quality, reach/frequency, uncertainty, and lagged attribution. Sales
+tracks leads, negotiated contracts, expected volume, rates, concessions, validity,
+renewal, and profitability. CRM respects consent and stores relevant history/preferences;
+loyalty models earn, burn, tiers, benefits, liability, breakage, and cross-hotel cost.
+Hotel, brand, group, employer, media, channel reputation, and personal prestige remain
+separate with scoped causes, decay/repair, and effects.
+
+- [ ] Write failing causal tests for early/late channel availability, campaign target,
+  duration, budget, attribution uncertainty, negotiated accounts, CRM consent/data,
+  loyalty earn/burn/liability, and separate hotel/brand/group/employer/media/channel
+  reputations. Reputation dimensions must not collapse into prestige.
+- [ ] Run `npm run test:run -- src/game/commercial src/game/reputation` and confirm fail.
+- [ ] Implement typed commands, domain events, ledger postings, explainable demand and
+  access effects, and automation limits. Persist balances and histories in v4-to-v5.
+- [ ] Run focused tests, migration, E2E, `npm run typecheck`, and `npm run lint`.
+- [ ] Commit as `feat: add commercial lifecycle and reputation dimensions`.
+
+#### Task 17: Complete employee and supplier lifecycles
+
+**Files:** Create `src/game/staff/employeeLifecycle.ts` and
+`src/game/purchasing/contracts.ts`; add tests; modify shared-services and governance UI.
+
+- [ ] Write failing tests for contracts, overtime, sickness, leave, training,
+  promotion, resignation/dismissal, employer reputation, supplier terms, lead time,
+  spoilage, reorder rules, stockouts, and central-purchasing trade-offs.
+- [ ] Run the two focused suites and confirm the expected failures.
+- [ ] Implement stable-ID processing and shared hotel/company primitives; manager
+  automation obeys budgets and authority limits and never receives hidden inventory.
+- [ ] Run focused/system tests, migration, E2E, and typecheck.
+- [ ] Commit as `feat: complete people and procurement lifecycles`.
+
+#### Task 18: Complete guest, complaint, and service-recovery depth
+
+**Files:** Create `src/game/guests/partyLifecycle.ts` and
+`src/game/guests/recoveryAuthority.ts`; add tests; modify CRM/reputation integration.
+
+**MASTER completion contract:** Parties have stable identity/membership, segment, needs,
+budget, preferences, tolerance, loyalty, and booking context. Search/comparison uses
+price, location, fit, availability, reputations, channel visibility, loyalty, and
+uncertainty. Front office covers early/late handling, assignment, room changes, luggage,
+concierge, inspection, Lost & Found, and delayed release. Satisfaction and complaints
+retain stage-specific contributors, cause, severity, response, authority, recovery cost,
+and outcome; recovery may mitigate but never erase the original failure.
+
+- [ ] Write failing journey tests for party composition, needs, comparison, arrival,
+  stay, complaints, authority-bounded recovery, checkout, review, loyalty, and CRM.
+- [ ] Implement all mutations through commands/events and expose causal contributors;
+  recovery costs post to the ledger and rejected authority actions are atomic.
+- [ ] Run guest/commercial/finance tests, migration, E2E, and typecheck.
+- [ ] Commit as `feat: complete guest journey and recovery`.
+
+#### Task 19: Complete lobby, shops, outdoor areas, and operator models
+
+**Files:** Create `src/game/facilities/lobbyAutomation.ts`,
+`src/game/facilities/commercialSpaces.ts`, and tests; extend facility snapshot, DOM/Pixi,
+classification, brand audit, and `e2e/multi-hotel.spec.ts`.
+
+**MASTER completion contract:** Lobby demand includes arrival, orientation, waiting,
+reception, checkout, baggage, and concierge. Capacity expansions and adoption-gated
+self/mobile/digital-key options change staffing and failure modes. Parking, mobility,
+shops, concessions/leases, outdoor areas, and security declare capacity, hours, price or
+contract economics, staffing, maintenance, fit, and visible effects. Classification is
+an auditable requirement result, never XP; specialization is a dependency/fit trade-off.
+
+- [ ] Write failing capacity/economic tests for lobby/reception automation, parking and
+  mobility dependencies, shops with self-operation/lease/concession economics, outdoor
+  areas, security load, and classification/specialization effects.
+- [ ] Implement via generic facility throughput and shared ownership/contract rules;
+  all critical actions retain a semantic DOM path.
+- [ ] Run facility/classification/ownership tests, visual E2E assertions, typecheck,
+  lint, and build.
+- [ ] Commit as `feat: close remaining hotel facility depth`.
+
+#### Task 20: Close F&B, wellness, events, laundry, and engineering edge contracts
+
+**Files:** Extend existing Plan 02 systems/tests, facility snapshot, ledger integration,
+`v4-to-v5.ts`, and `e2e/multi-hotel.spec.ts`.
+
+- [ ] Write a failing matrix for concepts/hours, reservations/waitlists, external guests,
+  recipes/stations, breakfast/board plans, mise-en-place, allergies, menu engineering,
+  waste, bar/lounge, and room-service transport/elevator load.
+- [ ] Add failing contracts for wellness resource/specialist/maintenance load and slots;
+  event negotiation, deposits, cancellation, blocks, technology, execution peaks, and
+  delayed city effect; laundry floor stock/internal-external trade-offs; and engineering
+  safety, revenue, and follow-on-damage priorities.
+- [ ] Implement through shared capacity, inventory, staffing, maintenance, demand, and
+  ledger primitives while preserving hotel-day/opening-hour boundaries.
+- [ ] Run `npm run test:run -- src/game/fnb src/game/wellness src/game/eventsales src/game/laundry src/game/engineering`, migration, E2E, typecheck, and determinism.
+- [ ] Commit as `feat: complete deep hotel operating contracts`.
+
+#### Task 21: Complete the operational isometric-world contract
+
+**Files:** Extend `src/render/`, snapshot/protocol, semantic DOM, renderer/navigation
+tests, and `e2e/multi-hotel.spec.ts`.
+
+- [ ] Write failures for pan/zoom and room/person/problem focus; floor selection, cutaway,
+  service highlighting; stable click/touch targets; navigation via doors, corridors,
+  stairs, elevators, and closures; elevator capacity/time/queue/failure; real queues; all
+  room/facility states; day/night; and zoom LOD.
+- [ ] Keep visible agents as bounded materializations of authoritative aggregates.
+  Animation/pathfinding consumes snapshots and never owns economic rules.
+- [ ] Preserve keyboard and semantic-DOM paths for critical selection/action, with
+  non-color-only state semantics.
+- [ ] Run render, protocol, facilities, determinism, browser, typecheck, lint, and build.
+- [ ] Commit as `feat: complete operational isometric world`.
+
+### Completion-delta command matrix
+
+The prose steps above use these exact focused gates before their stated commit. Each task
+also runs `npm run typecheck`; tasks touching UI run `npm run lint` and the named E2E.
+
+```bash
+# Task 15
+npm run test:run -- src/game/finance src/game/risk src/game/utilities src/game/persistence/migrations/v4-to-v5.test.ts
+# Task 16
+npm run test:run -- src/game/commercial src/game/reputation src/game/finance
+# Task 17
+npm run test:run -- src/game/staff src/game/purchasing src/game/management
+# Task 18
+npm run test:run -- src/game/guests src/game/bookings src/game/revenue src/game/reputation
+# Task 19
+npm run test:run -- src/game/facilities src/game/classification src/game/ownership
+# Task 20
+npm run test:run -- src/game/fnb src/game/wellness src/game/eventsales src/game/laundry src/game/engineering
+# Task 21
+npm run test:run -- src/render src/game/domain/protocol.test.ts src/game/simulation
+npm run test:e2e -- e2e/multi-hotel.spec.ts
+npm run typecheck
+npm run lint
+npm run build
+```
+
+For every task that changes persisted state, also run the v4-to-v5 fixture and a save/load
+round trip. For every task that adds RNG draws, run the same-seed replay twice and compare
+state plus event hashes. A broad directory command is supplementary to—not a replacement
+for—the new failing test named in that task.
+
+---
 ## Plan self-review
 
 ### Spec coverage
@@ -964,6 +1149,13 @@ git commit -m "test: cover multi hotel expansion"
 - Valuation/due diligence/acquisition -> Tasks 11-12.
 - Late-game portfolio drill-down -> Task 13.
 - Persistence and multi-hotel acceptance -> Task 14.
+- Full accounting, insurance, compliance cost, and utilities -> Task 15.
+- Sales, Marketing, CRM, Loyalty, and multidimensional reputation -> Task 16.
+- Complete employee and supplier lifecycles -> Task 17.
+- Complete guest journey and service-recovery authority -> Task 18.
+- Remaining lobby/commercial/outdoor facility depth -> Task 19.
+- F&B, wellness, events, laundry, and engineering edge contracts -> Task 20.
+- MASTER 55 operational isometric-world contract -> Task 21.
 
 ### Consistency gate
 

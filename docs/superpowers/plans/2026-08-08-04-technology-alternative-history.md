@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plan 03 final verification**.
 
-MASTER-spec coverage: MASTER chapters 34–39.
+MASTER-spec coverage: MASTER chapters 34–39, plus the technology-dependent chapter 6–7 completion delta. See `2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -31,16 +39,18 @@ MASTER-spec coverage: MASTER chapters 34–39.
 - currencies and alternate common-currency path
 - era UI derived from adoption
 - 50-year deterministic tests
+- adoption-driven distribution channels, channel inventory, overbooking, and revenue automation
 
 **Explicitly outside this plan**
 - multi-hotel corporate treasury
 - franchising/M&A
 - narrative campaign chains
 - content editor UI
+- non-technological commercial depth, which is owned by Plan 05
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/game/technology/
@@ -370,6 +380,18 @@ git commit -m "feat: add systemic crises"
 - Create: `src/game/regulation/compliance.ts`
 - Test: `src/game/regulation/compliance.test.ts`
 
+**MASTER completion contract:**
+
+- Weather is a seeded, isolated world input affecting demand, travel reliability,
+  utilities, outdoor facilities, and incident risk without changing another RNG stream.
+- Rare weather/climate events are conditional, offer preparation and recovery choices,
+  and can be insured; they are not arbitrary punishment rolls.
+- Regulation covers safety/fire protection, labor, accessibility, environment/energy,
+  food hygiene, guest data/privacy, construction/zoning, and deliberately abstract tax.
+  Rules have jurisdiction, conditions, lead time, detection, cost, and consequences.
+- Rule changes arise from world state, never hard-coded post-1991 dates. The player gets
+  an explainable gap and remediation path; one opaque `compliant` flag is insufficient.
+
 - [ ] **Step 1: Write the failing test**
 
 ```ts
@@ -386,11 +408,11 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/game/regulation/compliance.ts`:
-
-```ts
-export function complianceStatus(actual:number,required:number){return actual>=required?'compliant':'noncompliant';}
-```
+Implement jurisdiction-scoped regulation definitions and per-hotel compliance cases.
+Evaluation returns requirement, measured state, gap, effective/grace dates, inspection
+risk, remediation options, cost, and consequences. Integrate weather/climate through its
+own RNG stream into demand, transport, utilities, facilities, incidents, and insurance.
+The one-value comparison used by the first unit test is only a leaf rule, not the system.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
@@ -587,6 +609,65 @@ git commit -m "feat: integrate alternative history"
 ```
 
 ---
+### Task 13: Complete adoption-driven distribution and revenue management
+
+**Files:**
+- Create: `src/game/distribution/channelEvolution.ts`
+- Create: `src/game/revenue/revenuePolicy.ts`
+- Test: `src/game/distribution/channelEvolution.test.ts`
+- Test: `src/game/revenue/revenuePolicy.test.ts`
+- Modify: `src/game/simulation/GameSimulation.ts`
+- Modify: `src/game/persistence/migrations/v3-to-v4.ts`
+- Modify: `e2e/alternative-history.spec.ts`
+
+**MASTER completion contract:**
+
+- Reservations retain booking date separately from stay dates and include party,
+  segment, channel, rate plan, category, status, price, commission, deposit,
+  cancellation/guarantee terms, and special requirements.
+- Lead time, stay length, cancellation, no-show, walk-in, direct, agency, corporate,
+  group, and allotment behavior are segment- and channel-sensitive.
+- OTA/channel-management capabilities unlock from simulated technology, adoption,
+  standards, and hotel implementation; legacy channels can remain meaningful.
+- Every channel draws from one authoritative inventory. Atomic inventory/allotment
+  updates prevent double sale outside an explicit overbooking policy.
+- Rate plans, restrictions, forecasts, elasticity, group contribution, ADR, RevPAR,
+  GOPPAR, and overbooking use declared fixed-point units and expose causes.
+- Automation is a bounded manager policy with authority, explanations, and override—not
+  a perfect-information optimizer. Displacement routes accommodation, transport,
+  compensation, complaints, reputation, channel, and loyalty through normal systems.
+
+- [ ] **Step 1: Write failing tests** for travel agencies, corporate contracts, group
+  blocks, allotments, adoption-gated OTA availability, commission, shared channel
+  inventory, rate plans/restrictions, forecast causes, automatic revenue rules,
+  overbooking, and deterministic displaced-guest compensation. Assert that channel
+  availability follows technology state rather than the calendar year.
+- [ ] **Step 2: Run the expected failures:**
+
+```bash
+npm run test:run -- src/game/distribution/channelEvolution.test.ts src/game/revenue/revenuePolicy.test.ts
+```
+
+- [ ] **Step 3: Implement through typed commands and the existing booking/demand
+  phases.** Reuse one inventory and pricing model for player and competitor hotels;
+  emit causes for conversion, commission, rejection, displacement, and recovery. Add
+  persisted policies to the v3-to-v4 migration without consuming another save version.
+- [ ] **Step 4: Verify the focused systems, determinism, E2E, and types:**
+
+```bash
+npm run test:run -- src/game/distribution src/game/revenue src/game/simulation
+npm run test:e2e -- e2e/alternative-history.spec.ts
+npm run typecheck
+```
+
+- [ ] **Step 5: Commit:**
+
+```bash
+git add src/game/distribution src/game/revenue src/game/simulation/GameSimulation.ts src/game/persistence/migrations/v3-to-v4.ts e2e/alternative-history.spec.ts
+git commit -m "feat: complete evolving distribution and revenue"
+```
+
+---
 ## Plan self-review
 
 ### Spec coverage
@@ -595,6 +676,7 @@ git commit -m "feat: integrate alternative history"
 - MASTER 38 compliance — Task 8.
 - MASTER 39 currencies — Task 9.
 - 50-year deterministic validation — Task 12.
+- MASTER 6–7 later distribution, overbooking, displaced guests, and revenue automation — Task 13.
 
 ### Consistency gate
 

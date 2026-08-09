@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-09 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 73-83 and 91-94 plus all 54 traceability requirements.
+MASTER-spec coverage: MASTER chapters 73-83 and 91-94 plus all 54 traceability requirements, using the implementation ownership ledger in `2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -41,7 +49,7 @@ MASTER-spec coverage: MASTER chapters 73-83 and 91-94 plus all 54 traceability r
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/release/acceptanceRegistry.ts
@@ -80,10 +88,16 @@ import { describe, expect, it } from 'vitest';
 import { RELEASE_ACCEPTANCE } from './acceptanceRegistry';
 
 describe('release acceptance registry', () => {
-  it('contains every numbered MASTER traceability requirement exactly once', () => {
+  it('contains every numbered requirement with distinct implementation and verification evidence', () => {
     expect(RELEASE_ACCEPTANCE).toHaveLength(54);
     expect(new Set(RELEASE_ACCEPTANCE.map(x=>x.id)).size).toBe(54);
     expect(RELEASE_ACCEPTANCE.map(x=>x.id)).toEqual(Array.from({length:54},(_,i)=>i+1));
+    for (const requirement of RELEASE_ACCEPTANCE) {
+      expect(requirement.masterChapters.length).toBeGreaterThan(0);
+      expect(requirement.implementationEvidence.length).toBeGreaterThan(0);
+      expect(requirement.automatedEvidence.length).toBeGreaterThan(0);
+      expect(requirement.name).not.toMatch(/^MASTER requirement /);
+    }
   });
 });
 ```
@@ -98,16 +112,12 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/release/acceptanceRegistry.ts`:
-
-```ts
-export interface AcceptanceRequirement { id:number; name:string; evidence:string[]; }
-export const RELEASE_ACCEPTANCE:AcceptanceRequirement[]=Array.from({length:54},(_,index)=>({
-  id:index+1,
-  name:`MASTER requirement ${index+1}`,
-  evidence:[`docs/release/traceability.md#requirement-${index+1}`],
-}));
-```
+`src/release/acceptanceRegistry.ts` must define `AcceptanceRequirement` with
+`id`, the canonical requirement `name`, `masterChapters`,
+`implementationEvidence`, `automatedEvidence`, and optional `reviewedEvidence`. Populate
+all 54 named rows explicitly and in numeric order from MASTER chapter 91 and the audited
+ownership ledger. Do not generate placeholder names, use glob-only evidence, or treat a
+traceability document as proof that production behavior exists.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
@@ -214,32 +224,16 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/game/persistence/migrateToCurrent.ts`:
+`src/game/persistence/migrateToCurrent.ts` must use an explicit, contiguous migration
+registry keyed by source version. Starting at the input version, apply exactly one step
+at a time until current; each step must stamp only its own target. Reject unknown future
+versions, missing intermediate migrations, and non-advancing steps.
 
-```ts
-import { migrateV4ToV5 } from './migrations/v4-to-v5';
-import { migrateV5ToV6 } from './migrations/v5-to-v6';
-import { migrateV6ToV7 } from './migrations/v6-to-v7';
-
-export function migrateToCurrent(input:any):any {
-  let save=input;
-  if(save.saveVersion<5) save=migrateV4ToV5(save);
-  if(save.saveVersion<6) save=migrateV5ToV6(save);
-  if(save.saveVersion<7) save=migrateV6ToV7(save);
-  return save;
-}
-```
-
-`scripts/verify-migrations.ts`:
-
-```ts
-import { readFileSync } from 'node:fs';
-import { migrateToCurrent } from '../src/game/persistence/migrateToCurrent';
-const oldSave=JSON.parse(readFileSync('fixtures/saves/v1.json','utf8'));
-const current=migrateToCurrent(oldSave);
-if(!current || typeof current.saveVersion!=='number') process.exit(1);
-console.log(`migration-ok v1->v${current.saveVersion}`);
-```
+`scripts/verify-migrations.ts` must load a fixture for every historically supported
+version, validate before and after every step, migrate through the real load path, and
+assert preservation of stable IDs, money, calendar, RNG streams, content versions, and
+all authoritative subsystem state. It must also run current-save round-trip, idempotent
+current-load, unsupported-future, malformed, and frozen-content-semantics fixtures.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
@@ -262,6 +256,11 @@ git commit -m "test: verify complete save migration chain"
 **Files:**
 - Create: `src/game/persistence/recovery.ts`
 - Test: `src/game/persistence/recovery.test.ts`
+
+**MASTER completion contract:** Validate schema/content/protocol versions and referenced
+IDs before play; quarantine malformed guest/event records only where deterministic repair
+is declared safe; reject structural corruption atomically; preserve multiple recovery
+generations; and report the failing save, migration, or record without silent reset.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -287,13 +286,11 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/game/persistence/recovery.ts`:
-
-```ts
-export function chooseRecoverableSave(saves:Array<{id:string;valid:boolean;savedAt:number}>) {
-  return saves.filter(x=>x.valid).sort((a,b)=>b.savedAt-a.savedAt)[0]??null;
-}
-```
+Implement recovery over validated save envelopes, not caller-supplied `valid` booleans.
+Validate and migrate candidates newest-first using deterministic slot ordering, preserve
+multiple generations, quarantine only explicitly repairable records, and return a typed
+recovery report for UI choice. Never overwrite the primary or a recovery generation until
+the selected candidate has loaded successfully.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
@@ -320,6 +317,13 @@ git commit -m "fix: add corrupted save recovery"
 - Create: `scripts/verify-replays.ts`
 - Test: `src/game/simulation/replayCorpus.test.ts`
 
+**MASTER completion contract:** The verifier actually initializes/loads the real
+simulation, restores every RNG stream state, replays timestamped typed commands through
+the command boundary, captures accepted/rejected commands and ordered events, and
+compares checkpoint/final hashes. Fixture-shape validation or hashing fixture JSON alone
+is insufficient. Failure output includes versions, seed, game time, command ID, event
+window, RNG stream/draw index, and state diff.
+
 - [ ] **Step 1: Write the failing test**
 
 ```ts
@@ -344,32 +348,13 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`src/game/debug/stateHash.ts`:
-
-```ts
-import { createHash } from 'node:crypto';
-
-function canonical(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(canonical);
-  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value as Record<string,unknown>).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,canonical(v)]));
-  return value;
-}
-
-export function stableStateHash(value: unknown): string {
-  return createHash('sha256').update(JSON.stringify(canonical(value))).digest('hex');
-}
-```
-
-`scripts/verify-replays.ts`:
-
-```ts
-import { readFileSync } from 'node:fs';
-for(const file of ['vertical-slice','multi-hotel']){
-  const fixture=JSON.parse(readFileSync(`fixtures/replay/${file}.json`,'utf8'));
-  if(!fixture.seed || !Array.isArray(fixture.commands) || !fixture.expectedStateHash) process.exit(1);
-  console.log(`replay-fixture-ok ${file}`);
-}
-```
+Implement one environment-neutral canonical state serializer shared by tests and the
+headless verifier. Define explicit ordering/encoding for objects, maps, sets, IDs, integer
+money, fixed-point rates, and every RNG stream; exclude only declared nondeterministic
+presentation metadata. `verify-replays.ts` loads each fixture through the real migration
+and simulation entry points, replays commands at their recorded game times, checks
+acceptance/events/RNG checkpoints/final state, and prints the diagnostic contract above.
+A fixture-shape-only script must fail review.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 
@@ -1008,7 +993,7 @@ git commit -m "docs: finalize release traceability"
 ## Plan self-review
 
 ### Spec coverage
-- 54-point acceptance registry -> Task 1.
+- 54-point acceptance registry with distinct implementation, automated, and reviewed evidence -> Task 1.
 - Verified original parity -> Task 2.
 - Migration fixtures and recovery -> Tasks 3-4.
 - Deterministic replay corpus -> Task 5.

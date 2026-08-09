@@ -16,7 +16,15 @@ Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-
 
 This plan depends on: **Plans 01-08 completed and green**.
 
-MASTER-spec coverage: MASTER chapters 30, 33-37, 63-77; implementation decomposition chapter 90.
+MASTER-spec coverage: MASTER chapters 30, 33-37, 63-77; implementation decomposition chapter 90. Cross-plan ownership is recorded in `2026-08-09-MASTER-spec-coverage-audit.md`.
+
+## Implementation fidelity rule
+
+Code fragments in this plan demonstrate the first red/green increment only. They are not
+the completion definition. A task is complete only when its full scope and MASTER
+completion contract are implemented, integrated into commands/events/snapshots and
+persistence where applicable, and all focused plus final gates pass. Do not commit the
+illustrative minimum as the finished task.
 
 ## Scope contract
 
@@ -39,7 +47,7 @@ MASTER-spec coverage: MASTER chapters 30, 33-37, 63-77; implementation decomposi
 
 ## Locked file map
 
-All paths are relative to `/mnt/data/hotel-manager`.
+All paths are relative to the repository root.
 
 ```text
 src/game/perf/perfSample.ts
@@ -784,6 +792,17 @@ git commit -m "feat: add balancing dashboard"
 - Modify: `package.json`
 - Create: `e2e/performance-smoke.spec.ts`
 
+**MASTER completion contract:**
+
+- Corpus covers normal view, fast-forward, close, dense facilities, portfolio, crisis,
+  migration/load, and 50-year multi-seed scenarios. Mature scale exercises about 60
+  player hotels, 25+ cities, 40 competitors, bounded decades of history, and configured
+  200-500 visible-agent profiles without materializing aggregate population.
+- Gate main-thread responsiveness, Worker tick/ack latency, delta volume, heap/history,
+  save size/load, and economic invariants separately, recording hardware and percentile.
+- Representation/detail optimization preserves aggregate economics, declared checkpoint
+  hashes, commands, and causal output.
+
 - [ ] **Step 1: Write the failing test**
 
 ```ts
@@ -807,13 +826,11 @@ Expected: FAIL because the new contract or behavior is not implemented yet.
 
 - [ ] **Step 3: Implement the smallest production-shaped change**
 
-`scripts/stress-50-years.ts`:
-
-```ts
-import { runScenario } from './scenarios/runScenario';
-const seeds=[11,22,33,44,55];
-for(const seed of seeds){const result=runScenario({seed,years:50,scenarioId:'baseline'}); if(!result.stateHash) process.exit(1); console.log(seed,result.stateHash);}
-```
+Implement a versioned scenario catalog with the completion-contract workloads and
+declared seed sets. `benchmark-all.ts` records per-scenario percentiles and compares every
+metric to a hardware-profile budget. `stress-50-years.ts` runs the mature-scale scenario,
+checks deterministic checkpoint hashes and economic invariants at least yearly, and emits
+a machine-readable failure report. Existence of a final hash alone is not a stress gate.
 
 - [ ] **Step 4: Run targeted tests plus typecheck**
 

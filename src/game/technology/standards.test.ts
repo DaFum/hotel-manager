@@ -20,4 +20,7 @@ it("values participation and resolves equal standards by stable id", () => {
       },
     ])?.id,
   ).toBe("a");
+
+  expect(() => networkValueBp(-1, 1000)).toThrow(/0..10000/);
+  expect(() => networkValueBp(1000, Number.NaN)).toThrow(/0..10000/);
 });

@@ -91,12 +91,17 @@ export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
             : [{ status, atMinutes: elapsedMinutes }],
           bookingDateKey: booking.bookingDateKey ?? "1991-01-01",
           ratePlanId: booking.ratePlanId ?? "flexible",
-          commissionBp: Number.isSafeInteger(booking.commissionBp)
-            ? booking.commissionBp
-            : 0,
-          depositMinor: Number.isSafeInteger(booking.depositMinor)
-            ? booking.depositMinor
-            : 0,
+          commissionBp:
+            Number.isSafeInteger(booking.commissionBp) &&
+            (booking.commissionBp as number) >= 0 &&
+            (booking.commissionBp as number) <= 10_000
+              ? booking.commissionBp
+              : 0,
+          depositMinor:
+            Number.isSafeInteger(booking.depositMinor) &&
+            (booking.depositMinor as number) >= 0
+              ? booking.depositMinor
+              : 0,
           specialRequirements: Array.isArray(booking.specialRequirements)
             ? booking.specialRequirements
             : [],

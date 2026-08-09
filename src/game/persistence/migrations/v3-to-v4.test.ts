@@ -55,3 +55,27 @@ it("normalizes active reservations and the complete Plan 04 world schema idempot
   expect(migrateV3ToV4(migrated)).toEqual(migrated);
   expect(validateEnvelope(frozenV4 as unknown as SaveEnvelope)).toEqual([]);
 });
+
+it.each([
+  { commissionBp: -1, depositMinor: -1 },
+  { commissionBp: 10_001, depositMinor: Number.MAX_SAFE_INTEGER + 1 },
+])("defaults invalid commercial booking numbers", (commercial) => {
+  const fixture = structuredClone(frozenV4) as unknown as SaveEnvelope;
+  const state = fixture.state as Record<string, any>;
+  Object.assign(state.reservations[0], commercial);
+  const migrated = migrateV3ToV4(fixture);
+  expect((migrated.state as Record<string, any>).reservations[0]).toMatchObject(
+    {
+      commissionBp: 0,
+      depositMinor: 0,
+    },
+  );
+});
+
+it("rejects a current save with incomplete Plan 04 state", () => {
+  const fixture = structuredClone(frozenV4) as unknown as SaveEnvelope;
+  (fixture.state as Record<string, unknown>).world = {};
+  expect(validateEnvelope(fixture)).toContain(
+    "the state has no complete Plan 04 world",
+  );
+});

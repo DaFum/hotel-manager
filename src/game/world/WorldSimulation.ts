@@ -5,6 +5,7 @@ import { advanceMacro, type MacroState } from "./macro";
 import { crisisRiskBp } from "./crises";
 import { maybeCreateShock, type WorldShock } from "./shocks";
 import { generateWeather, type WeatherOutcome } from "./climate";
+import { canEmerge } from "../technology/graph";
 export const worldStepOrder = [
   "macro",
   "regulation",
@@ -19,6 +20,7 @@ export interface WorldTechnologyState {
   adoptionBp: number;
   peakAdoptionBp: number;
   obsolete: boolean;
+  replacedBy?: string;
 }
 export interface WorldState {
   monthsAdvanced: number;
@@ -118,10 +120,38 @@ export class WorldSimulation {
       10_000,
       next.regulationPressureBp + Math.floor(next.weather.severityBp / 20),
     );
-    next.technologies = next.technologies.map((tech, index) => ({
-      ...tech,
-      ...advanceLifecycle(tech, 2000 + index * 300 + next.macro.growthBp, 0),
-    }));
+    const requirements: Readonly<Record<string, readonly string[]>> = {
+      "personal-computer": [],
+      internet: ["personal-computer"],
+      smartphone: ["internet"],
+      "channel-manager": ["internet"],
+    };
+    const available = new Set(
+      next.technologies
+        .filter(
+          (technology) => technology.adoptionBp >= 500 && !technology.obsolete,
+        )
+        .map((technology) => technology.id),
+    );
+    next.technologies = next.technologies.map((tech, index) => {
+      if (!canEmerge(requirements[tech.id] ?? [], available)) return tech;
+      const replacementAdoptionBp = tech.replacedBy
+        ? (next.technologies.find(
+            (candidate) => candidate.id === tech.replacedBy,
+          )?.adoptionBp ?? 0)
+        : 0;
+      return {
+        ...tech,
+        ...advanceLifecycle(
+          tech,
+          Math.max(
+            0,
+            Math.min(10_000, 2000 + index * 300 + next.macro.growthBp),
+          ),
+          replacementAdoptionBp,
+        ),
+      };
+    });
     next.trends = next.trends.map((t) => ({
       ...t,
       adoptionBp: Math.min(

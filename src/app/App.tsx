@@ -23,6 +23,7 @@ import { marketWageMinor } from "../game/labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
+import { TechnologyPanel } from "../ui/TechnologyPanel";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -141,6 +142,14 @@ export function App() {
           rows={s.competitors}
           playerRateMinor={singleRateMinor}
           playerOccupancyBp={s.metrics.occupancyBasisPoints}
+        />
+        <TechnologyPanel
+          technologies={s.world.technologies}
+          projects={s.technologyProjects}
+          implementations={s.technologyImplementations}
+          onAdopt={(technologyId) =>
+            game.send({ type: "ADOPT_TECHNOLOGY", technologyId })
+          }
         />
         <RevenueDashboard
           adrMinor={s.metrics.adrMinor}

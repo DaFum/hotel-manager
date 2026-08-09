@@ -178,6 +178,18 @@ function routeChangeScenario(): DomainEvent[] {
   return runDays(s, DAYS_TO_FIRST_CITY_MONTH);
 }
 
+function technologyAdoptionScenario(): DomainEvent[] {
+  const s = sim(13);
+  expect(
+    submit(s, { type: "ADOPT_TECHNOLOGY", technologyId: "personal-computer" })
+      .status,
+  ).toBe("accepted");
+  const collected = s.takeDomainEvents();
+  s.state.technologyProjects[0].remainingMonths = 1;
+  collected.push(...runDays(s, DAYS_TO_FIRST_CITY_MONTH));
+  return collected;
+}
+
 describe("domain event buffer", () => {
   it("stamps every event with a stable id, game time and entities", () => {
     const journal = createEventJournal();
@@ -292,6 +304,7 @@ describe("domain event buffer", () => {
     record(wornPlantScenario());
     record(distressedRivalScenario());
     record(routeChangeScenario());
+    record(technologyAdoptionScenario());
 
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);

@@ -15,4 +15,17 @@ it("converts fixed-point minor units and branches common currency systemically",
     active: false,
   });
   expect(settlementCurrency("DEM", path, "ECU")).toBe("ECU");
+  expect(() => convertMinor(Number.MAX_SAFE_INTEGER, 20_000)).toThrow(
+    /overflow/,
+  );
+  expect(() =>
+    exchangeRate(
+      [{ from: "DEM", to: "USD", rateBasis: Number.NaN }],
+      "DEM",
+      "USD",
+    ),
+  ).toThrow(/missing exchange rate/);
+  expect(() =>
+    advanceCommonCurrency({ ...path, coordinationBp: 10_001 }),
+  ).toThrow(/coordination/);
 });

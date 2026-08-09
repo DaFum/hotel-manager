@@ -1,3 +1,5 @@
+import { compareIds } from "../domain/ids";
+
 export interface TechnologyStandard {
   id: string;
   hotelAdoptionBp: number;
@@ -5,8 +7,12 @@ export interface TechnologyStandard {
   compatibleWith: readonly string[];
 }
 export function networkValueBp(hotelBp: number, guestBp: number): number {
-  if (![hotelBp, guestBp].every(Number.isSafeInteger))
-    throw new Error("integer basis points required");
+  if (
+    ![hotelBp, guestBp].every(
+      (value) => Number.isSafeInteger(value) && value >= 0 && value <= 10_000,
+    )
+  )
+    throw new Error("network participation must be 0..10000 basis points");
   return Math.max(
     0,
     Math.min(
@@ -22,6 +28,6 @@ export function leadingStandard(
     (a, b) =>
       networkValueBp(b.hotelAdoptionBp, b.guestAdoptionBp) -
         networkValueBp(a.hotelAdoptionBp, a.guestAdoptionBp) ||
-      a.id.localeCompare(b.id),
+      compareIds(a.id, b.id),
   )[0];
 }

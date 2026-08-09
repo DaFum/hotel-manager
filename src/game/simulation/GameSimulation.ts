@@ -146,6 +146,7 @@ import {
   advanceTechnologyProject,
 } from "../technology/adoption";
 import {
+  advanceBookingChannels,
   availableChannels,
   netChannelRevenueMinor,
 } from "../distribution/channelEvolution";
@@ -730,14 +731,24 @@ export class GameSimulation implements CommandExecutor {
           (candidate) => candidate.id === command.technologyId,
         )!;
         const costMinor = adoptionCostMinor(2_000_000, technology.adoptionBp);
-        this.spend(costMinor, "technologyCapex", command.technologyId);
+        this.spend(costMinor, "capex", command.technologyId);
+        const projectId = `technology-project.${command.technologyId}`;
         s.technologyProjects.push({
-          id: `technology-project.${command.technologyId}`,
+          id: projectId,
           technologyId: command.technologyId,
           status: "planned",
           remainingMonths: 6,
           costMinor,
         });
+        this.emit(
+          {
+            type: "TECHNOLOGY_ADOPTION_STARTED",
+            projectId,
+            technologyId: command.technologyId,
+            costMinor,
+          },
+          [projectId, command.technologyId],
+        );
         return;
       }
     }
@@ -1607,10 +1618,13 @@ export class GameSimulation implements CommandExecutor {
             (technology) => technology.id === "internet",
           )?.adoptionBp ?? 0,
       });
+      const advanceChannels = advanceBookingChannels(channels);
       const channelDefinition =
         leadDays === 0
           ? channels.find((candidate) => candidate.id === "walkIn")!
-          : channels[this.streams.guests.nextUint32() % channels.length];
+          : advanceChannels[
+              this.streams.guests.nextUint32() % advanceChannels.length
+            ];
       const channel = channelDefinition.id as BookingChannel;
       const bookingId = `booking.${s.elapsedMinutes}.${i}`;
       try {
@@ -1824,8 +1838,17 @@ export class GameSimulation implements CommandExecutor {
       if (
         project.status === "complete" &&
         !s.technologyImplementations.includes(project.technologyId)
-      )
+      ) {
         s.technologyImplementations.push(project.technologyId);
+        this.emit(
+          {
+            type: "TECHNOLOGY_ADOPTION_COMPLETED",
+            projectId: project.id,
+            technologyId: project.technologyId,
+          },
+          [project.id, project.technologyId],
+        );
+      }
     s.technologyProjects = s.technologyProjects.filter(
       (project) => project.status !== "complete",
     );

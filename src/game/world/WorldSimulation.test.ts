@@ -26,3 +26,29 @@ it("keeps stable yearly update order and isolated deterministic streams", () => 
   expect(sa).toEqual(sb);
   expect(sa.lastStepOrder).toEqual(worldStepOrder);
 });
+
+it("gates diffusion on prerequisites and obsoletes replaced technology", () => {
+  const state = createWorldState();
+  state.technologies.find(
+    (technology) => technology.id === "personal-computer",
+  )!.replacedBy = "internet";
+  state.technologies.find(
+    (technology) => technology.id === "internet",
+  )!.adoptionBp = 7000;
+  const next = new WorldSimulation(createRngStreams(12)).stepYear(state);
+  expect(
+    next.technologies.find(
+      (technology) => technology.id === "personal-computer",
+    )?.obsolete,
+  ).toBe(true);
+  const blocked = createWorldState();
+  blocked.technologies.find(
+    (technology) => technology.id === "personal-computer",
+  )!.adoptionBp = 0;
+  expect(
+    new WorldSimulation(createRngStreams(12))
+      .stepYear(blocked)
+      .technologies.find((technology) => technology.id === "internet")
+      ?.adoptionBp,
+  ).toBe(0);
+});

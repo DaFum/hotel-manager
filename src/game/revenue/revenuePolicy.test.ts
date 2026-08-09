@@ -37,4 +37,20 @@ it("enforces restrictions and bounded explainable automation", () => {
     ),
   ).toThrow(/restrictions/);
   expect(displacementCostMinor(2, 10000, 1000, 2000)).toBe(26000);
+
+  expect(() => displacementCostMinor(-1, 1, 1, 1)).toThrow(/rooms/);
+  expect(() =>
+    applyRatePlan(
+      100,
+      {
+        id: "bad",
+        modifierBp: Number.NaN,
+        refundable: true,
+        minimumStayNights: 1,
+        maximumStayNights: null,
+        closedToArrival: false,
+      },
+      1,
+    ),
+  ).toThrow(/modifier/);
 });

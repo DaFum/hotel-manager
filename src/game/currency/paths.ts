@@ -9,6 +9,13 @@ export interface CommonCurrencyPath {
 export function advanceCommonCurrency(
   path: CommonCurrencyPath,
 ): CommonCurrencyPath {
+  for (const [label, value] of [
+    ["coordination", path.coordinationBp],
+    ["trade integration", path.tradeIntegrationBp],
+    ["public support", path.publicSupportBp],
+  ] as const)
+    if (!Number.isSafeInteger(value) || value < 0 || value > 10_000)
+      throw new Error(`${label} must be 0..10000 basis points`);
   const qualifies =
     path.coordinationBp >= 6500 &&
     path.tradeIntegrationBp >= 7000 &&

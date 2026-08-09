@@ -197,4 +197,16 @@ describe("booking engine", () => {
     expect(canWalkIn({ cleanRooms: 1, confirmedArrivals: 1 })).toBe(false);
     expect(canWalkIn({ cleanRooms: 2, confirmedArrivals: 1 })).toBe(true);
   });
+
+  it("defaults invalid commercial numeric metadata before persistence", () => {
+    expect(
+      reserve(flat(2), request({ commissionBp: -1, depositMinor: -1 })),
+    ).toMatchObject({ commissionBp: 0, depositMinor: 0 });
+    expect(
+      reserve(
+        flat(2),
+        request({ commissionBp: 10_001, depositMinor: Number.NaN }),
+      ),
+    ).toMatchObject({ commissionBp: 0, depositMinor: 0 });
+  });
 });

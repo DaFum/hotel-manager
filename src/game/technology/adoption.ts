@@ -23,6 +23,11 @@ export function adoptionCostMinor(baseMinor: number, marketBp: number): number {
 export function advanceTechnologyProject(
   project: TechnologyProject,
 ): TechnologyProject {
+  if (
+    !Number.isSafeInteger(project.remainingMonths) ||
+    project.remainingMonths < 0
+  )
+    throw new Error("remaining project months must be whole and non-negative");
   const remainingMonths = Math.max(0, project.remainingMonths - 1);
   return {
     ...project,

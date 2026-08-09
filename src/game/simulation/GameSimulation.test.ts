@@ -269,6 +269,22 @@ describe("simulated operations", () => {
     expect(after.finance.cashMinor).toBe(openingCashMinor - 6_000_000);
   });
 
+  it("records technology adoption as CapEx and publishes its start", () => {
+    const initial = createInitialGameState(424242);
+    const openingCashMinor = initial.finance.cashMinor;
+    const sim = new GameSimulation(initial);
+    sim.queueCommand({
+      type: "ADOPT_TECHNOLOGY",
+      technologyId: "personal-computer",
+    });
+    sim.advanceQuantum();
+    expect(sim.state.finance.month.operatingExpenseMinor).toBe(0);
+    expect(sim.state.finance.cashMinor).toBeLessThan(openingCashMinor);
+    expect(sim.takeDomainEvents().map((event) => event.payload.type)).toContain(
+      "TECHNOLOGY_ADOPTION_STARTED",
+    );
+  });
+
   it("wears assets down over simulated days", () => {
     const sim = new GameSimulation(createInitialGameState(42));
     const before = sim.snapshot().assets[0].condition;

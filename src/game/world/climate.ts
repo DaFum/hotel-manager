@@ -43,10 +43,22 @@ export function weatherInsurancePayout(
   coverageBp: number,
   deductibleMinor: number,
 ): number {
-  if (!outcome.insurable || lossMinor <= deductibleMinor) return 0;
-  return Math.round(
-    ((lossMinor - deductibleMinor) *
-      Math.max(0, Math.min(10_000, coverageBp))) /
-      10_000,
-  );
+  if (
+    !outcome.insurable ||
+    !Number.isSafeInteger(lossMinor) ||
+    lossMinor < 0 ||
+    !Number.isSafeInteger(deductibleMinor) ||
+    deductibleMinor < 0 ||
+    !Number.isSafeInteger(coverageBp) ||
+    coverageBp < 0 ||
+    coverageBp > 10_000 ||
+    lossMinor <= deductibleMinor
+  )
+    return 0;
+  const coveredLoss = lossMinor - deductibleMinor;
+  const quotient = Math.floor(coveredLoss / 10_000);
+  const remainder = coveredLoss % 10_000;
+  const payout =
+    quotient * coverageBp + Math.round((remainder * coverageBp) / 10_000);
+  return Number.isSafeInteger(payout) ? payout : 0;
 }

@@ -29,8 +29,7 @@ test("plays the remediation journey and reloads from recovery", async ({
     .innerText();
   const singleRate = page
     .getByRole("region", { name: "Revenue" })
-    .locator("dt", { hasText: "Single rate" })
-    .locator("+ dd");
+    .locator('dt:has-text("Single rate") + dd');
   const checkpointRate = await singleRate.innerText();
 
   await page.getByRole("button", { name: "16x", exact: true }).click();

@@ -1,3 +1,5 @@
+import { compareIds } from "../domain/ids";
+
 export interface TechnologyDefinition {
   id: string;
   requires: readonly string[];
@@ -34,7 +36,7 @@ export function validateTechnologyGraph(
     visited.add(id);
   };
   for (const definition of [...definitions].sort((a, b) =>
-    a.id.localeCompare(b.id),
+    compareIds(a.id, b.id),
   ))
     visit(definition.id);
 }

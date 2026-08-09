@@ -13,4 +13,14 @@ it("makes mature technology cheaper and completes implementation", () => {
       costMinor: 1,
     }).status,
   ).toBe("complete");
+
+  expect(() =>
+    advanceTechnologyProject({
+      id: "bad",
+      technologyId: "internet",
+      status: "implementing",
+      remainingMonths: -1,
+      costMinor: 1,
+    }),
+  ).toThrow(/remaining project months/);
 });

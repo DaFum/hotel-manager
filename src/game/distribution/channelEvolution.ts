@@ -22,7 +22,7 @@ export const CHANNELS: readonly ChannelDefinition[] = [
     id: "directWeb",
     commissionBp: 200,
     requiresTechnology: "internet",
-    requiresImplementation: "online-booking",
+    requiresImplementation: "internet",
   },
   {
     id: "ota",
@@ -47,11 +47,28 @@ export function availableChannels(
       context.standardNetworkBp >= (channel.minimumNetworkBp ?? 0),
   );
 }
+export function advanceBookingChannels(
+  channels: readonly ChannelDefinition[],
+): ChannelDefinition[] {
+  return channels.filter((channel) => channel.id !== "walkIn");
+}
 export function netChannelRevenueMinor(
   grossMinor: number,
   commissionBp: number,
 ): number {
-  return Math.round((grossMinor * (10_000 - commissionBp)) / 10_000);
+  if (!Number.isSafeInteger(grossMinor) || grossMinor < 0)
+    throw new Error("gross revenue must be non-negative whole minor units");
+  if (
+    !Number.isSafeInteger(commissionBp) ||
+    commissionBp < 0 ||
+    commissionBp > 10_000
+  )
+    throw new Error("commission must be 0..10000 basis points");
+  const net = Number(
+    (BigInt(grossMinor) * BigInt(10_000 - commissionBp) + 5_000n) / 10_000n,
+  );
+  if (!Number.isSafeInteger(net)) throw new Error("net revenue overflow");
+  return net;
 }
 export function sharedAvailableRooms(
   totalRooms: number,

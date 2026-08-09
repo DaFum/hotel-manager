@@ -66,8 +66,16 @@ export function reserve(
     history: [{ status: "confirmed", atMinutes: r.atMinutes }],
     bookingDateKey: r.bookingDateKey ?? r.arrivalDateKey,
     ratePlanId: r.ratePlanId ?? "flexible",
-    commissionBp: r.commissionBp ?? 0,
-    depositMinor: r.depositMinor ?? 0,
+    commissionBp:
+      Number.isSafeInteger(r.commissionBp) &&
+      r.commissionBp! >= 0 &&
+      r.commissionBp! <= 10_000
+        ? r.commissionBp!
+        : 0,
+    depositMinor:
+      Number.isSafeInteger(r.depositMinor) && r.depositMinor! >= 0
+        ? r.depositMinor!
+        : 0,
     specialRequirements: [...(r.specialRequirements ?? [])].sort(),
   };
 }

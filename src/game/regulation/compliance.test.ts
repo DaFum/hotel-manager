@@ -16,6 +16,7 @@ it("explains jurisdictional compliance gaps and remediation", () => {
     graceMinutes: 20,
     inspectionRiskBp: 1000,
     consequenceMinor: 50000,
+    noticeAtMinutes: 50,
   };
   expect(evaluateCompliance(rule, 60, 121)).toMatchObject({
     status: "noncompliant",
@@ -23,5 +24,20 @@ it("explains jurisdictional compliance gaps and remediation", () => {
     consequenceMinor: 50000,
     remediation: [{ improvement: 15 }],
   });
-  expect(applicableRules([rule], "other")).toEqual([]);
+  expect(applicableRules([rule], "other", {}, 121)).toEqual([]);
+  expect(
+    applicableRules(
+      [
+        {
+          ...rule,
+          activation: { worldMetric: "energyPressureBp", minimum: 5000 },
+        },
+      ],
+      "de.he",
+      { energyPressureBp: 4999 },
+      121,
+    ),
+  ).toEqual([]);
+  expect(evaluateCompliance(rule, 60, 99).status).toBe("inactive");
+  expect(() => evaluateCompliance(rule, Number.NaN, 121)).toThrow(/measured/);
 });

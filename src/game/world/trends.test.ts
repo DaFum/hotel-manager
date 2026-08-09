@@ -14,4 +14,7 @@ it("applies segment affinity and exposes stable causes", () => {
       "business",
     ),
   ).toEqual({ demandBp: 11000, causes: ["remote-work:1000"] });
+
+  expect(() => segmentDemandBp(Number.NaN, 10_000)).toThrow(/global adoption/);
+  expect(() => segmentDemandBp(5_000, 20_001)).toThrow(/affinity/);
 });

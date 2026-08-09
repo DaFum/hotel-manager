@@ -4,13 +4,20 @@ export interface TechnologyLifecycle {
   obsolete: boolean;
 }
 
+function basisPoints(value: number, label: string): number {
+  if (!Number.isSafeInteger(value) || value < 0 || value > 10_000)
+    throw new Error(`${label} must be 0..10000 basis points`);
+  return value;
+}
+
 export function nextAdoptionBp(
   currentBp: number,
   pushBp: number,
   obsolescenceBp = 0,
 ): number {
-  if (!Number.isSafeInteger(currentBp) || !Number.isSafeInteger(pushBp))
-    throw new Error("adoption inputs must be safe integers");
+  basisPoints(currentBp, "current adoption");
+  basisPoints(pushBp, "adoption push");
+  basisPoints(obsolescenceBp, "obsolescence");
   const organic = Math.round(((10_000 - currentBp) * 300) / 10_000);
   return Math.max(
     0,
@@ -26,6 +33,10 @@ export function advanceLifecycle(
   pushBp: number,
   replacementAdoptionBp: number,
 ): TechnologyLifecycle {
+  basisPoints(current.adoptionBp, "current adoption");
+  basisPoints(current.peakAdoptionBp, "peak adoption");
+  basisPoints(pushBp, "adoption push");
+  basisPoints(replacementAdoptionBp, "replacement adoption");
   const obsolete = current.obsolete || replacementAdoptionBp >= 6_500;
   const adoptionBp = nextAdoptionBp(
     current.adoptionBp,

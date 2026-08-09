@@ -260,7 +260,7 @@ export function allocateCityDay(
   };
 }
 
-/** Adds only player demand that survived the real booking flow. */
+/** Adds player room nights only when the hotel ledger recognizes the stay. */
 export function recordPlayerRoomNights(
   market: CityMarketState,
   realizedRoomNights: number,

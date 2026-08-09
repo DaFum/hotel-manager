@@ -114,6 +114,19 @@ describe("simulated operations", () => {
     expect(s.metrics.adrMinor).toBeGreaterThan(0);
   });
 
+  it("credits the city with the same player stay-nights as the hotel ledger", () => {
+    const sim = new GameSimulation(createInitialGameState(424242));
+    runQuanta(sim, QUANTA_PER_DAY * 10);
+    const s = sim.snapshot();
+    const rivalRoomNights = s.competitors.reduce(
+      (sum, competitor) => sum + competitor.soldRoomNights,
+      0,
+    );
+    expect(s.cityMarket.soldRoomNights - rivalRoomNights).toBe(
+      s.finance.month.soldRoomNights,
+    );
+  });
+
   it("produces a monthly close report once the month rolls over", () => {
     const sim = new GameSimulation(createInitialGameState(424242));
     runQuanta(sim, QUANTA_PER_DAY * 32);

@@ -1001,6 +1001,9 @@ export class GameSimulation {
       this.earn(stay.rateMinor, "roomRevenue", stay.roomId);
       s.finance.month.roomRevenueMinor += stay.rateMinor;
       s.finance.month.soldRoomNights += 1;
+      // The city closes on the same occupied nights as the hotel ledger. An
+      // accepted booking is not a sale until the guest actually stays.
+      recordPlayerRoomNights(s.cityMarket, 1);
     }
 
     // Charge exactly one monthly wage per calendar month, whatever its length.
@@ -1044,7 +1047,6 @@ export class GameSimulation {
           10000,
       ),
     );
-    let realizedPlayerRoomNights = 0;
     for (let i = 0; i < parties; i++) {
       const segment = pickSegment(this.streams.guests.nextUint32() % 10000);
       const leadDays = this.streams.guests.nextUint32() % 7;
@@ -1083,16 +1085,11 @@ export class GameSimulation {
           segmentId: segment.id,
         };
         s.reservations.push(reservation);
-        realizedPlayerRoomNights += booking.roomsRequested;
       } catch {
         /* demand lost to price or inventory; the slice does not yet count
            the causes, so this is intentionally silent */
       }
     }
-    recordPlayerRoomNights(
-      s.cityMarket,
-      Math.min(realizedPlayerRoomNights, cityAllocation.playerRoomNights),
-    );
   }
 
   private refreshAlerts(): void {

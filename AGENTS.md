@@ -98,7 +98,7 @@ Plan 01 (1991 single-hotel vertical slice, rev 1.1), Plan 02 (hotel depth and
 specialization) and Plan 03 (city market and competitors) are implemented. Plan 03's
 gate is **verified**. Fresh verification on 2026-08-09 produced these exact results:
 
-- `npm run test:run` — passed (54 files, 273 tests).
+- `npm run test:run` — passed (54 files, 274 tests).
 - `npm run typecheck` — passed.
 - `npm run lint` — passed.
 - `npm run build` — passed.

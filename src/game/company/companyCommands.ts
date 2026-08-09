@@ -1,0 +1,642 @@
+import type { GameState } from "../simulation/initialState";
+import type { GameCommand } from "../commands/commandEnvelope";
+import type { DomainEventPayload } from "../domain/events";
+import { addDays } from "../domain/calendar";
+import {
+  assignBrand,
+  findBrand,
+  removeBrandAssignment,
+} from "../brands/brandTypes";
+import { createOperatingContract } from "../ownership/models";
+import { createHotelBudget } from "./budgets";
+import {
+  setAuthorityLimit,
+  managerForHotel,
+} from "../management/managerAuthority";
+import { resolveEscalation } from "../management/escalation";
+import { fundHotel, sweepToHeadquarters } from "../treasury/internalFunding";
+import { openHotelAccount } from "../treasury/treasury";
+import { calculateFeasibility } from "../development/feasibility";
+import {
+  createPreOpening,
+  markPreOpeningTask,
+  openHotel,
+  OPENING_CHECKLIST,
+} from "../development/preOpening";
+import { runDueDiligence, adjustedValuation } from "../ma/dueDiligence";
+import { valueHotel } from "../ma/valuation";
+import {
+  acquisitionCostMinor,
+  executeAcquisition,
+  markTargetStatus,
+} from "../ma/acquisition";
+import { addHotelToPortfolio } from "./portfolio";
+import { createManagedHotel, registerManagedHotel } from "./managedHotels";
+import { findDevelopment } from "./companyState";
+import {
+  DEVELOPMENT_HURDLE_BP,
+  FEASIBILITY_UNCERTAINTY_BP,
+  MARKET_GOP_MULTIPLE_BP,
+  STARTER_LEGAL_ENTITY,
+  STARTER_REGION,
+  UNDERWRITING_GOP_MARGIN_BP,
+} from "../content/1991/company";
+
+/** Command types this module owns; everything else belongs to the hotel. */
+const COMPANY_COMMAND_TYPES = [
+  "ASSIGN_BRAND",
+  "REMOVE_BRAND",
+  "SET_OPERATING_MODEL",
+  "SET_HOTEL_BUDGET",
+  "SET_MANAGER_AUTHORITY",
+  "RESOLVE_ESCALATION",
+  "TRANSFER_INTERNAL_FUNDING",
+  "START_DEVELOPMENT",
+  "COMPLETE_PRE_OPENING_TASK",
+  "OPEN_DEVELOPMENT",
+  "RUN_DUE_DILIGENCE",
+  "ACQUIRE_HOTEL",
+] as const;
+
+export type CompanyCommand = Extract<
+  GameCommand,
+  { type: (typeof COMPANY_COMMAND_TYPES)[number] }
+>;
+
+export function isCompanyCommand(
+  command: GameCommand,
+): command is CompanyCommand {
+  return (COMPANY_COMMAND_TYPES as readonly string[]).includes(command.type);
+}
+
+export type Verdict = { ok: true } | { ok: false; reason: string };
+
+/** What a company command needs from the simulation to do its work. */
+export interface CompanyCommandContext {
+  emit(payload: DomainEventPayload, entities: readonly string[]): void;
+  spend(amountMinor: number, account: string, memo: string): void;
+}
+
+const ok: Verdict = { ok: true };
+const no = (reason: string): Verdict => ({ ok: false, reason });
+
+/**
+ * The rules half. It reads the state it is given and never writes to it, so
+ * asking whether a corporate decision is allowed can never be answered by
+ * having half-taken it.
+ */
+export function validateCompanyCommand(
+  state: GameState,
+  command: CompanyCommand,
+): Verdict {
+  const c = state.company;
+  switch (command.type) {
+    case "ASSIGN_BRAND":
+      if (!c.portfolio.hotelIds.includes(command.hotelId))
+        return no("hotel is not in the portfolio");
+      if (!findBrand(c.brands, command.brandId)) return no("unknown brand");
+      return ok;
+    case "REMOVE_BRAND":
+      if (!c.brandAssignments.some((a) => a.hotelId === command.hotelId))
+        return no("hotel carries no brand");
+      return ok;
+    case "SET_OPERATING_MODEL":
+      if (!c.portfolio.hotelIds.includes(command.hotelId))
+        return no("hotel is not in the portfolio");
+      try {
+        createOperatingContract(command.model);
+      } catch (error) {
+        return no((error as Error).message);
+      }
+      return ok;
+    case "SET_HOTEL_BUDGET":
+      if (!c.portfolio.hotelIds.includes(command.hotelId))
+        return no("hotel is not in the portfolio");
+      if (
+        !Number.isSafeInteger(command.capexBudgetMinor) ||
+        command.capexBudgetMinor < 0 ||
+        !Number.isSafeInteger(command.operatingBudgetMinor) ||
+        command.operatingBudgetMinor < 0
+      )
+        return no("a budget must be whole non-negative Pfennig");
+      return ok;
+    case "SET_MANAGER_AUTHORITY":
+      if (!managerForHotel(c.managers, command.hotelId))
+        return no("no manager runs that hotel");
+      return ok;
+    case "RESOLVE_ESCALATION": {
+      const escalation = c.escalations.find(
+        (e) => e.id === command.escalationId,
+      );
+      if (!escalation) return no("unknown escalation");
+      if (escalation.status !== "open")
+        return no(`escalation is already ${escalation.status}`);
+      return ok;
+    }
+    case "TRANSFER_INTERNAL_FUNDING": {
+      if (c.treasury.hotelCashMinor[command.hotelId] === undefined)
+        return no("hotel has no treasury account");
+      if (!Number.isSafeInteger(command.amountMinor) || command.amountMinor < 0)
+        return no("a transfer must be whole non-negative Pfennig");
+      const available =
+        command.direction === "fund"
+          ? c.treasury.hqMinor
+          : c.treasury.hotelCashMinor[command.hotelId];
+      if (command.amountMinor > available)
+        return no("insufficient allocated cash for the transfer");
+      return ok;
+    }
+    case "START_DEVELOPMENT": {
+      if (findDevelopment(c, command.developmentId))
+        return no("development already started");
+      if (!Number.isSafeInteger(command.rooms) || command.rooms <= 0)
+        return no("a development needs whole rooms");
+      let feasibility;
+      try {
+        feasibility = studyFor(command);
+      } catch (error) {
+        return no((error as Error).message);
+      }
+      if (
+        feasibility.returnOnCostBasisPoints === null ||
+        feasibility.returnOnCostBasisPoints < DEVELOPMENT_HURDLE_BP
+      )
+        return no("the scheme does not clear the group's hurdle rate");
+      if (state.finance.cashMinor < command.investmentMinor)
+        return no("insufficient cash");
+      return ok;
+    }
+    case "COMPLETE_PRE_OPENING_TASK": {
+      const development = findDevelopment(c, command.developmentId);
+      if (!development) return no("unknown development");
+      if (development.openedDateKey) return no("development is already open");
+      if (!OPENING_CHECKLIST.includes(command.item))
+        return no("unknown pre-opening checklist item");
+      return ok;
+    }
+    case "OPEN_DEVELOPMENT": {
+      const development = findDevelopment(c, command.developmentId);
+      if (!development) return no("unknown development");
+      try {
+        openHotel(development.preOpening, state.calendar.dateKey);
+      } catch (error) {
+        return no((error as Error).message);
+      }
+      return ok;
+    }
+    case "RUN_DUE_DILIGENCE": {
+      const target = c.acquisitionTargets.find(
+        (t) => t.id === command.targetId,
+      );
+      if (!target) return no("unknown acquisition target");
+      if (target.status !== "available")
+        return no(`target is already ${target.status}`);
+      if (command.areas.length === 0) return no("no diligence areas requested");
+      let report;
+      try {
+        report = runDueDiligence({ areas: command.areas, findings: [] });
+      } catch (error) {
+        return no((error as Error).message);
+      }
+      if (state.finance.cashMinor < report.costMinor)
+        return no("insufficient cash");
+      return ok;
+    }
+    case "ACQUIRE_HOTEL": {
+      const target = c.acquisitionTargets.find(
+        (t) => t.id === command.targetId,
+      );
+      if (!target) return no("unknown acquisition target");
+      if (target.status !== "available")
+        return no(`target is already ${target.status}`);
+      if (!Number.isSafeInteger(command.priceMinor) || command.priceMinor < 0)
+        return no("an offer must be whole non-negative Pfennig");
+      // The seller will not take materially less than the house is worth once
+      // the buyer's own findings are priced in.
+      const floor = acquisitionFloorMinor(state, command.targetId);
+      if (command.priceMinor < floor)
+        return no("the offer is below what the seller will accept");
+      if (state.finance.cashMinor < command.priceMinor)
+        return no("insufficient cash");
+      return ok;
+    }
+  }
+}
+
+/**
+ * What the seller will take. It is derived from the same valuation the buyer
+ * can compute, so a player who did the work can negotiate and one who did not
+ * pays the asking price.
+ */
+export function acquisitionFloorMinor(
+  state: GameState,
+  targetId: string,
+): number {
+  const target = state.company.acquisitionTargets.find(
+    (t) => t.id === targetId,
+  );
+  if (!target) throw new Error(`unknown acquisition target ${targetId}`);
+  const report = state.company.dueDiligence[targetId];
+  const base = valueHotel({
+    annualGopMinor: target.annualGopMinor,
+    multipleBasisPoints: MARKET_GOP_MULTIPLE_BP,
+    renovationNeedMinor: target.renovationNeedMinor,
+    debtAssumedMinor: target.debtAssumedMinor,
+  });
+  // Findings the buyer paid to discover are a lever in the negotiation;
+  // findings nobody looked for are not, and travel with the deal instead.
+  const adjusted = report ? adjustedValuation(base, report) : base;
+  return Math.max(0, adjusted.equityValueMinor);
+}
+
+function studyFor(
+  command: Extract<GameCommand, { type: "START_DEVELOPMENT" }>,
+) {
+  return calculateFeasibility({
+    expectedAdrMinor: command.expectedAdrMinor,
+    rooms: command.rooms,
+    occupancyBasisPoints: command.occupancyBasisPoints,
+    uncertaintyBasisPoints: FEASIBILITY_UNCERTAINTY_BP,
+    investmentMinor: command.investmentMinor,
+    gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
+  });
+}
+
+/**
+ * The write half. It runs against the command handler's private draft, so
+ * throwing anywhere in here discards every change the command had made — which
+ * is what makes an acquisition atomic rather than merely careful.
+ */
+export function applyCompanyCommand(
+  state: GameState,
+  command: CompanyCommand,
+  ctx: CompanyCommandContext,
+): void {
+  const verdict = validateCompanyCommand(state, command);
+  if (!verdict.ok) throw new Error(verdict.reason);
+  const c = state.company;
+
+  switch (command.type) {
+    case "ASSIGN_BRAND": {
+      c.brandAssignments = assignBrand(c.brandAssignments, {
+        hotelId: command.hotelId,
+        brandId: command.brandId,
+        sinceDateKey: state.calendar.dateKey,
+      });
+      ctx.emit(
+        {
+          type: "HOTEL_REBRANDED",
+          hotelId: command.hotelId,
+          brandId: command.brandId,
+        },
+        [command.hotelId, command.brandId],
+      );
+      return;
+    }
+    case "REMOVE_BRAND": {
+      c.brandAssignments = removeBrandAssignment(
+        c.brandAssignments,
+        command.hotelId,
+      );
+      ctx.emit(
+        { type: "HOTEL_REBRANDED", hotelId: command.hotelId, brandId: null },
+        [command.hotelId],
+      );
+      return;
+    }
+    case "SET_OPERATING_MODEL": {
+      c.operatingModels[command.hotelId] = createOperatingContract(
+        command.model,
+      );
+      ctx.emit(
+        {
+          type: "OPERATING_MODEL_CHANGED",
+          hotelId: command.hotelId,
+          model: command.model.kind,
+        },
+        [command.hotelId],
+      );
+      return;
+    }
+    case "SET_HOTEL_BUDGET": {
+      const periodKey = state.calendar.dateKey.slice(0, 7);
+      const budget = createHotelBudget({
+        hotelId: command.hotelId,
+        periodKey,
+        capexBudgetMinor: command.capexBudgetMinor,
+        operatingBudgetMinor: command.operatingBudgetMinor,
+      });
+      c.budgets = [
+        ...c.budgets.filter((b) => b.hotelId !== command.hotelId),
+        budget,
+      ];
+      ctx.emit(
+        {
+          type: "HOTEL_BUDGET_SET",
+          hotelId: command.hotelId,
+          periodKey,
+          capexBudgetMinor: command.capexBudgetMinor,
+        },
+        [command.hotelId],
+      );
+      return;
+    }
+    case "SET_MANAGER_AUTHORITY": {
+      const manager = managerForHotel(c.managers, command.hotelId)!;
+      const updated = setAuthorityLimit(manager, command.authority);
+      c.managers = c.managers.map((m) => (m.id === manager.id ? updated : m));
+      ctx.emit(
+        {
+          type: "MANAGER_AUTHORITY_CHANGED",
+          hotelId: command.hotelId,
+          managerId: manager.id,
+        },
+        [command.hotelId, manager.id],
+      );
+      return;
+    }
+    case "RESOLVE_ESCALATION": {
+      const escalation = c.escalations.find(
+        (e) => e.id === command.escalationId,
+      )!;
+      c.escalations = resolveEscalation(
+        c.escalations,
+        command.escalationId,
+        command.approve ? "approved" : "rejected",
+        state.elapsedMinutes,
+      );
+      // An approved spend is money the group has now agreed to; a rejected one
+      // costs nothing, which is the whole point of the limit.
+      if (command.approve && "amountMinor" in escalation.decision)
+        ctx.spend(
+          escalation.decision.amountMinor,
+          escalation.decision.kind === "capex" ? "capex" : "maintenance",
+          `approved ${escalation.decision.kind} at ${escalation.hotelId}`,
+        );
+      ctx.emit(
+        {
+          type: "ESCALATION_RESOLVED",
+          escalationId: command.escalationId,
+          hotelId: escalation.hotelId,
+          approved: command.approve,
+        },
+        [escalation.hotelId, command.escalationId],
+      );
+      return;
+    }
+    case "TRANSFER_INTERNAL_FUNDING": {
+      c.treasury =
+        command.direction === "fund"
+          ? fundHotel(c.treasury, command.hotelId, command.amountMinor)
+          : sweepToHeadquarters(
+              c.treasury,
+              command.hotelId,
+              command.amountMinor,
+            );
+      ctx.emit(
+        {
+          type: "INTERNAL_FUNDING_TRANSFERRED",
+          hotelId: command.hotelId,
+          amountMinor: command.amountMinor,
+          direction: command.direction,
+        },
+        [command.hotelId],
+      );
+      return;
+    }
+    case "START_DEVELOPMENT": {
+      const hotelId = `hotel.${command.developmentId.split(".").slice(1).join(".")}`;
+      ctx.spend(command.investmentMinor, "capex", command.name);
+      c.developments = [
+        ...c.developments,
+        {
+          id: command.developmentId,
+          hotelId,
+          name: command.name,
+          cityId: command.cityId,
+          rooms: command.rooms,
+          investmentMinor: command.investmentMinor,
+          feasibility: studyFor(command),
+          preOpening: createPreOpening(
+            command.developmentId,
+            command.targetOpenDateKey,
+          ),
+          openedDateKey: null,
+        },
+      ];
+      ctx.emit(
+        {
+          type: "DEVELOPMENT_STARTED",
+          developmentId: command.developmentId,
+          rooms: command.rooms,
+          investmentMinor: command.investmentMinor,
+        },
+        [command.developmentId, hotelId],
+      );
+      return;
+    }
+    case "COMPLETE_PRE_OPENING_TASK": {
+      c.developments = c.developments.map((development) =>
+        development.id === command.developmentId
+          ? {
+              ...development,
+              preOpening: markPreOpeningTask(
+                development.preOpening,
+                command.item,
+              ),
+            }
+          : development,
+      );
+      ctx.emit(
+        {
+          type: "PRE_OPENING_TASK_COMPLETED",
+          developmentId: command.developmentId,
+          item: command.item,
+        },
+        [command.developmentId],
+      );
+      return;
+    }
+    case "OPEN_DEVELOPMENT": {
+      const development = findDevelopment(c, command.developmentId)!;
+      const preOpening = openHotel(
+        development.preOpening,
+        state.calendar.dateKey,
+      );
+      c.developments = c.developments.map((d) =>
+        d.id === command.developmentId
+          ? { ...d, preOpening, openedDateKey: state.calendar.dateKey }
+          : d,
+      );
+      admitHotel(state, ctx, {
+        hotelId: development.hotelId,
+        name: development.name,
+        cityId: development.cityId,
+        rooms: development.rooms,
+        // A new house is underwritten at the rate and occupancy its own
+        // feasibility study assumed, and then has to earn its ramp-up.
+        adrMinor: Math.trunc(
+          development.feasibility.baseAnnualRoomRevenueMinor /
+            Math.max(1, development.rooms * 365),
+        ),
+        occupancyBasisPoints: 7000,
+        gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
+        openedDateKey: state.calendar.dateKey,
+      });
+      ctx.emit(
+        {
+          type: "HOTEL_OPENED",
+          developmentId: command.developmentId,
+          hotelId: development.hotelId,
+          rooms: development.rooms,
+        },
+        [command.developmentId, development.hotelId],
+      );
+      return;
+    }
+    case "RUN_DUE_DILIGENCE": {
+      const target = c.acquisitionTargets.find(
+        (t) => t.id === command.targetId,
+      )!;
+      const report = runDueDiligence({
+        areas: command.areas,
+        findings: target.hiddenFindings,
+      });
+      ctx.spend(report.costMinor, "advisory", `diligence on ${target.name}`);
+      c.dueDiligence = { ...c.dueDiligence, [command.targetId]: report };
+      ctx.emit(
+        {
+          type: "DUE_DILIGENCE_COMPLETED",
+          targetId: command.targetId,
+          areas: report.areas,
+          costMinor: report.costMinor,
+        },
+        [command.targetId],
+      );
+      return;
+    }
+    case "ACQUIRE_HOTEL": {
+      const target = c.acquisitionTargets.find(
+        (t) => t.id === command.targetId,
+      )!;
+      // One transaction: cash and ownership move together, and any throw from
+      // here on discards the whole draft the command was writing into.
+      const moved = executeAcquisition(
+        {
+          cashMinor: state.finance.cashMinor,
+          hotelIds: [...c.portfolio.hotelIds],
+        },
+        { hotelId: target.hotelId, priceMinor: command.priceMinor },
+      );
+      ctx.spend(
+        acquisitionCostMinor({
+          priceMinor: command.priceMinor,
+          debtRepaidMinor: 0,
+          diligenceCostMinor: 0,
+        }),
+        "capex",
+        `acquisition of ${target.name}`,
+      );
+      c.acquisitionTargets = markTargetStatus(
+        c.acquisitionTargets,
+        command.targetId,
+        "acquired",
+      );
+      admitHotel(state, ctx, {
+        hotelId: target.hotelId,
+        name: target.name,
+        cityId: "city.frankfurt.de",
+        rooms: target.rooms,
+        adrMinor: Math.max(
+          1,
+          Math.trunc(target.annualGopMinor / Math.max(1, target.rooms * 200)),
+        ),
+        occupancyBasisPoints: 6500,
+        gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
+        // A trading house joins mature: it already has its market, which is
+        // most of what the buyer is paying for.
+        openedDateKey: addDays(state.calendar.dateKey, -365 * 4),
+      });
+      // The transaction's own arithmetic is the authority on what is owned.
+      if (!moved.hotelIds.includes(target.hotelId))
+        throw new Error("acquisition did not complete");
+      ctx.emit(
+        {
+          type: "HOTEL_ACQUIRED",
+          targetId: command.targetId,
+          hotelId: target.hotelId,
+          priceMinor: command.priceMinor,
+        },
+        [command.targetId, target.hotelId],
+      );
+      return;
+    }
+  }
+}
+
+/**
+ * Brings a house into the group: portfolio, entity, treasury account, manager
+ * and operating model, all in the same step. A hotel that exists in one of
+ * those lists and not the others is a bug waiting to be found by the player.
+ */
+function admitHotel(
+  state: GameState,
+  ctx: CompanyCommandContext,
+  hotel: {
+    hotelId: string;
+    name: string;
+    cityId: string;
+    rooms: number;
+    adrMinor: number;
+    occupancyBasisPoints: number;
+    gopMarginBasisPoints: number;
+    openedDateKey: string;
+  },
+): void {
+  const c = state.company;
+  c.portfolio = addHotelToPortfolio(c.portfolio, {
+    hotelId: hotel.hotelId,
+    legalEntityId: STARTER_LEGAL_ENTITY.id,
+    regionId: STARTER_REGION,
+  });
+  c.managedHotels = registerManagedHotel(
+    c.managedHotels,
+    createManagedHotel({
+      hotelId: hotel.hotelId,
+      name: hotel.name,
+      cityId: hotel.cityId,
+      rooms: hotel.rooms,
+      adrMinor: hotel.adrMinor,
+      occupancyBasisPoints: hotel.occupancyBasisPoints,
+      gopMarginBasisPoints: hotel.gopMarginBasisPoints,
+      openedDateKey: hotel.openedDateKey,
+    }),
+  );
+  c.operatingModels[hotel.hotelId] = { kind: "owned" };
+  c.treasury = openHotelAccount(c.treasury, hotel.hotelId, 0);
+  c.sequence += 1;
+  c.managers = [
+    ...c.managers,
+    {
+      id: `manager.${hotel.hotelId}`,
+      name: `Manager, ${hotel.name}`,
+      hotelId: hotel.hotelId,
+      competence: 55,
+      authority: {
+        repairLimitMinor: 500_000,
+        capexLimitMinor: 0,
+        recoveryLimitMinor: 20_000,
+        mayHire: false,
+        mayReprice: true,
+      },
+    },
+  ];
+  ctx.emit(
+    {
+      type: "HOTEL_ADDED_TO_PORTFOLIO",
+      hotelId: hotel.hotelId,
+      legalEntityId: STARTER_LEGAL_ENTITY.id,
+    },
+    [hotel.hotelId, STARTER_LEGAL_ENTITY.id],
+  );
+}

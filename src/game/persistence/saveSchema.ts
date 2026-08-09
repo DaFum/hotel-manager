@@ -3,6 +3,7 @@ import type { GameState } from "../simulation/initialState";
 import { migrateV1ToV2 } from "./migrations/v1-to-v2";
 import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import { migrateV3ToV4 } from "./migrations/v3-to-v4";
+import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
@@ -94,6 +95,31 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  const company = state.company;
+  if (
+    !company ||
+    !company.portfolio ||
+    !Array.isArray(company.portfolio.hotelIds) ||
+    !Array.isArray(company.legalEntities) ||
+    !Array.isArray(company.brands) ||
+    !Array.isArray(company.managedHotels) ||
+    !Array.isArray(company.managers) ||
+    !company.treasury ||
+    !Number.isSafeInteger(company.treasury.hqMinor) ||
+    !company.treasury.hotelCashMinor ||
+    typeof company.treasury.hotelCashMinor !== "object" ||
+    Object.values(company.treasury.hotelCashMinor).some(
+      (balance) => !Number.isSafeInteger(balance),
+    )
+  )
+    problems.push("the state has no complete Plan 05 company");
+  else {
+    if (!company.portfolio.hotelIds.includes(state.hotel?.id as string))
+      problems.push("the company portfolio does not hold this save's hotel");
+    for (const hotelId of company.portfolio.hotelIds)
+      if (!company.portfolio.hotelLegalEntity[hotelId])
+        problems.push(`hotel ${hotelId} is held by no legal entity`);
+  }
 
   // Every stay must point at a room that exists, or the hotel restores with
   // guests in rooms it does not have.
@@ -136,8 +162,12 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     1: migrateV1ToV2,
     2: migrateV2ToV3,
     3: migrateV3ToV4,
+    4: migrateV4ToV5,
   };
   let current = envelope;
+  // Early v5 builds wrote fields whose accounting and unit upgrades must be
+  // completed even though the public save version did not change.
+  if (current.saveVersion === 5) current = migrateEarlyV5Fields(current);
   if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
     current = migrateV3ToV4(current);
   while (

@@ -70,5 +70,7 @@ test("runs a conference through the deep house without breaking the board", asyn
   await expect(lifts).toContainText(/^Lifts[1-9]\d*\//, { timeout: 60_000 });
   await expect(page.getByRole("region", { name: "Alerts" })).toBeVisible();
   // The simulation must still be running: no SIMULATION_ERROR surfaced.
-  await expect(page.getByRole("status")).not.toContainText(/error/i);
+  await expect(
+    page.getByRole("status", { name: "", exact: true }),
+  ).not.toContainText(/error/i);
 });

@@ -14,9 +14,10 @@ Web Worker. Design authority, in order: the user, `AGENTS.md`,
 `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`, then the
 active plan in `docs/superpowers/plans/`.
 
-Plans 01 (vertical slice), 02 (hotel depth and specialization) and 03 (city market and
-competitors) are implemented and verified. Plan 04 (technology and alternative history)
-is next; see `AGENTS.md` for the exact fresh Plan 03 gate evidence.
+Plans 01 (vertical slice), 02 (hotel depth), 03 (city market), 03.5 (conformance),
+04 (technology and alternative history) and 05 (multi-hotel company and brands) are
+implemented and verified. Plan 06 (emergent campaign and narrative) is next; see
+`AGENTS.md` for the exact fresh Plan 05 gate evidence.
 
 ## Commands
 
@@ -52,6 +53,7 @@ reformatted.
 | `src/game/domain/`                              | money, calendar, ids, RNG streams, protocol, commands, events                             |
 | `src/game/content/1991/`                        | Frankfurt, starter hotel, guest segments, suppliers, city market — data, not conditionals |
 | `src/game/<system>/`                            | one domain per directory (rooms, staff, revenue, fnb, finance, …)                         |
+| `src/game/company/`                             | the corporate layer: portfolio, brands, budgets, treasury, managed hotels                 |
 | `src/ui/`, `src/render/`                        | React surfaces and the Pixi scene; presentation only                                      |
 
 ## Non-negotiables in this codebase
@@ -68,7 +70,11 @@ reformatted.
 - **Accessibility is structural.** Pixi is decorative; every player action has a DOM path.
   `HotelView` degrades to its room list when no renderer exists.
 - **Saves are versioned.** `saveVersion`, `contentVersion`, `protocolVersion` and all RNG
-  states travel together; a schema change needs a migration and fixtures.
+  states travel together; a schema change needs a migration and fixtures. The current
+  version is 5; the v5 fixture and the replay corpus are recorded from real runs by
+  `scripts/record-save-fixture.ts` and `scripts/record-replay-corpus.ts`, never edited.
+- **The treasury never holds money.** `consolidatedCashMinor(treasury)` must always equal
+  `finance.cashMinor`; the invariants assert it every quantum.
 
 ## How to work
 

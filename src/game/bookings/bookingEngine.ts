@@ -39,6 +39,8 @@ export function reserve(
     throw new Error("invalid rooms requested");
   if (!Number.isSafeInteger(r.partySize) || r.partySize <= 0)
     throw new Error("invalid party size");
+  if (r.guestId !== undefined && !r.guestId.trim())
+    throw new Error("invalid guest id");
   assertNonNegativePfennig(r.rateMinor, "rate");
   assertNonNegativePfennig(r.willingnessMinor, "willingness to pay");
   if (r.rateMinor > r.willingnessMinor) throw new Error("price rejected");
@@ -53,6 +55,7 @@ export function reserve(
 
   return {
     id: r.id,
+    guestId: r.guestId ?? `guest.${r.id}`,
     roomsRequested: r.roomsRequested,
     rateMinor: r.rateMinor,
     status: "confirmed",

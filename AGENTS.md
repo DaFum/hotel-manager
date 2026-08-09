@@ -96,19 +96,60 @@ When executing a plan:
 ### Current repository state
 
 Plan 01 (1991 single-hotel vertical slice, rev 1.1), Plan 02 (hotel depth and
-specialization) and Plan 03 (city market and competitors) are implemented. Plan 03's
-gate is **verified**. Fresh verification on 2026-08-09 produced these exact results:
+specialization), Plan 03 (city market and competitors), Plan 03.5 (conformance
+remediation), Plan 04 (technology and alternative history) and Plan 05
+(multi-hotel company and brands) are implemented.
 
-- `npm run test:run` — passed (54 files, 274 tests).
+Fresh verification of the Plan 05 gate on 2026-08-09 produced these exact
+results:
+
+- `npm run test:run` — passed (117 files, 710 tests).
 - `npm run typecheck` — passed.
 - `npm run lint` — passed.
 - `npm run build` — passed.
-- `npm run test:e2e` — passed (8 tests).
+- `npm run test:e2e` — passed (20 tests).
+- `npm run benchmark` — passed (a simulated year in 6.4s against a 30s budget).
+- `scripts/replay-plans-01-03.ts` — passed twice with an identical hash.
+- `scripts/verify-plans-01-03-long-run.ts` — passed.
 
-An implementation-to-MASTER audit subsequently found that green leaf and slice tests do
-not prove several contracts claimed by Plans 01-03. Plan 03.5 is therefore the active
-remediation gate. Plans 01-03 remain implemented and playable, but are not fully
-conformant until Plan 03.5 passes. Do not start Plan 04 before that gate is green.
+Plan 06 (emergent campaign and narrative) is next.
+
+### Plan 05: the company above the hotels
+
+Plan 05 added a corporate layer and closed the audited depth delta. What later
+work must respect:
+
+- **The company section** (`src/game/company/`) is authoritative save state:
+  portfolio, legal entities, operating models, brands and their audits, managed
+  hotels, developments, budgets, managers, escalations, treasury, acquisition
+  targets and published hotel results. Hotels never read it; it reads the
+  monthly result each hotel publishes upward.
+- **Save version 5.** `v4-to-v5.ts` owns every new persistent section and
+  normalises a partial development v5 company rather than accepting it. Its
+  fixture (`fixtures/save-v5.json`) is recorded from a real game by
+  `scripts/record-save-fixture.ts`, not written by hand.
+- **The treasury describes group cash, it does not hold it.**
+  `consolidatedCashMinor(treasury) === finance.cashMinor` is an invariant
+  asserted every quantum; `syncTreasury` restates headquarters' balance from
+  whatever the hotels have been allocated.
+- **Corporate commands** go through the same `CommandHandler` boundary, so an
+  acquisition that fails halfway leaves nothing behind. `companyCommands.ts`
+  holds their rules; `companyMonth.ts` holds the monthly corporate step.
+- **Fifteen new domain events** cover the corporate transitions, and every one
+  of the 45 declared types is reachable in a real game — `companyScenario()` in
+  `eventBuffer.test.ts` drives the corporate ones.
+- **The replay corpus is an observation, not a hand-edited file.** When a plan
+  adds real transitions, re-record it with `scripts/record-replay-corpus.ts`
+  and prove it reproduces its own hash.
+- **Depth delta closed:** statements/debt/insurance/utility contracts
+  (`finance/`, `risk/`, `utilities/`), campaigns/sales/CRM/loyalty and six
+  scoped reputation dimensions (`commercial/`, `reputation/`), employee and
+  supplier lifecycles (`staff/employeeLifecycle.ts`, `purchasing/contracts.ts`),
+  party lifecycle and authority-bounded recovery (`guests/`), lobby automation
+  and operator-model commercial spaces (`facilities/`), the F&B, event,
+  laundry and engineering edge contracts, and the operational world contract
+  over the existing render primitives with a full DOM path
+  (`src/ui/WorldControls.tsx`).
 
 ### Plan 03.5 progress
 

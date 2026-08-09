@@ -2,6 +2,10 @@ import type { ExpandableArea } from "../classification/specialization";
 import type { RoomCategory } from "../revenue/rates";
 import type { StaffRole } from "../domain/staffRoles";
 import type { Shift } from "../staff/staffing";
+import type { OperatingModel } from "../ownership/models";
+import type { DueDiligenceArea } from "../ma/dueDiligence";
+import type { OpeningChecklistItem } from "../development/preOpening";
+import type { ManagerAuthority } from "../management/managerAuthority";
 
 /**
  * The payload half of a command: what the player wants done, with no identity
@@ -25,7 +29,49 @@ export type GameCommand =
   | { type: "SET_SPECIALIZATION"; specializationId: string | null }
   | { type: "EXPAND_FACILITY"; area: ExpandableArea }
   | { type: "BUY_MARKET_RESEARCH" }
-  | { type: "ADOPT_TECHNOLOGY"; technologyId: string };
+  | { type: "ADOPT_TECHNOLOGY"; technologyId: string }
+  // --- the company above the hotels --------------------------------------
+  | { type: "ASSIGN_BRAND"; hotelId: string; brandId: string }
+  | { type: "REMOVE_BRAND"; hotelId: string }
+  | { type: "SET_OPERATING_MODEL"; hotelId: string; model: OperatingModel }
+  | {
+      type: "SET_HOTEL_BUDGET";
+      hotelId: string;
+      capexBudgetMinor: number;
+      operatingBudgetMinor: number;
+    }
+  | {
+      type: "SET_MANAGER_AUTHORITY";
+      hotelId: string;
+      authority: Partial<ManagerAuthority>;
+    }
+  | { type: "RESOLVE_ESCALATION"; escalationId: string; approve: boolean }
+  | {
+      type: "TRANSFER_INTERNAL_FUNDING";
+      hotelId: string;
+      amountMinor: number;
+      /** `fund` moves cash down to the hotel, `sweep` draws it back up. */
+      direction: "fund" | "sweep";
+    }
+  | {
+      type: "START_DEVELOPMENT";
+      developmentId: string;
+      name: string;
+      cityId: string;
+      rooms: number;
+      investmentMinor: number;
+      expectedAdrMinor: number;
+      occupancyBasisPoints: number;
+      targetOpenDateKey: string;
+    }
+  | {
+      type: "COMPLETE_PRE_OPENING_TASK";
+      developmentId: string;
+      item: OpeningChecklistItem;
+    }
+  | { type: "OPEN_DEVELOPMENT"; developmentId: string }
+  | { type: "RUN_DUE_DILIGENCE"; targetId: string; areas: DueDiligenceArea[] }
+  | { type: "ACQUIRE_HOTEL"; targetId: string; priceMinor: number };
 
 export type CommandType = GameCommand["type"];
 

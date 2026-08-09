@@ -2,7 +2,11 @@ import { createRngStreams, type RngStateRecord } from "../domain/rng";
 import type { CommandLogEntry } from "../commands/commandEnvelope";
 import { createEventJournal, type EventJournal } from "../domain/eventBuffer";
 import { CITY } from "../content/1991/frankfurt";
-import { STARTER_HOTEL, STARTER_STAFF } from "../content/1991/starterHotel";
+import {
+  STARTER_COMMERCIAL_SPACES,
+  STARTER_HOTEL,
+  STARTER_STAFF,
+} from "../content/1991/starterHotel";
 import type { RoomState } from "../rooms/roomState";
 import type { RateGrid } from "../revenue/rates";
 import type { Booking } from "../bookings/bookingTypes";
@@ -27,6 +31,43 @@ import {
   type RevenuePolicy,
 } from "../revenue/revenuePolicy";
 import type { TechnologyProject } from "../technology/adoption";
+import { createCompanyState, type CompanyState } from "../company/companyState";
+import { createStatements, type StatementsState } from "../finance/statements";
+import { createInsuranceState, type InsuranceState } from "../risk/insurance";
+import {
+  createCommercialState,
+  type CommercialState,
+} from "../commercial/commercialState";
+import {
+  createReputationState,
+  type ReputationState,
+} from "../reputation/dimensions";
+import {
+  createContract,
+  createWorkforceState,
+  employ,
+  type WorkforceState,
+} from "../staff/employeeLifecycle";
+import {
+  createProcurementState,
+  type ProcurementState,
+} from "../purchasing/contracts";
+import {
+  createGuestRelationsState,
+  type GuestRelationsState,
+} from "../guests/partyLifecycle";
+import type { RecoveryRecord } from "../guests/recoveryAuthority";
+import {
+  addSpace,
+  createCommercialSpaceState,
+  type CommercialSpaceState,
+} from "../facilities/commercialSpaces";
+import {
+  createUtilityContracts,
+  type MeterReadings,
+  type UtilityContracts,
+  type UtilityOutage,
+} from "../utilities/consumption";
 
 export interface RoomRecord {
   id: string;
@@ -215,6 +256,45 @@ export interface GameState {
   revenuePolicy: RevenuePolicy;
   technologyProjects: TechnologyProject[];
   technologyImplementations: string[];
+  /**
+   * The corporate layer above the hotels: portfolio, brands, development,
+   * delegation, treasury and M&A. Hotels never read it; it reads their
+   * published results.
+   */
+  company: CompanyState;
+  /** The accrual half of the accounts: receivables, assets, depreciation. */
+  statements: StatementsState;
+  /** Policies in force and the claims made against them. */
+  insurance: InsuranceState;
+  /** Energy, water and waste contracts, meters and any running outage. */
+  utilityContracts: UtilityContracts;
+  meters: MeterReadings;
+  outages: UtilityOutage[];
+  /** Campaigns, negotiated accounts, guest records and the loyalty scheme. */
+  commercial: CommercialState;
+  /** Every reputation dimension, scoped and with its causes. */
+  reputation: ReputationState;
+  /** Contracts, hours, absence and development for everybody on the payroll. */
+  workforce: WorkforceState;
+  /** Supplier contracts, standing orders, stock lots and stockouts. */
+  procurement: ProcurementState;
+  /** Parties, their stays and the lost property they left behind. */
+  guestRelations: GuestRelationsState;
+  /** Every complaint and what was actually done about it. */
+  recoveries: RecoveryRecord[];
+  /** Shops, parking, outdoor areas and who operates each of them. */
+  commercialSpaces: CommercialSpaceState;
+  /**
+   * The lobby as it stands right now, recomputed every snapshot. Derived, like
+   * the facility board: never a source of truth, only a description of one.
+   */
+  lobby: {
+    served: number;
+    unserved: number;
+    cause: string;
+    /** Self-service actually installed, and how each of them can fail. */
+    automation: string[];
+  };
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -323,6 +403,36 @@ export function createInitialGameState(seed: number): GameState {
     revenuePolicy: createRevenuePolicy(),
     technologyProjects: [],
     technologyImplementations: [],
+    company: createCompanyState(),
+    statements: createStatements(),
+    insurance: createInsuranceState(),
+    utilityContracts: createUtilityContracts(),
+    meters: { energy: 0, water: 0, waste: 0 },
+    outages: [],
+    commercial: createCommercialState(),
+    reputation: createReputationState(),
+    // Everybody the house starts with is on a real contract from day one.
+    workforce: STARTER_STAFF.reduce(
+      (workforce, member) =>
+        employ(workforce, {
+          id: `employee.${member.id}`,
+          staffId: member.id,
+          contract: createContract({
+            monthlyWageMinor: member.monthlyWageMinor,
+          }),
+          skill: member.skill,
+        }),
+      createWorkforceState(),
+    ),
+    procurement: createProcurementState(),
+    guestRelations: createGuestRelationsState(),
+    recoveries: [],
+    commercialSpaces: STARTER_COMMERCIAL_SPACES.reduce(
+      (state, space) =>
+        addSpace(state, { ...space, operator: { ...space.operator } }),
+      createCommercialSpaceState(),
+    ),
+    lobby: { served: 0, unserved: 0, cause: "lobby is coping", automation: [] },
   };
 }
 

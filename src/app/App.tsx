@@ -14,6 +14,7 @@ import { FinanceDashboard } from "../ui/FinanceDashboard";
 import { BuildPanel } from "../ui/BuildPanel";
 import { AlertsPanel } from "../ui/AlertsPanel";
 import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
+import { CommercialSpacesPanel } from "../ui/facilities/CommercialSpacesPanel";
 import { ClassificationPanel } from "../ui/facilities/ClassificationPanel";
 import { STAFF_ROLES } from "../game/domain/staffRoles";
 import { MonthlyCloseModal } from "../ui/MonthlyCloseModal";
@@ -24,6 +25,28 @@ import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
+import { WorldControls } from "../ui/WorldControls";
+import { createCamera, type CameraState } from "../render/camera";
+import { elevatorVisual } from "../render/agentMaterialization";
+import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
+import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
+import { BrandDashboard } from "../ui/company/BrandDashboard";
+import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
+import { ManagerGovernancePanel } from "../ui/company/ManagerGovernancePanel";
+import { CommercialDashboard } from "../ui/company/CommercialDashboard";
+import {
+  brandAuditRows,
+  brandRows,
+  developmentRows,
+  escalationRows,
+  managerRows,
+  portfolioRows,
+  accountRows,
+  campaignRows,
+  marketableGuestCount,
+  reputationRows,
+  hotelName,
+} from "../ui/company/companyViewModel";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -46,6 +69,10 @@ export function App() {
   // by January's "Continue".
   const [dismissedClose, setDismissedClose] = useState<string | null>(null);
   const [openAlert, setOpenAlert] = useState<string | null>(null);
+  /** Which house the group is currently looking at; the flagship by default. */
+  const [openHotel, setOpenHotel] = useState<string | null>(null);
+  /** Presentation state: where the player is looking, never a game rule. */
+  const [camera, setCamera] = useState<CameraState>(createCamera);
   const s = game.snapshot;
 
   if (!s)
@@ -116,7 +143,42 @@ export function App() {
           facilities={s.facilities}
           disableRenderer={rendererDisabled()}
         />
+        <WorldControls
+          camera={camera}
+          floors={[
+            ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
+          ].sort((a, b) => a - b)}
+          minuteOfDay={s.calendar.minuteOfDay}
+          elevator={elevatorVisual(s.renderDescriptors.elevator)}
+          problems={s.alerts.map((alert) => ({
+            id: alert.id,
+            title: alert.title,
+            cause: alert.cause,
+            floor: 1,
+            x: 0,
+            y: 0,
+            kind: "problem" as const,
+          }))}
+          onCamera={setCamera}
+        />
         <FacilitiesDashboard rows={s.facilities} />
+        <CommercialSpacesPanel
+          spaces={s.commercialSpaces.spaces.map((space) => ({
+            id: space.id,
+            kind: space.kind,
+            capacity: space.capacity,
+            openMinute: space.openMinute,
+            closeMinute: space.closeMinute,
+            operator: space.operator.kind,
+            hotelShareMinor: monthlyContributionMinor(
+              space,
+              s.commercialSpaces.unitsSold[space.id] ?? 0,
+            ).hotelShareMinor,
+            unitsSold: s.commercialSpaces.unitsSold[space.id] ?? 0,
+            fitBp: space.fitBp ?? (space.fit ?? 0) * 100,
+          }))}
+          lobby={s.lobby}
+        />
         <ClassificationPanel
           classification={s.classification}
           specializationId={s.specializationId}
@@ -142,6 +204,56 @@ export function App() {
           rows={s.competitors}
           playerRateMinor={singleRateMinor}
           playerOccupancyBp={s.metrics.occupancyBasisPoints}
+        />
+        <PortfolioDashboard
+          hotels={portfolioRows(s)}
+          onOpenHotel={setOpenHotel}
+        />
+        <p aria-label="Selected hotel">
+          Viewing: {hotelName(s, openHotel ?? s.hotel.id)}
+        </p>
+        <BrandDashboard
+          brands={brandRows(s)}
+          audits={brandAuditRows(s)}
+          hotels={portfolioRows(s).map((h) => ({ id: h.id, name: h.name }))}
+          onAssignBrand={(hotelId, brandId) =>
+            game.send({ type: "ASSIGN_BRAND", hotelId, brandId })
+          }
+        />
+        <DevelopmentDashboard
+          developments={developmentRows(s)}
+          onCompleteTask={(developmentId, item) =>
+            game.send({
+              type: "COMPLETE_PRE_OPENING_TASK",
+              developmentId,
+              item,
+            })
+          }
+          onOpen={(developmentId) =>
+            game.send({ type: "OPEN_DEVELOPMENT", developmentId })
+          }
+        />
+        <ManagerGovernancePanel
+          managers={managerRows(s)}
+          escalations={escalationRows(s)}
+          onSetRepairLimit={(hotelId, repairLimitMinor) =>
+            game.send({
+              type: "SET_MANAGER_AUTHORITY",
+              hotelId,
+              authority: { repairLimitMinor },
+            })
+          }
+          onResolve={(escalationId, approve) =>
+            game.send({ type: "RESOLVE_ESCALATION", escalationId, approve })
+          }
+        />
+        <CommercialDashboard
+          campaigns={campaignRows(s)}
+          accounts={accountRows(s)}
+          reputation={reputationRows(s)}
+          loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
+          loyaltyMembers={s.commercial.loyalty.members.length}
+          marketableGuests={marketableGuestCount(s)}
         />
         <TechnologyPanel
           technologies={s.world.technologies}

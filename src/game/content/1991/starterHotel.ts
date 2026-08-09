@@ -46,7 +46,51 @@ export const STARTER_HOTEL = {
   staffAreaSqm: 36,
   /** Guards rostered before any event or VIP load. */
   baseSecurityStaff: 1,
+  /** Parties one receptionist can process an hour in the lobby. */
+  partiesPerReceptionist: 12,
+  /** Bags one porter can move an hour. */
+  bagsPerPorter: 30,
 } as const;
+
+/** The commercial spaces the house already trades from in 1991. */
+export const STARTER_COMMERCIAL_SPACES = [
+  {
+    id: "space.kiosk",
+    kind: "shop" as const,
+    capacity: 30,
+    openMinute: 420,
+    closeMinute: 1260,
+    unitPriceMinor: 900,
+    operator: { kind: "self" as const, marginBasisPoints: 3500 },
+    staffRequired: 0,
+    fitBp: 5500,
+    maintenanceMinor: 25_000,
+  },
+  {
+    id: "space.carpark",
+    kind: "parking" as const,
+    capacity: 18,
+    openMinute: 0,
+    closeMinute: 1440,
+    unitPriceMinor: 1_200,
+    operator: { kind: "self" as const, marginBasisPoints: 7000 },
+    staffRequired: 0,
+    fitBp: 7000,
+    maintenanceMinor: 30_000,
+  },
+  {
+    id: "space.terrace",
+    kind: "outdoor" as const,
+    capacity: 24,
+    openMinute: 600,
+    closeMinute: 1320,
+    unitPriceMinor: 0,
+    operator: { kind: "self" as const, marginBasisPoints: 0 },
+    staffRequired: 0,
+    fitBp: 6500,
+    maintenanceMinor: 12_000,
+  },
+] as const;
 
 export const STARTER_STAFF = [
   {

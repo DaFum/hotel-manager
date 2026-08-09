@@ -109,6 +109,7 @@ import {
   startRenovation,
 } from "../building/renovations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
+import { compareIds } from "../domain/ids";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
 import {
   commandEnvelope,
@@ -139,6 +140,7 @@ import {
   type GameState,
   type ReservationRecord,
   type RoomRecord,
+  type StayRecord,
 } from "./initialState";
 import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
 import {
@@ -151,6 +153,78 @@ import {
   netChannelRevenueMinor,
 } from "../distribution/channelEvolution";
 import { createRevenuePolicy } from "../revenue/revenuePolicy";
+import { createCompanyState } from "../company/companyState";
+import { createCommercialState } from "../commercial/commercialState";
+import {
+  applyReputationEvent,
+  createReputationState,
+  decayReputation,
+} from "../reputation/dimensions";
+import { earnPoints, releaseBreakageMinor } from "../commercial/loyalty";
+import { recordStay as recordCrmStay } from "../commercial/crm";
+import {
+  createContract as createEmploymentContract,
+  createWorkforceState,
+  employ,
+  markSick,
+  fallsSick,
+  resign,
+  returnToWork,
+  startEmploymentMonth,
+  willResign,
+  workOvertime,
+} from "../staff/employeeLifecycle";
+import { createProcurementState } from "../purchasing/contracts";
+import {
+  beginStay,
+  createGuestRelationsState,
+  createParty,
+  recordStayEvent,
+  registerParty,
+} from "../guests/partyLifecycle";
+import {
+  applyRecovery,
+  openComplaint,
+  satisfactionAfterRecovery,
+} from "../guests/recoveryAuthority";
+import {
+  createCommercialSpaceState,
+  isOpen as isSpaceOpen,
+  monthlyContributionMinor,
+  recordUse,
+  securityLoad,
+  spaceThroughput,
+  startSpaceMonth,
+} from "../facilities/commercialSpaces";
+import {
+  automationFailureModes,
+  availableSelfService,
+  deflectedDemand,
+  emptyLobbyDemand,
+  lobbyThroughput,
+} from "../facilities/lobbyAutomation";
+import {
+  applyCompanyCommand,
+  isCompanyCommand,
+  validateCompanyCommand,
+} from "../company/companyCommands";
+import { runCompanyMonth, syncTreasury } from "../company/companyMonth";
+import {
+  capitaliseAsset,
+  createStatements,
+  depreciationMinor,
+  postDepreciation,
+} from "../finance/statements";
+import {
+  createInsuranceState,
+  totalMonthlyPremiumMinor,
+} from "../risk/insurance";
+import {
+  createUtilityContracts,
+  readMeters,
+  utilityBillMinor,
+  wasteDisposalMinor,
+} from "../utilities/consumption";
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -198,6 +272,8 @@ const BAR_TAKE_UP_BP = 6000;
 /** Basis points of days on which a conference enquiry arrives. */
 const EVENT_LEAD_CHANCE_BP = 1200;
 const MAX_ALERTS = 20;
+/** How long a plant asset is written down over; a balancing constant. */
+const ASSET_USEFUL_LIFE_MONTHS = 120;
 /** Half a percent chance per day that a worn asset fails, in basis points. */
 const DAILY_FAILURE_BP = 50;
 /** One receptionist checks in six parties per simulated hour. */
@@ -227,6 +303,8 @@ const ARRIVAL_ALERT_IDS = [
   "alert.construction-noise",
 ];
 const HANDLED_COMPLAINT_LIMIT = 256;
+/** The minute of the hotel day the commercial spaces are settled for. */
+const SHOP_TRADING_MINUTE = 1080;
 
 const WATER_UNIT_MINOR = 2;
 const ENERGY_UNIT_MINOR = 3;
@@ -262,6 +340,25 @@ export class GameSimulation implements CommandExecutor {
     state.revenuePolicy ??= createRevenuePolicy();
     state.technologyProjects ??= [];
     state.technologyImplementations ??= [];
+    state.company ??= createCompanyState();
+    state.statements ??= createStatements();
+    state.insurance ??= createInsuranceState();
+    state.utilityContracts ??= createUtilityContracts();
+    state.meters ??= { energy: 0, water: 0, waste: 0 };
+    state.outages ??= [];
+    state.commercial ??= createCommercialState();
+    state.reputation ??= createReputationState();
+    state.workforce ??= createWorkforceState();
+    state.procurement ??= createProcurementState();
+    state.guestRelations ??= createGuestRelationsState();
+    state.recoveries ??= [];
+    state.commercialSpaces ??= createCommercialSpaceState();
+    state.lobby ??= {
+      served: 0,
+      unserved: 0,
+      cause: "lobby is coping",
+      automation: [],
+    };
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -453,6 +550,8 @@ export class GameSimulation implements CommandExecutor {
           return { ok: true };
         }
         default:
+          if (isCompanyCommand(command))
+            return validateCompanyCommand(s, command);
           return { ok: false, reason: "unknown command" };
       }
     } catch (error) {
@@ -636,6 +735,15 @@ export class GameSimulation implements CommandExecutor {
           monthlyWageMinor: hired.monthlyWageMinor,
           absent: false,
         });
+        // A new hire is a person under a contract, not another rota row.
+        s.workforce = employ(s.workforce, {
+          id: `employee.${hired.id}`,
+          staffId: hired.id,
+          contract: createEmploymentContract({
+            monthlyWageMinor: hired.monthlyWageMinor,
+          }),
+          skill: hired.skill,
+        });
         this.emit(
           {
             type: "STAFF_HIRED",
@@ -751,6 +859,20 @@ export class GameSimulation implements CommandExecutor {
         );
         return;
       }
+      default: {
+        if (!isCompanyCommand(command))
+          throw new Error(`unknown command ${(command as GameCommand).type}`);
+        // The corporate layer writes through the same draft, so an
+        // acquisition that fails halfway takes the whole command with it.
+        applyCompanyCommand(s, command, {
+          emit: (payload, entities) => this.emit(payload, entities),
+          spend: (amountMinor, account, memo) =>
+            this.spend(amountMinor, account, memo),
+        });
+        // Group cash moved; the treasury has to say so in the same breath.
+        syncTreasury(s);
+        return;
+      }
     }
   }
 
@@ -773,6 +895,7 @@ export class GameSimulation implements CommandExecutor {
       s.eventHousekeepingWorkedMinutes = 0;
       s.utilities.waterUsed = 0;
       s.utilities.energyUsed = 0;
+      this.runEmploymentDay();
     }
     // A fit-out dates by the calendar, not by wear: on every new year every
     // room is one year further from being current.
@@ -1024,6 +1147,7 @@ export class GameSimulation implements CommandExecutor {
       const arrived = checkIn(booking, s.elapsedMinutes);
       booking.status = arrived.status;
       booking.history = arrived.history;
+      this.openPartyStay(booking, assigned[0].id, waitedMinutes);
       // The whole party rides up together.
       s.elevatorTrips += elevatorTrips({
         arrivals: assigned.length,
@@ -1071,9 +1195,114 @@ export class GameSimulation implements CommandExecutor {
     this.runBar();
     this.runRoomService();
     this.runWellness();
-    this.runLaundry();
     if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
       this.meterDailyUtilities();
+    this.runLaundry();
+    this.runCommercialSpaces();
+  }
+
+  /**
+   * The parts of the house that are not bedrooms. Each space trades on its
+   * own hours, capacity and staffing, and what it earns depends on who
+   * operates it rather than on a flat share of guests.
+   */
+  private runCommercialSpaces(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== SHOP_TRADING_MINUTE) return;
+    const inHouse = s.stays.length;
+    for (const space of s.commercialSpaces.spaces) {
+      // Demand comes from the guests actually in the house, at a take-up
+      // rate the space's own fit decides.
+      const fitBp = space.fitBp ?? (space.fit ?? 0) * 100;
+      const demand = Math.trunc((inHouse * fitBp) / 10_000);
+      const result = spaceThroughput({
+        space,
+        demand,
+        staffOnDuty: this.onDuty("reception"),
+        minuteOfDay: s.calendar.minuteOfDay,
+      });
+      if (result.served > 0)
+        s.commercialSpaces = recordUse(
+          s.commercialSpaces,
+          space.id,
+          result.served,
+        );
+      if (result.turnedAway > 0)
+        this.pushAlert({
+          id: `alert.space.${space.id}`,
+          severity: "info",
+          title: `${space.id} turned guests away`,
+          cause: result.cause,
+        });
+      else this.clearAlerts([`alert.space.${space.id}`]);
+    }
+
+    // Security has to cover everything that is open, not just the bedrooms.
+    const security = securityLoad({
+      inHouseGuests: inHouse,
+      eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
+      openSpaces: s.commercialSpaces.spaces.filter((space) =>
+        isSpaceOpen(space, s.calendar.minuteOfDay),
+      ).length,
+    });
+    if (security.guardsRequired > this.onDuty("security"))
+      this.pushAlert({
+        id: "alert.security.spaces",
+        severity: "warning",
+        title: "Security short",
+        cause: security.cause,
+      });
+    else this.clearAlerts(["alert.security.spaces"]);
+  }
+
+  /** Recomputes the derived lobby description for the snapshot. */
+  private refreshLobby(): void {
+    const s = this.state;
+    const adoption = Object.fromEntries(
+      s.world.technologies.map((t) => [t.id, t.adoptionBp]),
+    );
+    const installed = availableSelfService(adoption).filter((option) =>
+      s.technologyImplementations.includes(option.technologyId),
+    );
+    const load = this.lobbyLoad();
+    s.lobby = {
+      served: load.served,
+      unserved: load.unserved,
+      cause: load.cause,
+      automation: automationFailureModes(installed),
+    };
+  }
+
+  /** What the lobby is being asked for right now, and whether it copes. */
+  lobbyLoad(): ReturnType<typeof lobbyThroughput> {
+    const s = this.state;
+    const adoption = Object.fromEntries(
+      s.world.technologies.map((t) => [t.id, t.adoptionBp]),
+    );
+    const arriving = s.receptionQueue.length;
+    const demand = {
+      ...emptyLobbyDemand(),
+      arrival: arriving,
+      orientation: arriving,
+      waiting: arriving,
+      reception: arriving,
+      checkout: s.stays.filter(
+        (stay) => stay.departureDateKey <= s.calendar.dateKey,
+      ).length,
+      baggage: arriving * 2,
+      concierge: Math.trunc(s.stays.length / 4),
+    };
+    // Only technology the house has actually implemented deflects anything.
+    const installed = availableSelfService(adoption).filter((option) =>
+      s.technologyImplementations.includes(option.technologyId),
+    );
+    return lobbyThroughput({
+      demand: deflectedDemand(demand, installed).demand,
+      receptionists: this.onDuty("reception"),
+      porters: this.onDuty("reception"),
+      partiesPerReceptionist: STARTER_HOTEL.partiesPerReceptionist,
+      bagsPerPorter: STARTER_HOTEL.bagsPerPorter,
+    });
   }
 
   private meterDailyUtilities(): void {
@@ -1099,7 +1328,12 @@ export class GameSimulation implements CommandExecutor {
       ],
       { waterMinor: WATER_UNIT_MINOR, energyMinor: ENERGY_UNIT_MINOR },
     );
-    s.utilities = metered.state;
+    // Billed here rather than at the close: the daily counters are reset at
+    // midnight, so the only moment the day's actual draw exists is this one.
+    const energyUnits = metered.state.energyUsed - s.utilities.energyUsed;
+    const waterUnits = metered.state.waterUsed - s.utilities.waterUsed;
+    s.utilities = { ...metered.state, pendingExpenseMinor: 0 };
+    this.billUtilities(energyUnits, waterUnits);
   }
 
   private runBreakfast(): void {
@@ -1487,25 +1721,110 @@ export class GameSimulation implements CommandExecutor {
       "discount10",
       roomChargeMinor,
     );
-    if (outcome.expenseMinor > 0)
+    // The manager's own authority decides whether the gesture may be made at
+    // all. A refused authorisation posts nothing and leaves the record saying
+    // it went up, which is the point of having a limit.
+    const manager = this.state.company.managers.find(
+      (candidate) => candidate.hotelId === s.hotel.id,
+    );
+    const record = applyRecovery(
+      openComplaint({
+        id: complaintId,
+        bookingId,
+        stage: "checkIn",
+        cause: "waited too long at reception",
+        severity: "serious",
+        raisedAtMinutes: s.elapsedMinutes,
+      }),
+      {
+        id: `offer.${complaintId}`,
+        complaintId,
+        remedy: "goodwill discount",
+        costMinor: outcome.expenseMinor,
+      },
+      manager?.authority ?? { repairLimitMinor: 0, recoveryLimitMinor: 0 },
+      manager?.id ?? "unmanaged",
+    );
+    s.recoveries = [...s.recoveries, record].slice(-HANDLED_COMPLAINT_LIMIT);
+    if (record.status !== "accepted") {
+      this.pushAlert({
+        id: `alert.recovery.${complaintId}`,
+        severity: "warning",
+        title: "Recovery escalated",
+        cause: `the manager may not authorise ${outcome.expenseMinor}`,
+      });
+      return;
+    }
+    if (record.postedCostMinor > 0)
       this.spend(
-        outcome.expenseMinor,
+        record.postedCostMinor,
         "serviceRecovery",
         `goodwill discount for ${bookingId}`,
       );
+    const explained = satisfactionAfterRecovery({
+      before: Math.round(s.guestSatisfaction.score),
+      severity: "serious",
+      recoveryCostMinor: record.postedCostMinor,
+      fullRemedyCostMinor: Math.max(1, roomChargeMinor),
+    });
     this.moveSatisfaction(
-      outcome.satisfaction - s.guestSatisfaction.score,
-      `recovery for ${bookingId}`,
+      explained.after - s.guestSatisfaction.score,
+      `recovery for ${bookingId}: ${explained.causes.join("; ")}`,
     );
     this.emit(
       {
         type: "SERVICE_RECOVERY_APPLIED",
         complaintId,
         bookingId,
-        costMinor: outcome.expenseMinor,
+        costMinor: record.postedCostMinor,
       },
       [complaintId, bookingId],
     );
+  }
+
+  /**
+   * Opens the guest-relations record for an arriving party: who they are,
+   * what they need, and what check-in was actually like for them. The record
+   * is what later explains a review, so it starts the moment they arrive.
+   */
+  private openPartyStay(
+    booking: ReservationRecord,
+    roomId: string,
+    waitedMinutes: number,
+  ): void {
+    const s = this.state;
+    const partyId = `party.${booking.id}`;
+    if (!s.guestRelations.parties.some((party) => party.id === partyId))
+      s.guestRelations = registerParty(
+        s.guestRelations,
+        createParty({
+          id: partyId,
+          segmentId: booking.segmentId,
+          adults: Math.max(1, booking.partySize),
+          children: 0,
+          budgetPerNightMinor: booking.rateMinor,
+          needs: [...booking.specialRequirements].sort(),
+          preferences: [],
+          // A party that paid more is less forgiving of a poor arrival.
+          tolerance: 60,
+          loyalty: 0,
+          bookingId: booking.id,
+        }),
+      );
+
+    let stay = beginStay({ partyId, bookingId: booking.id, roomId });
+    stay = recordStayEvent(stay, {
+      stage: "checkIn",
+      cause:
+        waitedMinutes > 0
+          ? `waited ${waitedMinutes} minutes at reception`
+          : "checked in without waiting",
+      delta: waitedMinutes > 20 ? -8 : waitedMinutes > 0 ? -2 : 2,
+    });
+    s.guestRelations = {
+      ...s.guestRelations,
+      stays: [...s.guestRelations.stays, stay].slice(-HANDLED_COMPLAINT_LIMIT),
+    };
   }
 
   /** Moves goodwill and records why, so the number is always explainable. */
@@ -1519,18 +1838,137 @@ export class GameSimulation implements CommandExecutor {
     };
   }
 
+  /**
+   * The day's utilities, billed through the three separate contracts. The
+   * meters move by what was actually drawn, so a bill can always be traced
+   * back to a reading rather than to an accumulated expense figure.
+   */
+  private billUtilities(energyUnits: number, waterUnits: number): void {
+    const s = this.state;
+    // Guests and covers make rubbish; the kitchen makes most of it.
+    const wasteKilos =
+      s.stays.length + Math.ceil(this.eventBreakfastCovers() / 4);
+
+    if (energyUnits > 0 || waterUnits > 0) {
+      this.spend(
+        utilityBillMinor(s.utilityContracts.energy, energyUnits),
+        "utilities",
+        `metered energy: ${energyUnits} units`,
+      );
+      this.spend(
+        utilityBillMinor(s.utilityContracts.water, waterUnits),
+        "utilities",
+        `metered water: ${waterUnits} units`,
+      );
+    }
+    if (wasteKilos > 0)
+      this.spend(
+        wasteDisposalMinor({ kilos: wasteKilos, sortedBasisPoints: 2500 }),
+        "utilities",
+        `waste: ${wasteKilos} kilos`,
+      );
+
+    s.meters = readMeters(s.meters, {
+      energy: energyUnits,
+      water: waterUnits,
+      waste: wasteKilos,
+    });
+  }
+
+  /**
+   * Everybody's day. Absence is not a coin flip against a staff row: it is
+   * the consequence of the hours the player rostered, drawn from the staffing
+   * stream, and it puts a named reason on the person who is missing.
+   */
+  private runEmploymentDay(): void {
+    const s = this.state;
+    // A busy house works its people beyond their contract, and that is what
+    // eventually makes them ill and then makes them leave.
+    const strain = s.stays.length > s.hotel.rooms.length / 2 ? 1 : 0;
+    for (const employee of [...s.workforce.employees].sort((a, b) =>
+      compareIds(a.id, b.id),
+    )) {
+      if (employee.status === "resigned" || employee.status === "dismissed")
+        continue;
+      if (strain > 0 && employee.status === "working")
+        s.workforce = workOvertime(s.workforce, employee.id, strain);
+
+      const current = s.workforce.employees.find((e) => e.id === employee.id)!;
+      if (current.status === "sick" || current.status === "onLeave") {
+        s.workforce = returnToWork(s.workforce, current.id);
+        continue;
+      }
+      if (fallsSick(current, this.streams.staffing)) {
+        s.workforce = markSick(
+          s.workforce,
+          current.id,
+          `off after ${current.overtimeHours} hours of overtime`,
+        );
+        continue;
+      }
+      if (willResign(current, this.streams.staffing)) {
+        s.workforce = resign(
+          s.workforce,
+          current.id,
+          `morale at ${current.morale}`,
+        );
+        // Somebody who has left is off the rota for good.
+        s.staff = s.staff.filter((member) => member.id !== current.staffId);
+      }
+    }
+    // The rota is the employment record's shadow, never its own truth.
+    for (const member of s.staff) {
+      const employee = s.workforce.employees.find(
+        (e) => e.staffId === member.id,
+      );
+      member.absent = employee ? employee.status !== "working" : member.absent;
+    }
+  }
+
+  /**
+   * The commercial consequences of a night actually sold: the guest is
+   * remembered if they agreed to be, the scheme owes them points, and the
+   * house's own reputation moves for a reason that can be read back.
+   */
+  private recordCommercialStay(stay: StayRecord): void {
+    const s = this.state;
+    const booking = s.reservations.find(
+      (reservation) => reservation.id === stay.bookingId,
+    );
+    const guestId = booking?.guestId ?? `guest.${stay.bookingId}`;
+    s.commercial = {
+      ...s.commercial,
+      crm: recordCrmStay(s.commercial.crm, {
+        guestId,
+        stayId: stay.bookingId,
+      }),
+      loyalty: earnPoints(s.commercial.loyalty, {
+        guestId,
+        roomRevenueMinor: stay.rateMinor,
+        nights: 1,
+      }),
+    };
+  }
+
+  /** Reputation moves only for things that actually happened to somebody. */
+  private moveReputation(
+    dimension: Parameters<typeof applyReputationEvent>[1]["dimension"],
+    scopeId: string,
+    delta: number,
+    cause: string,
+  ): void {
+    this.state.reputation = applyReputationEvent(this.state.reputation, {
+      dimension,
+      scopeId,
+      delta,
+      cause,
+      atMinutes: this.state.elapsedMinutes,
+    });
+  }
+
   private runFinance(): void {
     if (!this.dayRolled) return;
     const s = this.state;
-
-    if (s.utilities.pendingExpenseMinor > 0) {
-      this.spend(
-        s.utilities.pendingExpenseMinor,
-        "utilities",
-        "metered water and energy",
-      );
-      s.utilities.pendingExpenseMinor = 0;
-    }
 
     for (const stay of s.stays) {
       const booking = s.reservations.find(
@@ -1541,6 +1979,7 @@ export class GameSimulation implements CommandExecutor {
         booking?.commissionBp ?? 0,
       );
       this.earn(recognized, "roomRevenue", stay.roomId);
+      this.recordCommercialStay(stay);
       s.finance.month.roomRevenueMinor += recognized;
       s.finance.month.soldRoomNights += 1;
       // The city closes on the same occupied nights as the hotel ledger. An
@@ -1632,6 +2071,7 @@ export class GameSimulation implements CommandExecutor {
           { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
             id: bookingId,
+            guestId: `guest.${segment.id}.${(Math.floor(s.elapsedMinutes / 1440) + i) % 32}`,
             roomsRequested: 1,
             rateMinor,
             // A profile the hotel actually built for lifts what its segment
@@ -1753,6 +2193,10 @@ export class GameSimulation implements CommandExecutor {
   private refreshMetrics(): void {
     this.refreshFacilities();
     this.refreshClassification();
+    // Group cash is one number wherever it moved this quantum; the treasury
+    // only records where inside the group it sits.
+    syncTreasury(this.state);
+    this.refreshLobby();
     const m = this.state.finance.month;
     this.state.metrics = {
       adrMinor: adrMinor(m.roomRevenueMinor, m.soldRoomNights),
@@ -2331,16 +2775,45 @@ export class GameSimulation implements CommandExecutor {
   private closeMonth(): void {
     const s = this.state;
     const m = s.finance.month;
-    s.lastMonthlyClose = closeMonth({
-      periodKey: addDays(s.calendar.dateKey, -1).slice(0, 7),
-      openingCashMinor: m.openingCashMinor,
-      closingCashMinor: s.finance.cashMinor,
-      roomRevenueMinor: m.roomRevenueMinor,
-      otherRevenueMinor: m.otherRevenueMinor,
-      operatingExpenseMinor: m.operatingExpenseMinor,
-      soldRoomNights: m.soldRoomNights,
-      availableRoomNights: m.availableRoomNights,
+    const periodKey = addDays(s.calendar.dateKey, -1).slice(0, 7);
+    const report = () =>
+      closeMonth({
+        periodKey,
+        openingCashMinor: m.openingCashMinor,
+        closingCashMinor: s.finance.cashMinor,
+        roomRevenueMinor: m.roomRevenueMinor,
+        otherRevenueMinor: m.otherRevenueMinor,
+        operatingExpenseMinor: m.operatingExpenseMinor,
+        soldRoomNights: m.soldRoomNights,
+        availableRoomNights: m.availableRoomNights,
+      });
+    this.runCommercialSpaceMonth();
+    this.runEmploymentMonth();
+    this.runCommercialMonth();
+    this.chargeInsuranceAndDepreciation(periodKey);
+    // Corporate publishing needs a close to read, but corporate postings are
+    // themselves part of this period. Publish provisionally, then replace it
+    // with the report that includes every close-time posting.
+    s.lastMonthlyClose = report();
+    // The company's month runs on the closed period, after the flagship has
+    // published what it earned and before the new month starts accumulating.
+    runCompanyMonth(s, `${periodKey}-01`, {
+      emit: (payload, entities) => this.emit(payload, entities),
+      earn: (amountMinor, account, memo) =>
+        this.earn(amountMinor, account, memo),
+      spend: (amountMinor, account, memo) =>
+        this.spend(amountMinor, account, memo),
     });
+    s.lastMonthlyClose = report();
+    const flagship = s.company.hotelResults[s.hotel.id];
+    if (flagship)
+      s.company.hotelResults[s.hotel.id] = {
+        ...flagship,
+        roomRevenueMinor: s.lastMonthlyClose.roomRevenueMinor,
+        otherRevenueMinor: s.lastMonthlyClose.otherRevenueMinor,
+        operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
+        grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
+      };
     this.emit(
       {
         type: "MONTH_CLOSED",
@@ -2359,6 +2832,112 @@ export class GameSimulation implements CommandExecutor {
       // The first day of the new month is added right after this close.
       availableRoomNights: 0,
     };
+    syncTreasury(s);
+  }
+
+  /**
+   * The two monthly postings that are not a purchase: the premium the hotel
+   * pays whether or not anything goes wrong, and the depreciation that is a
+   * real expense moving no cash at all. Both are guarded by the period they
+   * were last posted for, so a reload cannot repeat them.
+   */
+  private chargeInsuranceAndDepreciation(periodKey: string): void {
+    const s = this.state;
+    if (s.statements.lastDepreciationPeriodKey === periodKey) return;
+
+    const premium = totalMonthlyPremiumMinor(s.insurance);
+    if (premium > 0)
+      this.spend(premium, "insurancePremium", "insurance premiums");
+
+    for (const asset of [...s.assets].sort((a, b) => compareIds(a.id, b.id))) {
+      const amountMinor = depreciationMinor({
+        costMinor: asset.replacementMinor,
+        usefulLifeMonths: ASSET_USEFUL_LIFE_MONTHS,
+        accumulatedMinor: s.statements.depreciationByAsset[asset.id] ?? 0,
+      });
+      if (amountMinor <= 0) continue;
+      s.statements = postDepreciation(s.statements, {
+        assetId: asset.id,
+        amountMinor,
+        periodKey,
+      });
+    }
+    // The period stamp moves even when nothing was left to depreciate, so the
+    // guard above still holds for a fully written-down hotel.
+    s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
+  }
+
+  /**
+   * What the commercial spaces paid the hotel this month. Each operator model
+   * settles differently, so the ledger keeps them apart rather than reporting
+   * one "other income" line.
+   */
+  private runCommercialSpaceMonth(): void {
+    const s = this.state;
+    for (const space of s.commercialSpaces.spaces) {
+      const contribution = monthlyContributionMinor(
+        space,
+        s.commercialSpaces.unitsSold[space.id] ?? 0,
+      );
+      if (contribution.hotelShareMinor > 0)
+        this.earn(
+          contribution.hotelShareMinor,
+          "commercialSpaces",
+          contribution.memo,
+        );
+      else if (contribution.hotelShareMinor < 0)
+        this.spend(
+          -contribution.hotelShareMinor,
+          "commercialSpaces",
+          contribution.memo,
+        );
+    }
+    s.commercialSpaces = startSpaceMonth(s.commercialSpaces);
+  }
+
+  /**
+   * The employment month: what the workforce did to the group's standing as
+   * an employer, and then a clean sheet of hours for the month ahead.
+   */
+  private runEmploymentMonth(): void {
+    const s = this.state;
+    for (const event of s.workforce.employerEvents)
+      this.moveReputation("employer", s.hotel.id, event.delta, event.cause);
+    s.workforce = startEmploymentMonth(s.workforce);
+  }
+
+  /**
+   * The commercial month: points nobody will ever claim are released as
+   * income, campaigns age toward the end of their attribution window, and
+   * every reputation dimension drifts a little back toward neutral.
+   */
+  private runCommercialMonth(): void {
+    const s = this.state;
+    const released = releaseBreakageMinor(s.commercial.loyalty);
+    if (released.releasedMinor > 0)
+      this.earn(
+        released.releasedMinor,
+        "loyaltyBreakage",
+        "loyalty points released",
+      );
+    s.commercial = { ...s.commercial, loyalty: released.state };
+
+    // The house's standing with guests follows what guests actually got.
+    const satisfaction = Math.round(s.guestSatisfaction.score);
+    this.moveReputation(
+      "hotel",
+      s.hotel.id,
+      satisfaction >= 70 ? 2 : satisfaction <= 45 ? -3 : 0,
+      `guest satisfaction ${satisfaction} at the close`,
+    );
+    // Reputation with staff follows whether the house is actually staffed.
+    this.moveReputation(
+      "employer",
+      s.hotel.id,
+      s.staff.some((member) => member.absent) ? -1 : 1,
+      "monthly rota",
+    );
+    s.reputation = decayReputation(s.reputation);
   }
 
   private nextStaffId(role: string): string {
@@ -2430,6 +3009,8 @@ export class GameSimulation implements CommandExecutor {
     // expense is recognised in full even when cash cannot cover it.
     if (account !== "capex")
       s.finance.month.operatingExpenseMinor += amountMinor;
+    // Capital spend buys something: the balance sheet has to know it exists.
+    else s.statements = capitaliseAsset(s.statements, amountMinor);
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

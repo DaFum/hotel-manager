@@ -99,6 +99,73 @@ export type DomainEventPayload =
       type: "TECHNOLOGY_ADOPTION_COMPLETED";
       projectId: string;
       technologyId: string;
+    }
+  // --- the company above the hotels --------------------------------------
+  | { type: "HOTEL_ADDED_TO_PORTFOLIO"; hotelId: string; legalEntityId: string }
+  | { type: "HOTEL_REBRANDED"; hotelId: string; brandId: string | null }
+  | {
+      type: "BRAND_AUDIT_COMPLETED";
+      hotelId: string;
+      brandId: string;
+      compliant: boolean;
+      failures: readonly string[];
+    }
+  | { type: "OPERATING_MODEL_CHANGED"; hotelId: string; model: string }
+  | {
+      type: "HOTEL_BUDGET_SET";
+      hotelId: string;
+      periodKey: string;
+      capexBudgetMinor: number;
+    }
+  | { type: "MANAGER_AUTHORITY_CHANGED"; hotelId: string; managerId: string }
+  | {
+      type: "DECISION_ESCALATED";
+      escalationId: string;
+      hotelId: string;
+      reason: string;
+    }
+  | {
+      type: "ESCALATION_RESOLVED";
+      escalationId: string;
+      hotelId: string;
+      approved: boolean;
+    }
+  | {
+      type: "INTERNAL_FUNDING_TRANSFERRED";
+      hotelId: string;
+      amountMinor: number;
+      direction: string;
+    }
+  | {
+      type: "DEVELOPMENT_STARTED";
+      developmentId: string;
+      rooms: number;
+      investmentMinor: number;
+    }
+  | { type: "PRE_OPENING_TASK_COMPLETED"; developmentId: string; item: string }
+  | {
+      type: "HOTEL_OPENED";
+      developmentId: string;
+      hotelId: string;
+      rooms: number;
+    }
+  | {
+      type: "DUE_DILIGENCE_COMPLETED";
+      targetId: string;
+      areas: readonly string[];
+      costMinor: number;
+    }
+  | {
+      type: "HOTEL_ACQUIRED";
+      targetId: string;
+      hotelId: string;
+      priceMinor: number;
+    }
+  | {
+      type: "HOTEL_RESULT_PUBLISHED";
+      hotelId: string;
+      periodKey: string;
+      grossOperatingProfitMinor: number;
     };
 
 export type DomainEventType = DomainEventPayload["type"];
@@ -143,6 +210,21 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   FACILITY_EXPANDED: true,
   TECHNOLOGY_ADOPTION_STARTED: true,
   TECHNOLOGY_ADOPTION_COMPLETED: true,
+  HOTEL_ADDED_TO_PORTFOLIO: true,
+  HOTEL_REBRANDED: true,
+  BRAND_AUDIT_COMPLETED: true,
+  OPERATING_MODEL_CHANGED: true,
+  HOTEL_BUDGET_SET: true,
+  MANAGER_AUTHORITY_CHANGED: true,
+  DECISION_ESCALATED: true,
+  ESCALATION_RESOLVED: true,
+  INTERNAL_FUNDING_TRANSFERRED: true,
+  DEVELOPMENT_STARTED: true,
+  PRE_OPENING_TASK_COMPLETED: true,
+  HOTEL_OPENED: true,
+  DUE_DILIGENCE_COMPLETED: true,
+  HOTEL_ACQUIRED: true,
+  HOTEL_RESULT_PUBLISHED: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -176,6 +258,21 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "FACILITY_EXPANDED",
   "TECHNOLOGY_ADOPTION_STARTED",
   "TECHNOLOGY_ADOPTION_COMPLETED",
+  "HOTEL_ADDED_TO_PORTFOLIO",
+  "HOTEL_REBRANDED",
+  "BRAND_AUDIT_COMPLETED",
+  "OPERATING_MODEL_CHANGED",
+  "HOTEL_BUDGET_SET",
+  "MANAGER_AUTHORITY_CHANGED",
+  "DECISION_ESCALATED",
+  "ESCALATION_RESOLVED",
+  "INTERNAL_FUNDING_TRANSFERRED",
+  "DEVELOPMENT_STARTED",
+  "PRE_OPENING_TASK_COMPLETED",
+  "HOTEL_OPENED",
+  "DUE_DILIGENCE_COMPLETED",
+  "HOTEL_ACQUIRED",
+  "HOTEL_RESULT_PUBLISHED",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

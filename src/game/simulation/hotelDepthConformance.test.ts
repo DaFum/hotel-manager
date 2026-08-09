@@ -55,6 +55,69 @@ describe("Plan 02 operating-depth conformance", () => {
     });
   });
 
+  it("never substitutes more covers than it serves", () => {
+    const base = {
+      boardCovers: 0,
+      aLaCarteCovers: 1,
+      prepared: 10,
+      stock: 10,
+      allergyCovers: 5,
+      substitutionStock: 5,
+      ingredientMinor: 1,
+      wasteBp: 0,
+    };
+    expect(runKitchenService(base).substituted).toBe(1);
+    expect(runKitchenService({ ...base, aLaCarteCovers: 0 }).substituted).toBe(
+      0,
+    );
+  });
+
+  it("rejects unsafe service and utility inputs", () => {
+    expect(() =>
+      seatService({
+        seats: 1,
+        reservedSeats: 0,
+        walkIns: 0,
+        serviceMinutes: 1,
+        averageStayMinutes: 1,
+        kitchenCovers: 1,
+        demand: Number.NaN,
+        isOpen: true,
+      }),
+    ).toThrow();
+    expect(() =>
+      roomServiceCapacity({
+        demand: -1,
+        kitchen: 1,
+        staffed: 1,
+        transport: 1,
+        elevator: 1,
+      }),
+    ).toThrow();
+    expect(() =>
+      meterUtilities(
+        createUtilityState(),
+        [{ id: "bad", waterUnits: 0.5, energyUnits: 1 }],
+        { waterMinor: 1, energyMinor: 1 },
+      ),
+    ).toThrow();
+    expect(() =>
+      reserveTreatment({
+        schedule: {
+          treatmentRooms: 1,
+          therapists: 1,
+          openMinutes: 60,
+          booked: 0,
+        },
+        guestId: "g",
+        linen: 1,
+        water: Number.MAX_SAFE_INTEGER + 1,
+        energy: 2,
+        maintained: true,
+      }),
+    ).toThrow();
+  });
+
   it("names the tightest room-service dependency as its cause", () => {
     expect(
       roomServiceCapacity({
@@ -128,6 +191,7 @@ describe("Plan 02 operating-depth conformance", () => {
     expect(advanceContract(confirmed, "cancel")).toMatchObject({
       status: "cancelled",
       releasedRoomNights: 20,
+      depositOutcome: { retainedMinor: 100000, refundedMinor: 0 },
     });
   });
 
@@ -176,7 +240,7 @@ describe("Plan 02 operating-depth conformance", () => {
         repairMinor: 800,
       },
     ]);
-    expect(ordered.map((x) => x.id)).toEqual(["failed", "replace", "due"]);
+    expect(ordered.map((x) => x.id)).toEqual(["failed", "due", "replace"]);
   });
 
   it("draws authoritative utility consumption from every serviced area", () => {

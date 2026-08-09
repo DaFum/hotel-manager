@@ -5,13 +5,8 @@ export interface Alert {
   cause: string;
 }
 
-const ALERT_CAUSES: Readonly<Record<string, string>> = {
-  "alert.recovery.noFrontDesk": "Nobody is on the desk to authorise it.",
-  "alert.recovery.insufficientCash": "The hotel cannot cover the discount.",
-};
-
 function causeText(cause: string): string {
-  return ALERT_CAUSES[cause] ?? cause;
+  return translateAlertCause(cause);
 }
 
 export function AlertsPanel(props: {
@@ -45,3 +40,4 @@ export function AlertsPanel(props: {
     </section>
   );
 }
+import { translateAlertCause } from "./localization";

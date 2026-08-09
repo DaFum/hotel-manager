@@ -28,9 +28,14 @@ describe("Plans 01-03 replay", () => {
 
   it("reproduces the recorded hash through the real command boundary", () => {
     const result = replayCorpus(corpus);
-    expect(result.state.commandLog.map((x) => x.commandId)).toEqual(
+    const recordedIds = new Set(
       corpus.commands.map((x) => x.envelope.commandId),
     );
+    expect(
+      result.state.commandLog
+        .map((x) => x.commandId)
+        .filter((id) => recordedIds.has(id)),
+    ).toEqual(corpus.commands.map((x) => x.envelope.commandId));
     expect(() => assertReplay(corpus, result)).not.toThrow();
   });
 
@@ -55,6 +60,11 @@ describe("Plans 01-03 replay", () => {
     expect(stateHash({ ...state, facilities: [{ id: "presentation" }] })).toBe(
       stateHash({ ...state, facilities: [] }),
     );
+  });
+
+  it("distinguishes a missing property from a present undefined value", () => {
+    expect(stateHash({})).not.toBe(stateHash({ value: undefined }));
+    expect(stateHash([])).not.toBe(stateHash([undefined]));
   });
 
   it("reports seed, command id, rng draw index and a minimal diff", () => {

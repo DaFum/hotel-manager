@@ -50,6 +50,28 @@ it("never washes more than the dirty pile holds", () => {
   expect(day.dirty).toBe(0);
 });
 
+it("validates floor stock and keeps it separate from the central clean pool", () => {
+  expect(() =>
+    runLaundryDay({
+      clean: 0,
+      dirty: 1,
+      machine: 1,
+      staffed: 1,
+      externalPieces: 0,
+      floorStock: Number.NaN,
+    }),
+  ).toThrow();
+  const day = runLaundryDay({
+    clean: 2,
+    dirty: 3,
+    machine: 1,
+    staffed: 1,
+    externalPieces: 1,
+    floorStock: 4,
+  });
+  expect(day).toMatchObject({ clean: 4, dirty: 1, floorStock: 4 });
+});
+
 it("holds linen for arriving rooms so housekeeping cannot double-book it", () => {
   const stock = { [LINEN_SKU]: 12 };
   expect(reserveLinen(stock, 6).available).toBe(6);

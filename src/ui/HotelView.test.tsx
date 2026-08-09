@@ -56,4 +56,26 @@ describe("hotel view", () => {
     expect(onRoom).toHaveBeenCalledWith("room.101");
     expect(onFacility).toHaveBeenCalledWith("facility.breakfast");
   });
+
+  it("shows facility selection even when no callback is supplied", () => {
+    render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        facilities={[
+          {
+            id: "facility.breakfast",
+            name: "Breakfast room",
+            demand: 30,
+            capacity: 20,
+            cause: "staff",
+          },
+        ]}
+      />,
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: /Breakfast room, 30 demand/i }),
+    );
+    expect(screen.getByText(/Breakfast room: 30 demand/i)).toBeTruthy();
+  });
 });

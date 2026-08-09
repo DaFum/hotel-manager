@@ -83,7 +83,9 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (!Array.isArray(state.stays)) problems.push("the state has no stays");
   else
     for (const stay of state.stays)
-      if (!roomIds.has(stay.roomId))
+      if (!stay || typeof stay !== "object")
+        problems.push("the state has a malformed stay");
+      else if (!roomIds.has(stay.roomId))
         problems.push(
           `stay ${stay.bookingId} refers to missing room ${stay.roomId}`,
         );

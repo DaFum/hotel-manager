@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test";
 test("shows every facility with the constraint that is binding it", async ({
   page,
 }) => {
-  await page.goto("/?seed=424242");
+  await page.goto("/?seed=424242&renderer=off");
   const facilities = page.getByRole("region", { name: "Facilities" });
   await expect(facilities).toBeVisible();
 
@@ -21,9 +21,15 @@ test("shows every facility with the constraint that is binding it", async ({
   ).toContainText(/therapists on duty/);
 
   // The same stable facility target is available without the canvas.
-  await expect(
-    page.getByRole("button", { name: /Breakfast room, .* limited by/i }),
-  ).toBeVisible();
+  const fallback = page.getByRole("button", {
+    name: /Breakfast room, .* limited by/i,
+  });
+  await expect(fallback).toBeVisible();
+  await fallback.click();
+  await expect(page.getByText(/Breakfast room: .* limited by/i)).toBeVisible();
+  await expect(page.getByTestId("hotel-canvas").locator("canvas")).toHaveCount(
+    0,
+  );
 });
 
 test("rosters a specialist role and declares a specialization", async ({

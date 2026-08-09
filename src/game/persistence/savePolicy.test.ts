@@ -139,4 +139,17 @@ describe("save policy", () => {
       ]),
     );
   });
+
+  it("reports null stay entries without throwing", () => {
+    const malformed = structuredClone(current) as unknown as {
+      state: { stays: unknown[] };
+    };
+    malformed.state.stays = [null];
+    expect(() =>
+      validateEnvelope(malformed as unknown as SaveEnvelope),
+    ).not.toThrow();
+    expect(validateEnvelope(malformed as unknown as SaveEnvelope)).toContain(
+      "the state has a malformed stay",
+    );
+  });
 });

@@ -12,6 +12,7 @@ export interface UtilityState {
   waterUsed: number;
   energyUsed: number;
   expenseMinor: number;
+  pendingExpenseMinor: number;
 }
 
 export function createUtilityState(): UtilityState {
@@ -21,6 +22,7 @@ export function createUtilityState(): UtilityState {
     waterUsed: 0,
     energyUsed: 0,
     expenseMinor: 0,
+    pendingExpenseMinor: 0,
   };
 }
 
@@ -30,6 +32,9 @@ export function meterUtilities(
   demands: readonly UtilityDemand[],
   prices: { waterMinor: number; energyMinor: number },
 ): { state: UtilityState; causes: Record<string, string> } {
+  for (const [label, value] of Object.entries(state))
+    if (label === "expenseMinor") assertNonNegativeMinor(value, label);
+    else assertCount(value, label);
   assertNonNegativeMinor(prices.waterMinor, "water price");
   assertNonNegativeMinor(prices.energyMinor, "energy price");
   let waterLeft = Math.max(0, state.waterCapacity - state.waterUsed);
@@ -46,6 +51,8 @@ export function meterUtilities(
     const acceptedEnergy = Math.min(energyLeft, demand.energyUnits);
     water += acceptedWater;
     energy += acceptedEnergy;
+    if (!Number.isSafeInteger(water) || !Number.isSafeInteger(energy))
+      throw new Error("unsafe utility usage");
     waterLeft -= acceptedWater;
     energyLeft -= acceptedEnergy;
     causes[demand.id] =
@@ -55,15 +62,30 @@ export function meterUtilities(
           ? "energy capacity"
           : "demand";
   }
+  const waterUsed = state.waterUsed + water;
+  const energyUsed = state.energyUsed + energy;
+  const expenseMinor =
+    state.expenseMinor +
+    water * prices.waterMinor +
+    energy * prices.energyMinor;
+  const pendingExpenseMinor =
+    state.pendingExpenseMinor +
+    water * prices.waterMinor +
+    energy * prices.energyMinor;
+  if (
+    !Number.isSafeInteger(waterUsed) ||
+    !Number.isSafeInteger(energyUsed) ||
+    !Number.isSafeInteger(expenseMinor) ||
+    !Number.isSafeInteger(pendingExpenseMinor)
+  )
+    throw new Error("unsafe utility total");
   return {
     state: {
       ...state,
-      waterUsed: state.waterUsed + water,
-      energyUsed: state.energyUsed + energy,
-      expenseMinor:
-        state.expenseMinor +
-        water * prices.waterMinor +
-        energy * prices.energyMinor,
+      waterUsed,
+      energyUsed,
+      expenseMinor,
+      pendingExpenseMinor,
     },
     causes,
   };

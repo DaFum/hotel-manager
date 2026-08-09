@@ -75,7 +75,10 @@ export interface ConferenceContract extends EventContract {
 export function advanceContract(
   contract: ConferenceContract,
   action: "negotiate" | "confirm" | "cancel" | "complete",
-): ConferenceContract & { releasedRoomNights: number } {
+): ConferenceContract & {
+  releasedRoomNights: number;
+  depositOutcome: { retainedMinor: number; refundedMinor: number };
+} {
   const allowed: Record<typeof action, readonly ContractStatus[]> = {
     negotiate: ["offered"],
     confirm: ["negotiating"],
@@ -92,9 +95,15 @@ export function advanceContract(
         : action === "cancel"
           ? "cancelled"
           : "complete";
+  const cancelled = action === "cancel";
+  const retainDeposit = cancelled && contract.status === "confirmed";
   return {
     ...contract,
     status,
-    releasedRoomNights: action === "cancel" ? roomBlockNights(contract) : 0,
+    releasedRoomNights: cancelled ? roomBlockNights(contract) : 0,
+    depositOutcome: {
+      retainedMinor: retainDeposit ? contract.depositMinor : 0,
+      refundedMinor: cancelled && !retainDeposit ? contract.depositMinor : 0,
+    },
   };
 }

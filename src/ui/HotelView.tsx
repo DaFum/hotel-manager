@@ -32,9 +32,11 @@ export function HotelView(props: {
   facilities?: readonly HotelViewFacility[];
   onSelect?: (roomId: string) => void;
   onSelectFacility?: (facilityId: string) => void;
+  disableRenderer?: boolean;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
 
   const scene = useRef<PixiScene | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
@@ -42,6 +44,7 @@ export function HotelView(props: {
   // Attach once. The worker republishes a snapshot ten times a second, so
   // rebuilding the WebGL context per update would thrash the renderer.
   useEffect(() => {
+    if (props.disableRenderer) return;
     let cancelled = false;
     // The canvas is decorative: the room list below is the accessible source
     // of truth, so a headless or WebGL-less environment degrades cleanly.
@@ -63,13 +66,16 @@ export function HotelView(props: {
       scene.current = null;
       setSceneReady(false);
     };
-  }, []);
+  }, [props.disableRenderer]);
 
   useEffect(() => {
     if (sceneReady) scene.current?.render(props.rooms, props.facilities ?? []);
   }, [props.rooms, props.facilities, sceneReady]);
 
   const detail = props.rooms.find((r) => r.id === selected);
+  const facilityDetail = (props.facilities ?? []).find(
+    (facility) => facility.id === selectedFacility,
+  );
 
   return (
     <section aria-label="Hotel view">
@@ -97,13 +103,22 @@ export function HotelView(props: {
             <button
               type="button"
               aria-label={`${facility.name}, ${facility.demand} demand, ${facility.capacity} capacity, limited by ${facility.cause}`}
-              onClick={() => props.onSelectFacility?.(facility.id)}
+              onClick={() => {
+                setSelectedFacility(facility.id);
+                props.onSelectFacility?.(facility.id);
+              }}
             >
               Focus {facility.name}
             </button>
           </li>
         ))}
       </ul>
+      {facilityDetail ? (
+        <p aria-live="polite">
+          {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
+          {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
+        </p>
+      ) : null}
       {detail ? (
         <p aria-live="polite">
           {detail.id}: {humanRoomState(detail.state)}, cleanliness{" "}

@@ -17,8 +17,9 @@ async function bootWorker() {
     posted.push(message as WorkerResponse);
   });
   await import("./simulation.worker");
+  const handler = self.onmessage as (e: MessageEvent) => void;
   const send = (message: unknown) =>
-    (self.onmessage as (e: MessageEvent) => void)({
+    handler({
       data: message,
     } as MessageEvent);
   activeWorkers.push(send);

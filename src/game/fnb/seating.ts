@@ -47,6 +47,7 @@ export function turnedAwayCovers(demand: number, capacity: number): number {
 export function seatService(
   x: SeatingInput & { demand: number; isOpen: boolean },
 ) {
+  assertCount(x.demand, "demand covers");
   const capacity = x.isOpen ? seatedCovers(x) : 0;
   const seated = Math.min(x.demand, capacity);
   return { seated, waitlisted: Math.max(0, x.demand - seated), capacity };

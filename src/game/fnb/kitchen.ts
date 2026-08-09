@@ -28,11 +28,17 @@ export function runKitchenService(x: KitchenPlan): KitchenResult {
   }
   if (x.wasteBp > 10000) throw new Error("invalid waste basis points");
   const demand = x.boardCovers + x.aLaCarteCovers;
+  if (!Number.isSafeInteger(demand)) throw new Error("unsafe kitchen demand");
   const prepared = Math.min(x.prepared, x.stock);
-  const substituted = Math.min(x.allergyCovers, x.substitutionStock, prepared);
   const served = Math.min(demand, prepared);
+  const substituted = Math.min(x.allergyCovers, x.substitutionStock, served);
   const unused = Math.max(0, prepared - served);
   const wasted = Math.min(unused, Math.round((prepared * x.wasteBp) / 10000));
+  const consumed = served + wasted;
+  if (!Number.isSafeInteger(consumed)) throw new Error("unsafe kitchen usage");
+  const ingredientExpenseMinor = consumed * x.ingredientMinor;
+  if (!Number.isSafeInteger(ingredientExpenseMinor))
+    throw new Error("unsafe kitchen expense");
   const cause =
     served >= demand
       ? "demand"
@@ -44,7 +50,7 @@ export function runKitchenService(x: KitchenPlan): KitchenResult {
     substituted,
     wasted,
     stockLeft: x.stock - served - wasted,
-    ingredientExpenseMinor: (served + wasted) * x.ingredientMinor,
+    ingredientExpenseMinor,
     cause,
   };
 }

@@ -22,7 +22,11 @@ export interface ReplayCorpus {
   initialRngState: GameState["rngState"];
   commands: ReplayCommand[];
   orderedEvents: DomainEvent[];
-  monthlyCheckpoints: { dateKey: string; stateHash: string }[];
+  monthlyCheckpoints: {
+    dateKey: string;
+    atMinutes: number;
+    stateHash: string;
+  }[];
   finalStateHash: string;
 }
 
@@ -30,6 +34,7 @@ export interface ReplayResult {
   state: GameState;
   events: DomainEvent[];
   hash: string;
+  monthlyCheckpoints: ReplayCorpus["monthlyCheckpoints"];
 }
 
 export class ReplayMismatchError extends Error {}
@@ -62,12 +67,14 @@ export function replayCorpus(
   corpus: ReplayCorpus,
   options: { initialState?: GameState; splitAt?: number } = {},
 ): ReplayResult {
-  let simulation = new GameSimulation(
-    structuredClone(
-      options.initialState ?? createInitialGameState(corpus.seed),
-    ),
-  );
+  const initialState = options.initialState
+    ? structuredClone(options.initialState)
+    : createInitialGameState(corpus.seed);
+  if (!options.initialState)
+    initialState.rngState = structuredClone(corpus.initialRngState);
+  let simulation = new GameSimulation(initialState);
   const events: DomainEvent[] = [];
+  const monthlyCheckpoints: ReplayCorpus["monthlyCheckpoints"] = [];
   for (let index = 0; index < corpus.commands.length; index++) {
     const recorded = corpus.commands[index];
     while (simulation.state.elapsedMinutes < recorded.envelope.issuedAtMinutes)
@@ -85,12 +92,41 @@ export function replayCorpus(
       );
     if (options.splitAt === index + 1)
       simulation = new GameSimulation(structuredClone(simulation.snapshot()));
+    const nextIssuedAt = corpus.commands[index + 1]?.envelope.issuedAtMinutes;
+    if (nextIssuedAt !== recorded.envelope.issuedAtMinutes) {
+      const expected = corpus.monthlyCheckpoints.find(
+        (checkpoint) =>
+          checkpoint.atMinutes === simulation.state.elapsedMinutes,
+      );
+      if (expected)
+        monthlyCheckpoints.push({
+          dateKey: simulation.state.calendar.dateKey,
+          atMinutes: simulation.state.elapsedMinutes,
+          stateHash: stateHash(simulation.snapshot()),
+        });
+    }
   }
   const hash = stateHash(simulation.snapshot());
-  return { state: simulation.snapshot(), events, hash };
+  return {
+    state: simulation.snapshot(),
+    events,
+    hash,
+    monthlyCheckpoints,
+  };
 }
 
 export function assertReplay(corpus: ReplayCorpus, result: ReplayResult): void {
+  if (JSON.stringify(result.events) !== JSON.stringify(corpus.orderedEvents))
+    throw new ReplayMismatchError(
+      `version ${corpus.saveVersion}; seed ${corpus.seed}; ordered event sequence differs`,
+    );
+  if (
+    JSON.stringify(result.monthlyCheckpoints) !==
+    JSON.stringify(corpus.monthlyCheckpoints)
+  )
+    throw new ReplayMismatchError(
+      `version ${corpus.saveVersion}; seed ${corpus.seed}; monthly checkpoint sequence differs`,
+    );
   if (result.hash !== corpus.finalStateHash)
     throw new ReplayMismatchError(
       `version ${corpus.saveVersion}; seed ${corpus.seed}; game time ${result.state.elapsedMinutes}; command ${corpus.commands.at(-1)?.envelope.commandId ?? "none"}; event window ${result.events

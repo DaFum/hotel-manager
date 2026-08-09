@@ -35,7 +35,7 @@ export interface GameStore {
   setSpeed: (speed: Speed) => void;
   send: (command: GameCommand) => void;
   save: (slot?: string) => void;
-  load: (slot?: string) => void;
+  load: (slot?: string) => Promise<void>;
 }
 
 function createWorker(): Worker | null {
@@ -67,6 +67,14 @@ export function useGameStore(seed: number): GameStore {
   );
   /** Set while a load is in flight, so its snapshot is not read as a tick. */
   const loadingRef = useRef(false);
+  const loadCompletionRef = useRef<{
+    resolve: () => void;
+    reject: (error: Error) => void;
+  } | null>(null);
+  const commandStatesRef = useRef(
+    new Map<string, GameStore["commandStatus"]>(),
+  );
+  const currentCommandRequestRef = useRef<string | null>(null);
   const [snapshot, setSnapshot] = useState<GameState | null>(null);
   const [speed, setSpeedState] = useState<Speed>(0);
   const [errors, setErrors] = useState<string[]>([]);
@@ -105,6 +113,8 @@ export function useGameStore(seed: number): GameStore {
       // the monthly autosave with the historical state it just restored.
       if (loadingRef.current) {
         loadingRef.current = false;
+        loadCompletionRef.current?.resolve();
+        loadCompletionRef.current = null;
         return;
       }
       if (!previous) return;
@@ -113,11 +123,23 @@ export function useGameStore(seed: number): GameStore {
       pendingSlotsRef.current.set(client.requestSave(), autosaveSlot(reason));
     });
     client.onError((message) => setErrors((prev) => [...prev, message]));
-    client.onCommandRejected(({ reason }) => {
-      setCommandStatus("rejected");
+    client.onCommandRejected(({ requestId, reason }) => {
+      commandStatesRef.current.set(requestId, "rejected");
+      if (currentCommandRequestRef.current === requestId)
+        setCommandStatus("rejected");
       setErrors((prev) => [...prev, `command rejected: ${reason}`]);
     });
-    client.onCommandAccepted(() => setCommandStatus("accepted"));
+    client.onCommandAccepted(({ requestId }) => {
+      commandStatesRef.current.set(requestId, "accepted");
+      if (currentCommandRequestRef.current === requestId)
+        setCommandStatus("accepted");
+    });
+    client.onSimulationError((error) => {
+      if (!loadingRef.current || !loadCompletionRef.current) return;
+      loadingRef.current = false;
+      loadCompletionRef.current.reject(new Error(error.message));
+      loadCompletionRef.current = null;
+    });
     client.onSaveData((saveData, requestId) => {
       const envelope = saveData as SaveEnvelope;
       const slot = pendingSlotsRef.current.get(requestId) ?? DEFAULT_SLOT;
@@ -165,36 +187,40 @@ export function useGameStore(seed: number): GameStore {
         if (requestId)
           pendingSlotsRef.current.set(requestId, autosaveSlot("major-action"));
       }
-      setCommandStatus("pending");
-      clientRef.current?.sendCommand(command);
+      const requestId = clientRef.current?.sendCommand(command);
+      if (requestId) {
+        currentCommandRequestRef.current = requestId;
+        commandStatesRef.current.set(requestId, "pending");
+        setCommandStatus("pending");
+      }
     },
     save: (slot = DEFAULT_SLOT) => {
       const requestId = clientRef.current?.requestSave();
       if (requestId) pendingSlotsRef.current.set(requestId, slot);
     },
-    load: (slot = DEFAULT_SLOT) => {
+    load: async (slot = DEFAULT_SLOT) => {
       setRecoveredFrom(null);
       setValidationFailure(null);
-      void loadWithRecovery(repoRef.current, slot)
-        .then((outcome) => {
-          if (!isRecovered(outcome)) {
-            const reason =
-              outcome.rejected.find((r) => r.slot === slot)?.reason ??
-              "no save could be read";
-            setValidationFailure(reason);
-            setErrors((prev) => [...prev, `load failed: ${reason}`]);
-            return;
-          }
-          if (outcome.slot !== slot) setRecoveredFrom(outcome.slot);
+      try {
+        const outcome = await loadWithRecovery(repoRef.current, slot);
+        if (!isRecovered(outcome)) {
+          const reason =
+            outcome.rejected.find((r) => r.slot === slot)?.reason ??
+            "no save could be read";
+          throw new Error(reason);
+        }
+        if (outcome.slot !== slot) setRecoveredFrom(outcome.slot);
+        await new Promise<void>((resolve, reject) => {
           loadingRef.current = true;
-          // The worker validates it again before it replaces anything; this
-          // side never applies a save itself.
+          loadCompletionRef.current = { resolve, reject };
           clientRef.current?.loadGame(outcome.envelope);
-        })
-        .catch((error: Error) => {
-          setValidationFailure(error.message);
-          setErrors((prev) => [...prev, `load failed: ${error.message}`]);
         });
+      } catch (error) {
+        const failure = error as Error;
+        setValidationFailure(failure.message);
+        setErrors((prev) => [...prev, `load failed: ${failure.message}`]);
+        throw failure;
+      }
     },
   };
 }

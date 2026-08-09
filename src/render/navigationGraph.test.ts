@@ -25,3 +25,11 @@ it("routes through doors, corridors, stairs and lifts around closures", () => {
   graph[4] = { ...graph[4], closed: false };
   expect(findPath(graph, "room", "lobby")).toContain("lift");
 });
+
+it("skips dangling links without throwing", () => {
+  const graph: NavigationNode[] = [
+    { id: "start", kind: "corridor", links: ["missing", "finish"] },
+    { id: "finish", kind: "corridor", links: [] },
+  ];
+  expect(findPath(graph, "start", "finish")).toEqual(["start", "finish"]);
+});

@@ -73,7 +73,17 @@ let published: GameSnapshot | null = null;
 let publication = 0;
 let lastTickMs = 0;
 let lastCommandLatencyMs = 0;
-let tickFailure: string | null = null;
+interface TickFailure {
+  thrown: unknown;
+  message: string;
+}
+let tickFailure: TickFailure | null = null;
+
+const failureMessage = (thrown: unknown): string => {
+  if (thrown instanceof Error && thrown.message.trim()) return thrown.message;
+  if (typeof thrown === "string" && thrown.trim()) return thrown;
+  return "unknown simulation tick failure";
+};
 
 function reply(message: WorkerResponse) {
   self.postMessage(message);
@@ -191,9 +201,9 @@ function tick() {
       simulation.advanceQuantum();
   } catch (error) {
     speed = 0;
-    tickFailure = (error as Error).message;
+    tickFailure = { thrown: error, message: failureMessage(error) };
     reply(
-      simulationError("TICK_FAILED", (error as Error).message, {
+      simulationError("TICK_FAILED", tickFailure.message, {
         recoverable: false,
       }),
     );
@@ -284,13 +294,13 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         });
         return;
       }
-      if (tickFailure) {
+      if (tickFailure !== null) {
         reply({
           protocolVersion: PROTOCOL_VERSION,
           type: "COMMAND_REJECTED",
           requestId: m.requestId,
           commandId: m.commandId,
-          reason: `simulation halted after tick failure: ${tickFailure}`,
+          reason: `simulation halted after tick failure: ${tickFailure.message}`,
         });
         return;
       }
@@ -336,6 +346,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "SET_SPEED": {
+      if (tickFailure !== null) return;
       speed = m.speed;
       return;
     }
@@ -344,6 +355,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "RESUME": {
+      if (tickFailure !== null) return;
       speed = speed || 1;
       return;
     }
@@ -393,11 +405,11 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         );
         return;
       }
-      if (tickFailure) {
+      if (tickFailure !== null) {
         reply(
           simulationError(
             "TICK_FAILED",
-            `cannot save a simulation halted after tick failure: ${tickFailure}`,
+            `cannot save a simulation halted after tick failure: ${tickFailure.message}`,
             { recoverable: false, requestId: m.requestId },
           ),
         );

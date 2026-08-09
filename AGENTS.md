@@ -117,7 +117,7 @@ Tasks 1-12 are implemented. The executable registry in
 acceptance rows read `verified`. The Plan 03.5 gate is green, so Plan 04 may begin after
 this work is committed on the repository's default branch.
 
-Fresh verification on 2026-08-09 passed `npm run test:run` (69 files, 387 tests),
+Fresh verification on 2026-08-09 passed `npm run test:run` (69 files, 395 tests),
 `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e` (10 tests),
 `npm run benchmark`, `scripts/verify-plans-01-03-long-run.ts`, and
 `scripts/replay-plans-01-03.ts`.
@@ -145,10 +145,9 @@ What the completed tasks changed, and that later work must respect:
   and full status history. Inventory is checked on every date of the stay. Cancellation,
   no-show and authorised service recovery are all reachable; a refused recovery posts
   nothing.
-- **Save version is still 3.** The v3-to-v4 migration belongs to task 12 and does not
-  exist yet. `GameSimulation`'s constructor defensively opens the new command and event
-  journals at zero for a save written before they existed; the migration supersedes that
-  when it lands.
+- **Save version 4.** The v3-to-v4 migration supplies the Plan 03.5 state introduced
+  after v3. `GameSimulation`'s constructor still defensively supplies those defaults for
+  legacy in-memory states, while persisted saves migrate explicitly.
 
 Plan 02 added: room modules and commercial aging, the planning/approval/construction/
 acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
@@ -178,7 +177,7 @@ src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb
                         renovation, city, labor, property, transport, actors,
                         competitors, marketResearch
 src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
-src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3);
+src/game/persistence/migrations/  versioned save migrations (v1 -> v2 -> v3 -> v4);
                         each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository

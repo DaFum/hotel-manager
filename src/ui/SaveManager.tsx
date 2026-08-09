@@ -7,6 +7,7 @@ import {
   recoverySlot,
   type SlotDescriptor,
 } from "../game/persistence/savePolicy";
+import { translate } from "./localization";
 
 export interface SaveManagerProps {
   /** Every slot that currently holds something, in any order. */
@@ -54,10 +55,14 @@ export function SaveManager(props: SaveManagerProps) {
   const load = (slot: string) => {
     if (pendingSlot) return;
     setPendingSlot(slot);
-    const result = props.onLoad(slot);
-    if (result && typeof result.then === "function")
-      void result.finally(() => setPendingSlot(null));
-    else setPendingSlot(null);
+    try {
+      const result = props.onLoad(slot);
+      if (result && typeof result.then === "function")
+        void result.catch(() => undefined).finally(() => setPendingSlot(null));
+      else setPendingSlot(null);
+    } catch {
+      setPendingSlot(null);
+    }
   };
 
   return (
@@ -114,7 +119,7 @@ export function SaveManager(props: SaveManagerProps) {
                 onClick={() => load(slot.id)}
               >
                 {pendingSlot === slot.id
-                  ? "Loading…"
+                  ? translate("save.loading")
                   : `Load ${slotTitle(slot)}`}
               </button>
             </li>
@@ -138,7 +143,7 @@ export function SaveManager(props: SaveManagerProps) {
               onClick={() => load(id)}
             >
               {pendingSlot === id
-                ? "Recovering…"
+                ? translate("save.recovering")
                 : `Recover ${slotTitle(describeSlot(id))}`}
             </button>
           ))}
@@ -158,7 +163,7 @@ export function SaveManager(props: SaveManagerProps) {
         }
       >
         {pendingSlot === autosaveSlot("month")
-          ? "Loading monthly autosave…"
+          ? translate("save.loadingMonthly")
           : "Load the last monthly autosave"}
       </button>
     </section>

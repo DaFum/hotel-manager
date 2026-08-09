@@ -19,6 +19,7 @@ const scenarios = [
   ["actor decline", 17],
   ["competitor distress", 19],
 ] as const;
+const LONG_RUN_BUDGET_MS = 5_000;
 
 async function test(
   title: string,
@@ -51,8 +52,10 @@ async function main(): Promise<void> {
   });
 
   await test("at least one viable entry and one economic exit occur", () => {
-    assert(results.some(({ result }) => result.entries > 0));
-    assert(results.some(({ result }) => result.exits > 0));
+    for (const { name, result } of results) {
+      assert(result.entries > 0, `${name} produced no entry`);
+      assert(result.exits > 0, `${name} produced no exit`);
+    }
   });
 
   await test("repeated runs of the same seed produce identical hashes", () => {
@@ -92,7 +95,10 @@ async function main(): Promise<void> {
   });
 
   await test("elapsed time is reported separately from deterministic output", () => {
-    assert(elapsedMs >= 0);
+    assert(
+      elapsedMs <= LONG_RUN_BUDGET_MS,
+      "long-run duration budget exceeded",
+    );
     assert.equal(
       stateHash(results[0].result),
       stateHash(runCityYears(10, results[0].seed)),
@@ -103,7 +109,6 @@ async function main(): Promise<void> {
     for (const { result } of results) {
       assert(result.forecastHigh > result.forecastLow);
       assert(result.forecastLow > 0);
-      assert(result.forecastHigh - result.forecastLow > 0);
     }
   });
 

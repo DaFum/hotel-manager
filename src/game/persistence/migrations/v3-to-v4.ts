@@ -1,5 +1,14 @@
 import { createEventJournal } from "../../domain/eventBuffer";
 import { createUtilityState } from "../../facilities/utilities";
+import type {
+  BookingStatus,
+  GuaranteeTerms,
+} from "../../bookings/bookingTypes";
+import {
+  createGuestSatisfaction,
+  createRenderDescriptors,
+  createSavePolicyMetadata,
+} from "../../simulation/initialState";
 import type { SaveEnvelope } from "../saveVersions";
 
 const DEFAULT_TERMS = {
@@ -7,6 +16,42 @@ const DEFAULT_TERMS = {
   freeCancellationDays: 1,
   lateChargeBp: 10000,
 };
+const BOOKING_STATUSES: readonly BookingStatus[] = [
+  "confirmed",
+  "cancelled",
+  "noShow",
+  "checkedIn",
+  "completed",
+];
+
+const positiveInteger = (value: unknown, fallback: number): number =>
+  Number.isSafeInteger(value) && (value as number) > 0
+    ? (value as number)
+    : fallback;
+
+function migratedTerms(value: unknown): GuaranteeTerms {
+  const terms =
+    value && typeof value === "object"
+      ? (value as Record<string, unknown>)
+      : {};
+  return {
+    guaranteed:
+      typeof terms.guaranteed === "boolean"
+        ? terms.guaranteed
+        : DEFAULT_TERMS.guaranteed,
+    freeCancellationDays:
+      Number.isSafeInteger(terms.freeCancellationDays) &&
+      (terms.freeCancellationDays as number) >= 0
+        ? (terms.freeCancellationDays as number)
+        : DEFAULT_TERMS.freeCancellationDays,
+    lateChargeBp:
+      Number.isSafeInteger(terms.lateChargeBp) &&
+      (terms.lateChargeBp as number) >= 0 &&
+      (terms.lateChargeBp as number) <= 10000
+        ? (terms.lateChargeBp as number)
+        : DEFAULT_TERMS.lateChargeBp,
+  };
+}
 
 /** Adds the authoritative Plan 03.5 state that did not exist in save v3. */
 export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
@@ -20,26 +65,25 @@ export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
   const reservations = Array.isArray(state.reservations)
     ? state.reservations.map((raw, index) => {
         const booking = raw as Record<string, unknown>;
-        const status =
-          typeof booking.status === "string" ? booking.status : "confirmed";
+        const status: BookingStatus = BOOKING_STATUSES.includes(
+          booking.status as BookingStatus,
+        )
+          ? (booking.status as BookingStatus)
+          : "confirmed";
         return {
           ...booking,
           id:
             typeof booking.id === "string"
               ? booking.id
               : `booking.legacy.${index}`,
-          roomsRequested: Number.isSafeInteger(booking.roomsRequested)
-            ? booking.roomsRequested
-            : 1,
+          roomsRequested: positiveInteger(booking.roomsRequested, 1),
           channel: booking.channel ?? "directPhone",
-          partySize: Number.isSafeInteger(booking.partySize)
-            ? booking.partySize
-            : 1,
+          partySize: positiveInteger(booking.partySize, 1),
           segmentId: booking.segmentId ?? "segment.leisure",
           category: booking.category ?? rooms[0]?.category ?? "single",
           arrivalDateKey: booking.arrivalDateKey ?? "1991-01-01",
-          nights: Number.isSafeInteger(booking.nights) ? booking.nights : 1,
-          terms: booking.terms ?? DEFAULT_TERMS,
+          nights: positiveInteger(booking.nights, 1),
+          terms: migratedTerms(booking.terms),
           history: Array.isArray(booking.history)
             ? booking.history
             : [{ status, atMinutes: elapsedMinutes }],
@@ -63,28 +107,18 @@ export function migrateV3ToV4(save: SaveEnvelope): SaveEnvelope {
       commandLog: Array.isArray(state.commandLog) ? state.commandLog : [],
       eventJournal: state.eventJournal ?? createEventJournal(),
       reservations,
-      guestSatisfaction: state.guestSatisfaction ?? { score: 70, causes: [] },
+      guestSatisfaction: state.guestSatisfaction ?? createGuestSatisfaction(),
       handledComplaintIds: Array.isArray(state.handledComplaintIds)
         ? state.handledComplaintIds
         : [],
-      utilities: state.utilities ?? createUtilityState(),
-      renderDescriptors: state.renderDescriptors ?? {
-        floorByRoomId: Object.fromEntries(
-          rooms.map((room, index) => [room.id, Math.floor(index / 12) + 1]),
-        ),
-        closedNavigationIds: [],
-        elevator: {
-          id: "asset.elevator",
-          capacity: 6,
-          queue: 0,
-          travelMinutes: 2,
-          failed: false,
-        },
-      },
-      savePolicy: state.savePolicy ?? {
-        lastManualSlot: null,
-        recoveryGeneration: 0,
-      },
+      utilities: { ...createUtilityState(), ...(state.utilities as object) },
+      renderDescriptors:
+        state.renderDescriptors ?? createRenderDescriptors(rooms),
+      savePolicy: state.savePolicy ?? createSavePolicyMetadata(),
+      linen:
+        state.linen && typeof state.linen === "object"
+          ? { floorStock: 0, ...(state.linen as Record<string, unknown>) }
+          : { clean: 0, floorStock: 0, dirty: 0 },
     },
   };
 }

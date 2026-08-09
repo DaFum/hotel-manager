@@ -59,6 +59,7 @@ export function roomServiceCapacity(x: {
   transport: number;
   elevator: number;
 }): { served: number; cause: string } {
+  for (const [label, value] of Object.entries(x)) assertCount(value, label);
   const constraints = [
     ["kitchen capacity", x.kitchen],
     ["service staff", x.staffed],

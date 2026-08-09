@@ -23,6 +23,10 @@ test("plays the remediation journey and reloads from recovery", async ({
   await expect(
     page.getByRole("button", { name: /Recover generation 0/i }),
   ).toBeVisible();
+  const checkpointStatus = await page
+    .getByRole("region", { name: "Status bar" })
+    .innerText();
+  const checkpointRate = await page.getByLabel("Single rate").inputValue();
 
   await page.getByRole("button", { name: "16x", exact: true }).click();
   await expect(
@@ -38,10 +42,10 @@ test("plays the remediation journey and reloads from recovery", async ({
     .getByRole("region", { name: "Status bar" })
     .innerText();
   await page.getByRole("button", { name: /Recover generation 0/i }).click();
-  await expect(page.getByRole("region", { name: "Status bar" })).not.toHaveText(
-    before,
-    { timeout: 30_000 },
-  );
+  const statusBar = page.getByRole("region", { name: "Status bar" });
+  await expect(statusBar).toHaveText(checkpointStatus, { timeout: 30_000 });
+  await expect(statusBar).not.toHaveText(before);
+  await expect(page.getByLabel("Single rate")).toHaveValue(checkpointRate);
   await expect(page.getByLabel("Saves committed")).toBeVisible();
 });
 

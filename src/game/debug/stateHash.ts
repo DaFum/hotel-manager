@@ -1,38 +1,64 @@
 const PRESENTATION_KEYS = new Set(["facilities"]);
 
-function canonical(value: unknown, key?: string): unknown {
-  if (key && PRESENTATION_KEYS.has(key)) return undefined;
-  if (value instanceof Map)
-    return [...value.entries()]
-      .map(([k, v]) => [canonical(k), canonical(v)])
-      .sort((a, b) => {
-        const left = JSON.stringify(a[0]);
-        const right = JSON.stringify(b[0]);
-        return left < right ? -1 : left > right ? 1 : 0;
-      });
-  if (value instanceof Set)
-    return [...value]
-      .map((item) => canonical(item))
-      .sort((a, b) => {
-        const left = JSON.stringify(a);
-        const right = JSON.stringify(b);
-        return left < right ? -1 : left > right ? 1 : 0;
-      });
-  if (Array.isArray(value)) return value.map((item) => canonical(item));
-  if (value && typeof value === "object") {
-    const result: Record<string, unknown> = {};
-    for (const entryKey of Object.keys(value).sort()) {
-      const item = canonical(
-        (value as Record<string, unknown>)[entryKey],
-        entryKey,
-      );
-      if (item !== undefined) result[entryKey] = item;
-    }
-    return result;
+type CanonicalValue =
+  | { type: "undefined" | "null" }
+  | { type: "boolean" | "number" | "string" | "bigint"; value: string }
+  | { type: "array" | "set"; values: CanonicalValue[] }
+  | { type: "map"; entries: [CanonicalValue, CanonicalValue][] }
+  | { type: "object"; entries: [string, CanonicalValue][] };
+
+const compareText = (a: unknown, b: unknown): number => {
+  const left = JSON.stringify(a);
+  const right = JSON.stringify(b);
+  return left < right ? -1 : left > right ? 1 : 0;
+};
+
+function canonical(value: unknown): CanonicalValue {
+  if (value === undefined) return { type: "undefined" };
+  if (value === null) return { type: "null" };
+  if (typeof value === "number") {
+    if (!Number.isFinite(value))
+      throw new Error("cannot hash non-finite authoritative state");
+    return {
+      type: "number",
+      value: Object.is(value, -0) ? "-0" : String(value),
+    };
   }
-  if (typeof value === "number" && !Number.isFinite(value))
-    throw new Error("cannot hash non-finite authoritative state");
-  return value;
+  if (
+    typeof value === "string" ||
+    typeof value === "boolean" ||
+    typeof value === "bigint"
+  )
+    return { type: typeof value, value: String(value) } as CanonicalValue;
+  if (value instanceof Map)
+    return {
+      type: "map",
+      entries: [...value.entries()]
+        .map(
+          ([key, item]) =>
+            [canonical(key), canonical(item)] as [
+              CanonicalValue,
+              CanonicalValue,
+            ],
+        )
+        .sort((a, b) => compareText(a[0], b[0])),
+    };
+  if (value instanceof Set)
+    return { type: "set", values: [...value].map(canonical).sort(compareText) };
+  if (Array.isArray(value))
+    return { type: "array", values: value.map(canonical) };
+  if (typeof value === "object")
+    return {
+      type: "object",
+      entries: Object.keys(value)
+        .filter((key) => !PRESENTATION_KEYS.has(key))
+        .sort()
+        .map((key) => [
+          key,
+          canonical((value as Record<string, unknown>)[key]),
+        ]),
+    };
+  throw new Error(`cannot hash ${typeof value}`);
 }
 
 export function canonicalState(value: unknown): string {

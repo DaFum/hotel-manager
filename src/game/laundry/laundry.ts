@@ -54,7 +54,9 @@ export interface LaundryDayResult {
  * machines and the shift cannot reach goes out to contract at a piece rate.
  */
 export function runLaundryDay(x: LaundryDayInput): LaundryDayResult {
-  const floorStock = Math.max(0, x.floorStock ?? 0);
+  const floorStock = x.floorStock ?? 0;
+  if (!Number.isSafeInteger(floorStock) || floorStock < 0)
+    throw new Error("invalid laundry floor stock");
   const washedInHouse = laundryOutput({
     dirty: x.dirty,
     machine: x.machine,
@@ -65,7 +67,7 @@ export function runLaundryDay(x: LaundryDayInput): LaundryDayResult {
     Math.min(x.dirty - washedInHouse, x.externalPieces),
   );
   return {
-    clean: Math.max(0, x.clean - floorStock) + washedInHouse + washedExternally,
+    clean: x.clean + washedInHouse + washedExternally,
     dirty: x.dirty - washedInHouse - washedExternally,
     washedInHouse,
     washedExternally,

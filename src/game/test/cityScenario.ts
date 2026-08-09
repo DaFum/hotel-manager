@@ -20,7 +20,8 @@ import { totalRoomNights } from "../city/demand";
 import type { RngStateRecord } from "../domain/rng";
 
 export interface CityScenarioCheckpoint {
-  month: number;
+  /** Zero-based index of the next month that must be simulated. */
+  nextMonth: number;
   market: ReturnType<typeof createCityMarket>;
   competitors: CompetitorRecord[];
   rngState: RngStateRecord;
@@ -60,7 +61,6 @@ export interface CityScenarioResult {
 }
 
 export interface CityScenarioOptions {
-  restoreAtYear?: number;
   captureAtYear?: number;
   checkpoint?: CityScenarioCheckpoint;
 }
@@ -102,6 +102,13 @@ export function runCityYears(
 ): CityScenarioResult {
   if (!Number.isSafeInteger(years) || years <= 0)
     throw new Error("invalid years");
+  if (
+    options.checkpoint &&
+    (!Number.isSafeInteger(options.checkpoint.nextMonth) ||
+      options.checkpoint.nextMonth < 0 ||
+      options.checkpoint.nextMonth >= years * 12)
+  )
+    throw new Error("checkpoint must precede the requested end month");
   let streams = options.checkpoint
     ? restoreRngStreams(options.checkpoint.rngState)
     : createRngStreams(seed);
@@ -122,7 +129,7 @@ export function runCityYears(
   let checkpoint: CityScenarioCheckpoint | undefined;
 
   for (
-    let month = options.checkpoint?.month ?? 0;
+    let month = options.checkpoint?.nextMonth ?? 0;
     month < years * 12;
     month++
   ) {
@@ -148,11 +155,6 @@ export function runCityYears(
     for (const id of before) if (!after.has(id)) exits += 1;
     for (const id of after) if (!before.has(id)) entries += 1;
     minActive = Math.min(minActive, competitors.length);
-    if (options.restoreAtYear && month + 1 === options.restoreAtYear * 12) {
-      market = structuredClone(market);
-      competitors = structuredClone(competitors);
-      streams = restoreRngStreams(captureRngState(streams));
-    }
     if ((month + 1) % 12 === 0)
       yearly.push({
         year: 1991 + Math.floor(month / 12),
@@ -164,7 +166,7 @@ export function runCityYears(
       });
     if (options.captureAtYear && month + 1 === options.captureAtYear * 12)
       checkpoint = {
-        month: month + 1,
+        nextMonth: month + 1,
         market: structuredClone(market),
         competitors: structuredClone(competitors),
         rngState: captureRngState(streams),

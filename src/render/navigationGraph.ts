@@ -21,7 +21,8 @@ export function findPath(
     const node = byId.get(id)!;
     if (node.closed && id !== from) continue;
     for (const next of [...node.links].sort()) {
-      if (previous.has(next) || byId.get(next)?.closed) continue;
+      const nextNode = byId.get(next);
+      if (!nextNode || previous.has(next) || nextNode.closed) continue;
       previous.set(next, id);
       queue.push(next);
     }

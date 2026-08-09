@@ -107,4 +107,29 @@ describe("save manager", () => {
     finish();
     await screen.findByRole("button", { name: "Load checkpoint" });
   });
+
+  it("clears pending state after synchronous and asynchronous failures", async () => {
+    const onLoad = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("sync");
+      })
+      .mockRejectedValueOnce(new Error("async"));
+    render(
+      <SaveManager
+        slots={[manualSlot("checkpoint")]}
+        recoveredFrom={null}
+        validationFailure={null}
+        onSave={noop}
+        onLoad={onLoad}
+      />,
+    );
+    const button = () =>
+      screen.getByRole("button", { name: "Load checkpoint" });
+    fireEvent.click(button());
+    expect(button().hasAttribute("disabled")).toBe(false);
+    fireEvent.click(button());
+    await screen.findByRole("button", { name: "Load checkpoint" });
+    expect(onLoad).toHaveBeenCalledTimes(2);
+  });
 });

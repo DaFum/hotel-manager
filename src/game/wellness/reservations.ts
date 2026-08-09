@@ -2,6 +2,9 @@ import { availableThroughput } from "../facilities/capacity";
 
 /** One treatment occupies a room and a therapist for 45 minutes. */
 export const SLOT_MINUTES = 45;
+export const TREATMENT_LINEN_PIECES = 1;
+export const TREATMENT_WATER_UNITS = 3;
+export const TREATMENT_ENERGY_UNITS = 2;
 
 export interface WellnessSchedule {
   treatmentRooms: number;
@@ -74,15 +77,26 @@ export function reserveTreatment(x: {
   waterUsed: number;
   energyUsed: number;
 } {
+  for (const [label, value] of Object.entries({
+    treatmentRooms: x.schedule.treatmentRooms,
+    therapists: x.schedule.therapists,
+    openMinutes: x.schedule.openMinutes,
+    booked: x.schedule.booked,
+    linen: x.linen,
+    water: x.water,
+    energy: x.energy,
+  }))
+    if (!Number.isSafeInteger(value) || value < 0)
+      throw new Error(`invalid treatment ${label}`);
   const reason = !x.maintained
     ? "maintenance state"
     : x.schedule.therapists <= 0
       ? "specialist staff"
-      : x.linen <= 0
+      : x.linen < TREATMENT_LINEN_PIECES
         ? "linen stock"
-        : x.water <= 0
+        : x.water < TREATMENT_WATER_UNITS
           ? "water capacity"
-          : x.energy <= 0
+          : x.energy < TREATMENT_ENERGY_UNITS
             ? "energy capacity"
             : null;
   if (reason)
@@ -97,8 +111,8 @@ export function reserveTreatment(x: {
   const outcome = bookSlot(x.schedule, x.guestId);
   return {
     ...outcome,
-    linenUsed: outcome.accepted ? 1 : 0,
-    waterUsed: outcome.accepted ? 3 : 0,
-    energyUsed: outcome.accepted ? 2 : 0,
+    linenUsed: outcome.accepted ? TREATMENT_LINEN_PIECES : 0,
+    waterUsed: outcome.accepted ? TREATMENT_WATER_UNITS : 0,
+    energyUsed: outcome.accepted ? TREATMENT_ENERGY_UNITS : 0,
   };
 }

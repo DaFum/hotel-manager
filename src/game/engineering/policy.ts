@@ -59,15 +59,13 @@ export function prioritizeEngineering(
     const priority = (x: EngineeringWork) =>
       x.status === "failed"
         ? 0
-        : replacementDecision({ rated: 0, condition: x.condition }, x).replace
+        : isDueForService(x)
           ? 1
-          : isDueForService(x)
+          : replacementDecision({ rated: 0, condition: x.condition }, x).replace
             ? 2
             : 3;
     return (
-      priority(a) - priority(b) ||
-      a.condition - b.condition ||
-      (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+      priority(a) - priority(b) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
     );
   });
 }

@@ -11,33 +11,48 @@ import { commandEnvelope, type GameCommand } from "../commands/commandEnvelope";
 import { createInitialGameState, type GameState } from "./initialState";
 import type { GameSnapshot } from "../domain/snapshot";
 import { entityDetail } from "./entityDetail";
+import {
+  CONTENT_VERSION,
+  SAVE_VERSION,
+  migrateEnvelope,
+  validateEnvelope,
+  type SaveEnvelope,
+} from "../persistence/saveSchema";
 
 /** One real tick is 100 ms; at 1x that is one simulated hour. */
 const TICK_MS = 100;
 const QUANTA_PER_TICK = 12;
 
 /**
- * Structural guard so a corrupted or foreign save surfaces SIMULATION_ERROR
- * instead of throwing outside the tick handler.
+ * Brings a stored envelope forward and checks it before anything is replaced.
+ * A save that cannot be trusted must fail here, with the running game intact,
+ * rather than half-way through becoming the game.
  */
-function isRestorableState(value: unknown): value is GameState {
-  const s = value as GameState | null;
-  return Boolean(
-    s &&
-    typeof s === "object" &&
-    s.calendar &&
-    typeof s.calendar.dateKey === "string" &&
-    Number.isSafeInteger(s.calendar.minuteOfDay) &&
-    s.hotel &&
-    Array.isArray(s.hotel.rooms) &&
-    s.finance &&
-    Number.isSafeInteger(s.finance.cashMinor) &&
-    Array.isArray(s.finance.ledger) &&
-    s.finance.month &&
-    s.rngState &&
-    Number.isSafeInteger(s.rngState.guests) &&
-    Number.isSafeInteger(s.rngState.AI),
-  );
+function acceptEnvelope(
+  value: unknown,
+): { ok: true; state: GameState } | { ok: false; reason: string } {
+  if (!value || typeof value !== "object")
+    return { ok: false, reason: "save data is not a save envelope" };
+  let migrated: SaveEnvelope;
+  try {
+    migrated = migrateEnvelope(value as SaveEnvelope);
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message };
+  }
+  const problems = validateEnvelope(migrated);
+  if (problems.length > 0) return { ok: false, reason: problems.join("; ") };
+  return { ok: true, state: migrated.state as GameState };
+}
+
+/** The envelope this build writes, prepared from authoritative state. */
+function prepareEnvelope(state: GameState): SaveEnvelope {
+  return {
+    saveVersion: SAVE_VERSION,
+    contentVersion: CONTENT_VERSION,
+    protocolVersion: PROTOCOL_VERSION,
+    rngState: state.rngState,
+    state,
+  };
 }
 
 let simulation: GameSimulation | null = null;
@@ -213,18 +228,22 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "LOAD_GAME": {
-      if (!isRestorableState(m.saveData)) {
+      const accepted = acceptEnvelope(m.saveData);
+      if (!accepted.ok) {
+        // The running game is untouched: an invalid load is refused, never
+        // half-applied.
         reply(
-          simulationError(
-            "INVALID_SAVE",
-            "save data is not a restorable game state",
-            { recoverable: true },
-          ),
+          simulationError("INVALID_SAVE", accepted.reason, {
+            recoverable: true,
+          }),
         );
         return;
       }
-      simulation = new GameSimulation(m.saveData);
-      simulation.refreshDerivedState();
+      // Built in full before it becomes the game, so a state that throws while
+      // deriving cannot leave the worker holding half a hotel.
+      const restored = new GameSimulation(accepted.state);
+      restored.refreshDerivedState();
+      simulation = restored;
       ensureTimer();
       publishSnapshot();
       publishDomainEvents();
@@ -327,11 +346,33 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "REQUEST_SAVE": {
+      if (!simulation) {
+        reply(
+          simulationError("NOT_INITIALISED", "no game is running", {
+            recoverable: true,
+            requestId: m.requestId,
+          }),
+        );
+        return;
+      }
+      const envelope = prepareEnvelope(simulation.snapshot());
+      const problems = validateEnvelope(envelope);
+      if (problems.length > 0) {
+        // A save the worker would not accept back is not a save; refusing to
+        // hand it out beats storing a file that cannot be loaded.
+        reply(
+          simulationError("INVALID_SAVE", problems.join("; "), {
+            recoverable: true,
+            requestId: m.requestId,
+          }),
+        );
+        return;
+      }
       reply({
         protocolVersion: PROTOCOL_VERSION,
         type: "SAVE_DATA",
         requestId: m.requestId,
-        saveData: simulation?.snapshot() ?? null,
+        saveData: envelope,
       });
       return;
     }

@@ -387,7 +387,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/persistence/savePolicy.test.ts",
       assertion: "keeps manual slots independent and deterministically ordered",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.autosave.policy",
@@ -400,7 +400,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/persistence/savePolicy.test.ts",
       assertion: "schedules monthly, yearly and pre-major-action autosaves",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.recovery.generations",
@@ -413,7 +413,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/persistence/recovery.test.ts",
       assertion: "rotates at least two recovery generations oldest first",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.corrupt.fallback",
@@ -427,7 +427,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "falls back to the newest intact generation when the primary is corrupt",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.write.atomic",
@@ -440,7 +440,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/persistence/recovery.test.ts",
       assertion: "leaves the stored slot intact when a write fails",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.load.validated",
@@ -453,7 +453,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/simulation/simulation.worker.test.ts",
       assertion: "validates a save envelope before replacing simulation state",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.load.invalid.noOverwrite",
@@ -466,7 +466,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/persistence/recovery.test.ts",
       assertion: "never overwrites a running game from an invalid load",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.migration.chain",
@@ -480,7 +480,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "round-trips every fixture version through the migration chain",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "save.ui.recovery",
@@ -493,7 +493,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/ui/SaveManager.test.tsx",
       assertion: "offers manual slots, recovery entries and validation failure",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 6: booking and guest lifecycle --------------------------------

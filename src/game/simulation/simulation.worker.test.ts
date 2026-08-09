@@ -4,6 +4,7 @@ import {
   WHOLE_GAME_ENTITY_ID,
   type WorkerResponse,
 } from "../domain/protocol";
+import { SAVE_VERSION } from "../persistence/saveVersions";
 
 /**
  * The worker module wires itself to `self` on import, so each test gets a
@@ -222,6 +223,59 @@ describe("simulation worker", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("validates a save envelope before replacing simulation state", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_SAVE",
+      requestId: "req.save",
+    });
+    const envelope = of(posted, "SAVE_DATA")[0].saveData as {
+      saveVersion: number;
+      protocolVersion: number;
+      contentVersion: string;
+      rngState: Record<string, number>;
+      state: { elapsedMinutes: number; rngState: Record<string, number> };
+    };
+    // What the worker hands out is a versioned envelope prepared from
+    // authoritative state, not a bare snapshot.
+    expect(envelope.saveVersion).toBe(SAVE_VERSION);
+    expect(envelope.protocolVersion).toBe(PROTOCOL_VERSION);
+    // The header and the state carry the same streams; a save where they
+    // disagree would replay as a different hotel depending on which is read.
+    expect(envelope.rngState).toEqual(envelope.state.rngState);
+
+    // Move the game on, then offer it a save it must refuse.
+    send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed: 1 });
+    posted.length = 0;
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "LOAD_GAME",
+      saveData: { ...envelope, contentVersion: "some-other-game" },
+    });
+    const refused = of(posted, "SIMULATION_ERROR");
+    expect(refused).toHaveLength(1);
+    expect(refused[0]).toMatchObject({
+      code: "INVALID_SAVE",
+      recoverable: true,
+    });
+    // Refused means nothing was replaced: no snapshot was published.
+    expect(of(posted, "SNAPSHOT")).toHaveLength(0);
+
+    posted.length = 0;
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "LOAD_GAME",
+      saveData: envelope,
+    });
+    const restored = of(posted, "SNAPSHOT");
+    expect(restored).toHaveLength(1);
+    expect(restored[0].snapshot.elapsedMinutes).toBe(
+      envelope.state.elapsedMinutes,
+    );
   });
 
   it("refuses a message that carries a foreign protocol version", async () => {

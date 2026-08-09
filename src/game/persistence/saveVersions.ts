@@ -14,7 +14,12 @@ export type RngStreamName =
 export interface SaveEnvelope {
   saveVersion: number;
   contentVersion: string;
-  protocolVersion: 1;
+  /**
+   * The protocol the build that wrote it spoke. Stored as written, not as
+   * expected: it is a migration's job to bring an old one forward, and
+   * validation's job to refuse one that never was.
+   */
+  protocolVersion: number;
   rngState: Record<RngStreamName, number>;
   state: unknown;
 }

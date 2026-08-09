@@ -7,21 +7,19 @@ import {
   isCompatible,
   type SaveEnvelope,
 } from "./saveSchema";
+import { PROTOCOL_VERSION } from "../domain/protocol";
+import { createInitialGameState } from "../simulation/initialState";
+
+// A real state: validation now checks references and numeric invariants, so a
+// stub with one field in it is no longer a save the repository will store.
+const state = createInitialGameState(4);
 
 const save: SaveEnvelope = {
   saveVersion: SAVE_VERSION,
   contentVersion: CONTENT_VERSION,
-  protocolVersion: 1,
-  rngState: {
-    guests: 1,
-    staffing: 2,
-    failures: 3,
-    economy: 4,
-    events: 5,
-    weather: 6,
-    AI: 7,
-  },
-  state: { cashMinor: 5 },
+  protocolVersion: PROTOCOL_VERSION,
+  rngState: state.rngState,
+  state,
 };
 
 describe("save repository", () => {
@@ -39,9 +37,14 @@ describe("save repository", () => {
   it("keeps recovery slots independent and listable", async () => {
     const repo = new IndexedDbSaveRepository("test-hotel-manager-slots");
     await repo.save("slot-1", save);
-    await repo.save("autosave", { ...save, state: { cashMinor: 9 } });
+    await repo.save("autosave", {
+      ...save,
+      state: { ...state, elapsedMinutes: 45 },
+    });
     expect((await repo.listSlots()).sort()).toEqual(["autosave", "slot-1"]);
-    expect((await repo.load("slot-1"))?.state).toEqual({ cashMinor: 5 });
+    expect(
+      ((await repo.load("slot-1"))?.state as typeof state).elapsedMinutes,
+    ).toBe(0);
   });
 
   it("refuses a save whose RNG state is incomplete", async () => {
@@ -58,7 +61,7 @@ describe("save repository", () => {
         ...save,
         rngState: partial,
       } as unknown as SaveEnvelope),
-    ).rejects.toThrow(/version/);
+    ).rejects.toThrow(/rng stream/i);
   });
 
   it("refuses to load a save from an incompatible version", async () => {

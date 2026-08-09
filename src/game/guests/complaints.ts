@@ -31,6 +31,41 @@ export interface RecoveryOutcome {
   satisfaction: number;
 }
 
+/** Who is available to stand behind a gesture, and what the hotel can afford. */
+export interface RecoveryAuthority {
+  /** Front-desk staff actually on duty; nobody on duty authorises nothing. */
+  frontDeskOnDuty: number;
+  cashMinor: number;
+}
+
+/** What a ten-percent goodwill discount costs on a given room charge. */
+function discountCostMinor(roomChargeMinor: number): number {
+  assertNonNegativePfennig(roomChargeMinor, "room charge");
+  return applyBasisPoints(roomChargeMinor, DISCOUNT_RECOVERY_BP);
+}
+
+/**
+ * Whether this recovery may be made at all.
+ *
+ * A gesture that nobody is present to make, or that the hotel cannot pay for,
+ * is not a gesture — and it must not move money or satisfaction on the way to
+ * being refused. Authorisation is therefore decided before anything is
+ * resolved, and answers with a reason the player can act on.
+ */
+export function authorizeRecovery(
+  action: RecoveryAction,
+  roomChargeMinor: number,
+  authority: RecoveryAuthority,
+): { ok: true; costMinor: number } | { ok: false; reason: string } {
+  if (authority.frontDeskOnDuty <= 0)
+    return { ok: false, reason: "nobody is on the desk to authorise it" };
+  if (action === "apologize") return { ok: true, costMinor: 0 };
+  const costMinor = discountCostMinor(roomChargeMinor);
+  if (authority.cashMinor < costMinor)
+    return { ok: false, reason: "the hotel cannot cover the discount" };
+  return { ok: true, costMinor };
+}
+
 export function resolveComplaint(
   c: { cause: string; satisfaction: number },
   action: RecoveryAction,
@@ -38,9 +73,10 @@ export function resolveComplaint(
 ): RecoveryOutcome {
   if (action === "apologize")
     return { expenseMinor: 0, satisfaction: Math.min(100, c.satisfaction + 5) };
-  assertNonNegativePfennig(roomChargeMinor, "room charge");
   return {
-    expenseMinor: applyBasisPoints(roomChargeMinor, DISCOUNT_RECOVERY_BP),
+    // The same rule the authorisation was granted against, so the amount
+    // approved and the amount posted cannot drift apart.
+    expenseMinor: discountCostMinor(roomChargeMinor),
     satisfaction: Math.min(100, c.satisfaction + 15),
   };
 }

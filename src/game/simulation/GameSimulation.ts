@@ -3,7 +3,17 @@ import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
 import { supplierForSku } from "../content/1991/suppliers";
-import { canWalkIn, markNoShow, reserve } from "../bookings/bookingEngine";
+import {
+  canWalkIn,
+  cancel,
+  checkIn,
+  checkOut,
+  holdsRoomOn,
+  lateChargeMinor,
+  markNoShow,
+  reserve,
+} from "../bookings/bookingEngine";
+import type { BookingChannel } from "../bookings/bookingTypes";
 import {
   getRate,
   isRoomCategory,
@@ -32,7 +42,11 @@ import {
   revParMinor,
 } from "../revenue/metrics";
 import { assignRoom, processReceptionQueue } from "../guests/guestJourney";
-import { complaintForWait } from "../guests/complaints";
+import {
+  authorizeRecovery,
+  complaintForWait,
+  resolveComplaint,
+} from "../guests/complaints";
 import { cleanRoom } from "../rooms/housekeeping";
 import { serveBreakfast } from "../fnb/breakfastService";
 import { barCovers, barRevenueMinor, BAR_OPEN_MINUTE } from "../fnb/barService";
@@ -95,8 +109,26 @@ import {
 } from "../building/renovations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
+import {
+  commandEnvelope,
+  type CommandActor,
+  type CommandEnvelope,
+  type CommandResult,
+  type GameCommand,
+} from "../commands/commandEnvelope";
+import {
+  CommandHandler,
+  type CommandExecutor,
+  type RngStreams,
+} from "../commands/commandHandler";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
+import {
+  createEventJournal,
+  drainEvents,
+  emitEvent,
+} from "../domain/eventBuffer";
+import type { DomainEvent, DomainEventPayload } from "../domain/events";
 import type {
   AlertRecord,
   EventRecord,
@@ -128,24 +160,14 @@ export { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
 
 export const SHIFTS: readonly Shift[] = ["morning", "evening", "night"];
 
-export type GameCommand =
-  | {
-      type: "SET_RATE";
-      dateKey: string;
-      category: RoomCategory;
-      rateMinor: number;
-    }
-  | { type: "ORDER_SUPPLIES"; sku: string; quantity: number }
-  | {
-      type: "HIRE";
-      role: StaffRole;
-      shift: Shift;
-      monthlyWageMinor: number;
-    }
-  | { type: "START_RENOVATION" }
-  | { type: "SET_SPECIALIZATION"; specializationId: string | null }
-  | { type: "EXPAND_FACILITY"; area: ExpandableArea }
-  | { type: "BUY_MARKET_RESEARCH" };
+// The command union and its envelope live in src/game/commands: the
+// simulation executes commands, it does not define what a command is.
+export type {
+  CommandActor,
+  CommandEnvelope,
+  CommandResult,
+  GameCommand,
+} from "../commands/commandEnvelope";
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
@@ -176,6 +198,14 @@ const LIFT_TRIPS_PER_DAY = 400;
 const TECHNICIAN_MINUTES_PER_DAY = 240;
 /** Technician minutes a breakdown repair is allowed each day. */
 const REPAIR_MINUTES_PER_DAY = 120;
+/** Days a finished booking is kept on the books for its own history. */
+const BOOKING_RETENTION_DAYS = 30;
+/** Share of the first night an unhonoured booking is charged, in bp. */
+const LATE_CHARGE_BP = 10000;
+/** Chance in basis points that a future booking cancels on a given day. */
+const DAILY_CANCELLATION_BP = 300;
+/** Chance in basis points that an unguaranteed party never turns up. */
+const NO_SHOW_BP = 400;
 /** Condition alerts re-decided at every arrival wave. */
 const ARRIVAL_ALERT_IDS = [
   "alert.security-short",
@@ -183,33 +213,114 @@ const ARRIVAL_ALERT_IDS = [
   "alert.construction-noise",
 ];
 
-export class GameSimulation {
-  private queued: GameCommand[] = [];
-  private streams: ReturnType<typeof restoreRngStreams>;
+export class GameSimulation implements CommandExecutor {
+  private queued: CommandEnvelope[] = [];
+  private decided: CommandResult[] = [];
+  private streams: RngStreams;
   private dayRolled = false;
   private monthRolled = false;
+  /** The one boundary through which authoritative state may change. */
+  private readonly commands: CommandHandler;
+  /** The command currently executing, so its events can name their cause. */
+  private causingCommandId: string | undefined;
 
   constructor(public state: GameState) {
+    // A save written before the command and event journals existed carries
+    // neither. Opening it at zero is the honest reading — nothing is known
+    // about decisions taken before the journal did — and it keeps a migrated
+    // old save runnable rather than crashing on its first derived section.
+    state.stateVersion ??= 0;
+    state.commandSequence ??= 0;
+    state.commandLog ??= [];
+    state.eventJournal ??= createEventJournal();
     this.streams = restoreRngStreams(state.rngState);
+    this.commands = new CommandHandler(
+      () => this.state,
+      (next) => {
+        this.state = next;
+        // The committed draft owns the RNG cursor now; the streams the rest of
+        // the quantum draws from have to be the ones that were committed.
+        this.streams = restoreRngStreams(next.rngState);
+      },
+      this,
+    );
   }
 
   get pendingCommandCount(): number {
     return this.queued.length;
   }
 
-  queueCommand(command: GameCommand): void {
-    this.queued.push(command);
+  /**
+   * Verdicts for commands the commands phase has actually decided, drained by
+   * the Worker so an acknowledgement describes an applied command rather than
+   * a queued one.
+   */
+  takeCommandResults(): CommandResult[] {
+    const decided = this.decided;
+    this.decided = [];
+    return decided;
+  }
+
+  /** Publishes the completed facts recorded since the last drain, in order. */
+  takeDomainEvents(): DomainEvent[] {
+    return drainEvents(this.state.eventJournal);
   }
 
   /**
-   * Pre-flight check so the worker can answer COMMAND_ACCEPTED or
-   * COMMAND_REJECTED truthfully; the command still mutates state only in the
-   * commands phase.
+   * Records a completed transition. Called only after the write it describes,
+   * and inside a command it inherits that command as its cause.
+   */
+  private emit(payload: DomainEventPayload, entities: readonly string[]): void {
+    emitEvent(this.state.eventJournal, payload, {
+      atMinutes: this.state.elapsedMinutes,
+      entities,
+      causedBy: this.causingCommandId,
+    });
+  }
+
+  /**
+   * Queues a payload as a well-formed envelope. The id is derived from
+   * authoritative state so an uninterrupted run and a replay agree on it.
+   */
+  queueCommand(command: GameCommand, actor: CommandActor = "player"): void {
+    this.queueEnvelope(
+      commandEnvelope({
+        commandId: `cmd.${this.state.commandSequence + this.queued.length}.${command.type}`,
+        issuedAtMinutes: this.state.elapsedMinutes,
+        actor,
+        payload: command,
+      }),
+    );
+  }
+
+  queueEnvelope(envelope: CommandEnvelope): void {
+    this.queued.push(envelope);
+  }
+
+  /**
+   * Decides a batch of envelopes immediately through the command boundary.
+   * This is what the Worker calls, so an acknowledgement can describe an
+   * applied command rather than a queued one.
+   */
+  submitCommands(envelopes: readonly CommandEnvelope[]): CommandResult[] {
+    const results = this.commands.run(envelopes);
+    // Derived sections are only recomputed when something actually changed: a
+    // batch that was refused in full must leave the snapshot untouched.
+    if (results.some((r) => r.status === "accepted")) this.refreshMetrics();
+    assertInvariants(this.state);
+    return results;
+  }
+
+  /**
+   * Pre-flight rules check. It answers from the state it is given and must
+   * never write to it: a question about a command may not be answered by
+   * having started to carry it out.
    */
   validateCommand(
     command: GameCommand,
+    state: GameState = this.state,
   ): { ok: true } | { ok: false; reason: string } {
-    const s = this.state;
+    const s = state;
     try {
       switch (command.type) {
         case "SET_RATE":
@@ -251,7 +362,7 @@ export class GameSimulation {
               monthlyWageMinor: command.monthlyWageMinor,
               // The city's labour market sets the floor; a tight market has
               // to be paid for, not wished away.
-              marketWageMinor: this.marketWageMinor(),
+              marketWageMinor: this.marketWageMinor(s),
             },
           );
           return { ok: true };
@@ -290,6 +401,39 @@ export class GameSimulation {
       }
     } catch (error) {
       return { ok: false, reason: (error as Error).message };
+    }
+  }
+
+  /** The `CommandExecutor` rules half; see `validateCommand`. */
+  validate(
+    state: GameState,
+    command: GameCommand,
+  ): { ok: true } | { ok: false; reason: string } {
+    return this.validateCommand(command, state);
+  }
+
+  /**
+   * The `CommandExecutor` write half. The draft and its RNG streams stand in
+   * for the live ones for exactly as long as the command runs, so every
+   * existing rule writes through the transaction without knowing about it.
+   * Throwing rejects the command and discards the draft entirely.
+   */
+  apply(
+    draft: GameState,
+    streams: RngStreams,
+    envelope: CommandEnvelope,
+  ): void {
+    const liveState = this.state;
+    const liveStreams = this.streams;
+    this.state = draft;
+    this.streams = streams;
+    this.causingCommandId = envelope.commandId;
+    try {
+      this.applyCommand(envelope.payload);
+    } finally {
+      this.state = liveState;
+      this.streams = liveStreams;
+      this.causingCommandId = undefined;
     }
   }
 
@@ -357,19 +501,14 @@ export class GameSimulation {
   // --- phases ------------------------------------------------------------
 
   private applyCommands(): void {
-    this.queued.forEach((command, index) => {
-      try {
-        this.applyCommand(command);
-      } catch (error) {
-        this.pushAlert({
-          id: `alert.command.${this.state.elapsedMinutes}.${index}.${command.type}`,
-          severity: "warning",
-          title: "Command rejected",
-          cause: (error as Error).message,
-        });
-      }
-    });
+    if (this.queued.length === 0) return;
+    const batch = this.queued;
     this.queued = [];
+    // Verdicts travel out through the protocol, not through game state: an
+    // alert here would be authoritative state changing on a rejection, which
+    // is exactly what the transactional boundary promises not to do. The
+    // command journal already records every refusal.
+    this.decided.push(...this.commands.run(batch));
   }
 
   private applyCommand(command: GameCommand): void {
@@ -405,6 +544,15 @@ export class GameSimulation {
           `${command.quantity} ${command.sku}`,
         );
         s.pendingOrders.push(result.order);
+        this.emit(
+          {
+            type: "SUPPLY_ORDERED",
+            sku: command.sku,
+            quantity: command.quantity,
+            costMinor: s.finance.cashMinor - result.cashMinor,
+          },
+          [supplier.id, command.sku],
+        );
         return;
       }
       case "HIRE": {
@@ -432,6 +580,15 @@ export class GameSimulation {
           monthlyWageMinor: hired.monthlyWageMinor,
           absent: false,
         });
+        this.emit(
+          {
+            type: "STAFF_HIRED",
+            staffId: hired.id,
+            role: hired.role,
+            shift: hired.shift,
+          },
+          [hired.id],
+        );
         return;
       }
       case "START_RENOVATION": {
@@ -443,12 +600,27 @@ export class GameSimulation {
           "module conversion",
         );
         s.renovation = started.job;
+        this.emit(
+          {
+            type: "RENOVATION_STARTED",
+            projectId: started.job.id,
+            targetModuleId: started.job.targetModuleId,
+          },
+          [started.job.id],
+        );
         return;
       }
       case "SET_SPECIALIZATION": {
         const verdict = this.validateCommand(command);
         if (!verdict.ok) throw new Error(verdict.reason);
         s.specializationId = command.specializationId;
+        this.emit(
+          {
+            type: "SPECIALIZATION_SET",
+            specializationId: command.specializationId,
+          },
+          [s.hotel.id],
+        );
         return;
       }
       case "EXPAND_FACILITY": {
@@ -465,6 +637,14 @@ export class GameSimulation {
           ...s.investedArea,
           [command.area]: s.investedArea[command.area] + EXPANSION_SQM,
         };
+        this.emit(
+          {
+            type: "FACILITY_EXPANDED",
+            area: command.area,
+            addedSqm: EXPANSION_SQM,
+          },
+          [s.hotel.id],
+        );
         return;
       }
       case "BUY_MARKET_RESEARCH": {
@@ -477,6 +657,14 @@ export class GameSimulation {
         s.cityMarket.forecast = forecastBand(
           totalRoomNights(s.cityMarket.demand),
           s.cityMarket.informationQuality,
+        );
+        this.emit(
+          {
+            type: "MARKET_RESEARCH_PURCHASED",
+            informationQuality: s.cityMarket.informationQuality,
+            costMinor: REPORT_COST_MINOR,
+          },
+          [s.hotel.id],
         );
         return;
       }
@@ -515,11 +703,35 @@ export class GameSimulation {
       );
       const turned: { moduleId: string }[] = [];
       for (const stay of leaving) {
+        const booking = s.reservations.find((b) => b.id === stay.bookingId);
+        if (booking && booking.status === "checkedIn") {
+          const completed = checkOut(booking, s.elapsedMinutes);
+          booking.status = completed.status;
+          booking.history = completed.history;
+        }
         const room = s.hotel.rooms.find((r) => r.id === stay.roomId);
         if (room) {
+          const from = room.state;
           room.state = "VacantDirty";
           room.cleanliness = 40;
           turned.push({ moduleId: room.moduleId });
+          this.emit(
+            {
+              type: "GUEST_CHECKED_OUT",
+              bookingId: stay.bookingId,
+              roomId: room.id,
+            },
+            [stay.bookingId, room.id],
+          );
+          this.emit(
+            {
+              type: "ROOM_STATE_CHANGED",
+              roomId: room.id,
+              from,
+              to: room.state,
+            },
+            [room.id],
+          );
         }
       }
       s.linen.dirty += linenSoiled(turned);
@@ -534,10 +746,17 @@ export class GameSimulation {
     if (s.calendar.minuteOfDay === ARRIVAL_MINUTE) {
       for (const booking of s.reservations) {
         if (
-          booking.status === "confirmed" &&
-          booking.arrivalDateKey === s.calendar.dateKey
+          booking.status !== "confirmed" ||
+          booking.arrivalDateKey !== s.calendar.dateKey
         )
-          s.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 0 });
+          continue;
+        // A room held on trust is the one that can go unclaimed. A party who
+        // has already paid at the desk always arrives.
+        const turnsUp =
+          booking.terms.guaranteed ||
+          this.streams.guests.nextUint32() % 10000 >= NO_SHOW_BP;
+        if (!turnsUp) continue;
+        s.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 0 });
       }
     }
 
@@ -555,13 +774,33 @@ export class GameSimulation {
           booking.arrivalDateKey === yesterday &&
           !waiting.has(booking.id)
         ) {
-          const updated = markNoShow(booking);
+          const updated = markNoShow(booking, s.elapsedMinutes);
           booking.status = updated.status;
+          booking.history = updated.history;
+          // The terms the booking was taken on decide what may be charged.
+          const charge = lateChargeMinor(booking, yesterday);
+          if (charge > 0) {
+            this.earn(charge, "roomRevenue", `no-show ${booking.id}`);
+            s.finance.month.otherRevenueMinor += charge;
+          }
+          this.emit(
+            {
+              type: "BOOKING_NO_SHOW",
+              bookingId: booking.id,
+              releasedRooms: booking.roomsRequested,
+            },
+            [booking.id],
+          );
         }
       }
-      s.reservations = s.reservations.filter(
-        (b) => b.status === "confirmed" || b.status === "checkedIn",
-      );
+      // A finished booking is kept for a while rather than dropped the
+      // moment it ends: its status history is what makes the stay auditable,
+      // and a fixed retention window keeps that bounded.
+      s.reservations = s.reservations.filter((b) => {
+        if (b.status === "confirmed" || b.status === "checkedIn") return true;
+        const ended = addDays(b.arrivalDateKey, b.nights);
+        return addDays(ended, BOOKING_RETENTION_DAYS) > s.calendar.dateKey;
+      });
     }
   }
 
@@ -623,7 +862,17 @@ export class GameSimulation {
         },
       );
       s.housekeepingMinutes -= ROOM_CLEAN_MINUTES;
+      const wasState = dirty.state;
       dirty.state = cleaned.room.state;
+      this.emit(
+        {
+          type: "ROOM_STATE_CHANGED",
+          roomId: dirty.id,
+          from: wasState,
+          to: dirty.state,
+        },
+        [dirty.id],
+      );
       dirty.cleanliness = cleaned.room.cleanliness;
       s.stock = consume(s.stock, "cleaning-unit", 1);
       s.linen.clean -= pieces;
@@ -662,27 +911,68 @@ export class GameSimulation {
         );
         continue;
       }
-      // No clean room of the booked category yet: the party keeps waiting
-      // rather than silently vanishing into a no-show at midnight.
-      const room = assignRoom(s.hotel.rooms, booking.category);
-      if (!room) continue;
+      // A party takes every room it booked, or it keeps waiting. Handing a
+      // three-room booking one room would leave the other two held out of
+      // sale for the whole stay and never billed, so the assignment is all
+      // or nothing.
+      const assigned: RoomRecord[] = [];
+      for (let i = 0; i < booking.roomsRequested; i++) {
+        const free = assignRoom(
+          s.hotel.rooms.filter((r) => !assigned.some((a) => a.id === r.id)),
+          booking.category,
+        );
+        if (!free) break;
+        assigned.push(
+          s.hotel.rooms.find((r) => r.id === free.id) as RoomRecord,
+        );
+      }
+      if (assigned.length < booking.roomsRequested) continue;
+
+      // Read the wait before the party leaves the queue: how long check-in
+      // took is part of what just happened to this guest.
+      const waitedMinutes =
+        s.receptionQueue.find((w) => w.bookingId === bookingId)
+          ?.waitedMinutes ?? 0;
       s.receptionQueue = s.receptionQueue.filter(
         (w) => w.bookingId !== bookingId,
       );
-      const target = s.hotel.rooms.find((r) => r.id === room.id) as RoomRecord;
-      target.state = "Occupied";
+      const arrived = checkIn(booking, s.elapsedMinutes);
+      booking.status = arrived.status;
+      booking.history = arrived.history;
+      // The whole party rides up together.
       s.elevatorTrips += elevatorTrips({
-        arrivals: 1,
+        arrivals: assigned.length,
         departures: 0,
         serviceRuns: 0,
       });
-      booking.status = "checkedIn";
-      s.stays.push({
-        bookingId: booking.id,
-        roomId: target.id,
-        rateMinor: booking.rateMinor,
-        departureDateKey: addDays(booking.arrivalDateKey, booking.nights),
-      });
+      for (const target of assigned) {
+        const fromState = target.state;
+        target.state = "Occupied";
+        this.emit(
+          {
+            type: "GUEST_CHECKED_IN",
+            bookingId: booking.id,
+            roomId: target.id,
+            waitedMinutes,
+          },
+          [booking.id, target.id],
+        );
+        this.emit(
+          {
+            type: "ROOM_STATE_CHANGED",
+            roomId: target.id,
+            from: fromState,
+            to: target.state,
+          },
+          [target.id],
+        );
+        s.stays.push({
+          bookingId: booking.id,
+          roomId: target.id,
+          rateMinor: booking.rateMinor,
+          departureDateKey: addDays(booking.arrivalDateKey, booking.nights),
+        });
+      }
     }
   }
 
@@ -845,8 +1135,17 @@ export class GameSimulation {
     const due = s.pendingOrders.filter(
       (o) => o.dueAtMinutes <= s.elapsedMinutes,
     );
-    for (const order of due)
+    for (const order of due) {
       s.stock = deliverOrder(s.stock, order, s.elapsedMinutes);
+      this.emit(
+        {
+          type: "SUPPLY_DELIVERED",
+          sku: order.sku,
+          quantity: order.quantity,
+        },
+        [order.supplierId, order.sku],
+      );
+    }
     if (due.length)
       s.pendingOrders = s.pendingOrders.filter((o) => !due.includes(o));
 
@@ -861,13 +1160,17 @@ export class GameSimulation {
         supplier.unitPriceMinor * supplier.minimumQuantity
       )
         continue;
-      // Queue it: commands are the mutation boundary, so the order goes
-      // through validation in the next commands phase like any other.
-      this.queueCommand({
-        type: "ORDER_SUPPLIES",
-        sku,
-        quantity: supplier.minimumQuantity,
-      });
+      // Queue it: commands are the mutation boundary, so the standing order
+      // goes through validation in the next commands phase like any other. It
+      // is issued by the house, not the player, and says so.
+      this.queueCommand(
+        {
+          type: "ORDER_SUPPLIES",
+          sku,
+          quantity: supplier.minimumQuantity,
+        },
+        "automation",
+      );
     }
   }
 
@@ -889,12 +1192,24 @@ export class GameSimulation {
         degraded.condition < 2000
       ) {
         const roll = this.streams.failures.nextUint32() % 10000;
-        if (roll < DAILY_FAILURE_BP)
+        if (roll < DAILY_FAILURE_BP) {
+          this.emit({ type: "ASSET_FAILED", assetId: degraded.id }, [
+            degraded.id,
+          ]);
           return { ...degraded, status: "failed" as const };
+        }
       }
       if (degraded.status !== "operational") {
         const technicianMinutes = this.dayRolled ? REPAIR_MINUTES_PER_DAY : 0;
-        return { ...degraded, ...repairAsset(degraded, technicianMinutes) };
+        const repaired = {
+          ...degraded,
+          ...repairAsset(degraded, technicianMinutes),
+        };
+        if (repaired.status === "operational")
+          this.emit({ type: "ASSET_REPAIRED", assetId: repaired.id }, [
+            repaired.id,
+          ]);
+        return repaired;
       }
       // Planned service happens before a failure, not after one, and costs
       // technician time and money up front.
@@ -914,11 +1229,11 @@ export class GameSimulation {
     for (const id of serviced) {
       const asset = s.assets.find((a) => a.id === id);
       if (!asset) continue;
-      this.spend(
-        preventiveCostMinor({ replacementMinor: asset.replacementMinor }),
-        "maintenance",
-        `preventive service on ${id}`,
-      );
+      const costMinor = preventiveCostMinor({
+        replacementMinor: asset.replacementMinor,
+      });
+      this.spend(costMinor, "maintenance", `preventive service on ${id}`);
+      this.emit({ type: "ASSET_SERVICED", assetId: id, costMinor }, [id]);
     }
 
     if (this.dayRolled) {
@@ -984,13 +1299,86 @@ export class GameSimulation {
         waiting.waitedMinutes,
       );
       if (!complaint) continue;
-      this.pushAlert({
-        id: `alert.${complaint.id}`,
-        severity: "warning",
-        title: "Long check-in",
-        cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
-      });
+      if (
+        !this.pushAlert({
+          id: `alert.${complaint.id}`,
+          severity: "warning",
+          title: "Long check-in",
+          cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
+        })
+      )
+        continue;
+      this.emit(
+        {
+          type: "COMPLAINT_RAISED",
+          complaintId: complaint.id,
+          bookingId: waiting.bookingId,
+        },
+        [complaint.id, waiting.bookingId],
+      );
+      // A complaint costs goodwill whether or not anything is done about it.
+      this.moveSatisfaction(-4, `${complaint.cause} at reception`);
+      this.attemptRecovery(complaint.id, waiting.bookingId);
     }
+  }
+
+  /**
+   * Tries to put a complaint right. A gesture nobody is present to authorise,
+   * or that the hotel cannot pay for, is refused — and a refused recovery
+   * posts no money and moves no satisfaction at all.
+   */
+  private attemptRecovery(complaintId: string, bookingId: string): void {
+    const s = this.state;
+    const booking = s.reservations.find((b) => b.id === bookingId);
+    const roomChargeMinor = booking?.rateMinor ?? 0;
+    const verdict = authorizeRecovery("discount10", roomChargeMinor, {
+      frontDeskOnDuty: this.onDuty("reception"),
+      cashMinor: s.finance.cashMinor,
+    });
+    if (!verdict.ok) {
+      this.pushAlert({
+        id: `alert.recovery.${complaintId}`,
+        severity: "warning",
+        title: "Complaint left unanswered",
+        cause: verdict.reason,
+      });
+      return;
+    }
+    const outcome = resolveComplaint(
+      { cause: "longCheckIn", satisfaction: s.guestSatisfaction.score },
+      "discount10",
+      roomChargeMinor,
+    );
+    if (outcome.expenseMinor > 0)
+      this.spend(
+        outcome.expenseMinor,
+        "serviceRecovery",
+        `goodwill discount for ${bookingId}`,
+      );
+    this.moveSatisfaction(
+      outcome.satisfaction - s.guestSatisfaction.score,
+      `recovery for ${bookingId}`,
+    );
+    this.emit(
+      {
+        type: "SERVICE_RECOVERY_APPLIED",
+        complaintId,
+        bookingId,
+        costMinor: outcome.expenseMinor,
+      },
+      [complaintId, bookingId],
+    );
+  }
+
+  /** Moves goodwill and records why, so the number is always explainable. */
+  private moveSatisfaction(delta: number, cause: string): void {
+    const s = this.state;
+    const score = Math.max(0, Math.min(100, s.guestSatisfaction.score + delta));
+    if (score === s.guestSatisfaction.score) return;
+    s.guestSatisfaction = {
+      score,
+      causes: [...s.guestSatisfaction.causes, cause].slice(-MAX_ALERTS),
+    };
   }
 
   private runFinance(): void {
@@ -1029,6 +1417,7 @@ export class GameSimulation {
   private generateDemand(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== DEMAND_MINUTE) return;
+    this.runCancellations();
     this.generateEventLeads();
     // The city settles its month before the new one's first day trades.
     const endedMonthKey = addDays(s.calendar.dateKey, -1);
@@ -1059,11 +1448,13 @@ export class GameSimulation {
         category,
         STARTER_HOTEL.defaultRateMinor[category],
       );
-      const availableRooms = this.availableRooms(arrivalDateKey, category);
+      // Walk-ins draw on the same inventory as anyone else; they simply have
+      // no lead time in which to have held it.
       if (leadDays === 0 && !canWalkIn(this.sameDayInventory())) continue;
+      const channel: BookingChannel = leadDays === 0 ? "walkIn" : "directPhone";
       try {
-        const booking = reserve(
-          { availableRooms },
+        const reservation: ReservationRecord = reserve(
+          { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
             id: `booking.${s.elapsedMinutes}.${i}`,
             roomsRequested: 1,
@@ -1075,20 +1466,75 @@ export class GameSimulation {
                 (10000 + this.specializationBonusFor(segment.id))) /
                 10000,
             ),
+            channel,
+            partySize: 1 + (this.streams.guests.nextUint32() % 2),
+            segmentId: segment.id,
+            category,
+            arrivalDateKey,
+            nights: segment.averageNights,
+            terms: {
+              // A walk-in has paid at the desk; a phone booking is held on
+              // trust and is the one that can fail to turn up.
+              guaranteed: channel === "walkIn",
+              freeCancellationDays: 1,
+              lateChargeBp: LATE_CHARGE_BP,
+            },
+            atMinutes: s.elapsedMinutes,
           },
         );
-        const reservation: ReservationRecord = {
-          ...booking,
-          category,
-          arrivalDateKey,
-          nights: segment.averageNights,
-          segmentId: segment.id,
-        };
         s.reservations.push(reservation);
+        this.emit(
+          {
+            type: "BOOKING_CONFIRMED",
+            bookingId: reservation.id,
+            arrivalDateKey,
+            nights: reservation.nights,
+            category,
+            roomsRequested: reservation.roomsRequested,
+            rateMinor,
+            segmentId: segment.id,
+          },
+          [reservation.id],
+        );
       } catch {
         /* demand lost to price or inventory; the slice does not yet count
            the causes, so this is intentionally silent */
       }
+    }
+  }
+
+  /**
+   * Plans change. A booking cancelled in good time costs nothing and releases
+   * exactly the rooms it was holding; one cancelled inside the agreed window
+   * pays the agreed share of the first night.
+   */
+  private runCancellations(): void {
+    const s = this.state;
+    for (const booking of s.reservations) {
+      if (
+        booking.status !== "confirmed" ||
+        booking.arrivalDateKey <= s.calendar.dateKey
+      )
+        continue;
+      if (this.streams.guests.nextUint32() % 10000 >= DAILY_CANCELLATION_BP)
+        continue;
+      const released = booking.roomsRequested;
+      const charge = lateChargeMinor(booking, s.calendar.dateKey);
+      const cancelled = cancel(booking, s.elapsedMinutes);
+      booking.status = cancelled.status;
+      booking.history = cancelled.history;
+      if (charge > 0) {
+        this.earn(charge, "roomRevenue", `late cancellation ${booking.id}`);
+        s.finance.month.otherRevenueMinor += charge;
+      }
+      this.emit(
+        {
+          type: "BOOKING_CANCELLED",
+          bookingId: booking.id,
+          releasedRooms: released,
+        },
+        [booking.id],
+      );
     }
   }
 
@@ -1163,27 +1609,79 @@ export class GameSimulation {
   }
 
   /** What one post costs in this city this month, in whole Pfennig. */
-  private marketWageMinor(): number {
+  private marketWageMinor(state: GameState = this.state): number {
     return marketWageMinor(
       BASE_MONTHLY_WAGE_MINOR,
-      this.state.cityMarket.wagePressureBp,
+      state.cityMarket.wagePressureBp,
     );
   }
 
   /** Settles the ended month for the whole city and its rivals. */
   private runCityMonth(): void {
     const s = this.state;
+    // The city is compared with itself across the settlement so entry, exit
+    // and route changes are reported as the facts they are, rather than being
+    // reconstructed later from a difference in supply.
+    const before = new Map(
+      s.competitors.map((c) => [c.id, { rooms: c.rooms, status: c.status }]),
+    );
+    const transportBefore = { ...s.cityMarket.transport };
+    const endedMonthKey = addDays(s.calendar.dateKey, -1);
+    const roomNightsBefore = s.cityMarket.soldRoomNights;
+
     s.competitors = advanceCityMonth(
       s.cityMarket,
       s.competitors,
       this.playerHouse(),
       {
-        endedMonthKey: addDays(s.calendar.dateKey, -1),
+        endedMonthKey,
         dateKey: s.calendar.dateKey,
         economy: this.streams.economy,
         ai: this.streams.AI,
       },
     );
+
+    this.emit(
+      {
+        type: "CITY_MONTH_ADVANCED",
+        periodKey: endedMonthKey.slice(0, 7),
+        roomNights: roomNightsBefore,
+      },
+      [CITY.id],
+    );
+
+    const after = new Map(s.competitors.map((c) => [c.id, c]));
+    for (const competitor of s.competitors)
+      if (!before.has(competitor.id))
+        this.emit(
+          {
+            type: "COMPETITOR_ENTERED",
+            competitorId: competitor.id,
+            rooms: competitor.rooms,
+          },
+          [competitor.id],
+        );
+    // A house that has failed is dropped from the city's list, so its exit is
+    // read from the gap it leaves rather than from a status it no longer has.
+    for (const [id, was] of before)
+      if (!after.has(id) || after.get(id)?.status === "exit")
+        this.emit(
+          {
+            type: "COMPETITOR_EXITED",
+            competitorId: id,
+            releasedRooms: was.rooms,
+          },
+          [id],
+        );
+
+    for (const [mode, points] of Object.entries(s.cityMarket.transport)) {
+      const was = transportBefore[mode as keyof typeof transportBefore];
+      if (was !== points)
+        this.emit(
+          { type: "TRANSPORT_ROUTE_CHANGED", mode, from: was, to: points },
+          [CITY.id, mode],
+        );
+    }
   }
 
   /**
@@ -1282,6 +1780,14 @@ export class GameSimulation {
         });
         this.earn(event.valueMinor, "eventRevenue", `conference ${event.id}`);
         s.finance.month.otherRevenueMinor += event.valueMinor;
+        this.emit(
+          {
+            type: "CONFERENCE_COMPLETED",
+            eventId: event.id,
+            valueMinor: event.valueMinor,
+          },
+          [event.id],
+        );
       }
     }
     s.events = s.events.filter((e) => e.status !== "complete");
@@ -1317,8 +1823,9 @@ export class GameSimulation {
     if (!qualifyLead(lead).ok) return;
     const offer = offerPriceMinor({ guests, nights, roomsBlocked });
     if (!leadConverts(lead, offer)) return;
+    const eventId = `event.${s.elapsedMinutes}`;
     s.events.push({
-      id: `event.${s.elapsedMinutes}`,
+      id: eventId,
       guests,
       nights,
       roomsBlocked,
@@ -1327,6 +1834,16 @@ export class GameSimulation {
       valueMinor: offer,
       status: "confirmed",
     });
+    this.emit(
+      {
+        type: "CONFERENCE_BOOKED",
+        eventId,
+        guests,
+        roomsBlocked,
+        valueMinor: offer,
+      },
+      [eventId],
+    );
     this.pushAlert({
       id: `alert.event.${s.elapsedMinutes}`,
       severity: "info",
@@ -1338,6 +1855,7 @@ export class GameSimulation {
   /** The board rows the UI and the Pixi layer both read. */
   private refreshFacilities(): void {
     const s = this.state;
+    const previousCause = new Map(s.facilities.map((f) => [f.id, f.cause]));
     const inHouse = s.stays.length;
     const eventCovers = this.eventBreakfastCovers();
     const housekeepers = this.onDuty("housekeeping");
@@ -1479,6 +1997,19 @@ export class GameSimulation {
         ],
       }),
     ];
+
+    // What binds an area is the fact worth telling: a load that moved without
+    // changing the constraint is not news.
+    for (const facility of s.facilities)
+      if (previousCause.get(facility.id) !== facility.cause)
+        this.emit(
+          {
+            type: "FACILITY_CONSTRAINT_CHANGED",
+            facilityId: facility.id,
+            cause: facility.cause,
+          },
+          [facility.id],
+        );
   }
 
   /** The star rating and the standard that is holding it back. */
@@ -1516,12 +2047,22 @@ export class GameSimulation {
         (s.investedArea.conferenceSqm + s.investedArea.wellnessSqm) / 5,
       ),
     );
+    const before = s.classification.stars;
     s.classification = classify({
       room: roomScore,
       reception,
       maintenance,
       facilities,
     });
+    if (s.classification.stars !== before)
+      this.emit(
+        {
+          type: "CLASSIFICATION_CHANGED",
+          from: before,
+          to: s.classification.stars,
+        },
+        [s.hotel.id],
+      );
   }
 
   /**
@@ -1550,6 +2091,14 @@ export class GameSimulation {
     }
 
     if (step.roomsAdded > 0) {
+      this.emit(
+        {
+          type: "RENOVATION_COMPLETED",
+          projectId: step.job.id,
+          roomsAdded: step.roomsAdded,
+        },
+        [step.job.id],
+      );
       const nextNumber = STARTER_HOTEL.firstRoomNumber + s.hotel.rooms.length;
       for (let i = 0; i < step.roomsAdded; i++)
         s.hotel.rooms.push({
@@ -1577,6 +2126,15 @@ export class GameSimulation {
       soldRoomNights: m.soldRoomNights,
       availableRoomNights: m.availableRoomNights,
     });
+    this.emit(
+      {
+        type: "MONTH_CLOSED",
+        periodKey: s.lastMonthlyClose.periodKey,
+        profitMinor: s.lastMonthlyClose.operatingProfitMinor,
+        occupancyBasisPoints: s.lastMonthlyClose.occupancyBasisPoints,
+      },
+      [s.hotel.id],
+    );
     s.finance.month = {
       openingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: 0,
@@ -1603,13 +2161,11 @@ export class GameSimulation {
   private availableRooms(dateKey: string, category: string): number {
     const s = this.state;
     const total = s.hotel.rooms.filter((r) => r.category === category).length;
-    const held = s.reservations.filter(
-      (b) =>
-        (b.status === "confirmed" || b.status === "checkedIn") &&
-        b.category === category &&
-        b.arrivalDateKey <= dateKey &&
-        addDays(b.arrivalDateKey, b.nights) > dateKey,
-    ).length;
+    // Only a live booking holds anything: a cancellation or a no-show has
+    // released exactly what it was holding, and nothing more.
+    const held = s.reservations
+      .filter((b) => b.category === category && holdsRoomOn(b, dateKey))
+      .reduce((rooms, b) => rooms + b.roomsRequested, 0);
     // A conference holds its sleeping rooms out of general sale.
     return Math.max(
       0,
@@ -1696,9 +2252,11 @@ export class GameSimulation {
     this.state.alerts = this.state.alerts.filter((a) => !ids.includes(a.id));
   }
 
-  private pushAlert(alert: AlertRecord): void {
-    if (this.state.alerts.some((a) => a.id === alert.id)) return;
+  /** Adds an alert once. Returns true when this is the first time it is said. */
+  private pushAlert(alert: AlertRecord): boolean {
+    if (this.state.alerts.some((a) => a.id === alert.id)) return false;
     this.state.alerts.push(alert);
+    return true;
   }
 }
 

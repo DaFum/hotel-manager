@@ -1,4 +1,6 @@
 import { createRngStreams, type RngStateRecord } from "../domain/rng";
+import type { CommandLogEntry } from "../commands/commandEnvelope";
+import { createEventJournal, type EventJournal } from "../domain/eventBuffer";
 import { CITY } from "../content/1991/frankfurt";
 import { STARTER_HOTEL, STARTER_STAFF } from "../content/1991/starterHotel";
 import type { RoomState } from "../rooms/roomState";
@@ -46,13 +48,12 @@ export interface StayRecord {
   departureDateKey: string;
 }
 
-export interface ReservationRecord extends Booking {
-  /** The category the rooms were held against at booking time. */
-  category: string;
-  arrivalDateKey: string;
-  nights: number;
-  segmentId: string;
-}
+/**
+ * A reservation as the game holds it. The booking already carries its whole
+ * slice context — party, segment, source, category, stay dates, terms and
+ * status history — so there is nothing left for the state to bolt on.
+ */
+export type ReservationRecord = Booking;
 
 /** One serviced area as the player sees it: load, capacity and the binding cause. */
 export interface FacilityRecord {
@@ -94,6 +95,26 @@ export interface MonthAccumulator {
 
 export interface GameState {
   seed: number;
+  /**
+   * Moves exactly once per applied command. A command may declare the version
+   * it believed it was acting on, so a decision made against a stale view is
+   * refused rather than applied to a world its author never saw.
+   */
+  stateVersion: number;
+  /** The bounded audit trail of decided commands; see COMMAND_LOG_LIMIT. */
+  commandLog: CommandLogEntry[];
+  /**
+   * Decisions taken since the game began, accepted and rejected alike. It
+   * outlives the bounded log so ids the house mints for itself stay unique
+   * even after the log window has scrolled past them.
+   */
+  commandSequence: number;
+  /**
+   * Completed facts waiting to be published, and the sequence they are
+   * numbered from. It is authoritative state so that events emitted inside a
+   * command belong to that command's transaction and vanish with a rollback.
+   */
+  eventJournal: EventJournal;
   calendar: { dateKey: string; minuteOfDay: number };
   hotel: { id: string; name: string; rooms: RoomRecord[] };
   rates: RateGrid;
@@ -147,6 +168,11 @@ export interface GameState {
     ledger: LedgerEntry[];
     month: MonthAccumulator;
   };
+  /**
+   * How the house is currently regarded by its guests, 0-100, and why. Only
+   * things that actually happened to a guest move it.
+   */
+  guestSatisfaction: { score: number; causes: string[] };
   /** Housekeeping labour carried between quanta, in simulated minutes. */
   housekeepingMinutes: number;
   /** Fractional reception throughput carried between quanta, in parties. */
@@ -168,6 +194,10 @@ export function createInitialGameState(seed: number): GameState {
   const streams = createRngStreams(seed);
   return {
     seed,
+    stateVersion: 0,
+    commandLog: [],
+    commandSequence: 0,
+    eventJournal: createEventJournal(),
     calendar: { dateKey: CITY.startDateKey, minuteOfDay: 0 },
     hotel: {
       id: STARTER_HOTEL.id,
@@ -239,6 +269,7 @@ export function createInitialGameState(seed: number): GameState {
       conferenceSqm: STARTER_HOTEL.conferenceSqm,
       wellnessSqm: STARTER_HOTEL.wellnessSqm,
     },
+    guestSatisfaction: { score: 70, causes: [] },
     housekeepingMinutes: 0,
     receptionCapacity: 0,
     renovation: null,

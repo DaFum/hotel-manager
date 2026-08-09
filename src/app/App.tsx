@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useGameStore } from "./gameStore";
+import { SaveManager } from "../ui/SaveManager";
 import { CITY } from "../game/content/1991/frankfurt";
 import { STARTER_HOTEL } from "../game/content/1991/starterHotel";
 import { getRate } from "../game/revenue/rates";
@@ -74,8 +75,15 @@ export function App() {
         cashMinor={s.finance.cashMinor}
         speed={game.speed}
         onSpeed={game.setSpeed}
-        onSave={game.save}
-        onLoad={game.load}
+        onSave={() => game.save()}
+        onLoad={() => game.load()}
+      />
+      <SaveManager
+        slots={game.slots}
+        recoveredFrom={game.recoveredFrom}
+        validationFailure={game.validationFailure}
+        onSave={(slot) => game.save(slot)}
+        onLoad={(slot) => game.load(slot)}
       />
       <HotelView rooms={s.hotel.rooms} facilities={s.facilities} />
       <FacilitiesDashboard rows={s.facilities} />

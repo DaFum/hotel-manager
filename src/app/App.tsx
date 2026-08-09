@@ -307,6 +307,7 @@ export function App() {
             game.send({ type: "TAKE_RECOVERY_MEASURE", path })
           }
           onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
+          onRestart={() => game.restart()}
         />
         <TechnologyPanel
           technologies={s.world.technologies}

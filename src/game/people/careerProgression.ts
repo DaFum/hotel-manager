@@ -18,6 +18,11 @@ export interface KeyPerson {
   leadership: number;
   /** Months in the current role; the reason experience moves at all. */
   monthsInRole: number;
+  /**
+   * Whether they are still on the payroll. Somebody who leaves keeps their
+   * record: a career is what the company remembers, not who is rostered today.
+   */
+  active: boolean;
   careerHistory: Array<{ role: string; dateKey: string }>;
 }
 

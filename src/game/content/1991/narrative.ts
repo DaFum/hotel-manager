@@ -57,7 +57,7 @@ export const NARRATIVE_DEFINITIONS: readonly NarrativeDefinition[] = [
       { key: "cashMinor", min: OPPORTUNITY_STAKE_MINOR },
     ],
     choices: [
-      { id: "compensate", labelKey: "narrative.digital-bet.choice.invest" },
+      { id: "invest", labelKey: "narrative.digital-bet.choice.invest" },
       { id: "decline", labelKey: "narrative.digital-bet.choice.decline" },
     ],
     priority: 3,
@@ -69,26 +69,64 @@ export const NARRATIVE_DEFINITIONS: readonly NarrativeDefinition[] = [
  * What each choice costs and what it does to the house's standing. Kept beside
  * the definitions so a content change is a data change.
  */
-export const NARRATIVE_CHOICE_EFFECTS: Record<
-  string,
-  { costMinor: number; reputationDelta: number }
-> = {
+export interface NarrativeChoiceEffect {
+  costMinor: number;
+  reputationDelta: number;
+  /**
+   * The account the cost is booked to. Stated, never inferred from the choice
+   * id: a stake in an agency is not a guest-recovery expense, and an account
+   * guessed from a label is how it silently became one.
+   */
+  account: "guest-recovery" | "investment";
+}
+
+export const NARRATIVE_CHOICE_EFFECTS: Record<string, NarrativeChoiceEffect> = {
   "narrative.overbooking-scandal:compensate": {
     costMinor: 200_000,
     reputationDelta: 5,
+    account: "guest-recovery",
   },
   "narrative.overbooking-scandal:decline": {
     costMinor: 0,
     reputationDelta: -6,
+    account: "guest-recovery",
   },
   "narrative.press-profile:compensate": {
     costMinor: 40_000,
     reputationDelta: 4,
+    account: "guest-recovery",
   },
-  "narrative.press-profile:decline": { costMinor: 0, reputationDelta: -1 },
-  "narrative.digital-bet:compensate": {
+  "narrative.press-profile:decline": {
+    costMinor: 0,
+    reputationDelta: -1,
+    account: "guest-recovery",
+  },
+  "narrative.digital-bet:invest": {
     costMinor: OPPORTUNITY_STAKE_MINOR,
     reputationDelta: 0,
+    account: "investment",
   },
-  "narrative.digital-bet:decline": { costMinor: 0, reputationDelta: 0 },
+  "narrative.digital-bet:decline": {
+    costMinor: 0,
+    reputationDelta: 0,
+    account: "investment",
+  },
 };
+
+/**
+ * Content is cross-checked when the module loads: every declared choice needs
+ * an effect, and every effect must belong to a choice that exists. A story
+ * whose button does nothing is a content bug, and it should stop the build
+ * rather than wait to be discovered by a player.
+ */
+const declaredKeys = new Set(
+  NARRATIVE_DEFINITIONS.flatMap((definition) =>
+    definition.choices.map((choice) => `${definition.id}:${choice.id}`),
+  ),
+);
+for (const key of declaredKeys)
+  if (!NARRATIVE_CHOICE_EFFECTS[key])
+    throw new Error(`narrative choice ${key} has no effect`);
+for (const key of Object.keys(NARRATIVE_CHOICE_EFFECTS))
+  if (!declaredKeys.has(key))
+    throw new Error(`narrative effect ${key} belongs to no choice`);

@@ -13,12 +13,12 @@ function game(seed = 11): GameSimulation {
   return s;
 }
 
-let counter = 0;
 function submit(s: GameSimulation, payload: GameCommand) {
-  counter += 1;
+  // The id comes from the game's own sequence, so a test cannot depend on how
+  // many other tests happened to run first.
   return s.submitCommands([
     commandEnvelope({
-      commandId: `narrative.cmd.${counter}`,
+      commandId: `narrative.cmd.${s.state.commandSequence + 1}`,
       issuedAtMinutes: s.state.elapsedMinutes,
       actor: "player",
       payload,

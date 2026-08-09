@@ -20,7 +20,7 @@ describe("career outcomes", () => {
     const s = assessCareerOutcome(facts());
     expect(s.distress).toBe("recoverable");
     expect(s.availableRecoveryPaths).toContain("sell-hotel");
-    expect(s.continueEndless).toBe(true);
+    expect(s.careerMilestone2026).toBe(true);
     expect(restartCareer().dateKey).toBe("1991-01-01");
   });
 
@@ -49,10 +49,28 @@ describe("career outcomes", () => {
     ).toBe("healthy");
   });
 
-  it("keeps playing after a terminal reading is continued", () =>
-    expect(chooseEndlessContinuation(assessCareerOutcome(facts())).ended).toBe(
-      false,
-    ));
+  it("keeps playing after a terminal reading is continued", () => {
+    const terminal = assessCareerOutcome(facts({ sellableHotelCount: 0 }));
+    expect(terminal.ended).toBe(true);
+    expect(chooseEndlessContinuation(terminal).ended).toBe(false);
+  });
+
+  it("does not re-end a career the player already chose to continue", () => {
+    // The next monthly reading sees the same terminal position, and must not
+    // undo the decision that was already taken about it.
+    const again = assessCareerOutcome(
+      facts({ sellableHotelCount: 0, continueEndless: true }),
+    );
+    expect(again.distress).toBe("terminal");
+    expect(again.ended).toBe(false);
+    expect(again.continueEndless).toBe(true);
+  });
+
+  it("offers the 2026 choice without taking it for the player", () => {
+    const reviewed = assessCareerOutcome(facts({ netLiquidityMinor: 1 }));
+    expect(reviewed.careerMilestone2026).toBe(true);
+    expect(reviewed.continueEndless).toBe(false);
+  });
 
   it("refuses facts that are not whole", () => {
     expect(() =>

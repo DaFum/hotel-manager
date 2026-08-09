@@ -30641,6 +30641,7 @@
           "experience": 27,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30650,6 +30651,7 @@
           "experience": 32,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30659,6 +30661,7 @@
           "experience": 41,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30668,6 +30671,7 @@
           "experience": 27,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30677,6 +30681,7 @@
           "experience": 30,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30686,6 +30691,7 @@
           "experience": 25,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30695,6 +30701,7 @@
           "experience": 35,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30704,6 +30711,7 @@
           "experience": 30,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         },
         {
@@ -30713,6 +30721,7 @@
           "experience": 32,
           "leadership": 0,
           "monthsInRole": 1,
+          "active": true,
           "careerHistory": []
         }
       ],

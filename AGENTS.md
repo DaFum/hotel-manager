@@ -110,16 +110,16 @@ results:
 - `npm run build` — passed.
 - `npm run test:e2e` — passed (22 tests).
 - `npm run benchmark` — passed (a simulated year in 4.1s against a 30s budget).
-- `scripts/replay-plans-01-03.ts` — passed with hash `add41d5f`.
+- `scripts/replay-plans-01-03.ts` — passed with hash `4c76b90b`.
 - `scripts/verify-plans-01-03-long-run.ts` — passed.
 
 Plan 07 (content and authoring pipeline) is next.
 
-Plan 06 also carries scope its own plan named but this build does not model.
-Say so rather than implying otherwise: of the eight MASTER 4.5 recovery
-measures, only `refinance`, `sell-hotel` and `staff-reduction` are implemented;
-the other five are refused at the command boundary. Sandbox options are
-configured, validated and persisted, but no UI edits them.
+Plan 06 named scope this build does not model, and the difference must be
+stated rather than implied. Of the eight MASTER 4.5 recovery measures, this
+build implements three — `refinance`, `sell-hotel` and `staff-reduction` — and
+refuses the other five at the command boundary. Sandbox options are configured,
+validated and persisted, but nothing in the UI edits them.
 
 ### Plan 06: the campaign above the company
 
@@ -278,7 +278,9 @@ src/game/<system>/      rooms, staff, purchasing, bookings, revenue, guests, fnb
 src/game/content/rooms/ room modules (fit-out, linen, clean minutes, fit-out cost)
 src/game/campaign/      campaign configuration, career outcome, recovery measures
 src/game/narrative/     story definitions, event engine, outcomes, narrative state
-src/game/<campaign>/    chronicle, milestones, rivals, people, media, prestige
+src/game/chronicle/, src/game/milestones/, src/game/rivals/,
+src/game/people/, src/game/media/, src/game/prestige/
+                        the campaign's memory: what happened, who remembers it
 src/game/persistence/migrations/  versioned save migrations (v1 -> ... -> v6);
                         each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker

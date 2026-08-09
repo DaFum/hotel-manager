@@ -388,6 +388,12 @@ describe("domain event buffer", () => {
   function campaignScenario(): DomainEvent[] {
     const s = sim(11);
     const collected: DomainEvent[] = [];
+    // The campaign is agreed before the first day of it.
+    expect(
+      submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "expert" })
+        .status,
+    ).toBe("accepted");
+    collected.push(...s.takeDomainEvents());
     // A month of ordinary trading is enough for a travel writer to notice.
     collected.push(...runDays(s, 32));
     const raised = s.state.narrative.activeEvents[0];
@@ -406,6 +412,16 @@ describe("domain event buffer", () => {
       path: "refinance",
     });
     expect(measure.status).toBe("accepted");
+    collected.push(...s.takeDomainEvents());
+
+    // The 2026 review, put in front of the player rather than waited out.
+    s.state.narrative.career = {
+      ...s.state.narrative.career,
+      careerMilestone2026: true,
+    };
+    expect(submit(s, { type: "CONTINUE_ENDLESS_CAREER" }).status).toBe(
+      "accepted",
+    );
     collected.push(...s.takeDomainEvents());
     return collected;
   }

@@ -22,7 +22,11 @@ export function CareerOutcomeModal({
   onContinue?: () => void;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
-  const open = outcome.distress !== "healthy" || outcome.careerMilestone2026;
+  // Accepting endless play answers the review, so the review closes. A
+  // distressed company still has something to ask about.
+  const open =
+    outcome.distress !== "healthy" ||
+    (outcome.careerMilestone2026 && !outcome.continueEndless);
   useEffect(() => {
     if (open) heading.current?.focus();
   }, [open]);

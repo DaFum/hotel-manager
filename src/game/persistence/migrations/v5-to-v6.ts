@@ -1,13 +1,23 @@
 import type { SaveEnvelope } from "../saveVersions";
 import {
   createNarrativeState,
-  type AnnualProfitAccumulator,
   type NarrativeState,
 } from "../../narrative/narrativeState";
 import type { CareerFacts } from "../../campaign/careerOutcome";
 import { createRngStreams } from "../../domain/rng";
 import { CREDIT_LINE_MINOR } from "../../campaign/recovery";
 import { STARTER_HOTEL } from "../../content/1991/starterHotel";
+import {
+  isRecord,
+  isValidAnnualProfit,
+  isValidCampaign,
+  isValidCareer,
+  isValidChronicle,
+  isValidKeyPerson,
+  isValidMedia,
+  isValidPrestige,
+} from "../../narrative/narrativeSchema";
+import { isChronicleEntry } from "../../chronicle/chronicle";
 
 /**
  * v6 adds the campaign: its configuration, the story state it accumulates and
@@ -74,7 +84,7 @@ function careerFactsFor(state: Record<string, unknown>): CareerFacts {
     : [];
   const workforce = record(state.workforce);
   const employees = Array.isArray(workforce.employees)
-    ? (workforce.employees as Record<string, unknown>[])
+    ? workforce.employees.filter(isRecord)
     : [];
   const dateKey =
     typeof calendar.dateKey === "string" ? calendar.dateKey : "1991-01-01";
@@ -110,7 +120,11 @@ export function normaliseNarrative(
   const defaults = createNarrativeState({ career });
   const partial = isRecord(value) ? (value as Partial<NarrativeState>) : {};
   return {
-    chronicle: array(partial.chronicle, defaults.chronicle),
+    // A malformed entry is dropped rather than kept: the rest of the history
+    // is still true, and an unreadable line is not.
+    chronicle: Array.isArray(partial.chronicle)
+      ? partial.chronicle.filter(isChronicleEntry)
+      : defaults.chronicle,
     activeEvents: array(partial.activeEvents, defaults.activeEvents),
     achievedMilestones: array(
       partial.achievedMilestones,
@@ -119,38 +133,28 @@ export function normaliseNarrative(
     lastFiredByDefinition: isRecord(partial.lastFiredByDefinition)
       ? partial.lastFiredByDefinition
       : defaults.lastFiredByDefinition,
-    annualProfit: annualProfit(partial.annualProfit, defaults.annualProfit),
+    annualProfit: isValidAnnualProfit(partial.annualProfit)
+      ? partial.annualProfit
+      : defaults.annualProfit,
     rivals: array(partial.rivals, defaults.rivals),
-    keyPeople: array(partial.keyPeople, defaults.keyPeople),
-    media: isRecord(partial.media) ? partial.media : defaults.media,
-    prestige:
-      isRecord(partial.prestige) &&
-      Number.isSafeInteger((partial.prestige as { personal?: number }).personal)
-        ? partial.prestige
-        : defaults.prestige,
+    // Somebody whose months in the job cannot be counted cannot have a career
+    // progressed from them.
+    keyPeople: Array.isArray(partial.keyPeople)
+      ? partial.keyPeople.filter(isValidKeyPerson)
+      : defaults.keyPeople,
+    media: isValidMedia(partial.media) ? partial.media : defaults.media,
+    prestige: isValidPrestige(partial.prestige)
+      ? partial.prestige
+      : defaults.prestige,
     opportunities: array(partial.opportunities, defaults.opportunities),
     // Configuration and career reading are the two a wrong value would make
     // the run unreplayable, so both are all-or-nothing.
-    campaign: isRecord(partial.campaign) ? partial.campaign : defaults.campaign,
-    career: isRecord(partial.career) ? partial.career : defaults.career,
+    campaign: isValidCampaign(partial.campaign)
+      ? partial.campaign
+      : defaults.campaign,
+    career: isValidCareer(partial.career) ? partial.career : defaults.career,
   };
 }
-
-function annualProfit(
-  value: unknown,
-  fallback: AnnualProfitAccumulator,
-): AnnualProfitAccumulator {
-  if (!isRecord(value)) return fallback;
-  const candidate = value as Partial<AnnualProfitAccumulator>;
-  return Number.isSafeInteger(candidate.year) &&
-    Number.isSafeInteger(candidate.operatingProfitMinor) &&
-    Number.isSafeInteger(candidate.lastCompletedYearProfitMinor)
-    ? (candidate as AnnualProfitAccumulator)
-    : fallback;
-}
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
 
 const record = (value: unknown): Record<string, unknown> =>
   isRecord(value) ? value : {};

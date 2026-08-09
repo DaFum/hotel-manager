@@ -12,6 +12,7 @@ const person = (over: Partial<KeyPerson> = {}): KeyPerson => ({
   experience: 80,
   leadership: 65,
   monthsInRole: 40,
+  active: true,
   careerHistory: [],
   ...over,
 });
@@ -25,6 +26,12 @@ describe("key staff careers", () => {
         leadership: 65,
       }),
     ).toContain("front-office-manager"));
+
+  it("keeps a record for somebody who has left", () => {
+    const left = person({ active: false });
+    expect(left.careerHistory).toEqual([]);
+    expect(eligiblePromotions(left)).toContain("front-office-manager");
+  });
 
   it("keeps the record of how somebody got there", () => {
     const promoted = promote(person(), "front-office-manager", "1997-04-05");

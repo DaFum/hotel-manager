@@ -60,10 +60,40 @@ export function careerFacts(state: GameState): CareerFacts {
   return {
     netLiquidityMinor: netLiquidityMinor(state),
     creditHeadroomMinor: creditHeadroomMinor(state),
-    sellableHotelCount: sellableHotelIds(state).length,
+    sellableHotelCount: saleableForCashIds(state).length,
     reducibleStaffCount: reducibleEmployeeIds(state).length,
     year: Number(state.calendar.dateKey.slice(0, 4)),
   };
+}
+
+/**
+ * What selling one house would actually raise. Validation and execution read
+ * the same number, so a measure can never be offered on one calculation and
+ * carried out on another.
+ */
+export function disposalProceedsMinor(
+  state: GameState,
+  hotelId: string,
+): number {
+  const result = state.company.hotelResults[hotelId];
+  const annualGopMinor = Math.max(
+    0,
+    (result?.grossOperatingProfitMinor ?? 0) * 12,
+  );
+  const { equityValueMinor } = valueHotel({
+    annualGopMinor,
+    multipleBasisPoints: MARKET_GOP_MULTIPLE_BP,
+    renovationNeedMinor: 0,
+    debtAssumedMinor: 0,
+  });
+  return Math.max(0, equityValueMinor);
+}
+
+/** Houses whose sale would actually raise cash. */
+export function saleableForCashIds(state: GameState): string[] {
+  return sellableHotelIds(state).filter(
+    (id) => disposalProceedsMinor(state, id) > 0,
+  );
 }
 
 /** Roughly what a managed house employs; enough to say what a sale costs. */
@@ -91,8 +121,12 @@ export function validateRecoveryPath(
     return { ok: false, reason: "the company is not in distress" };
   if (path === "refinance" && creditHeadroomMinor(state) <= 0)
     return { ok: false, reason: "the credit line is exhausted" };
-  if (path === "sell-hotel" && sellableHotelIds(state).length === 0)
-    return { ok: false, reason: "no hotel can be sold" };
+  if (path === "sell-hotel" && saleableForCashIds(state).length === 0)
+    return {
+      ok: false,
+      // A sale that raises nothing is not a way out of a liquidity problem.
+      reason: "no hotel would raise anything on a sale",
+    };
   if (path === "staff-reduction" && reducibleEmployeeIds(state).length === 0)
     return { ok: false, reason: "the roster is already minimal" };
   return { ok: true };
@@ -131,19 +165,9 @@ export function applyRecoveryPath(
       return { measure: path, amountMinor: drawn };
     }
     case "sell-hotel": {
-      const hotelId = sellableHotelIds(state)[0];
+      const hotelId = saleableForCashIds(state)[0];
       const result = state.company.hotelResults[hotelId];
-      const annualGopMinor = Math.max(
-        0,
-        (result?.grossOperatingProfitMinor ?? 0) * 12,
-      );
-      const { equityValueMinor } = valueHotel({
-        annualGopMinor,
-        multipleBasisPoints: MARKET_GOP_MULTIPLE_BP,
-        renovationNeedMinor: 0,
-        debtAssumedMinor: 0,
-      });
-      const proceeds = Math.max(0, equityValueMinor);
+      const proceeds = disposalProceedsMinor(state, hotelId);
       // Selling a house is not only a receipt. The people in it and the town
       // it stands in are consequences too, and both are stated rather than
       // scored: there is no morality meter, only what happens.
@@ -174,12 +198,19 @@ export function applyRecoveryPath(
     }
     case "staff-reduction": {
       const id = reducibleEmployeeIds(state)[0];
+      const staffId = state.workforce.employees.find(
+        (e) => e.id === id,
+      )?.staffId;
       const { state: workforce, severanceMinor } = dismiss(
         state.workforce,
         id,
         "restructuring",
       );
       state.workforce = workforce;
+      // Somebody who has left cannot still be on the roster: the employment
+      // day removes the staff record on a resignation and so must this.
+      if (staffId)
+        state.staff = state.staff.filter((member) => member.id !== staffId);
       // Severance is paid whether or not the company can afford it; that is
       // why cutting staff to survive can push the account further down first.
       if (severanceMinor > 0)

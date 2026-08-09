@@ -180,7 +180,13 @@ export type DomainEventPayload =
       type: "RECOVERY_MEASURE_TAKEN";
       measure: string;
       amountMinor: number;
-    };
+    }
+  | {
+      type: "CAMPAIGN_DIFFICULTY_SET";
+      difficulty: string;
+      openingCapitalDeltaMinor: number;
+    }
+  | { type: "ENDLESS_CAREER_CONTINUED"; dateKey: string };
 
 export type DomainEventType = DomainEventPayload["type"];
 
@@ -243,6 +249,8 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   NARRATIVE_EVENT_RAISED: true,
   NARRATIVE_EVENT_RESOLVED: true,
   RECOVERY_MEASURE_TAKEN: true,
+  CAMPAIGN_DIFFICULTY_SET: true,
+  ENDLESS_CAREER_CONTINUED: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -295,6 +303,8 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "NARRATIVE_EVENT_RAISED",
   "NARRATIVE_EVENT_RESOLVED",
   "RECOVERY_MEASURE_TAKEN",
+  "CAMPAIGN_DIFFICULTY_SET",
+  "ENDLESS_CAREER_CONTINUED",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

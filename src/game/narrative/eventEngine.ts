@@ -34,9 +34,17 @@ export function eligibleEvents(
 }
 
 /**
- * Picks one of the eligible stories from a drawn number. The draw comes from a
- * seeded stream, so the same world always tells the same story; ids are
- * compared without locale collation for the same reason.
+ * Picks one of the eligible stories from a drawn number.
+ *
+ * Selection is deliberately uniform over what is eligible. `priority` is
+ * ordering metadata — it decides which story a caller that wants one story
+ * reads first, and it breaks ties before the id does — not a weight: a
+ * high-priority story does not get proportionally more draws. If weighted
+ * selection is ever wanted, it is a simulation-contract change, because every
+ * recorded replay depends on which story this returns.
+ *
+ * The draw comes from a seeded stream, so the same world always tells the same
+ * story; ids are compared without locale collation for the same reason.
  */
 export function selectNarrativeEvent(
   eligible: readonly NarrativeDefinition[],

@@ -926,6 +926,10 @@ export class GameSimulation implements CommandExecutor {
         const delta = opening - s.finance.cashMinor;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
+          // The month's opening balance is what the close measures the cash
+          // movement against; leaving it behind would report a delta the
+          // hotel never traded.
+          s.finance.month.openingCashMinor = opening;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
             account: "capital",
@@ -943,6 +947,14 @@ export class GameSimulation implements CommandExecutor {
         };
         syncTreasury(s);
         refreshCareerOutcome(s);
+        this.emit(
+          {
+            type: "CAMPAIGN_DIFFICULTY_SET",
+            difficulty: campaign.difficulty,
+            openingCapitalDeltaMinor: delta,
+          },
+          [s.company.companyId],
+        );
         return;
       }
       case "RESOLVE_NARRATIVE_EVENT": {
@@ -978,6 +990,13 @@ export class GameSimulation implements CommandExecutor {
       }
       case "CONTINUE_ENDLESS_CAREER": {
         s.narrative.career = chooseEndlessContinuation(s.narrative.career);
+        this.emit(
+          {
+            type: "ENDLESS_CAREER_CONTINUED",
+            dateKey: s.calendar.dateKey,
+          },
+          [s.company.companyId],
+        );
         return;
       }
       default: {

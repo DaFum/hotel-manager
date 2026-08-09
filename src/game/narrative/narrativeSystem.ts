@@ -129,17 +129,20 @@ export function resolveNarrativeChoice(
   const n = state.narrative;
   const event = n.activeEvents.find((e) => e.id === eventId)!;
   const effect = NARRATIVE_CHOICE_EFFECTS[`${event.definitionId}:${choiceId}`];
+  // What kind of decision this is comes from the declared effect, never from
+  // the shape of the choice id.
   const effects = commandsForNarrativeChoice(
-    choiceId === "decline"
+    effect.costMinor === 0
       ? { kind: "decline", reputationDelta: effect.reputationDelta }
       : {
           kind: "compensate-displaced-guests",
           costMinor: effect.costMinor,
           reputationDelta: effect.reputationDelta,
+          account: effect.account,
         },
   );
   applyNarrativeEffects(state, effects, ctx, event.definitionId);
-  if (event.definitionId === "narrative.digital-bet" && choiceId !== "decline")
+  if (event.definitionId === "narrative.digital-bet" && choiceId === "invest")
     n.opportunities = [
       ...n.opportunities,
       {
@@ -192,7 +195,11 @@ export function applyNarrativeEffects(
 
 /** The career reading, taken from the position the company is actually in. */
 export function refreshCareerOutcome(state: GameState): void {
-  state.narrative.career = assessCareerOutcome(careerFacts(state));
+  state.narrative.career = assessCareerOutcome({
+    ...careerFacts(state),
+    // The player's decision to keep going outlives the reading that offered it.
+    continueEndless: state.narrative.career?.continueEndless === true,
+  });
 }
 
 const adoptionBp = (state: GameState, id: string) =>
@@ -298,24 +305,30 @@ function refreshKeyPeople(state: GameState): void {
   const working = state.workforce.employees
     .filter((e) => e.status === "working")
     .sort((a, b) => compareIds(a.id, b.id));
+  const workingStaffIds = new Set(working.map((e) => e.staffId));
 
   const byStaffId = new Map(n.keyPeople.map((p) => [p.staffId, p]));
-  const next = working.map((employee) => {
-    const existing = byStaffId.get(employee.staffId);
-    const person = existing ?? {
+  const advanced = working.map((employee) => {
+    const person = byStaffId.get(employee.staffId) ?? {
       id: `person.${employee.staffId}`,
       staffId: employee.staffId,
       role: roleOf(employee.staffId),
       experience: 0,
       leadership: 0,
       monthsInRole: 0,
+      active: true,
       careerHistory: [],
     };
     const monthsInRole = person.monthsInRole + 1;
+    // Each contributor is whole before it is added; a half-month of skill is
+    // not a thing the record can hold.
     const grown = {
       ...person,
+      active: true,
       monthsInRole,
-      experience: clampScore(Math.trunc(monthsInRole / 2) + employee.skill / 2),
+      experience: clampScore(
+        Math.trunc(monthsInRole / 2) + Math.trunc(employee.skill / 2),
+      ),
       leadership: clampScore(
         Math.trunc(monthsInRole / 3) + employee.trainingCompleted.length * 5,
       ),
@@ -325,7 +338,18 @@ function refreshKeyPeople(state: GameState): void {
       ? promote(grown, promotion, state.calendar.dateKey)
       : grown;
   });
-  n.keyPeople = next.sort((a, b) => compareIds(a.id, b.id));
+
+  // Somebody off sick, on leave or long gone keeps their history and their
+  // months in the job; they simply stop accruing while they are not working.
+  const dormant = n.keyPeople
+    .filter((person) => !workingStaffIds.has(person.staffId))
+    .map((person) =>
+      person.active === false ? person : { ...person, active: false },
+    );
+
+  n.keyPeople = [...advanced, ...dormant].sort((a, b) =>
+    compareIds(a.id, b.id),
+  );
 }
 
 const clampScore = (value: number) =>

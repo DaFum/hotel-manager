@@ -6,11 +6,15 @@ import { assertMinor, assertNonNegativeMinor } from "../domain/units";
  * ordinary finance and reputation systems carry out, so a narrative decision
  * moves money exactly the way every other decision does.
  */
+export type NarrativeExpenseAccount = "guest-recovery" | "investment";
+
 export type NarrativeChoice =
   | {
       kind: "compensate-displaced-guests";
       costMinor: number;
       reputationDelta: number;
+      /** Defaults to guest recovery, which is what compensation is. */
+      account?: NarrativeExpenseAccount;
     }
   | { kind: "decline"; reputationDelta: number };
 
@@ -21,7 +25,11 @@ export type NarrativeChoice =
  * simulation is the only executor.
  */
 export type NarrativeOutcomeEffect =
-  | { type: "POST_EXPENSE"; amountMinor: number; category: "guest-recovery" }
+  | {
+      type: "POST_EXPENSE";
+      amountMinor: number;
+      category: NarrativeExpenseAccount;
+    }
   | { type: "ADJUST_REPUTATION"; dimension: "hotel"; delta: number };
 
 export function commandsForNarrativeChoice(
@@ -43,7 +51,7 @@ export function commandsForNarrativeChoice(
     {
       type: "POST_EXPENSE",
       amountMinor: choice.costMinor,
-      category: "guest-recovery",
+      category: choice.account ?? "guest-recovery",
     },
     {
       type: "ADJUST_REPUTATION",

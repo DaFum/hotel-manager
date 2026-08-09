@@ -56,6 +56,12 @@ export interface CareerFacts {
   /** Positions that could be cut without closing the house. */
   reducibleStaffCount: number;
   year: number;
+  /**
+   * Whether the player has already chosen to keep going. It is their decision
+   * and it survives every later reading: a career that was continued is not
+   * re-ended by the next monthly refresh.
+   */
+  continueEndless?: boolean;
 }
 
 export function assessCareerOutcome(input: CareerFacts): CareerOutcomeState {
@@ -76,12 +82,15 @@ export function assessCareerOutcome(input: CareerFacts): CareerOutcomeState {
       : paths.length > 0
         ? "recoverable"
         : "terminal";
+  const continueEndless = input.continueEndless === true;
   return {
     distress,
     availableRecoveryPaths: distress === "recoverable" ? paths : [],
+    // 2026 is a milestone, not a stop. Reaching it offers the choice; only
+    // taking the choice sets `continueEndless`.
     careerMilestone2026: input.year >= 2026,
-    continueEndless: input.year >= 2026,
-    ended: distress === "terminal",
+    continueEndless,
+    ended: distress === "terminal" && !continueEndless,
   };
 }
 

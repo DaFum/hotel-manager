@@ -750,6 +750,14 @@ npm run test:run -- src/game/persistence/migrations/v5-to-v6.test.ts && npm run 
 npm run typecheck
 ```
 
+Verified 2026-08-09. Deterministic replay after the v6 schema change was proven
+by re-recording the corpus and replaying it:
+
+```bash
+node --import tsx scripts/record-replay-corpus.ts   # recorded hash=4c76b90b
+node --import tsx scripts/replay-plans-01-03.ts     # replay hash=4c76b90b
+```
+
 - [x] **Step 5: Commit**
 
 ```bash
@@ -804,6 +812,18 @@ npm run test:run -- src/game/campaign src/game/narrative
 npm run test:e2e -- e2e/campaign.spec.ts
 npm run typecheck
 ```
+
+Verified 2026-08-09. The deterministic campaign replay claim rests on two
+things, both re-run after the campaign became part of the simulation:
+
+```bash
+node --import tsx scripts/replay-plans-01-03.ts        # replay hash=4c76b90b
+node --import tsx scripts/verify-plans-01-03-long-run.ts   # passed
+```
+
+The narrative's own determinism is covered in-suite by
+`src/game/narrative/narrativeSystem.test.ts`, which runs two simulations from
+the same seed and requires the same story to be raised in both.
 
 - [x] **Step 5: Commit:**
 

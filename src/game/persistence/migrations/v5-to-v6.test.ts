@@ -62,11 +62,12 @@ describe("v5 to v6", () => {
     const company = state.company as { portfolio: { hotelIds: string[] } };
     company.portfolio.hotelIds = [(state.hotel as { id: string }).id];
     const migrated = migrateV5ToV6(distressed);
-    const career = (migrated.state as { narrative: { career: unknown } })
-      .narrative.career as { distress: string };
+    const migratedCareer = (
+      migrated.state as { narrative: { career: unknown } }
+    ).narrative.career as { distress: string };
     // Nothing left to draw on and nothing to sell: the save was already there
     // before it was migrated, and it still is afterwards.
-    expect(career.distress).toBe("terminal");
+    expect(migratedCareer.distress).toBe("terminal");
   });
 
   it("replaces a malformed section instead of spreading it through", () => {
@@ -104,7 +105,7 @@ describe("v5 to v6", () => {
     };
     state.narrative.annualProfit.operatingProfitMinor = 0.5;
     expect(validateEnvelope(broken)).toContain(
-      "the narrative carries a value that is not a whole number",
+      "the state has no complete Plan 06 narrative",
     );
   });
 });

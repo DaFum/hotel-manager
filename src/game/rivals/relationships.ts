@@ -38,12 +38,13 @@ export function applyRivalInteraction(
     ...state,
     rivalry: clamp(rivalry + (hostile ? 10 : cooperative ? -5 : 0)),
     trust: clamp(trust + (hostile ? -5 : cooperative ? 10 : 0)),
-    // A copy: the caller keeps its event, and what the rival remembers can
-    // never be edited afterwards by whoever raised it. Bounded, so a
-    // thirty-five year career does not carry an unbounded grudge list.
-    memories: [...state.memories, { kind: event.kind, year: event.year }].slice(
-      -MEMORY_LIMIT,
-    ),
+    // Copies throughout: neither the caller's event nor the memories it
+    // handed in stay reachable from what the rival remembers, so a later edit
+    // to either cannot rewrite history. Bounded, so a thirty-five year career
+    // does not carry an unbounded grudge list.
+    memories: [...state.memories, event]
+      .slice(-MEMORY_LIMIT)
+      .map((memory) => ({ kind: memory.kind, year: memory.year })),
   };
 }
 

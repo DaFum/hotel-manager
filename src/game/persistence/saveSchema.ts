@@ -6,6 +6,15 @@ import { migrateV3ToV4 } from "./migrations/v3-to-v4";
 import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import { migrateV5ToV6 } from "./migrations/v5-to-v6";
 import {
+  isValidAnnualProfit,
+  isValidCampaign,
+  isValidCareer,
+  isValidChronicle,
+  isValidKeyPerson,
+  isValidMedia,
+  isValidPrestige,
+} from "../narrative/narrativeSchema";
+import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
   RNG_STREAM_NAMES,
@@ -99,41 +108,24 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   const narrative = state.narrative;
   if (
     !narrative ||
-    !Array.isArray(narrative.chronicle) ||
     !Array.isArray(narrative.activeEvents) ||
     !Array.isArray(narrative.achievedMilestones) ||
     !Array.isArray(narrative.rivals) ||
-    !Array.isArray(narrative.keyPeople) ||
     !Array.isArray(narrative.opportunities) ||
     !narrative.lastFiredByDefinition ||
-    !narrative.media ||
-    !narrative.prestige ||
-    !narrative.annualProfit ||
-    !narrative.campaign ||
-    !narrative.campaign.inputs ||
-    !narrative.campaign.sandbox ||
-    !narrative.career ||
-    !Array.isArray(narrative.career.availableRecoveryPaths)
+    !isValidChronicle(narrative.chronicle) ||
+    !Array.isArray(narrative.keyPeople) ||
+    !narrative.keyPeople.every(isValidKeyPerson) ||
+    !isValidAnnualProfit(narrative.annualProfit) ||
+    !isValidMedia(narrative.media) ||
+    !isValidPrestige(narrative.prestige) ||
+    !isValidCampaign(narrative.campaign) ||
+    !isValidCareer(narrative.career)
   )
+    // The same validators the migration normalises against: anything that
+    // still fails here is a save the simulation would restore into arithmetic
+    // on a value that is not a number.
     problems.push("the state has no complete Plan 06 narrative");
-  // The campaign's numbers decide what a replay does; a fractional or
-  // non-finite one is a corrupt save rather than a playable one.
-  else if (
-    ![
-      narrative.annualProfit.year,
-      narrative.annualProfit.operatingProfitMinor,
-      narrative.annualProfit.lastCompletedYearProfitMinor,
-      narrative.prestige.personal,
-      narrative.prestige.company,
-      ...Object.values(
-        narrative.campaign.inputs as unknown as Record<string, number>,
-      ),
-      ...Object.values(
-        narrative.campaign.sandbox as unknown as Record<string, number>,
-      ),
-    ].every((value) => Number.isSafeInteger(value))
-  )
-    problems.push("the narrative carries a value that is not a whole number");
   const company = state.company;
   if (
     !company ||

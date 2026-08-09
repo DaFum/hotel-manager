@@ -11,7 +11,12 @@ import {
   recogniseReceivable,
   settleReceivable,
 } from "./statements";
-import { debtSchedule, restructure, isInsolvent } from "./debt";
+import {
+  debtSchedule,
+  isInsolvent,
+  MAX_LOAN_TERM_MONTHS,
+  restructure,
+} from "./debt";
 
 const LEDGER = [
   { day: 1, account: "roomRevenue", amountMinor: 1_000_000, memo: "rooms" },
@@ -144,6 +149,26 @@ describe("debt, collateral and insolvency", () => {
     expect(schedule.at(-1)!.interestMinor).toBeLessThan(
       schedule[0].interestMinor,
     );
+  });
+
+  it("rejects debt interest and restructured terms outside safe bounds", () => {
+    expect(() =>
+      debtSchedule({
+        principalMinor: Number.MAX_SAFE_INTEGER,
+        annualRateBasisPoints: 1_000_000,
+        termMonths: 1,
+      }),
+    ).toThrow(/interest/);
+    expect(() =>
+      restructure(
+        {
+          principalMinor: 1,
+          annualRateBasisPoints: 100,
+          termMonths: MAX_LOAN_TERM_MONTHS,
+        },
+        { extraMonths: 1 },
+      ),
+    ).toThrow(/term exceeds maximum/);
   });
 
   it("calls a house insolvent on the balance sheet, not on a bad month", () => {

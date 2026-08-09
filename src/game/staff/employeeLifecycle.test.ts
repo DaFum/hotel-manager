@@ -59,6 +59,13 @@ describe("employee lifecycle", () => {
     );
   });
 
+  it("preserves fractional morale strain across separately worked hours", () => {
+    let state = workOvertime(hired(), "employee.1", OVERTIME_TOLERANCE_HOURS);
+    for (let hour = 0; hour < 4; hour += 1)
+      state = workOvertime(state, "employee.1", 1);
+    expect(state.employees[0].morale).toBe(64);
+  });
+
   it("makes illness likelier for the people who were worked hardest", () => {
     const rested = hired().employees[0];
     const worked = workOvertime(hired(), "employee.1", 60).employees[0];

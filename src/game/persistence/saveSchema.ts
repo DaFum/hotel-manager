@@ -3,7 +3,7 @@ import type { GameState } from "../simulation/initialState";
 import { migrateV1ToV2 } from "./migrations/v1-to-v2";
 import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import { migrateV3ToV4 } from "./migrations/v3-to-v4";
-import { migrateV4ToV5 } from "./migrations/v4-to-v5";
+import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
@@ -165,6 +165,9 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     4: migrateV4ToV5,
   };
   let current = envelope;
+  // Early v5 builds wrote fields whose accounting and unit upgrades must be
+  // completed even though the public save version did not change.
+  if (current.saveVersion === 5) current = migrateEarlyV5Fields(current);
   if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
     current = migrateV3ToV4(current);
   while (

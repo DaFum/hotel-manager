@@ -143,6 +143,35 @@ describe("board plans and the kitchen", () => {
     ).toBe(0);
   });
 
+  it("rejects unsafe food-waste costs", () => {
+    expect(() =>
+      foodWaste({
+        prepared: 1,
+        sold: 0,
+        recipes: [{ ...RECIPES[0], ingredientCostMinor: Number.NaN }],
+      }),
+    ).toThrow(/ingredient cost/);
+    expect(() =>
+      foodWaste({
+        prepared: 1,
+        sold: 0,
+        recipes: [
+          { ...RECIPES[0], ingredientCostMinor: Number.MAX_SAFE_INTEGER },
+          { ...RECIPES[1], ingredientCostMinor: Number.MAX_SAFE_INTEGER },
+        ],
+      }),
+    ).toThrow(/food waste/);
+    expect(() =>
+      foodWaste({
+        prepared: 2,
+        sold: 0,
+        recipes: [
+          { ...RECIPES[0], ingredientCostMinor: Number.MAX_SAFE_INTEGER },
+        ],
+      }),
+    ).toThrow(/food waste/);
+  });
+
   it("holds reserved seats back and turns away what it cannot seat", () => {
     const input = {
       seats: 40,
@@ -315,6 +344,13 @@ describe("event negotiation", () => {
       floorBasisPoints: 8000,
     });
     expect(small.discountBasisPoints).toBeLessThan(big.discountBasisPoints);
+    expect(
+      negotiatedRateMinor({
+        listRateMinor: Number.MAX_SAFE_INTEGER,
+        guests: 100,
+        floorBasisPoints: 8000,
+      }).rateMinor,
+    ).toBe(7_205_759_403_792_792);
   });
 });
 
@@ -397,6 +433,25 @@ describe("laundry and engineering", () => {
     expect(shift.cause).toMatch(/out of engineer hours at job.revenue/);
     expect(unsafeUnits(shift.deferred)).toBe(0);
     expect(unsafeUnits(jobs)).toBe(6);
+  });
+
+  it("rejects an unsafe deferred-cost total", () => {
+    const job = {
+      id: "job.unsafe",
+      assetId: "a",
+      workClass: "cosmetic" as const,
+      minutes: 1,
+      costMinor: 1,
+      blocksUnits: 0,
+      deferredCostMinor: Number.MAX_SAFE_INTEGER,
+    };
+    expect(() =>
+      scheduleShift({
+        jobs: [job, { ...job, id: "job.unsafe.2" }],
+        availableMinutes: 0,
+        budgetMinor: 0,
+      }),
+    ).toThrow(/deferred cost/);
   });
 
   it("stops when the money runs out, and says that is what stopped it", () => {

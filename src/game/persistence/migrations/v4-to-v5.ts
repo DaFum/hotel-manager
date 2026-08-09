@@ -8,6 +8,7 @@ import { createStatements } from "../../finance/statements";
 import { createInsuranceState } from "../../risk/insurance";
 import { createUtilityContracts } from "../../utilities/consumption";
 import { createCommercialState } from "../../commercial/commercialState";
+import { POINT_VALUE_MINOR } from "../../commercial/loyalty";
 import { createReputationState } from "../../reputation/dimensions";
 import {
   createContract,
@@ -57,7 +58,7 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
         waste: 0,
       }),
       outages: Array.isArray(state.outages) ? state.outages : [],
-      commercial: normalisedSection(state.commercial, createCommercialState()),
+      commercial: normalisedCommercial(state.commercial),
       reputation: normalisedSection(state.reputation, createReputationState()),
       // A v4 save has staff but no employment records; each of them gets a
       // contract on the terms the save already knows they are paid.
@@ -74,10 +75,7 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
         createGuestRelationsState(),
       ),
       recoveries: Array.isArray(state.recoveries) ? state.recoveries : [],
-      commercialSpaces: normalisedSection(
-        state.commercialSpaces,
-        createCommercialSpaceState(),
-      ),
+      commercialSpaces: normalisedCommercialSpaces(state.commercialSpaces),
       // Derived, and restated on the first snapshot after the load; the save
       // only carries it so the shape is complete.
       lobby: normalisedSection(state.lobby, {
@@ -88,6 +86,16 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
       }),
     },
   };
+}
+
+/** Repairs fields written by early v5 builds without supplying missing sections. */
+export function migrateEarlyV5Fields(save: SaveEnvelope): SaveEnvelope {
+  const state = structuredClone((save.state ?? {}) as Record<string, unknown>);
+  if (state.commercial && typeof state.commercial === "object")
+    state.commercial = normalisedCommercial(state.commercial);
+  if (state.commercialSpaces && typeof state.commercialSpaces === "object")
+    state.commercialSpaces = normalisedCommercialSpaces(state.commercialSpaces);
+  return { ...save, state };
 }
 
 /**
@@ -106,6 +114,44 @@ function normalisedSection<T extends object>(raw: unknown, created: T): T {
   return raw && typeof raw === "object"
     ? { ...created, ...(raw as T) }
     : created;
+}
+
+function normalisedCommercial(raw: unknown) {
+  const commercial = normalisedSection(raw, createCommercialState());
+  const loyalty = normalisedSection(
+    commercial.loyalty,
+    createCommercialState().loyalty,
+  );
+  const members = Array.isArray(loyalty.members)
+    ? loyalty.members.map((member) => ({ ...member }))
+    : [];
+  const backedPoints = Math.max(
+    0,
+    Math.trunc(loyalty.liabilityMinor / POINT_VALUE_MINOR),
+  );
+  let pointsToRemove = Math.max(
+    0,
+    members.reduce((sum, member) => sum + member.points, 0) - backedPoints,
+  );
+  for (const member of members) {
+    const removed = Math.min(member.points, pointsToRemove);
+    member.points -= removed;
+    pointsToRemove -= removed;
+  }
+  return { ...commercial, loyalty: { ...loyalty, members } };
+}
+
+function normalisedCommercialSpaces(raw: unknown) {
+  const section = normalisedSection(raw, createCommercialSpaceState());
+  return {
+    ...section,
+    spaces: section.spaces.map((space) => ({
+      ...space,
+      fitBp: Number.isSafeInteger(space.fitBp)
+        ? space.fitBp
+        : (space.fit ?? 0) * 100,
+    })),
+  };
 }
 
 /**

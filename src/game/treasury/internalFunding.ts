@@ -10,9 +10,14 @@ export function transferInternalFunding(
   amountMinor: number,
 ): { fromMinor: number; toMinor: number } {
   if (
+    !Number.isSafeInteger(balances.fromMinor) ||
+    balances.fromMinor < 0 ||
+    !Number.isSafeInteger(balances.toMinor) ||
+    balances.toMinor < 0 ||
     !Number.isSafeInteger(amountMinor) ||
     amountMinor < 0 ||
-    amountMinor > balances.fromMinor
+    amountMinor > balances.fromMinor ||
+    !Number.isSafeInteger(balances.toMinor + amountMinor)
   )
     throw new Error(
       `invalid transfer of ${amountMinor} from ${balances.fromMinor}`,

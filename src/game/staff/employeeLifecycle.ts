@@ -135,12 +135,13 @@ export function workOvertime(
       0,
       employee.overtimeHours - OVERTIME_TOLERANCE_HOURS,
     );
-    const addedExcess =
-      Math.max(0, total - OVERTIME_TOLERANCE_HOURS) - previousExcess;
+    const totalExcess = Math.max(0, total - OVERTIME_TOLERANCE_HOURS);
+    const moralePenalty =
+      Math.trunc(totalExcess / 4) - Math.trunc(previousExcess / 4);
     return {
       ...employee,
       overtimeHours: total,
-      morale: Math.max(0, employee.morale - Math.trunc(addedExcess / 4)),
+      morale: Math.max(0, employee.morale - moralePenalty),
     };
   });
 }

@@ -75,6 +75,13 @@ describe("booking engine", () => {
     expect(accepted.guestId).toBe("guest.returning.1");
     expect(accepted.guestId).not.toBe(accepted.id);
   });
+
+  it("rejects a blank guest identity", () => {
+    expect(() => reserve(flat(2), request({ guestId: "   " }))).toThrow(
+      "invalid guest id",
+    );
+  });
+
   it("reserves multiple room nights only inside inventory", () => {
     const b = reserve(flat(5), request({ roomsRequested: 2 }));
     expect(b.roomsRequested).toBe(2);

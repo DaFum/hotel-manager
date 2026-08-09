@@ -2,11 +2,7 @@ import { describe, expect, it } from "vitest";
 import { GameSimulation, PHASE_ORDER } from "./GameSimulation";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
-import {
-  createInitialGameState,
-  type GameState,
-  type StayRecord,
-} from "./initialState";
+import { createInitialGameState, type GameState } from "./initialState";
 import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
 import { reserve } from "../bookings/bookingEngine";
 
@@ -46,21 +42,7 @@ describe("simulation order", () => {
       booking("booking.return.1"),
       booking("booking.return.2"),
     ];
-    const record = (
-      sim as unknown as { recordCommercialStay(stay: StayRecord): void }
-    ).recordCommercialStay.bind(sim);
-    record({
-      bookingId: "booking.return.1",
-      roomId: "room.1",
-      rateMinor: 10_000,
-      departureDateKey: "1991-01-02",
-    });
-    record({
-      bookingId: "booking.return.2",
-      roomId: "room.1",
-      rateMinor: 10_000,
-      departureDateKey: "1991-01-03",
-    });
+    runQuanta(sim, QUANTA_PER_DAY);
     expect(sim.state.commercial.crm.profiles).toMatchObject([
       {
         guestId: "guest.returning.1",

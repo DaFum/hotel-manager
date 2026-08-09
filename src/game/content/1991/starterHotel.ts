@@ -63,7 +63,7 @@ export const STARTER_COMMERCIAL_SPACES = [
     unitPriceMinor: 900,
     operator: { kind: "self" as const, marginBasisPoints: 3500 },
     staffRequired: 0,
-    fit: 55,
+    fitBp: 5500,
     maintenanceMinor: 25_000,
   },
   {
@@ -75,7 +75,7 @@ export const STARTER_COMMERCIAL_SPACES = [
     unitPriceMinor: 1_200,
     operator: { kind: "self" as const, marginBasisPoints: 7000 },
     staffRequired: 0,
-    fit: 70,
+    fitBp: 7000,
     maintenanceMinor: 30_000,
   },
   {
@@ -87,7 +87,7 @@ export const STARTER_COMMERCIAL_SPACES = [
     unitPriceMinor: 0,
     operator: { kind: "self" as const, marginBasisPoints: 0 },
     staffRequired: 0,
-    fit: 65,
+    fitBp: 6500,
     maintenanceMinor: 12_000,
   },
 ] as const;

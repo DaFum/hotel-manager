@@ -24,12 +24,14 @@ let simulation = new GameSimulation(state);
 const checkpointTimes = corpus.monthlyCheckpoints.map((c) => c.atMinutes);
 const monthlyCheckpoints: ReplayCorpus["monthlyCheckpoints"] = [];
 const orderedEvents: ReplayCorpus["orderedEvents"] = [];
+const commands: ReplayCorpus["commands"] = [];
 
 for (let index = 0; index < corpus.commands.length; index++) {
   const recorded = corpus.commands[index];
   while (simulation.state.elapsedMinutes < recorded.envelope.issuedAtMinutes)
     simulation.advanceQuantum();
-  simulation.submitCommands([recorded.envelope]);
+  const [result] = simulation.submitCommands([recorded.envelope]);
+  commands.push({ ...recorded, expectedStatus: result.status });
   orderedEvents.push(...simulation.takeDomainEvents());
   const nextIssuedAt = corpus.commands[index + 1]?.envelope.issuedAtMinutes;
   if (
@@ -48,20 +50,21 @@ const rerecorded: ReplayCorpus = {
   // The declared versions stay as recorded: they describe the build that
   // first took this corpus, and the replay runs from an initial state rather
   // than from a stored save.
+  commands,
   orderedEvents,
   monthlyCheckpoints,
   finalStateHash: stateHash(simulation.snapshot()),
 };
 
-writeFileSync(
-  new URL("../fixtures/replay/plans-01-03.json", import.meta.url),
-  `${JSON.stringify(rerecorded, null, 2)}\n`,
-);
-
 // A recording nobody can reproduce is worthless, so prove it immediately.
 const verify = replayCorpus(rerecorded);
 if (verify.hash !== rerecorded.finalStateHash)
   throw new Error("the re-recorded corpus does not reproduce its own hash");
+
+writeFileSync(
+  new URL("../fixtures/replay/plans-01-03.json", import.meta.url),
+  `${JSON.stringify(rerecorded, null, 2)}\n`,
+);
 
 process.stdout.write(
   `recorded hash=${rerecorded.finalStateHash} events=${orderedEvents.length} checkpoints=${monthlyCheckpoints.length}\n`,

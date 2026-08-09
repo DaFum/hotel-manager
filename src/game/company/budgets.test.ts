@@ -52,6 +52,7 @@ describe("hotel budgets", () => {
       budgetVariance({
         targetMinor: 20_000_000,
         actualMinor: 22_500_000,
+        type: "revenue",
       }),
     ).toEqual({
       varianceMinor: 2_500_000,
@@ -59,14 +60,20 @@ describe("hotel budgets", () => {
       favourable: true,
     });
     expect(
-      budgetVariance({ targetMinor: 20_000_000, actualMinor: 18_000_000 }),
+      budgetVariance({
+        targetMinor: 20_000_000,
+        actualMinor: 18_000_000,
+        type: "revenue",
+      }),
     ).toEqual({
       varianceMinor: -2_000_000,
       varianceBasisPoints: -1000,
       favourable: false,
     });
     // A target of nothing cannot be missed by a percentage.
-    expect(budgetVariance({ targetMinor: 0, actualMinor: 500 })).toEqual({
+    expect(
+      budgetVariance({ targetMinor: 0, actualMinor: 500, type: "revenue" }),
+    ).toEqual({
       varianceMinor: 500,
       varianceBasisPoints: 0,
       favourable: true,

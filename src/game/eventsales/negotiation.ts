@@ -87,12 +87,15 @@ export function executionPeaks(input: {
     { minuteOfDay: 750, covers: input.guests, cause: "lunch" },
   ];
   // Each further session adds an afternoon break of its own.
-  for (let session = 1; session < input.sessionCount; session += 1)
+  for (let session = 1; session < input.sessionCount; session += 1) {
+    const minuteOfDay = 900 + session * 60;
+    if (minuteOfDay >= 1440) break;
     peaks.push({
-      minuteOfDay: 900 + session * 60,
+      minuteOfDay,
       covers: Math.trunc(input.guests / 2),
       cause: `break after session ${session}`,
     });
+  }
   return peaks;
 }
 
@@ -109,6 +112,7 @@ export function delayedCityEffect(input: {
   startDateKey: string;
 }): { fromDateKey: string; extraRoomNights: number; cause: string } {
   assertCount(input.guests, "event guests");
+  assertCount(input.satisfaction, "event satisfaction");
   // Only an event the delegates enjoyed brings anybody back.
   const extraRoomNights =
     input.satisfaction < 60
@@ -130,6 +134,7 @@ export function technologyRequirements(input: {
   sessionCount: number;
 }): { item: string; quantity: number }[] {
   assertCount(input.guests, "event guests");
+  assertCount(input.sessionCount, "sessions");
   return [
     { item: "microphone", quantity: Math.max(1, input.sessionCount) },
     { item: "projector", quantity: Math.max(1, input.sessionCount) },
@@ -147,6 +152,7 @@ export function negotiatedRateMinor(input: {
   floorBasisPoints: number;
 }): { rateMinor: number; discountBasisPoints: number } {
   assertNonNegativeMinor(input.listRateMinor, "list rate");
+  assertCount(input.guests, "event guests");
   assertBasisPoints(input.floorBasisPoints, "negotiation floor");
   const earned = Math.min(2500, Math.trunc(input.guests / 4) * 100);
   const discountBasisPoints = Math.min(

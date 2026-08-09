@@ -69,6 +69,17 @@ export function signSupplierContract(
   assertCount(contract.minimumOrderQuantity, "minimum order quantity");
   if (contract.validToDateKey <= contract.validFromDateKey)
     throw new Error("a contract must end after it starts");
+  if (
+    state.contracts.some(
+      (existing) =>
+        existing.sku === contract.sku &&
+        existing.validFromDateKey < contract.validToDateKey &&
+        contract.validFromDateKey < existing.validToDateKey,
+    )
+  )
+    throw new Error(
+      `supplier contract overlaps an existing ${contract.sku} contract`,
+    );
   return {
     ...state,
     contracts: [...state.contracts, { ...contract }].sort((a, b) =>
@@ -83,12 +94,14 @@ export function contractForSku(
   dateKey: string,
 ): SupplierContract | null {
   return (
-    state.contracts.find(
-      (c) =>
-        c.sku === sku &&
-        c.validFromDateKey <= dateKey &&
-        dateKey < c.validToDateKey,
-    ) ?? null
+    [...state.contracts]
+      .sort((a, b) => b.validFromDateKey.localeCompare(a.validFromDateKey))
+      .find(
+        (c) =>
+          c.sku === sku &&
+          c.validFromDateKey <= dateKey &&
+          dateKey < c.validToDateKey,
+      ) ?? null
   );
 }
 
@@ -215,6 +228,8 @@ export function centralPurchasingTradeOff(
     ),
     localLeadTimeDays: contract.leadTimeDays,
     // A central order waits for the consolidation run.
-    centralLeadTimeDays: contract.leadTimeDays + 3,
+    centralLeadTimeDays: contract.leadTimeDays + CENTRAL_PURCHASING_DELAY_DAYS,
   };
 }
+
+export const CENTRAL_PURCHASING_DELAY_DAYS = 3;

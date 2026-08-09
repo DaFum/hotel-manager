@@ -43,6 +43,8 @@ export interface GuaranteeTerms {
  */
 export interface Booking {
   id: string;
+  /** Stable customer identity; separate bookings may belong to one guest. */
+  guestId?: string;
   roomsRequested: number;
   rateMinor: number;
   status: BookingStatus;
@@ -67,6 +69,8 @@ export interface Booking {
 
 export interface ReservationRequest {
   id: string;
+  /** Stable customer identity when known; legacy callers may omit it. */
+  guestId?: string;
   roomsRequested: number;
   rateMinor: number;
   willingnessMinor: number;

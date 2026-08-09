@@ -55,7 +55,7 @@ export function ManagerGovernancePanel(props: {
               onClick={() =>
                 props.onSetRepairLimit(
                   manager.hotelId,
-                  manager.repairLimitMinor * 2,
+                  Math.max(manager.repairLimitMinor * 2, 100_000),
                 )
               }
               aria-label={`Raise the repair limit for ${manager.name}`}

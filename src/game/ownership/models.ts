@@ -51,15 +51,6 @@ function assertFeeBasisPoints(value: number, label: string): number {
  * A management fee is income because the group is the operator being paid;
  * rent and royalty are outgoings because the group is the one paying.
  */
-export function monthlyOwnershipCashFlows(
-  model: OperatingModel,
-  roomRevenueMinor: number,
-): number[] {
-  return monthlyOwnershipPostings(model, roomRevenueMinor).map(
-    (posting) => posting.amountMinor,
-  );
-}
-
 /**
  * The same flows, each named by its account. The ledger needs to keep rent,
  * fee and royalty apart: they behave differently when the model changes, and
@@ -114,7 +105,9 @@ export function monthlyOwnershipPostings(
 /** Truncated so a fee never rounds up into money the contract does not owe. */
 function feeMinor(baseMinor: number, bp: number, label: string): number {
   assertFeeBasisPoints(bp, label);
-  return Math.trunc((baseMinor * bp) / 10_000);
+  const quotient = Math.trunc(baseMinor / 10_000);
+  const remainder = baseMinor % 10_000;
+  return quotient * bp + Math.trunc((remainder * bp) / 10_000);
 }
 
 /** Only an owner holds the building; the rest hold a contract over it. */

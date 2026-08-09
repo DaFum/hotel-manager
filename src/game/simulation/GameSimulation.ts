@@ -1195,10 +1195,10 @@ export class GameSimulation implements CommandExecutor {
     this.runBar();
     this.runRoomService();
     this.runWellness();
-    this.runLaundry();
-    this.runCommercialSpaces();
     if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
       this.meterDailyUtilities();
+    this.runLaundry();
+    this.runCommercialSpaces();
   }
 
   /**
@@ -1213,7 +1213,8 @@ export class GameSimulation implements CommandExecutor {
     for (const space of s.commercialSpaces.spaces) {
       // Demand comes from the guests actually in the house, at a take-up
       // rate the space's own fit decides.
-      const demand = Math.trunc((inHouse * space.fit) / 100);
+      const fitBp = space.fitBp ?? (space.fit ?? 0) * 100;
+      const demand = Math.trunc((inHouse * fitBp) / 10_000);
       const result = spaceThroughput({
         space,
         demand,
@@ -1767,7 +1768,7 @@ export class GameSimulation implements CommandExecutor {
       fullRemedyCostMinor: Math.max(1, roomChargeMinor),
     });
     this.moveSatisfaction(
-      outcome.satisfaction - s.guestSatisfaction.score,
+      explained.after - s.guestSatisfaction.score,
       `recovery for ${bookingId}: ${explained.causes.join("; ")}`,
     );
     this.emit(
@@ -1775,7 +1776,7 @@ export class GameSimulation implements CommandExecutor {
         type: "SERVICE_RECOVERY_APPLIED",
         complaintId,
         bookingId,
-        costMinor: outcome.expenseMinor,
+        costMinor: record.postedCostMinor,
       },
       [complaintId, bookingId],
     );
@@ -1931,7 +1932,10 @@ export class GameSimulation implements CommandExecutor {
    */
   private recordCommercialStay(stay: StayRecord): void {
     const s = this.state;
-    const guestId = `guest.${stay.bookingId}`;
+    const booking = s.reservations.find(
+      (reservation) => reservation.id === stay.bookingId,
+    );
+    const guestId = booking?.guestId ?? `guest.${stay.bookingId}`;
     s.commercial = {
       ...s.commercial,
       crm: recordCrmStay(s.commercial.crm, {
@@ -2067,6 +2071,7 @@ export class GameSimulation implements CommandExecutor {
           { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
             id: bookingId,
+            guestId: `guest.${segment.id}.${(Math.floor(s.elapsedMinutes / 1440) + i) % 32}`,
             roomsRequested: 1,
             rateMinor,
             // A profile the hotel actually built for lifts what its segment
@@ -2770,16 +2775,45 @@ export class GameSimulation implements CommandExecutor {
   private closeMonth(): void {
     const s = this.state;
     const m = s.finance.month;
-    s.lastMonthlyClose = closeMonth({
-      periodKey: addDays(s.calendar.dateKey, -1).slice(0, 7),
-      openingCashMinor: m.openingCashMinor,
-      closingCashMinor: s.finance.cashMinor,
-      roomRevenueMinor: m.roomRevenueMinor,
-      otherRevenueMinor: m.otherRevenueMinor,
-      operatingExpenseMinor: m.operatingExpenseMinor,
-      soldRoomNights: m.soldRoomNights,
-      availableRoomNights: m.availableRoomNights,
+    const periodKey = addDays(s.calendar.dateKey, -1).slice(0, 7);
+    const report = () =>
+      closeMonth({
+        periodKey,
+        openingCashMinor: m.openingCashMinor,
+        closingCashMinor: s.finance.cashMinor,
+        roomRevenueMinor: m.roomRevenueMinor,
+        otherRevenueMinor: m.otherRevenueMinor,
+        operatingExpenseMinor: m.operatingExpenseMinor,
+        soldRoomNights: m.soldRoomNights,
+        availableRoomNights: m.availableRoomNights,
+      });
+    this.runCommercialSpaceMonth();
+    this.runEmploymentMonth();
+    this.runCommercialMonth();
+    this.chargeInsuranceAndDepreciation(periodKey);
+    // Corporate publishing needs a close to read, but corporate postings are
+    // themselves part of this period. Publish provisionally, then replace it
+    // with the report that includes every close-time posting.
+    s.lastMonthlyClose = report();
+    // The company's month runs on the closed period, after the flagship has
+    // published what it earned and before the new month starts accumulating.
+    runCompanyMonth(s, `${periodKey}-01`, {
+      emit: (payload, entities) => this.emit(payload, entities),
+      earn: (amountMinor, account, memo) =>
+        this.earn(amountMinor, account, memo),
+      spend: (amountMinor, account, memo) =>
+        this.spend(amountMinor, account, memo),
     });
+    s.lastMonthlyClose = report();
+    const flagship = s.company.hotelResults[s.hotel.id];
+    if (flagship)
+      s.company.hotelResults[s.hotel.id] = {
+        ...flagship,
+        roomRevenueMinor: s.lastMonthlyClose.roomRevenueMinor,
+        otherRevenueMinor: s.lastMonthlyClose.otherRevenueMinor,
+        operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
+        grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
+      };
     this.emit(
       {
         type: "MONTH_CLOSED",
@@ -2789,19 +2823,6 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
-    this.runCommercialSpaceMonth();
-    this.runEmploymentMonth();
-    this.runCommercialMonth();
-    this.chargeInsuranceAndDepreciation(s.lastMonthlyClose.periodKey);
-    // The company's month runs on the closed period, after the flagship has
-    // published what it earned and before the new month starts accumulating.
-    runCompanyMonth(s, `${s.lastMonthlyClose.periodKey}-01`, {
-      emit: (payload, entities) => this.emit(payload, entities),
-      earn: (amountMinor, account, memo) =>
-        this.earn(amountMinor, account, memo),
-      spend: (amountMinor, account, memo) =>
-        this.spend(amountMinor, account, memo),
-    });
     s.finance.month = {
       openingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: 0,

@@ -11,7 +11,7 @@ export interface CommercialSpaceRow {
   /** What the hotel actually takes from it, given how it is run. */
   hotelShareMinor: number;
   unitsSold: number;
-  fit: number;
+  fitBp: number;
 }
 
 export interface LobbyRow {
@@ -69,7 +69,8 @@ export function CommercialSpacesPanel(props: {
               {space.id} ({space.kind}): {space.capacity} at a time,{" "}
               {clock(space.openMinute)}–{clock(space.closeMinute)},{" "}
               {space.operator} — {space.unitsSold} sold this month,{" "}
-              {formatDm(space.hotelShareMinor)} to the hotel, fit {space.fit}
+              {formatDm(space.hotelShareMinor)} to the hotel, fit{" "}
+              {space.fitBp / 100}
               /100
             </li>
           ))}

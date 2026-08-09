@@ -34,7 +34,8 @@ export function openHotelAccount(
   hotelId: string,
   openingMinor = 0,
 ): TreasuryState {
-  if (hotelId in treasury.hotelCashMinor)
+  if (!hotelId.trim()) throw new Error("a hotel id is required");
+  if (Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} already has a treasury account`);
   assertMinor(openingMinor, "opening balance");
   return {
@@ -47,10 +48,10 @@ export function hotelCashMinor(
   treasury: TreasuryState,
   hotelId: string,
 ): number {
-  const balance = treasury.hotelCashMinor[hotelId];
-  if (balance === undefined)
+  if (!hotelId.trim()) throw new Error("a hotel id is required");
+  if (!Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} has no treasury account`);
-  return balance;
+  return treasury.hotelCashMinor[hotelId];
 }
 
 /** The group's cash, summed in stable id order so the total is reproducible. */

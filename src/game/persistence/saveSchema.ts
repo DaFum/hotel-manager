@@ -105,7 +105,12 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !Array.isArray(company.managedHotels) ||
     !Array.isArray(company.managers) ||
     !company.treasury ||
-    !Number.isSafeInteger(company.treasury.hqMinor)
+    !Number.isSafeInteger(company.treasury.hqMinor) ||
+    !company.treasury.hotelCashMinor ||
+    typeof company.treasury.hotelCashMinor !== "object" ||
+    Object.values(company.treasury.hotelCashMinor).some(
+      (balance) => !Number.isSafeInteger(balance),
+    )
   )
     problems.push("the state has no complete Plan 05 company");
   else {

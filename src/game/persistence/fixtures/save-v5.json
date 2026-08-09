@@ -31445,7 +31445,7 @@
             "marginBasisPoints": 7000
           },
           "staffRequired": 0,
-          "fit": 70,
+          "fitBp": 7000,
           "maintenanceMinor": 30000
         },
         {
@@ -31460,7 +31460,7 @@
             "marginBasisPoints": 3500
           },
           "staffRequired": 0,
-          "fit": 55,
+          "fitBp": 5500,
           "maintenanceMinor": 25000
         },
         {
@@ -31475,7 +31475,7 @@
             "marginBasisPoints": 0
           },
           "staffRequired": 0,
-          "fit": 65,
+          "fitBp": 6500,
           "maintenanceMinor": 12000
         }
       ],

@@ -122,11 +122,27 @@ export function releaseBreakageMinor(state: LoyaltyState): {
   state: LoyaltyState;
   releasedMinor: number;
 } {
-  const releasedMinor = Math.trunc(
-    (state.liabilityMinor * BREAKAGE_BASIS_POINTS) / 10_000,
+  const totalPoints = state.members.reduce(
+    (sum, member) => sum + member.points,
+    0,
   );
+  let pointsToRelease = Math.trunc(
+    (totalPoints * BREAKAGE_BASIS_POINTS) / 10_000,
+  );
+  const members = state.members.map((member) => {
+    const released = Math.min(member.points, pointsToRelease);
+    pointsToRelease -= released;
+    return { ...member, points: member.points - released };
+  });
+  const releasedMinor =
+    (Math.trunc((totalPoints * BREAKAGE_BASIS_POINTS) / 10_000) -
+      pointsToRelease) *
+    POINT_VALUE_MINOR;
   return {
-    state: { ...state, liabilityMinor: state.liabilityMinor - releasedMinor },
+    state: {
+      members,
+      liabilityMinor: Math.max(0, state.liabilityMinor - releasedMinor),
+    },
     releasedMinor,
   };
 }

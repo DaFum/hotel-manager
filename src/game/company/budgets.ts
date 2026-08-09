@@ -1,4 +1,4 @@
-import { assertNonNegativeMinor } from "../domain/units";
+import { assertMinor, assertNonNegativeMinor } from "../domain/units";
 
 /**
  * What a hotel is allowed to spend without asking. The budget is the quiet
@@ -69,11 +69,14 @@ export function recordCapexSpend<T extends HotelBudget>(
 export function budgetVariance(input: {
   targetMinor: number;
   actualMinor: number;
+  type: "revenue" | "cost";
 }): {
   varianceMinor: number;
   varianceBasisPoints: number;
   favourable: boolean;
 } {
+  assertMinor(input.targetMinor, "variance target");
+  assertMinor(input.actualMinor, "variance actual");
   const varianceMinor = input.actualMinor - input.targetMinor;
   return {
     varianceMinor,
@@ -81,7 +84,8 @@ export function budgetVariance(input: {
       input.targetMinor === 0
         ? 0
         : Math.trunc((varianceMinor * 10_000) / input.targetMinor),
-    favourable: varianceMinor >= 0,
+    favourable:
+      input.type === "revenue" ? varianceMinor >= 0 : varianceMinor <= 0,
   };
 }
 

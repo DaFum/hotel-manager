@@ -15,22 +15,22 @@ import {
 describe("internal funding", () => {
   it("moves cash without changing consolidated group cash", () => {
     const result = transferInternalFunding(
-      { hqMinor: 10_000_000, hotelMinor: 1_000_000 },
+      { fromMinor: 10_000_000, toMinor: 1_000_000 },
       2_000_000,
     );
-    expect(result).toEqual({ hqMinor: 8_000_000, hotelMinor: 3_000_000 });
-    expect(result.hqMinor + result.hotelMinor).toBe(11_000_000);
+    expect(result).toEqual({ fromMinor: 8_000_000, toMinor: 3_000_000 });
+    expect(result.fromMinor + result.toMinor).toBe(11_000_000);
   });
 
   it("refuses a transfer headquarters cannot fund, leaving balances alone", () => {
-    const balances = { hqMinor: 1_000_000, hotelMinor: 0 };
+    const balances = { fromMinor: 1_000_000, toMinor: 0 };
     expect(() => transferInternalFunding(balances, 1_000_001)).toThrow(
       /invalid transfer/,
     );
     expect(() => transferInternalFunding(balances, -1)).toThrow(
       /invalid transfer/,
     );
-    expect(balances).toEqual({ hqMinor: 1_000_000, hotelMinor: 0 });
+    expect(balances).toEqual({ fromMinor: 1_000_000, toMinor: 0 });
   });
 
   it("funds a hotel account through the treasury and conserves group cash", () => {

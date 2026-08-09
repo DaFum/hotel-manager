@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { GameClient } from "./GameClient";
-import { PROTOCOL_VERSION } from "../game/domain/protocol";
+import {
+  PROTOCOL_VERSION,
+  WHOLE_GAME_ENTITY_ID,
+} from "../game/domain/protocol";
 
 function fakeWorker() {
   const worker = {
@@ -150,6 +153,101 @@ describe("GameClient protocol", () => {
     deliverEvent();
     expect(snapshots).toHaveLength(1);
     expect(events).toHaveLength(1);
+  });
+
+  it("applies a delta on top of the snapshot it already holds", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    const seen: Record<string, unknown>[] = [];
+    client.onSnapshot((s) =>
+      seen.push(s as unknown as Record<string, unknown>),
+    );
+
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "READY",
+        snapshot: { cashMinor: 5, elapsedMinutes: 0 },
+        publication: 1,
+      },
+    } as MessageEvent);
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "STATE_DELTA",
+        delta: {
+          basePublication: 1,
+          publication: 2,
+          changed: { elapsedMinutes: 5 },
+          removed: [],
+        },
+      },
+    } as MessageEvent);
+
+    expect(seen.at(-1)).toEqual({ cashMinor: 5, elapsedMinutes: 5 });
+  });
+
+  it("requests a snapshot when a delta base version does not match", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    const seen: unknown[] = [];
+    client.onSnapshot((s) => seen.push(s));
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "READY",
+        snapshot: { cashMinor: 5 },
+        publication: 1,
+      },
+    } as MessageEvent);
+    worker.postMessage.mockClear();
+
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "STATE_DELTA",
+        delta: {
+          basePublication: 9,
+          publication: 10,
+          changed: { cashMinor: 999 },
+          removed: [],
+        },
+      },
+    } as MessageEvent);
+
+    // The delta is refused rather than producing a hotel that never existed,
+    // and the client asks to be put back in step.
+    expect(seen).toHaveLength(1);
+    expect(worker.postMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        type: "REQUEST_DETAILS",
+        entityId: WHOLE_GAME_ENTITY_ID,
+      }),
+    );
+  });
+
+  it("reports the structured form of a simulation error", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    const structured: unknown[] = [];
+    client.onSimulationError((e) => structured.push(e));
+
+    worker.onmessage!({
+      data: {
+        protocolVersion: PROTOCOL_VERSION,
+        type: "SIMULATION_ERROR",
+        code: "ENTITY_NOT_FOUND",
+        message: "no entity room.999",
+        recoverable: true,
+        requestId: "req.7",
+      },
+    } as MessageEvent);
+
+    expect(structured).toHaveLength(1);
+    expect(structured[0]).toMatchObject({
+      code: "ENTITY_NOT_FOUND",
+      recoverable: true,
+    });
   });
 
   it("passes an expected state version through when the caller declares one", () => {

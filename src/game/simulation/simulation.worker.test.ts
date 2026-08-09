@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PROTOCOL_VERSION, type WorkerResponse } from "../domain/protocol";
+import {
+  PROTOCOL_VERSION,
+  WHOLE_GAME_ENTITY_ID,
+  type WorkerResponse,
+} from "../domain/protocol";
 
 /**
  * The worker module wires itself to `self` on import, so each test gets a
@@ -63,7 +67,9 @@ describe("simulation worker", () => {
     // acknowledgement here means applied, not queued.
     expect(accepted[0].stateVersion).toBe(initialVersion + 1);
     const delta = of(posted, "STATE_DELTA").at(-1);
-    expect(delta?.snapshot.stateVersion).toBe(accepted[0].stateVersion);
+    expect(
+      (delta?.delta.changed as { stateVersion?: number }).stateVersion,
+    ).toBe(accepted[0].stateVersion);
   });
 
   it("reports a refused command against the same correlation id", async () => {
@@ -111,11 +117,122 @@ describe("simulation worker", () => {
     expect(hired?.causedBy).toBe("cmd.hire.1");
   });
 
+  it("answers entity details by stable id or a typed not-found error", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    const roomId = of(posted, "READY")[0].snapshot.hotel.rooms[0].id;
+    posted.length = 0;
+
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_DETAILS",
+      requestId: "req.room",
+      entityId: roomId,
+    });
+    const details = of(posted, "ENTITY_DETAILS");
+    expect(details).toHaveLength(1);
+    expect(details[0]).toMatchObject({
+      requestId: "req.room",
+      entityId: roomId,
+      kind: "room",
+    });
+    // The answer is the room, not the hotel with the room somewhere inside it.
+    expect(of(posted, "SNAPSHOT")).toHaveLength(0);
+    posted.length = 0;
+
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_DETAILS",
+      requestId: "req.ghost",
+      entityId: "room.does-not-exist",
+    });
+    const errors = of(posted, "SIMULATION_ERROR");
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatchObject({
+      code: "ENTITY_NOT_FOUND",
+      recoverable: true,
+      requestId: "req.ghost",
+    });
+  });
+
+  it("resynchronises a client that asks for the whole game", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    posted.length = 0;
+
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_DETAILS",
+      requestId: "req.sync",
+      entityId: WHOLE_GAME_ENTITY_ID,
+    });
+
+    const snapshots = of(posted, "SNAPSHOT");
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0].requestId).toBe("req.sync");
+    expect(snapshots[0].publication).toBeGreaterThan(0);
+  });
+
+  it("publishes a delta rather than a snapshot once a game is running", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    const ready = of(posted, "READY")[0];
+    posted.length = 0;
+
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND",
+      requestId: "req.1",
+      commandId: "cmd.delta.1",
+      command: {
+        type: "SET_RATE",
+        dateKey: "1991-01-04",
+        category: "double",
+        rateMinor: 17_000,
+      },
+    });
+
+    const delta = of(posted, "STATE_DELTA").at(-1)!.delta;
+    expect(delta.basePublication).toBe(ready.publication);
+    expect(delta.publication).toBe(ready.publication + 1);
+    // Only the sections the command touched travel.
+    expect(Object.keys(delta.changed).length).toBeLessThan(
+      Object.keys(ready.snapshot).length,
+    );
+    expect(Object.keys(delta.changed)).toContain("rates");
+  });
+
+  it("emits measured performance samples without feeding game logic", async () => {
+    const { posted, send } = await bootWorker();
+    vi.useFakeTimers();
+    try {
+      send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+      send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed: 1 });
+      posted.length = 0;
+      vi.advanceTimersByTime(250);
+
+      const samples = of(posted, "PERF_SAMPLE");
+      expect(samples.length).toBeGreaterThan(0);
+      for (const sample of samples) {
+        expect(Number.isFinite(sample.tickMs)).toBe(true);
+        expect(sample.tickMs).toBeGreaterThanOrEqual(0);
+        expect(Number.isFinite(sample.commandLatencyMs)).toBe(true);
+        expect(Number.isSafeInteger(sample.visibleAgents)).toBe(true);
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("refuses a message that carries a foreign protocol version", async () => {
     const { posted, send } = await bootWorker();
     send({ protocolVersion: 99, type: "INIT_GAME", seed: 5 });
 
     expect(of(posted, "SIMULATION_ERROR")).toHaveLength(1);
+    expect(of(posted, "SIMULATION_ERROR")[0]).toMatchObject({
+      code: "PROTOCOL_MISMATCH",
+      recoverable: false,
+    });
     expect(of(posted, "READY")).toHaveLength(0);
   });
 });

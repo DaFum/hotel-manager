@@ -3,9 +3,15 @@ import type { GameSnapshot } from "../game/domain/snapshot";
 import type { DomainEvent } from "../game/domain/events";
 import {
   PROTOCOL_VERSION,
+  WHOLE_GAME_ENTITY_ID,
+  type SimulationError,
   type WorkerRequest,
   type WorkerResponse,
 } from "../game/domain/protocol";
+import {
+  DeltaBaseMismatchError,
+  applyStateDelta,
+} from "../game/domain/stateDelta";
 
 type SnapshotListener = (snapshot: GameSnapshot) => void;
 type ErrorListener = (message: string) => void;
@@ -21,6 +27,12 @@ type AcceptanceListener = (acceptance: {
   stateVersion: number;
 }) => void;
 type DomainEventListener = (events: readonly DomainEvent[]) => void;
+type DetailsListener = (details: {
+  requestId: string;
+  entityId: string;
+  kind: string;
+  detail: unknown;
+}) => void;
 
 /** Removes a listener. Calling it twice is safe and does nothing. */
 export type Unsubscribe = () => void;
@@ -39,6 +51,11 @@ export class GameClient {
   private rejectionListeners: RejectionListener[] = [];
   private acceptanceListeners: AcceptanceListener[] = [];
   private domainEventListeners: DomainEventListener[] = [];
+  private detailsListeners: DetailsListener[] = [];
+  private simulationErrorListeners: ((error: SimulationError) => void)[] = [];
+  /** The last snapshot the worker published, and which publication it was. */
+  private held: GameSnapshot | null = null;
+  private publication = 0;
   /** After disposal the handle is inert; late worker messages are ignored. */
   private disposed = false;
   private requestCounter = 0;
@@ -74,6 +91,15 @@ export class GameClient {
     return this.subscribe(this.domainEventListeners, listener);
   }
 
+  onEntityDetails(listener: DetailsListener): Unsubscribe {
+    return this.subscribe(this.detailsListeners, listener);
+  }
+
+  /** The structured form of an error, with its code and whether it is fatal. */
+  onSimulationError(listener: (error: SimulationError) => void): Unsubscribe {
+    return this.subscribe(this.simulationErrorListeners, listener);
+  }
+
   private subscribe<L>(listeners: L[], listener: L): Unsubscribe {
     listeners.push(listener);
     return () => {
@@ -96,6 +122,21 @@ export class GameClient {
       protocolVersion: PROTOCOL_VERSION,
       type: "REQUEST_SAVE",
       requestId,
+    });
+    return requestId;
+  }
+
+  /**
+   * Asks the worker about one entity. The whole game is an entity too, which
+   * is how a client whose delta chain has broken asks to be resynchronised.
+   */
+  requestDetails(entityId: string): string {
+    const requestId = `req.${++this.requestCounter}`;
+    this.send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_DETAILS",
+      requestId,
+      entityId,
     });
     return requestId;
   }
@@ -139,6 +180,9 @@ export class GameClient {
     this.rejectionListeners = [];
     this.acceptanceListeners = [];
     this.domainEventListeners = [];
+    this.detailsListeners = [];
+    this.simulationErrorListeners = [];
+    this.held = null;
     this.worker.terminate();
   }
 
@@ -155,8 +199,41 @@ export class GameClient {
     switch (message.type) {
       case "READY":
       case "SNAPSHOT":
-      case "STATE_DELTA":
+        this.held = message.snapshot;
+        this.publication = message.publication;
         for (const l of this.snapshotListeners) l(message.snapshot);
+        return;
+      case "STATE_DELTA": {
+        if (!this.held) {
+          // Nothing to apply it to; ask to be put back in step.
+          this.requestDetails(WHOLE_GAME_ENTITY_ID);
+          return;
+        }
+        try {
+          this.held = applyStateDelta(
+            this.held,
+            message.delta,
+            this.publication,
+          );
+        } catch (error) {
+          if (!(error instanceof DeltaBaseMismatchError)) throw error;
+          // A delta computed against a state this client never held would
+          // produce a hotel that never existed. Refuse it and resynchronise.
+          this.requestDetails(WHOLE_GAME_ENTITY_ID);
+          return;
+        }
+        this.publication = message.delta.publication;
+        for (const l of this.snapshotListeners) l(this.held);
+        return;
+      }
+      case "ENTITY_DETAILS":
+        for (const l of this.detailsListeners)
+          l({
+            requestId: message.requestId,
+            entityId: message.entityId,
+            kind: message.kind,
+            detail: message.detail,
+          });
         return;
       case "COMMAND_REJECTED":
         for (const l of this.rejectionListeners)
@@ -182,6 +259,7 @@ export class GameClient {
         return;
       case "SIMULATION_ERROR":
         for (const l of this.errorListeners) l(message.message);
+        for (const l of this.simulationErrorListeners) l(message);
         return;
       default:
         return;

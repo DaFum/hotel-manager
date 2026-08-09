@@ -305,7 +305,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/protocol.test.ts",
       assertion: "rejects a foreign protocol version as a fatal error",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "protocol.delta.compact",
@@ -318,7 +318,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/protocol.test.ts",
       assertion: "carries only changed and removed fields in a state delta",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "protocol.delta.baseMismatch",
@@ -331,7 +331,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/app/GameClient.test.ts",
       assertion: "requests a snapshot when a delta base version does not match",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "protocol.details.byId",
@@ -345,7 +345,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "answers entity details by stable id or a typed not-found error",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "protocol.perf.measured",
@@ -359,7 +359,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "emits measured performance samples without feeding game logic",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "protocol.error.structured",
@@ -372,7 +372,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/domain/protocol.test.ts",
       assertion: "reports recoverable and fatal errors as structured codes",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 5: persistence ------------------------------------------------

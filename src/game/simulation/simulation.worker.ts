@@ -1,12 +1,16 @@
 import {
   PROTOCOL_VERSION,
+  WHOLE_GAME_ENTITY_ID,
+  simulationError,
   type WorkerRequest,
   type WorkerResponse,
 } from "../domain/protocol";
+import { computeStateDelta } from "../domain/stateDelta";
 import { GameSimulation } from "./GameSimulation";
 import { commandEnvelope, type GameCommand } from "../commands/commandEnvelope";
 import { createInitialGameState, type GameState } from "./initialState";
-import { isCompleteRngState } from "../persistence/saveSchema";
+import type { GameSnapshot } from "../domain/snapshot";
+import { entityDetail } from "./entityDetail";
 
 /** One real tick is 100 ms; at 1x that is one simulated hour. */
 const TICK_MS = 100;
@@ -41,9 +45,63 @@ let speed: 0 | 1 | 2 | 4 | 16 = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
 /** Command id to the request that carried it, so replies can be correlated. */
 const correlation = new Map<string, string>();
+/** When each in-flight command arrived, for latency reporting only. */
+const arrivedAt = new Map<string, number>();
+/** The last snapshot the UI was given, and which publication it was. */
+let published: GameSnapshot | null = null;
+let publication = 0;
+let lastTickMs = 0;
+let lastCommandLatencyMs = 0;
 
 function reply(message: WorkerResponse) {
   self.postMessage(message);
+}
+
+/**
+ * Wall time, for measurement only. It is never read by simulation code: a slow
+ * machine must produce the same hotel as a fast one.
+ */
+const now = () => (typeof performance === "undefined" ? 0 : performance.now());
+
+/** Publishes a full snapshot and starts a fresh delta chain from it. */
+function publishSnapshot(requestId?: string) {
+  if (!simulation) return;
+  published = simulation.snapshot();
+  publication += 1;
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "SNAPSHOT",
+    snapshot: published,
+    publication,
+    ...(requestId === undefined ? {} : { requestId }),
+  });
+}
+
+/**
+ * Publishes what actually changed since the last publication. A quiet quantum
+ * therefore costs a handful of sections rather than the whole hotel.
+ */
+function publishDelta() {
+  if (!simulation) return;
+  const next = simulation.snapshot();
+  if (!published) {
+    published = next;
+    publication += 1;
+    reply({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "SNAPSHOT",
+      snapshot: next,
+      publication,
+    });
+    return;
+  }
+  const delta = computeStateDelta(published, next, {
+    basePublication: publication,
+    publication: publication + 1,
+  });
+  published = next;
+  publication += 1;
+  reply({ protocolVersion: PROTOCOL_VERSION, type: "STATE_DELTA", delta });
 }
 
 /** Hands the completed facts recorded since the last drain to the UI. */
@@ -51,11 +109,7 @@ function publishDomainEvents() {
   if (!simulation) return;
   const events = simulation.takeDomainEvents();
   if (events.length === 0) return;
-  reply({
-    protocolVersion: PROTOCOL_VERSION,
-    type: "DOMAIN_EVENTS",
-    events,
-  });
+  reply({ protocolVersion: PROTOCOL_VERSION, type: "DOMAIN_EVENTS", events });
 }
 
 /**
@@ -66,7 +120,10 @@ function publishCommandResults() {
   if (!simulation) return;
   for (const result of simulation.takeCommandResults()) {
     const requestId = correlation.get(result.commandId);
+    const arrived = arrivedAt.get(result.commandId);
     correlation.delete(result.commandId);
+    arrivedAt.delete(result.commandId);
+    if (arrived !== undefined) lastCommandLatencyMs = now() - arrived;
     // A verdict the UI never asked for — a standing order, say — has nothing
     // to correlate against and is reported through domain events instead.
     if (requestId === undefined) continue;
@@ -90,27 +147,37 @@ function publishCommandResults() {
   }
 }
 
+function publishPerfSample() {
+  if (!simulation) return;
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "PERF_SAMPLE",
+    tickMs: lastTickMs,
+    commandLatencyMs: lastCommandLatencyMs,
+    visibleAgents: simulation.state.stays.length,
+  });
+}
+
 function tick() {
   if (!simulation || speed === 0) return;
+  const started = now();
   try {
     for (let i = 0; i < speed * QUANTA_PER_TICK; i++)
       simulation.advanceQuantum();
   } catch (error) {
     speed = 0;
-    reply({
-      protocolVersion: PROTOCOL_VERSION,
-      type: "SIMULATION_ERROR",
-      message: (error as Error).message,
-    });
+    reply(
+      simulationError("TICK_FAILED", (error as Error).message, {
+        recoverable: false,
+      }),
+    );
     return;
   }
+  lastTickMs = now() - started;
   publishCommandResults();
   publishDomainEvents();
-  reply({
-    protocolVersion: PROTOCOL_VERSION,
-    type: "STATE_DELTA",
-    snapshot: simulation.snapshot(),
-  });
+  publishDelta();
+  publishPerfSample();
 }
 
 function ensureTimer() {
@@ -120,11 +187,13 @@ function ensureTimer() {
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const m = event.data;
   if (m.protocolVersion !== PROTOCOL_VERSION) {
-    reply({
-      protocolVersion: PROTOCOL_VERSION,
-      type: "SIMULATION_ERROR",
-      message: "protocol mismatch",
-    });
+    reply(
+      simulationError(
+        "PROTOCOL_MISMATCH",
+        `this worker speaks protocol ${PROTOCOL_VERSION}`,
+        { recoverable: false },
+      ),
+    );
     return;
   }
   switch (m.type) {
@@ -132,31 +201,32 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       simulation = new GameSimulation(createInitialGameState(m.seed));
       simulation.refreshDerivedState();
       ensureTimer();
+      published = simulation.snapshot();
+      publication += 1;
       reply({
         protocolVersion: PROTOCOL_VERSION,
         type: "READY",
-        snapshot: simulation.snapshot(),
+        snapshot: published,
+        publication,
       });
       publishDomainEvents();
       return;
     }
     case "LOAD_GAME": {
       if (!isRestorableState(m.saveData)) {
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "SIMULATION_ERROR",
-          message: "save data is not a restorable game state",
-        });
+        reply(
+          simulationError(
+            "INVALID_SAVE",
+            "save data is not a restorable game state",
+            { recoverable: true },
+          ),
+        );
         return;
       }
       simulation = new GameSimulation(m.saveData);
       simulation.refreshDerivedState();
       ensureTimer();
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "SNAPSHOT",
-        snapshot: simulation.snapshot(),
-      });
+      publishSnapshot();
       publishDomainEvents();
       return;
     }
@@ -195,6 +265,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       // The correlation id is remembered, not stored on the envelope: it is a
       // transport concern and must not become the command's identity.
       correlation.set(envelope.commandId, m.requestId);
+      arrivedAt.set(envelope.commandId, now());
       simulation.queueEnvelope(envelope);
       // A paused game applies the command without advancing the calendar; a
       // running one decides it in the next commands phase. Either way the
@@ -203,11 +274,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         simulation.applyPendingCommands();
         publishCommandResults();
         publishDomainEvents();
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "STATE_DELTA",
-          snapshot: simulation.snapshot(),
-        });
+        publishDelta();
       }
       return;
     }
@@ -224,14 +291,39 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "REQUEST_DETAILS": {
-      // Entity detail lives in the snapshot; answering with it keeps the
-      // response inside the MASTER worker-to-UI message families.
-      if (simulation)
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "SNAPSHOT",
-          snapshot: simulation.snapshot(),
-        });
+      if (!simulation) {
+        reply(
+          simulationError("NOT_INITIALISED", "no game is running", {
+            recoverable: true,
+            requestId: m.requestId,
+          }),
+        );
+        return;
+      }
+      // The whole game is an entity too: this is how a client whose delta
+      // chain has broken asks to be put back in step.
+      if (m.entityId === WHOLE_GAME_ENTITY_ID) {
+        publishSnapshot(m.requestId);
+        return;
+      }
+      const found = entityDetail(simulation.state, m.entityId);
+      if (!found) {
+        reply(
+          simulationError("ENTITY_NOT_FOUND", `no entity ${m.entityId}`, {
+            recoverable: true,
+            requestId: m.requestId,
+          }),
+        );
+        return;
+      }
+      reply({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "ENTITY_DETAILS",
+        requestId: m.requestId,
+        entityId: m.entityId,
+        kind: found.kind,
+        detail: found.detail,
+      });
       return;
     }
     case "REQUEST_SAVE": {

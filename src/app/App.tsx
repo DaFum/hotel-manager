@@ -14,6 +14,7 @@ import { FinanceDashboard } from "../ui/FinanceDashboard";
 import { BuildPanel } from "../ui/BuildPanel";
 import { AlertsPanel } from "../ui/AlertsPanel";
 import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
+import { CommercialSpacesPanel } from "../ui/facilities/CommercialSpacesPanel";
 import { ClassificationPanel } from "../ui/facilities/ClassificationPanel";
 import { STAFF_ROLES } from "../game/domain/staffRoles";
 import { MonthlyCloseModal } from "../ui/MonthlyCloseModal";
@@ -24,6 +25,7 @@ import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
+import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
 import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
 import { BrandDashboard } from "../ui/company/BrandDashboard";
 import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
@@ -137,6 +139,23 @@ export function App() {
           disableRenderer={rendererDisabled()}
         />
         <FacilitiesDashboard rows={s.facilities} />
+        <CommercialSpacesPanel
+          spaces={s.commercialSpaces.spaces.map((space) => ({
+            id: space.id,
+            kind: space.kind,
+            capacity: space.capacity,
+            openMinute: space.openMinute,
+            closeMinute: space.closeMinute,
+            operator: space.operator.kind,
+            hotelShareMinor: monthlyContributionMinor(
+              space,
+              s.commercialSpaces.unitsSold[space.id] ?? 0,
+            ).hotelShareMinor,
+            unitsSold: s.commercialSpaces.unitsSold[space.id] ?? 0,
+            fit: space.fit,
+          }))}
+          lobby={s.lobby}
+        />
         <ClassificationPanel
           classification={s.classification}
           specializationId={s.specializationId}

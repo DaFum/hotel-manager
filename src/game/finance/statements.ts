@@ -25,6 +25,7 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   portfolioRevenue: "revenue",
   managementFee: "revenue",
   loyaltyBreakage: "revenue",
+  commercialSpaces: "revenue",
   wages: "operating",
   supplies: "operating",
   maintenance: "operating",

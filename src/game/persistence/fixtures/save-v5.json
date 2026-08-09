@@ -19271,7 +19271,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 2809909,
+      "cashMinor": 2925189,
       "payableMinor": 0,
       "ledger": [
         {
@@ -21994,6 +21994,24 @@
         },
         {
           "day": 31,
+          "account": "commercialSpaces",
+          "amountMinor": 111960,
+          "memo": "space.carpark self-operated"
+        },
+        {
+          "day": 31,
+          "account": "commercialSpaces",
+          "amountMinor": 15320,
+          "memo": "space.kiosk self-operated"
+        },
+        {
+          "day": 31,
+          "account": "commercialSpaces",
+          "amountMinor": -12000,
+          "memo": "space.terrace self-operated"
+        },
+        {
+          "day": 31,
           "account": "loyaltyBreakage",
           "amountMinor": 24854,
           "memo": "loyalty points released"
@@ -23134,7 +23152,7 @@
         }
       ],
       "month": {
-        "openingCashMinor": 1793486,
+        "openingCashMinor": 1908766,
         "roomRevenueMinor": 1155210,
         "otherRevenueMinor": 1390350,
         "operatingExpenseMinor": 1529137,
@@ -23417,12 +23435,6 @@
     "renovation": null,
     "alerts": [
       {
-        "id": "alert.booking-refused.booking.39480.7",
-        "severity": "info",
-        "title": "Booking request refused",
-        "cause": "price rejected"
-      },
-      {
         "id": "alert.booking-refused.booking.40920.1",
         "severity": "info",
         "title": "Booking request refused",
@@ -23433,6 +23445,12 @@
         "severity": "info",
         "title": "Booking request refused",
         "cause": "price rejected"
+      },
+      {
+        "id": "alert.security.spaces",
+        "severity": "warning",
+        "title": "Security short",
+        "cause": "12 in house, 0 at events, 3 spaces open"
       },
       {
         "id": "alert.booking-refused.booking.43800.3",
@@ -23489,6 +23507,12 @@
         "cause": "price rejected"
       },
       {
+        "id": "alert.room-service-late",
+        "severity": "warning",
+        "title": "Room service running late",
+        "cause": "49 minutes door to door, mostly waiting for the lift"
+      },
+      {
         "id": "alert.booking-refused.booking.52440.2",
         "severity": "info",
         "title": "Booking request refused",
@@ -23505,12 +23529,6 @@
         "severity": "info",
         "title": "Booking request refused",
         "cause": "price rejected"
-      },
-      {
-        "id": "alert.room-service-late",
-        "severity": "warning",
-        "title": "Room service running late",
-        "cause": "44 minutes door to door, mostly waiting for the lift"
       },
       {
         "id": "alert.booking-refused.booking.55320.1",
@@ -23822,7 +23840,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 1097871,
+        "hqMinor": 1213151,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -31412,6 +31430,66 @@
       ],
       "lostAndFound": []
     },
-    "recoveries": []
+    "recoveries": [],
+    "commercialSpaces": {
+      "spaces": [
+        {
+          "id": "space.carpark",
+          "kind": "parking",
+          "capacity": 18,
+          "openMinute": 0,
+          "closeMinute": 1440,
+          "unitPriceMinor": 1200,
+          "operator": {
+            "kind": "self",
+            "marginBasisPoints": 7000
+          },
+          "staffRequired": 0,
+          "fit": 70,
+          "maintenanceMinor": 30000
+        },
+        {
+          "id": "space.kiosk",
+          "kind": "shop",
+          "capacity": 30,
+          "openMinute": 420,
+          "closeMinute": 1260,
+          "unitPriceMinor": 900,
+          "operator": {
+            "kind": "self",
+            "marginBasisPoints": 3500
+          },
+          "staffRequired": 0,
+          "fit": 55,
+          "maintenanceMinor": 25000
+        },
+        {
+          "id": "space.terrace",
+          "kind": "outdoor",
+          "capacity": 24,
+          "openMinute": 600,
+          "closeMinute": 1320,
+          "unitPriceMinor": 0,
+          "operator": {
+            "kind": "self",
+            "marginBasisPoints": 0
+          },
+          "staffRequired": 0,
+          "fit": 65,
+          "maintenanceMinor": 12000
+        }
+      ],
+      "unitsSold": {
+        "space.carpark": 79,
+        "space.kiosk": 62,
+        "space.terrace": 74
+      }
+    },
+    "lobby": {
+      "served": 11,
+      "unserved": 0,
+      "cause": "lobby is coping",
+      "automation": []
+    }
   }
 }

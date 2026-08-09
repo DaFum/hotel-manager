@@ -90,11 +90,31 @@ test("keeps every reputation dimension named with what it affects", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
-  const commercial = page.getByRole("region", { name: "Commercial" });
+  // Exact: "Commercial spaces" is a different region on the same page.
+  const commercial = page.getByRole("region", {
+    name: "Commercial",
+    exact: true,
+  });
   await expect(commercial).toBeVisible();
   await expect(commercial).toContainText("Nothing is being advertised");
   await expect(commercial).toContainText("No rate has been agreed");
   await expect(commercial.getByLabel("Loyalty liability")).toContainText(
     /members, .*DM owed in points/,
   );
+});
+
+test("shows the parts of the hotel that are not bedrooms as a business", async ({
+  page,
+}) => {
+  await page.goto("/?seed=424242");
+  const spaces = page.getByRole("region", { name: "Commercial spaces" });
+  await expect(spaces).toBeVisible();
+  await expect(spaces.getByLabel("Lobby load")).toContainText(
+    /\d+ served, \d+ waiting/,
+  );
+  // Every space states its hours, its capacity and how it is operated.
+  await expect(spaces).toContainText(/space.carpark \(parking\): 18 at a time/);
+  await expect(spaces).toContainText("00:00–24:00");
+  await expect(spaces).toContainText("self");
+  await expect(spaces).toContainText("Everything goes through the desk");
 });

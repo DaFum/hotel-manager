@@ -2,7 +2,11 @@ import { createRngStreams, type RngStateRecord } from "../domain/rng";
 import type { CommandLogEntry } from "../commands/commandEnvelope";
 import { createEventJournal, type EventJournal } from "../domain/eventBuffer";
 import { CITY } from "../content/1991/frankfurt";
-import { STARTER_HOTEL, STARTER_STAFF } from "../content/1991/starterHotel";
+import {
+  STARTER_COMMERCIAL_SPACES,
+  STARTER_HOTEL,
+  STARTER_STAFF,
+} from "../content/1991/starterHotel";
 import type { RoomState } from "../rooms/roomState";
 import type { RateGrid } from "../revenue/rates";
 import type { Booking } from "../bookings/bookingTypes";
@@ -53,6 +57,11 @@ import {
   type GuestRelationsState,
 } from "../guests/partyLifecycle";
 import type { RecoveryRecord } from "../guests/recoveryAuthority";
+import {
+  addSpace,
+  createCommercialSpaceState,
+  type CommercialSpaceState,
+} from "../facilities/commercialSpaces";
 import {
   createUtilityContracts,
   type MeterReadings,
@@ -273,6 +282,19 @@ export interface GameState {
   guestRelations: GuestRelationsState;
   /** Every complaint and what was actually done about it. */
   recoveries: RecoveryRecord[];
+  /** Shops, parking, outdoor areas and who operates each of them. */
+  commercialSpaces: CommercialSpaceState;
+  /**
+   * The lobby as it stands right now, recomputed every snapshot. Derived, like
+   * the facility board: never a source of truth, only a description of one.
+   */
+  lobby: {
+    served: number;
+    unserved: number;
+    cause: string;
+    /** Self-service actually installed, and how each of them can fail. */
+    automation: string[];
+  };
 }
 
 export function createInitialGameState(seed: number): GameState {
@@ -405,6 +427,12 @@ export function createInitialGameState(seed: number): GameState {
     procurement: createProcurementState(),
     guestRelations: createGuestRelationsState(),
     recoveries: [],
+    commercialSpaces: STARTER_COMMERCIAL_SPACES.reduce(
+      (state, space) =>
+        addSpace(state, { ...space, operator: { ...space.operator } }),
+      createCommercialSpaceState(),
+    ),
+    lobby: { served: 0, unserved: 0, cause: "lobby is coping", automation: [] },
   };
 }
 

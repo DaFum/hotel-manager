@@ -188,6 +188,22 @@ import {
   satisfactionAfterRecovery,
 } from "../guests/recoveryAuthority";
 import {
+  createCommercialSpaceState,
+  isOpen as isSpaceOpen,
+  monthlyContributionMinor,
+  recordUse,
+  securityLoad,
+  spaceThroughput,
+  startSpaceMonth,
+} from "../facilities/commercialSpaces";
+import {
+  automationFailureModes,
+  availableSelfService,
+  deflectedDemand,
+  emptyLobbyDemand,
+  lobbyThroughput,
+} from "../facilities/lobbyAutomation";
+import {
   applyCompanyCommand,
   isCompanyCommand,
   validateCompanyCommand,
@@ -287,6 +303,8 @@ const ARRIVAL_ALERT_IDS = [
   "alert.construction-noise",
 ];
 const HANDLED_COMPLAINT_LIMIT = 256;
+/** The minute of the hotel day the commercial spaces are settled for. */
+const SHOP_TRADING_MINUTE = 1080;
 
 const WATER_UNIT_MINOR = 2;
 const ENERGY_UNIT_MINOR = 3;
@@ -334,6 +352,13 @@ export class GameSimulation implements CommandExecutor {
     state.procurement ??= createProcurementState();
     state.guestRelations ??= createGuestRelationsState();
     state.recoveries ??= [];
+    state.commercialSpaces ??= createCommercialSpaceState();
+    state.lobby ??= {
+      served: 0,
+      unserved: 0,
+      cause: "lobby is coping",
+      automation: [],
+    };
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -1171,8 +1196,112 @@ export class GameSimulation implements CommandExecutor {
     this.runRoomService();
     this.runWellness();
     this.runLaundry();
+    this.runCommercialSpaces();
     if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
       this.meterDailyUtilities();
+  }
+
+  /**
+   * The parts of the house that are not bedrooms. Each space trades on its
+   * own hours, capacity and staffing, and what it earns depends on who
+   * operates it rather than on a flat share of guests.
+   */
+  private runCommercialSpaces(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== SHOP_TRADING_MINUTE) return;
+    const inHouse = s.stays.length;
+    for (const space of s.commercialSpaces.spaces) {
+      // Demand comes from the guests actually in the house, at a take-up
+      // rate the space's own fit decides.
+      const demand = Math.trunc((inHouse * space.fit) / 100);
+      const result = spaceThroughput({
+        space,
+        demand,
+        staffOnDuty: this.onDuty("reception"),
+        minuteOfDay: s.calendar.minuteOfDay,
+      });
+      if (result.served > 0)
+        s.commercialSpaces = recordUse(
+          s.commercialSpaces,
+          space.id,
+          result.served,
+        );
+      if (result.turnedAway > 0)
+        this.pushAlert({
+          id: `alert.space.${space.id}`,
+          severity: "info",
+          title: `${space.id} turned guests away`,
+          cause: result.cause,
+        });
+      else this.clearAlerts([`alert.space.${space.id}`]);
+    }
+
+    // Security has to cover everything that is open, not just the bedrooms.
+    const security = securityLoad({
+      inHouseGuests: inHouse,
+      eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
+      openSpaces: s.commercialSpaces.spaces.filter((space) =>
+        isSpaceOpen(space, s.calendar.minuteOfDay),
+      ).length,
+    });
+    if (security.guardsRequired > this.onDuty("security"))
+      this.pushAlert({
+        id: "alert.security.spaces",
+        severity: "warning",
+        title: "Security short",
+        cause: security.cause,
+      });
+    else this.clearAlerts(["alert.security.spaces"]);
+  }
+
+  /** Recomputes the derived lobby description for the snapshot. */
+  private refreshLobby(): void {
+    const s = this.state;
+    const adoption = Object.fromEntries(
+      s.world.technologies.map((t) => [t.id, t.adoptionBp]),
+    );
+    const installed = availableSelfService(adoption).filter((option) =>
+      s.technologyImplementations.includes(option.technologyId),
+    );
+    const load = this.lobbyLoad();
+    s.lobby = {
+      served: load.served,
+      unserved: load.unserved,
+      cause: load.cause,
+      automation: automationFailureModes(installed),
+    };
+  }
+
+  /** What the lobby is being asked for right now, and whether it copes. */
+  lobbyLoad(): ReturnType<typeof lobbyThroughput> {
+    const s = this.state;
+    const adoption = Object.fromEntries(
+      s.world.technologies.map((t) => [t.id, t.adoptionBp]),
+    );
+    const arriving = s.receptionQueue.length;
+    const demand = {
+      ...emptyLobbyDemand(),
+      arrival: arriving,
+      orientation: arriving,
+      waiting: arriving,
+      reception: arriving,
+      checkout: s.stays.filter(
+        (stay) => stay.departureDateKey <= s.calendar.dateKey,
+      ).length,
+      baggage: arriving * 2,
+      concierge: Math.trunc(s.stays.length / 4),
+    };
+    // Only technology the house has actually implemented deflects anything.
+    const installed = availableSelfService(adoption).filter((option) =>
+      s.technologyImplementations.includes(option.technologyId),
+    );
+    return lobbyThroughput({
+      demand: deflectedDemand(demand, installed).demand,
+      receptionists: this.onDuty("reception"),
+      porters: this.onDuty("reception"),
+      partiesPerReceptionist: STARTER_HOTEL.partiesPerReceptionist,
+      bagsPerPorter: STARTER_HOTEL.bagsPerPorter,
+    });
   }
 
   private meterDailyUtilities(): void {
@@ -2062,6 +2191,7 @@ export class GameSimulation implements CommandExecutor {
     // Group cash is one number wherever it moved this quantum; the treasury
     // only records where inside the group it sits.
     syncTreasury(this.state);
+    this.refreshLobby();
     const m = this.state.finance.month;
     this.state.metrics = {
       adrMinor: adrMinor(m.roomRevenueMinor, m.soldRoomNights),
@@ -2659,6 +2789,7 @@ export class GameSimulation implements CommandExecutor {
       },
       [s.hotel.id],
     );
+    this.runCommercialSpaceMonth();
     this.runEmploymentMonth();
     this.runCommercialMonth();
     this.chargeInsuranceAndDepreciation(s.lastMonthlyClose.periodKey);
@@ -2713,6 +2844,34 @@ export class GameSimulation implements CommandExecutor {
     // The period stamp moves even when nothing was left to depreciate, so the
     // guard above still holds for a fully written-down hotel.
     s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
+  }
+
+  /**
+   * What the commercial spaces paid the hotel this month. Each operator model
+   * settles differently, so the ledger keeps them apart rather than reporting
+   * one "other income" line.
+   */
+  private runCommercialSpaceMonth(): void {
+    const s = this.state;
+    for (const space of s.commercialSpaces.spaces) {
+      const contribution = monthlyContributionMinor(
+        space,
+        s.commercialSpaces.unitsSold[space.id] ?? 0,
+      );
+      if (contribution.hotelShareMinor > 0)
+        this.earn(
+          contribution.hotelShareMinor,
+          "commercialSpaces",
+          contribution.memo,
+        );
+      else if (contribution.hotelShareMinor < 0)
+        this.spend(
+          -contribution.hotelShareMinor,
+          "commercialSpaces",
+          contribution.memo,
+        );
+    }
+    s.commercialSpaces = startSpaceMonth(s.commercialSpaces);
   }
 
   /**

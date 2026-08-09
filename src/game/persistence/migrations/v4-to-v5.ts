@@ -16,6 +16,7 @@ import {
 } from "../../staff/employeeLifecycle";
 import { createProcurementState } from "../../purchasing/contracts";
 import { createGuestRelationsState } from "../../guests/partyLifecycle";
+import { createCommercialSpaceState } from "../../facilities/commercialSpaces";
 import { compareIds } from "../../domain/ids";
 
 /**
@@ -73,6 +74,18 @@ export function migrateV4ToV5(save: SaveEnvelope): SaveEnvelope {
         createGuestRelationsState(),
       ),
       recoveries: Array.isArray(state.recoveries) ? state.recoveries : [],
+      commercialSpaces: normalisedSection(
+        state.commercialSpaces,
+        createCommercialSpaceState(),
+      ),
+      // Derived, and restated on the first snapshot after the load; the save
+      // only carries it so the shape is complete.
+      lobby: normalisedSection(state.lobby, {
+        served: 0,
+        unserved: 0,
+        cause: "lobby is coping",
+        automation: [] as string[],
+      }),
     },
   };
 }

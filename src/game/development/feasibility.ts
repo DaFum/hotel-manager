@@ -48,13 +48,14 @@ export function calculateFeasibility(
   if (input.uncertaintyBasisPoints > 10_000)
     throw new Error("invalid uncertainty basis points");
 
-  const base = Math.trunc(
-    (input.expectedAdrMinor *
-      input.rooms *
-      DAYS_PER_YEAR *
-      input.occupancyBasisPoints) /
-      10_000,
-  );
+  const revenueProduct =
+    input.expectedAdrMinor *
+    input.rooms *
+    DAYS_PER_YEAR *
+    input.occupancyBasisPoints;
+  if (!Number.isSafeInteger(revenueProduct))
+    throw new Error("annual room revenue is unsafe");
+  const base = Math.trunc(revenueProduct / 10_000);
   const spread = Math.trunc((base * input.uncertaintyBasisPoints) / 10_000);
 
   const margin = input.gopMarginBasisPoints;

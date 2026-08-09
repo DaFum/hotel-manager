@@ -4,6 +4,8 @@
  * so opening is the consequence of being ready rather than a button that
  * grants readiness.
  */
+import { parseDateKey } from "../domain/calendar";
+
 export interface OpeningReadiness {
   staffReady: boolean;
   suppliersReady: boolean;
@@ -56,6 +58,7 @@ export function createPreOpening(
   targetOpenDateKey: string,
 ): PreOpeningProject {
   if (!developmentId) throw new Error("a development id is required");
+  parseDateKey(targetOpenDateKey);
   return {
     developmentId,
     targetOpenDateKey,
@@ -75,8 +78,9 @@ export function markPreOpeningTask(
   project: PreOpeningProject,
   item: OpeningChecklistItem,
 ): PreOpeningProject {
+  if (!Object.hasOwn(FLAG_FOR_ITEM, item))
+    throw new Error(`unknown pre-opening checklist item: ${item}`);
   const flag = FLAG_FOR_ITEM[item];
-  if (!flag) throw new Error(`unknown pre-opening checklist item: ${item}`);
   return {
     ...project,
     readiness: { ...project.readiness, [flag]: true },

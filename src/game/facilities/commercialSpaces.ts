@@ -33,8 +33,10 @@ export interface CommercialSpace {
   operator: OperatorModel;
   /** People it needs on duty to open at all. */
   staffRequired: number;
-  /** 0-100; how well it suits the house's guests. */
-  fit: number;
+  /** How well it suits the house's guests, in basis points. */
+  fitBp: number;
+  /** Legacy v5 saves used a 0-100 percentage; accepted only while loading. */
+  fit?: number;
   /** Monthly upkeep, whoever runs it. */
   maintenanceMinor: number;
 }
@@ -45,6 +47,19 @@ export function createCommercialSpace(space: CommercialSpace): CommercialSpace {
   assertCount(space.staffRequired, "space staffing");
   assertNonNegativeMinor(space.unitPriceMinor, "space unit price");
   assertNonNegativeMinor(space.maintenanceMinor, "space maintenance");
+  assertBasisPoints(space.fitBp, "space fit");
+  if (
+    !Number.isSafeInteger(space.openMinute) ||
+    space.openMinute < 0 ||
+    space.openMinute > 1440
+  )
+    throw new Error("invalid space opening minute");
+  if (
+    !Number.isSafeInteger(space.closeMinute) ||
+    space.closeMinute < 0 ||
+    space.closeMinute > 1440
+  )
+    throw new Error("invalid space closing minute");
   if (space.closeMinute <= space.openMinute)
     throw new Error("a space must close after it opens");
   switch (space.operator.kind) {
@@ -61,7 +76,7 @@ export function createCommercialSpace(space: CommercialSpace): CommercialSpace {
       );
       break;
   }
-  return { ...space };
+  return { ...space, operator: { ...space.operator } };
 }
 
 /** Whether the space is open at a given minute of the hotel day. */

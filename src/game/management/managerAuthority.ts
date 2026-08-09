@@ -39,10 +39,16 @@ export const DEFAULT_MANAGER_AUTHORITY: ManagerAuthority = {
 export function createManagerAuthority(
   authority: Partial<ManagerAuthority> = {},
 ): ManagerAuthority {
-  const merged = { ...DEFAULT_MANAGER_AUTHORITY, ...authority };
+  const defined = Object.fromEntries(
+    Object.entries(authority).filter(([, value]) => value !== undefined),
+  );
+  const merged = {
+    ...DEFAULT_MANAGER_AUTHORITY,
+    ...defined,
+  } as Required<ManagerAuthority>;
   assertNonNegativeMinor(merged.repairLimitMinor, "repair limit");
-  assertNonNegativeMinor(merged.capexLimitMinor ?? 0, "capex limit");
-  assertNonNegativeMinor(merged.recoveryLimitMinor ?? 0, "recovery limit");
+  assertNonNegativeMinor(merged.capexLimitMinor, "capex limit");
+  assertNonNegativeMinor(merged.recoveryLimitMinor, "recovery limit");
   return merged;
 }
 

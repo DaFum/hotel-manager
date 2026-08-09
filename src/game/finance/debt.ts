@@ -18,6 +18,8 @@ export interface DebtInstalment {
   closingPrincipalMinor: number;
 }
 
+export const MAX_LOAN_TERM_MONTHS = 1200;
+
 /**
  * Straight-line amortisation of principal with interest on the balance
  * outstanding. Integer arithmetic throughout; the last instalment absorbs the
@@ -28,6 +30,8 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
   assertBasisPoints(loan.annualRateBasisPoints, "loan rate");
   if (!Number.isSafeInteger(loan.termMonths) || loan.termMonths <= 0)
     throw new Error("invalid loan term");
+  if (loan.termMonths > MAX_LOAN_TERM_MONTHS)
+    throw new Error("loan term exceeds maximum");
 
   const perMonth = Math.trunc(loan.principalMinor / loan.termMonths);
   const schedule: DebtInstalment[] = [];
@@ -89,9 +93,11 @@ export function restructure(
     throw new Error("a restructuring must add extra months");
   const penalty = terms.penaltyBasisPoints ?? 0;
   assertBasisPoints(penalty, "restructuring penalty");
+  const annualRateBasisPoints = loan.annualRateBasisPoints + penalty;
+  assertBasisPoints(annualRateBasisPoints, "restructured loan rate");
   return {
     principalMinor: loan.principalMinor,
-    annualRateBasisPoints: loan.annualRateBasisPoints + penalty,
+    annualRateBasisPoints,
     termMonths: loan.termMonths + terms.extraMonths,
   };
 }

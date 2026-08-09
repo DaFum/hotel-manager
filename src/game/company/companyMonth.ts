@@ -1,7 +1,11 @@
 import type { GameState } from "../simulation/initialState";
 import type { DomainEventPayload } from "../domain/events";
 import { compareIds } from "../domain/ids";
-import { auditBrand, recordAudit } from "../brands/brandAudit";
+import {
+  auditBrand,
+  brandDemandUpliftBp,
+  recordAudit,
+} from "../brands/brandAudit";
 import {
   brandForHotel,
   findBrand,
@@ -20,9 +24,6 @@ import {
   type HotelOperatingResult,
 } from "./companyState";
 import { consolidatedCashMinor } from "../treasury/treasury";
-import { STARTER_HOTEL } from "../content/1991/starterHotel";
-
-/** What the corporate month needs from the simulation to do its work. */
 /** What putting one failed brand standard right is reckoned to cost. */
 export const REMEDIATION_COST_PER_FAILURE_MINOR = 1_500_000;
 
@@ -48,7 +49,7 @@ export function runCompanyMonth(
   publishFlagshipResult(state, periodKey, ctx);
   tradeManagedHotels(state, periodStartDateKey, periodKey, ctx);
   chargeOwnershipContracts(state, ctx);
-  auditBrands(state, ctx);
+  auditBrands(state, periodStartDateKey, ctx);
   chargeHeadquarters(state, ctx);
   raiseManagerEscalations(state, periodKey, ctx);
   syncTreasury(state);
@@ -185,7 +186,11 @@ function chargeOwnershipContracts(
  * of compliance past its remediation date loses the flag, so a brand is a
  * standing obligation rather than a one-off purchase.
  */
-function auditBrands(state: GameState, ctx: CompanyMonthContext): void {
+function auditBrands(
+  state: GameState,
+  periodStartDateKey: string,
+  ctx: CompanyMonthContext,
+): void {
   const c = state.company;
   for (const hotelId of operatedHotelIds(c)) {
     const assignment = brandForHotel(c.brandAssignments, hotelId);
@@ -201,7 +206,7 @@ function auditBrands(state: GameState, ctx: CompanyMonthContext): void {
     const audit = recordAudit({
       hotelId,
       brandId: brand.id,
-      dateKey: state.calendar.dateKey,
+      dateKey: periodStartDateKey,
       result,
     });
     c.brandAudits = appendBrandAudit(c.brandAudits, audit);
@@ -218,10 +223,11 @@ function auditBrands(state: GameState, ctx: CompanyMonthContext): void {
     if (audit.compliant) continue;
     // Two consecutive failures on the same flag is the point at which the
     // brand stops waiting: the grace period has been and gone.
-    const failures = c.brandAudits.filter(
-      (a) => a.hotelId === hotelId && a.brandId === brand.id && !a.compliant,
-    );
-    if (failures.length >= 2) {
+    const recent = c.brandAudits
+      .filter((a) => a.hotelId === hotelId && a.brandId === brand.id)
+      .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
+      .slice(0, 2);
+    if (recent.length === 2 && recent.every((audit) => !audit.compliant)) {
       c.brandAssignments = removeBrandAssignment(c.brandAssignments, hotelId);
       ctx.emit({ type: "HOTEL_REBRANDED", hotelId, brandId: null }, [hotelId]);
     }
@@ -233,14 +239,12 @@ export function compliantBrandUpliftBp(
   state: GameState,
   hotelId: string,
 ): number {
-  const c = state.company;
-  const assignment = brandForHotel(c.brandAssignments, hotelId);
-  if (!assignment) return 0;
-  const brand = findBrand(c.brands, assignment.brandId);
-  if (!brand) return 0;
-  return auditBrand(brand.standard, auditInputFor(state, hotelId)).compliant
-    ? brand.demandUpliftBasisPoints
-    : 0;
+  return brandDemandUpliftBp(
+    state.company.brands,
+    state.company.brandAssignments,
+    hotelId,
+    auditInputFor(state, hotelId),
+  );
 }
 
 /**
@@ -358,5 +362,3 @@ export function treasuryReconciles(state: GameState): boolean {
     consolidatedCashMinor(state.company.treasury) === state.finance.cashMinor
   );
 }
-
-export { STARTER_HOTEL };

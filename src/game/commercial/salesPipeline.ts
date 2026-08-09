@@ -94,6 +94,17 @@ export function signContract(
   assertCount(contract.expectedRoomNights, "expected room nights");
   if (contract.validToDateKey <= contract.validFromDateKey)
     throw new Error("a contract must end after it starts");
+  if (
+    state.contracts.some(
+      (existing) =>
+        existing.accountName === contract.accountName &&
+        existing.validFromDateKey < contract.validToDateKey &&
+        contract.validFromDateKey < existing.validToDateKey,
+    )
+  )
+    throw new Error(
+      `account ${contract.accountName} already has a contract in this period`,
+    );
   return {
     ...state,
     contracts: [...state.contracts, { ...contract }].sort((a, b) =>
@@ -188,9 +199,12 @@ export function negotiatedDiscountBasisPoints(
 ): number {
   assertNonNegativeMinor(rackRateMinor, "rack rate");
   if (rackRateMinor === 0) return 0;
-  const discount = Math.trunc(
-    ((rackRateMinor - contract.negotiatedRateMinor) * 10_000) / rackRateMinor,
+  const discount = Math.max(
+    0,
+    Math.trunc(
+      ((rackRateMinor - contract.negotiatedRateMinor) * 10_000) / rackRateMinor,
+    ),
   );
-  assertBasisPoints(Math.max(0, discount), "negotiated discount");
+  assertBasisPoints(discount, "negotiated discount");
   return discount;
 }

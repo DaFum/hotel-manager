@@ -18,7 +18,7 @@ describe("PortfolioDashboard", () => {
   it("shows each hotel with occupancy, profit, warning count, and manager", () => {
     render(<PortfolioDashboard hotels={[HOTEL]} onOpenHotel={() => {}} />);
     expect(screen.getByText("Frankfurt Central")).toBeTruthy();
-    expect(screen.getByText(/78%/)).toBeTruthy();
+    expect(screen.getByText(/78\.0% occupancy/)).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /open frankfurt central/i }),
     ).toBeTruthy();
@@ -133,7 +133,7 @@ describe("DevelopmentDashboard", () => {
     baseAnnualRoomRevenueMinor: 1_200_000,
     upsideAnnualRoomRevenueMinor: 1_400_000,
     returnOnCostBasisPoints: 1200,
-    missing: ["inventory"],
+    missing: ["inventory"] as const,
     openedDateKey: null,
   };
 

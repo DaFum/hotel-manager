@@ -1195,10 +1195,10 @@ export class GameSimulation implements CommandExecutor {
     this.runBar();
     this.runRoomService();
     this.runWellness();
-    this.runLaundry();
-    this.runCommercialSpaces();
     if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
       this.meterDailyUtilities();
+    this.runLaundry();
+    this.runCommercialSpaces();
   }
 
   /**
@@ -1213,7 +1213,8 @@ export class GameSimulation implements CommandExecutor {
     for (const space of s.commercialSpaces.spaces) {
       // Demand comes from the guests actually in the house, at a take-up
       // rate the space's own fit decides.
-      const demand = Math.trunc((inHouse * space.fit) / 100);
+      const fitBp = space.fitBp ?? (space.fit ?? 0) * 100;
+      const demand = Math.trunc((inHouse * fitBp) / 10_000);
       const result = spaceThroughput({
         space,
         demand,
@@ -1767,7 +1768,7 @@ export class GameSimulation implements CommandExecutor {
       fullRemedyCostMinor: Math.max(1, roomChargeMinor),
     });
     this.moveSatisfaction(
-      outcome.satisfaction - s.guestSatisfaction.score,
+      explained.after - s.guestSatisfaction.score,
       `recovery for ${bookingId}: ${explained.causes.join("; ")}`,
     );
     this.emit(
@@ -1775,7 +1776,7 @@ export class GameSimulation implements CommandExecutor {
         type: "SERVICE_RECOVERY_APPLIED",
         complaintId,
         bookingId,
-        costMinor: outcome.expenseMinor,
+        costMinor: record.postedCostMinor,
       },
       [complaintId, bookingId],
     );

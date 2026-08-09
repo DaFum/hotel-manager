@@ -49,7 +49,7 @@ export function WorldControls(props: {
   return (
     <section aria-label="World controls">
       <h2>World</h2>
-      <p aria-label="View state">
+      <p role="status" aria-label="View state">
         Floor {camera.floor}, {camera.cutaway ? "cut away" : "whole building"},{" "}
         zoom {camera.zoom.toFixed(1)} showing {detail}, {light} light
       </p>
@@ -69,22 +69,26 @@ export function WorldControls(props: {
       >
         Pan right
       </button>
-      <button
-        type="button"
-        aria-label="Zoom in"
-        disabled={camera.zoom >= MAX_ZOOM}
-        onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
-      >
-        Zoom in
-      </button>
-      <button
-        type="button"
-        aria-label="Zoom out"
-        disabled={camera.zoom <= MIN_ZOOM}
-        onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
-      >
-        Zoom out
-      </button>
+      <div className="world-controls__zoom">
+        <button
+          className="world-controls__zoom-in"
+          type="button"
+          aria-label="Zoom in"
+          disabled={camera.zoom >= MAX_ZOOM}
+          onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
+        >
+          Zoom in
+        </button>
+        <button
+          className="world-controls__zoom-out"
+          type="button"
+          aria-label="Zoom out"
+          disabled={camera.zoom <= MIN_ZOOM}
+          onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
+        >
+          Zoom out
+        </button>
+      </div>
 
       <h3>Floors</h3>
       <ul>
@@ -131,7 +135,9 @@ export function WorldControls(props: {
               <button
                 type="button"
                 aria-label={`Go to ${problem.title}: ${problem.cause}`}
-                aria-pressed={camera.focusedId === problem.id}
+                aria-current={
+                  camera.focusedId === problem.id ? "true" : undefined
+                }
                 onClick={() =>
                   props.onCamera(
                     focusCamera(camera, {

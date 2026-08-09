@@ -197,6 +197,7 @@ describe("command handler", () => {
       executor,
     );
 
+    const staffingBefore = state.rngState.staffing;
     const [result] = handler.run([envelope(RATE)]);
 
     expect(result.status).toBe("rejected");
@@ -205,7 +206,9 @@ describe("command handler", () => {
     expect(committed.alerts.some((a) => a.id === "alert.half-written")).toBe(
       false,
     );
-    expect(committed.rngState.staffing).toBe(state.rngState.staffing);
+    // Snapshotted before the run: comparing the live state with itself would
+    // pass whether or not the draw was actually rolled back.
+    expect(committed.rngState.staffing).toBe(staffingBefore);
   });
 
   it("increments the state version exactly once per applied command", () => {

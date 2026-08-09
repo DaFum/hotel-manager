@@ -120,11 +120,16 @@ export function isCommandEnvelope(value: unknown): value is CommandEnvelope {
     typeof e === "object" &&
     typeof e.commandId === "string" &&
     e.commandId.length > 0 &&
+    // The same lower bounds the factory applies: this guard is the only
+    // barrier for an envelope that did not come from it, and a negative
+    // issued time would be written verbatim into the command journal.
     Number.isSafeInteger(e.issuedAtMinutes) &&
+    e.issuedAtMinutes >= 0 &&
     (e.actor === "player" || e.actor === "automation") &&
     e.payload &&
     typeof e.payload.type === "string" &&
     (e.expectedStateVersion === undefined ||
-      Number.isSafeInteger(e.expectedStateVersion)),
+      (Number.isSafeInteger(e.expectedStateVersion) &&
+        e.expectedStateVersion >= 0)),
   );
 }

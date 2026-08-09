@@ -49,13 +49,33 @@ describe("plan 03 city and competitor conformance", () => {
     const pressureBp = 12_000;
     const landPriceMinor = 12_000_000;
 
-    // Wages: the same market wage, from the same function, for both. A rival
-    // does not get labour cheaper than the player can hire it.
+    // Wages: the floor the player is actually held to when hiring is the same
+    // market wage a rival's payroll is charged at. Read from the running
+    // simulation, not recomputed here, or this proves nothing.
+    const sim = new GameSimulation(createInitialGameState(55));
+    sim.refreshDerivedState();
+    const cityWage = marketWageMinor(
+      BASE_MONTHLY_WAGE_MINOR,
+      sim.state.cityMarket.wagePressureBp,
+    );
+    const below = sim.validateCommand({
+      type: "HIRE",
+      role: "reception",
+      shift: "morning",
+      monthlyWageMinor: cityWage - 1,
+    });
+    const at = sim.validateCommand({
+      type: "HIRE",
+      role: "reception",
+      shift: "morning",
+      monthlyWageMinor: cityWage,
+    });
+    expect(below.ok).toBe(false);
+    expect(at.ok).toBe(true);
+
     const wage = marketWageMinor(BASE_MONTHLY_WAGE_MINOR, pressureBp);
-    const rivalPayroll = postsForRooms(90) * wage;
-    const playerPayroll = postsForRooms(90) * wage;
-    expect(rivalPayroll).toBe(playerPayroll);
     expect(wage).toBeGreaterThan(BASE_MONTHLY_WAGE_MINOR);
+    expect(postsForRooms(90)).toBeGreaterThan(0);
 
     // Building: one cost curve, so a rival's rooms cost what the player's do.
     for (const rooms of [10, 45, 90])
@@ -77,14 +97,35 @@ describe("plan 03 city and competitor conformance", () => {
     );
     expect(creditLineMinor(0, landPriceMinor)).toBe(0);
 
-    // Trading: two identical houses trade identically, whoever owns them.
-    const month = (rooms: number) =>
+    // Trading: a house's result follows from its own size, rate and debt and
+    // from the city's wage pressure — nothing else. A bigger house earns more
+    // and a tighter labour market costs more, for anyone.
+    const month = (over: {
+      rooms?: number;
+      wagePressureBp?: number;
+      debtMinor?: number;
+    }) =>
       competitorMonth(
-        { rooms, rateMinor: 15_000, debtMinor: 40_000_000 },
-        { soldRoomNights: rooms * 20, wagePressureBp: pressureBp },
+        {
+          rooms: over.rooms ?? 90,
+          rateMinor: 15_000,
+          debtMinor: over.debtMinor ?? 40_000_000,
+        },
+        {
+          soldRoomNights: (over.rooms ?? 90) * 20,
+          wagePressureBp: over.wagePressureBp ?? pressureBp,
+        },
       );
-    expect(month(90)).toEqual(month(90));
-    expect(Number.isSafeInteger(month(90).profitMinor)).toBe(true);
+    expect(month({ rooms: 120 }).profitMinor).toBeGreaterThan(
+      month({ rooms: 90 }).profitMinor,
+    );
+    expect(month({ wagePressureBp: 14_000 }).profitMinor).toBeLessThan(
+      month({ wagePressureBp: 8_000 }).profitMinor,
+    );
+    expect(month({ debtMinor: 200_000_000 }).profitMinor).toBeLessThan(
+      month({ debtMinor: 0 }).profitMinor,
+    );
+    expect(Number.isSafeInteger(month({}).profitMinor)).toBe(true);
   });
 
   it("reads only strategy, own state and lagged public observation", () => {

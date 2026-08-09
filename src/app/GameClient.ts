@@ -15,7 +15,7 @@ import {
 
 type SnapshotListener = (snapshot: GameSnapshot) => void;
 type ErrorListener = (message: string) => void;
-type SaveListener = (saveData: unknown) => void;
+type SaveListener = (saveData: unknown, requestId: string) => void;
 type RejectionListener = (rejection: {
   requestId: string;
   commandId: string;
@@ -255,7 +255,8 @@ export class GameClient {
         for (const l of this.domainEventListeners) l(message.events);
         return;
       case "SAVE_DATA":
-        for (const l of this.saveListeners) l(message.saveData);
+        for (const l of this.saveListeners)
+          l(message.saveData, message.requestId);
         return;
       case "SIMULATION_ERROR":
         for (const l of this.errorListeners) l(message.message);

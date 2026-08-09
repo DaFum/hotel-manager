@@ -53,13 +53,14 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     return [...problems, "the envelope carries no state"];
 
   const state = envelope.state as Partial<GameState>;
-  // The streams in the envelope header and the ones inside the state are the
-  // same streams; a save where they disagree would replay differently
-  // depending on which one was believed.
-  if (
-    isCompleteRngState(state.rngState) &&
-    isCompleteRngState(envelope.rngState)
-  )
+  // The state carries the streams the simulation is actually restored from.
+  // Checking only the header would let through a save whose state has none,
+  // and restoring that would throw outside the validation path.
+  if (!isCompleteRngState(state.rngState))
+    problems.push("the state is missing one or more rng streams");
+  else if (isCompleteRngState(envelope.rngState))
+    // Header and state are the same streams; a save where they disagree would
+    // replay differently depending on which one was believed.
     for (const name of RNG_STREAM_NAMES)
       if (state.rngState[name] !== envelope.rngState[name])
         problems.push(`rng stream ${name} disagrees with the envelope header`);

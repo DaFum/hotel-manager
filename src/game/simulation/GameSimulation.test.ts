@@ -322,7 +322,15 @@ describe("simulated operations", () => {
     sim.advanceQuantum();
     const after = sim.snapshot();
     expect(after.rngState.staffing).toBe(before);
-    expect(after.alerts.some((a) => a.title === "Command rejected")).toBe(true);
+    // The refusal is on the command journal, not written into the hotel: a
+    // rejected command must leave authoritative state alone.
+    expect(after.alerts.some((a) => a.title === "Command rejected")).toBe(
+      false,
+    );
+    expect(after.commandLog.at(-1)).toMatchObject({
+      type: "HIRE",
+      status: "rejected",
+    });
   });
 
   it("follows the declared segment shares rather than a uniform draw", () => {

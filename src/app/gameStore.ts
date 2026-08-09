@@ -55,12 +55,17 @@ function createWorker(): Worker | null {
 export function useGameStore(seed: number): GameStore {
   const clientRef = useRef<GameClient | null>(null);
   const repoRef = useRef(new IndexedDbSaveRepository("hotel-manager"));
-  /** Where the next SAVE_DATA should be written; set when a save is asked for. */
-  const targetSlotRef = useRef<string>(DEFAULT_SLOT);
+  /**
+   * The slot each in-flight save request asked for, by request id. Two saves
+   * can be in flight at once, and the second must not steal the first's slot.
+   */
+  const pendingSlotsRef = useRef(new Map<string, string>());
   /** The last calendar position seen, for deciding month and year autosaves. */
   const lastPointRef = useRef<{ dateKey: string; minuteOfDay: number } | null>(
     null,
   );
+  /** Set while a load is in flight, so its snapshot is not read as a tick. */
+  const loadingRef = useRef(false);
   const [snapshot, setSnapshot] = useState<GameState | null>(null);
   const [speed, setSpeedState] = useState<Speed>(0);
   const [errors, setErrors] = useState<string[]>([]);
@@ -92,19 +97,26 @@ export function useGameStore(seed: number): GameStore {
       // and an uninterrupted one autosave on exactly the same days.
       const previous = lastPointRef.current;
       lastPointRef.current = next.calendar;
+      // A load is not time passing. Restoring an older game moves the
+      // calendar backwards, and reading that as a month roll would overwrite
+      // the monthly autosave with the historical state it just restored.
+      if (loadingRef.current) {
+        loadingRef.current = false;
+        return;
+      }
       if (!previous) return;
       const reason = autosaveReason(previous, next.calendar);
       if (!reason) return;
-      targetSlotRef.current = autosaveSlot(reason);
-      client.requestSave();
+      pendingSlotsRef.current.set(client.requestSave(), autosaveSlot(reason));
     });
     client.onError((message) => setErrors((prev) => [...prev, message]));
     client.onCommandRejected(({ reason }) =>
       setErrors((prev) => [...prev, `command rejected: ${reason}`]),
     );
-    client.onSaveData((saveData) => {
+    client.onSaveData((saveData, requestId) => {
       const envelope = saveData as SaveEnvelope;
-      const slot = targetSlotRef.current;
+      const slot = pendingSlotsRef.current.get(requestId) ?? DEFAULT_SLOT;
+      pendingSlotsRef.current.delete(requestId);
       void repoRef.current
         .save(slot, envelope)
         // Every save also refreshes the safety net, so a corrupted slot is
@@ -143,14 +155,15 @@ export function useGameStore(seed: number): GameStore {
       // A decision that cannot be undone by issuing the opposite command gets
       // a save of its own first.
       if (isMajorAction(command.type)) {
-        targetSlotRef.current = autosaveSlot("major-action");
-        clientRef.current?.requestSave();
+        const requestId = clientRef.current?.requestSave();
+        if (requestId)
+          pendingSlotsRef.current.set(requestId, autosaveSlot("major-action"));
       }
       clientRef.current?.sendCommand(command);
     },
     save: (slot = DEFAULT_SLOT) => {
-      targetSlotRef.current = slot;
-      clientRef.current?.requestSave();
+      const requestId = clientRef.current?.requestSave();
+      if (requestId) pendingSlotsRef.current.set(requestId, slot);
     },
     load: (slot = DEFAULT_SLOT) => {
       setRecoveredFrom(null);
@@ -166,6 +179,7 @@ export function useGameStore(seed: number): GameStore {
             return;
           }
           if (outcome.slot !== slot) setRecoveredFrom(outcome.slot);
+          loadingRef.current = true;
           // The worker validates it again before it replaces anything; this
           // side never applies a save itself.
           clientRef.current?.loadGame(outcome.envelope);

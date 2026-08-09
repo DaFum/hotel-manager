@@ -504,17 +504,11 @@ export class GameSimulation implements CommandExecutor {
     if (this.queued.length === 0) return;
     const batch = this.queued;
     this.queued = [];
-    const results = this.commands.run(batch);
-    this.decided.push(...results);
-    for (const result of results) {
-      if (result.status === "accepted") continue;
-      this.pushAlert({
-        id: `alert.command.${result.commandId}`,
-        severity: "warning",
-        title: "Command rejected",
-        cause: result.reason ?? "the command was refused",
-      });
-    }
+    // Verdicts travel out through the protocol, not through game state: an
+    // alert here would be authoritative state changing on a rejection, which
+    // is exactly what the transactional boundary promises not to do. The
+    // command journal already records every refusal.
+    this.decided.push(...this.commands.run(batch));
   }
 
   private applyCommand(command: GameCommand): void {

@@ -90,6 +90,24 @@ describe("save recovery", () => {
     expect(outcome.rejected[0]?.reason).toMatch(/rng stream/i);
   });
 
+  it("refuses a save whose state has lost its rng streams", async () => {
+    const store = memoryStore();
+    const slot = manualSlot("half a save");
+    const broken = envelopeAt(800);
+    // The header still looks right; the state the simulation would actually be
+    // restored from does not carry the streams at all.
+    const state = { ...(broken.state as Record<string, unknown>) };
+    delete state.rngState;
+    await store.save(slot, { ...broken, state });
+
+    const outcome = await loadWithRecovery(store, slot);
+
+    // Refused in validation, rather than throwing inside the worker while the
+    // running game is being replaced.
+    if (isRecovered(outcome)) throw new Error("a stateless save was accepted");
+    expect(outcome.rejected[0].reason).toMatch(/missing one or more rng/i);
+  });
+
   it("leaves the stored slot intact when a write fails", async () => {
     const repo = new IndexedDbSaveRepository("test-recovery-atomic");
     const slot = manualSlot("keep me");

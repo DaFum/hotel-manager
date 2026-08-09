@@ -67,6 +67,14 @@ const booking = (overrides: Partial<Booking> = {}): Booking => ({
 });
 
 describe("booking engine", () => {
+  it("preserves a guest identity independently of booking identity", () => {
+    const accepted = reserve(
+      flat(2),
+      request({ id: "booking.return.2", guestId: "guest.returning.1" }),
+    );
+    expect(accepted.guestId).toBe("guest.returning.1");
+    expect(accepted.guestId).not.toBe(accepted.id);
+  });
   it("reserves multiple room nights only inside inventory", () => {
     const b = reserve(flat(5), request({ roomsRequested: 2 }));
     expect(b.roomsRequested).toBe(2);

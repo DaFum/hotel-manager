@@ -7,6 +7,7 @@ import {
   scheduleRemediation,
 } from "./brandAudit";
 import { assignBrand, createBrand, registerBrand } from "./brandTypes";
+import { shouldRemoveBrand } from "../company/companyMonth";
 
 const STANDARD = {
   minRoomQuality: 70,
@@ -14,6 +15,43 @@ const STANDARD = {
 };
 
 describe("brand audit", () => {
+  it("waits for an uninterrupted failed audit's remediation deadline", () => {
+    const failed = recordAudit({
+      hotelId: "hotel.1",
+      brandId: "brand.1",
+      dateKey: "1991-01-01",
+      result: { compliant: false, failures: ["quality"] },
+    });
+    const compliant = {
+      ...failed,
+      dateKey: "1991-02-01",
+      compliant: true,
+      failures: [],
+      remediationDueDateKey: null,
+    };
+    const failedAgain = {
+      ...failed,
+      dateKey: "1991-03-01",
+      remediationDueDateKey: "1991-03-31",
+    };
+    expect(shouldRemoveBrand([failed], "1991-01-30")).toBe(false);
+    expect(
+      shouldRemoveBrand([failed, compliant, failedAgain], "1991-04-01"),
+    ).toBe(false);
+    expect(
+      shouldRemoveBrand(
+        [
+          failed,
+          {
+            ...failed,
+            dateKey: "1991-02-01",
+            remediationDueDateKey: "1991-03-03",
+          },
+        ],
+        "1991-03-03",
+      ),
+    ).toBe(true);
+  });
   it("reports concrete failed standards instead of a single XP score", () => {
     const result = auditBrand(STANDARD, { roomQuality: 65, facilities: [] });
     expect(result.compliant).toBe(false);

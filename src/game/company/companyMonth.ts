@@ -6,6 +6,7 @@ import {
   brandDemandUpliftBp,
   recordAudit,
 } from "../brands/brandAudit";
+import type { BrandAuditRecord } from "../brands/brandAudit";
 import {
   brandForHotel,
   findBrand,
@@ -223,15 +224,30 @@ function auditBrands(
     if (audit.compliant) continue;
     // Two consecutive failures on the same flag is the point at which the
     // brand stops waiting: the grace period has been and gone.
-    const recent = c.brandAudits
-      .filter((a) => a.hotelId === hotelId && a.brandId === brand.id)
-      .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
-      .slice(0, 2);
-    if (recent.length === 2 && recent.every((audit) => !audit.compliant)) {
+    const matching = c.brandAudits.filter(
+      (a) => a.hotelId === hotelId && a.brandId === brand.id,
+    );
+    if (shouldRemoveBrand(matching, periodStartDateKey)) {
       c.brandAssignments = removeBrandAssignment(c.brandAssignments, hotelId);
       ctx.emit({ type: "HOTEL_REBRANDED", hotelId, brandId: null }, [hotelId]);
     }
   }
+}
+
+export function shouldRemoveBrand(
+  audits: readonly BrandAuditRecord[],
+  dateKey: string,
+): boolean {
+  const recent = [...audits]
+    .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
+    .slice(0, 2);
+  if (recent.length !== 2 || recent.some((audit) => audit.compliant))
+    return false;
+  const firstFailure = recent[1];
+  return (
+    firstFailure.remediationDueDateKey !== null &&
+    firstFailure.remediationDueDateKey <= dateKey
+  );
 }
 
 /** What a brand actually earns a house today; nothing while it is failing. */

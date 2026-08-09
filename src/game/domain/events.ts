@@ -99,9 +99,12 @@ export type DomainEventType = DomainEventPayload["type"];
  */
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "BOOKING_CONFIRMED",
+  "BOOKING_CANCELLED",
+  "BOOKING_NO_SHOW",
   "GUEST_CHECKED_IN",
   "GUEST_CHECKED_OUT",
   "COMPLAINT_RAISED",
+  "SERVICE_RECOVERY_APPLIED",
   "ROOM_STATE_CHANGED",
   "FACILITY_CONSTRAINT_CHANGED",
   "RENOVATION_STARTED",
@@ -128,20 +131,12 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
 /**
  * Payloads that are typed and ready but have no reachable transition yet.
  *
- * All three belong to the reservation lifecycle. Cancellation and authorised
- * service recovery have no code path at all; the no-show emitter exists but
- * cannot currently fire, because a party that reaches the reception queue
- * never leaves it again unserved. The lifecycle task owns all three, and they
- * join DOMAIN_EVENT_TYPES in the commit that gives them a real cause.
- *
- * Naming them here keeps the gap visible instead of letting the coverage list
- * quietly under-state the contract.
+ * Empty is the goal, and it is empty: the reservation lifecycle now gives
+ * cancellation, no-show and authorised service recovery real causes. The list
+ * stays so that a future payload added ahead of its transition has somewhere
+ * honest to sit instead of quietly under-stating the coverage contract.
  */
-export const AWAITING_TRANSITION: readonly DomainEventType[] = [
-  "BOOKING_CANCELLED",
-  "BOOKING_NO_SHOW",
-  "SERVICE_RECOVERY_APPLIED",
-];
+export const AWAITING_TRANSITION: readonly DomainEventType[] = [];
 
 /** A completed fact, with everything needed to order and explain it. */
 export interface DomainEvent {

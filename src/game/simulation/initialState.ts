@@ -48,13 +48,12 @@ export interface StayRecord {
   departureDateKey: string;
 }
 
-export interface ReservationRecord extends Booking {
-  /** The category the rooms were held against at booking time. */
-  category: string;
-  arrivalDateKey: string;
-  nights: number;
-  segmentId: string;
-}
+/**
+ * A reservation as the game holds it. The booking already carries its whole
+ * slice context — party, segment, source, category, stay dates, terms and
+ * status history — so there is nothing left for the state to bolt on.
+ */
+export type ReservationRecord = Booking;
 
 /** One serviced area as the player sees it: load, capacity and the binding cause. */
 export interface FacilityRecord {
@@ -169,6 +168,11 @@ export interface GameState {
     ledger: LedgerEntry[];
     month: MonthAccumulator;
   };
+  /**
+   * How the house is currently regarded by its guests, 0-100, and why. Only
+   * things that actually happened to a guest move it.
+   */
+  guestSatisfaction: { score: number; causes: string[] };
   /** Housekeeping labour carried between quanta, in simulated minutes. */
   housekeepingMinutes: number;
   /** Fractional reception throughput carried between quanta, in parties. */
@@ -265,6 +269,7 @@ export function createInitialGameState(seed: number): GameState {
       conferenceSqm: STARTER_HOTEL.conferenceSqm,
       wellnessSqm: STARTER_HOTEL.wellnessSqm,
     },
+    guestSatisfaction: { score: 70, causes: [] },
     housekeepingMinutes: 0,
     receptionCapacity: 0,
     renovation: null,

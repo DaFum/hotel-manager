@@ -128,6 +128,36 @@ function distressedRivalScenario(): DomainEvent[] {
   return runDays(s, DAYS_TO_FIRST_CITY_MONTH);
 }
 
+/**
+ * A morning when the whole house arrives at once behind a single receptionist:
+ * the queue outlasts the guests' patience, and the desk is staffed enough to
+ * put it right.
+ */
+function busyReceptionScenario(): DomainEvent[] {
+  const state = createInitialGameState(7);
+  state.staff = state.staff.filter(
+    (m) => m.role !== "reception" || m.id === "staff.reception.1",
+  );
+  state.reservations = state.hotel.rooms.slice(0, 20).map((room, i) => ({
+    id: `booking.wave.${i}`,
+    roomsRequested: 1,
+    rateMinor: 15_000,
+    status: "confirmed" as const,
+    channel: "walkIn" as const,
+    partySize: 2,
+    segmentId: "segment.leisure",
+    category: room.category,
+    arrivalDateKey: state.calendar.dateKey,
+    nights: 1,
+    // Guaranteed, so every one of them turns up and the queue is real.
+    terms: { guaranteed: true, freeCancellationDays: 1, lateChargeBp: 10000 },
+    history: [{ status: "confirmed" as const, atMinutes: 0 }],
+  }));
+  const s = new GameSimulation(state);
+  s.refreshDerivedState();
+  return runDays(s, 2);
+}
+
 /** A month in which the city's transport network actually changes. */
 function routeChangeScenario(): DomainEvent[] {
   const state = createInitialGameState(9);
@@ -252,6 +282,7 @@ describe("domain event buffer", () => {
     record(playAndCollect(11, 95));
     // The rest are rare by design, so the world is put into the state where
     // each of them actually happens rather than waited out.
+    record(busyReceptionScenario());
     record(wornPlantScenario());
     record(distressedRivalScenario());
     record(routeChangeScenario());

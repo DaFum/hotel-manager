@@ -508,7 +508,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/bookings/bookingLifecycle.integration.test.ts",
       assertion: "retains the full slice context of a confirmed booking",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "booking.inventory.allDates",
@@ -521,7 +521,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/bookings/bookingLifecycle.integration.test.ts",
       assertion: "checks inventory across every date of a multi-night stay",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "booking.release.exact",
@@ -535,7 +535,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "releases exactly the held inventory on cancellation and no-show",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "booking.checkin.cleanRoom",
@@ -548,7 +548,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/bookings/bookingLifecycle.integration.test.ts",
       assertion: "assigns a clean room of the booked category in stable order",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "booking.recovery.authorized",
@@ -561,7 +561,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/bookings/bookingLifecycle.integration.test.ts",
       assertion: "posts nothing for a rejected service recovery",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "booking.chain.causal",
@@ -574,7 +574,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/bookings/bookingLifecycle.integration.test.ts",
       assertion: "runs one stay end to end as a single causal chain",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 7: Plan 02 operating depth ------------------------------------

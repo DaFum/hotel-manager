@@ -3,7 +3,17 @@ import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
 import { supplierForSku } from "../content/1991/suppliers";
-import { canWalkIn, markNoShow, reserve } from "../bookings/bookingEngine";
+import {
+  canWalkIn,
+  cancel,
+  checkIn,
+  checkOut,
+  holdsRoomOn,
+  lateChargeMinor,
+  markNoShow,
+  reserve,
+} from "../bookings/bookingEngine";
+import type { BookingChannel } from "../bookings/bookingTypes";
 import {
   getRate,
   isRoomCategory,
@@ -32,7 +42,11 @@ import {
   revParMinor,
 } from "../revenue/metrics";
 import { assignRoom, processReceptionQueue } from "../guests/guestJourney";
-import { complaintForWait } from "../guests/complaints";
+import {
+  authorizeRecovery,
+  complaintForWait,
+  resolveComplaint,
+} from "../guests/complaints";
 import { cleanRoom } from "../rooms/housekeeping";
 import { serveBreakfast } from "../fnb/breakfastService";
 import { barCovers, barRevenueMinor, BAR_OPEN_MINUTE } from "../fnb/barService";
@@ -184,6 +198,14 @@ const LIFT_TRIPS_PER_DAY = 400;
 const TECHNICIAN_MINUTES_PER_DAY = 240;
 /** Technician minutes a breakdown repair is allowed each day. */
 const REPAIR_MINUTES_PER_DAY = 120;
+/** Days a finished booking is kept on the books for its own history. */
+const BOOKING_RETENTION_DAYS = 30;
+/** Share of the first night an unhonoured booking is charged, in bp. */
+const LATE_CHARGE_BP = 10000;
+/** Chance in basis points that a future booking cancels on a given day. */
+const DAILY_CANCELLATION_BP = 300;
+/** Chance in basis points that an unguaranteed party never turns up. */
+const NO_SHOW_BP = 400;
 /** Condition alerts re-decided at every arrival wave. */
 const ARRIVAL_ALERT_IDS = [
   "alert.security-short",
@@ -687,6 +709,12 @@ export class GameSimulation implements CommandExecutor {
       );
       const turned: { moduleId: string }[] = [];
       for (const stay of leaving) {
+        const booking = s.reservations.find((b) => b.id === stay.bookingId);
+        if (booking && booking.status === "checkedIn") {
+          const completed = checkOut(booking, s.elapsedMinutes);
+          booking.status = completed.status;
+          booking.history = completed.history;
+        }
         const room = s.hotel.rooms.find((r) => r.id === stay.roomId);
         if (room) {
           const from = room.state;
@@ -724,10 +752,17 @@ export class GameSimulation implements CommandExecutor {
     if (s.calendar.minuteOfDay === ARRIVAL_MINUTE) {
       for (const booking of s.reservations) {
         if (
-          booking.status === "confirmed" &&
-          booking.arrivalDateKey === s.calendar.dateKey
+          booking.status !== "confirmed" ||
+          booking.arrivalDateKey !== s.calendar.dateKey
         )
-          s.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 0 });
+          continue;
+        // A room held on trust is the one that can go unclaimed. A party who
+        // has already paid at the desk always arrives.
+        const turnsUp =
+          booking.terms.guaranteed ||
+          this.streams.guests.nextUint32() % 10000 >= NO_SHOW_BP;
+        if (!turnsUp) continue;
+        s.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 0 });
       }
     }
 
@@ -745,8 +780,15 @@ export class GameSimulation implements CommandExecutor {
           booking.arrivalDateKey === yesterday &&
           !waiting.has(booking.id)
         ) {
-          const updated = markNoShow(booking);
+          const updated = markNoShow(booking, s.elapsedMinutes);
           booking.status = updated.status;
+          booking.history = updated.history;
+          // The terms the booking was taken on decide what may be charged.
+          const charge = lateChargeMinor(booking, yesterday);
+          if (charge > 0) {
+            this.earn(charge, "roomRevenue", `no-show ${booking.id}`);
+            s.finance.month.otherRevenueMinor += charge;
+          }
           this.emit(
             {
               type: "BOOKING_NO_SHOW",
@@ -757,9 +799,14 @@ export class GameSimulation implements CommandExecutor {
           );
         }
       }
-      s.reservations = s.reservations.filter(
-        (b) => b.status === "confirmed" || b.status === "checkedIn",
-      );
+      // A finished booking is kept for a while rather than dropped the
+      // moment it ends: its status history is what makes the stay auditable,
+      // and a fixed retention window keeps that bounded.
+      s.reservations = s.reservations.filter((b) => {
+        if (b.status === "confirmed" || b.status === "checkedIn") return true;
+        const ended = addDays(b.arrivalDateKey, b.nights);
+        return addDays(ended, BOOKING_RETENTION_DAYS) > s.calendar.dateKey;
+      });
     }
   }
 
@@ -890,7 +937,9 @@ export class GameSimulation implements CommandExecutor {
         departures: 0,
         serviceRuns: 0,
       });
-      booking.status = "checkedIn";
+      const arrived = checkIn(booking, s.elapsedMinutes);
+      booking.status = arrived.status;
+      booking.history = arrived.history;
       this.emit(
         {
           type: "GUEST_CHECKED_IN",
@@ -1242,22 +1291,85 @@ export class GameSimulation implements CommandExecutor {
       );
       if (!complaint) continue;
       if (
-        this.pushAlert({
+        !this.pushAlert({
           id: `alert.${complaint.id}`,
           severity: "warning",
           title: "Long check-in",
           cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
         })
       )
-        this.emit(
-          {
-            type: "COMPLAINT_RAISED",
-            complaintId: complaint.id,
-            bookingId: waiting.bookingId,
-          },
-          [complaint.id, waiting.bookingId],
-        );
+        continue;
+      this.emit(
+        {
+          type: "COMPLAINT_RAISED",
+          complaintId: complaint.id,
+          bookingId: waiting.bookingId,
+        },
+        [complaint.id, waiting.bookingId],
+      );
+      // A complaint costs goodwill whether or not anything is done about it.
+      this.moveSatisfaction(-4, `${complaint.cause} at reception`);
+      this.attemptRecovery(complaint.id, waiting.bookingId);
     }
+  }
+
+  /**
+   * Tries to put a complaint right. A gesture nobody is present to authorise,
+   * or that the hotel cannot pay for, is refused — and a refused recovery
+   * posts no money and moves no satisfaction at all.
+   */
+  private attemptRecovery(complaintId: string, bookingId: string): void {
+    const s = this.state;
+    const booking = s.reservations.find((b) => b.id === bookingId);
+    const roomChargeMinor = booking?.rateMinor ?? 0;
+    const verdict = authorizeRecovery("discount10", roomChargeMinor, {
+      frontDeskOnDuty: this.onDuty("reception"),
+      cashMinor: s.finance.cashMinor,
+    });
+    if (!verdict.ok) {
+      this.pushAlert({
+        id: `alert.recovery.${complaintId}`,
+        severity: "warning",
+        title: "Complaint left unanswered",
+        cause: verdict.reason,
+      });
+      return;
+    }
+    const outcome = resolveComplaint(
+      { cause: "longCheckIn", satisfaction: s.guestSatisfaction.score },
+      "discount10",
+      roomChargeMinor,
+    );
+    if (outcome.expenseMinor > 0)
+      this.spend(
+        outcome.expenseMinor,
+        "serviceRecovery",
+        `goodwill discount for ${bookingId}`,
+      );
+    this.moveSatisfaction(
+      outcome.satisfaction - s.guestSatisfaction.score,
+      `recovery for ${bookingId}`,
+    );
+    this.emit(
+      {
+        type: "SERVICE_RECOVERY_APPLIED",
+        complaintId,
+        bookingId,
+        costMinor: outcome.expenseMinor,
+      },
+      [complaintId, bookingId],
+    );
+  }
+
+  /** Moves goodwill and records why, so the number is always explainable. */
+  private moveSatisfaction(delta: number, cause: string): void {
+    const s = this.state;
+    const score = Math.max(0, Math.min(100, s.guestSatisfaction.score + delta));
+    if (score === s.guestSatisfaction.score) return;
+    s.guestSatisfaction = {
+      score,
+      causes: [...s.guestSatisfaction.causes, cause].slice(-MAX_ALERTS),
+    };
   }
 
   private runFinance(): void {
@@ -1296,6 +1408,7 @@ export class GameSimulation implements CommandExecutor {
   private generateDemand(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== DEMAND_MINUTE) return;
+    this.runCancellations();
     this.generateEventLeads();
     // The city settles its month before the new one's first day trades.
     const endedMonthKey = addDays(s.calendar.dateKey, -1);
@@ -1326,11 +1439,13 @@ export class GameSimulation implements CommandExecutor {
         category,
         STARTER_HOTEL.defaultRateMinor[category],
       );
-      const availableRooms = this.availableRooms(arrivalDateKey, category);
+      // Walk-ins draw on the same inventory as anyone else; they simply have
+      // no lead time in which to have held it.
       if (leadDays === 0 && !canWalkIn(this.sameDayInventory())) continue;
+      const channel: BookingChannel = leadDays === 0 ? "walkIn" : "directPhone";
       try {
-        const booking = reserve(
-          { availableRooms },
+        const reservation: ReservationRecord = reserve(
+          { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
             id: `booking.${s.elapsedMinutes}.${i}`,
             roomsRequested: 1,
@@ -1342,15 +1457,22 @@ export class GameSimulation implements CommandExecutor {
                 (10000 + this.specializationBonusFor(segment.id))) /
                 10000,
             ),
+            channel,
+            partySize: 1 + (this.streams.guests.nextUint32() % 2),
+            segmentId: segment.id,
+            category,
+            arrivalDateKey,
+            nights: segment.averageNights,
+            terms: {
+              // A walk-in has paid at the desk; a phone booking is held on
+              // trust and is the one that can fail to turn up.
+              guaranteed: channel === "walkIn",
+              freeCancellationDays: 1,
+              lateChargeBp: LATE_CHARGE_BP,
+            },
+            atMinutes: s.elapsedMinutes,
           },
         );
-        const reservation: ReservationRecord = {
-          ...booking,
-          category,
-          arrivalDateKey,
-          nights: segment.averageNights,
-          segmentId: segment.id,
-        };
         s.reservations.push(reservation);
         this.emit(
           {
@@ -1369,6 +1491,41 @@ export class GameSimulation implements CommandExecutor {
         /* demand lost to price or inventory; the slice does not yet count
            the causes, so this is intentionally silent */
       }
+    }
+  }
+
+  /**
+   * Plans change. A booking cancelled in good time costs nothing and releases
+   * exactly the rooms it was holding; one cancelled inside the agreed window
+   * pays the agreed share of the first night.
+   */
+  private runCancellations(): void {
+    const s = this.state;
+    for (const booking of s.reservations) {
+      if (
+        booking.status !== "confirmed" ||
+        booking.arrivalDateKey <= s.calendar.dateKey
+      )
+        continue;
+      if (this.streams.guests.nextUint32() % 10000 >= DAILY_CANCELLATION_BP)
+        continue;
+      const released = booking.roomsRequested;
+      const charge = lateChargeMinor(booking, s.calendar.dateKey);
+      const cancelled = cancel(booking, s.elapsedMinutes);
+      booking.status = cancelled.status;
+      booking.history = cancelled.history;
+      if (charge > 0) {
+        this.earn(charge, "roomRevenue", `late cancellation ${booking.id}`);
+        s.finance.month.otherRevenueMinor += charge;
+      }
+      this.emit(
+        {
+          type: "BOOKING_CANCELLED",
+          bookingId: booking.id,
+          releasedRooms: released,
+        },
+        [booking.id],
+      );
     }
   }
 
@@ -1995,13 +2152,11 @@ export class GameSimulation implements CommandExecutor {
   private availableRooms(dateKey: string, category: string): number {
     const s = this.state;
     const total = s.hotel.rooms.filter((r) => r.category === category).length;
-    const held = s.reservations.filter(
-      (b) =>
-        (b.status === "confirmed" || b.status === "checkedIn") &&
-        b.category === category &&
-        b.arrivalDateKey <= dateKey &&
-        addDays(b.arrivalDateKey, b.nights) > dateKey,
-    ).length;
+    // Only a live booking holds anything: a cancellation or a no-show has
+    // released exactly what it was holding, and nothing more.
+    const held = s.reservations
+      .filter((b) => b.category === category && holdsRoomOn(b, dateKey))
+      .reduce((rooms, b) => rooms + b.roomsRequested, 0);
     // A conference holds its sleeping rooms out of general sale.
     return Math.max(
       0,

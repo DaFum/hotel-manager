@@ -121,15 +121,12 @@ describe("booking lifecycle", () => {
   });
 
   it("keeps a party waiting when the house cannot seat all its rooms", () => {
-    const doubles = 12;
-    const s = houseWith(
-      [reservation({ id: "b.toobig", roomsRequested: doubles + 1 })],
-      (state) => {
-        // Nothing else may take a double, so the only reason this party is
-        // not seated is that the house has not got that many.
-        state.rates = {};
-      },
-    );
+    const doubles = createInitialGameState(31).hotel.rooms.filter(
+      (r) => r.category === "double",
+    ).length;
+    const s = houseWith([
+      reservation({ id: "b.toobig", roomsRequested: doubles + 1 }),
+    ]);
 
     runDays(s, 1);
 

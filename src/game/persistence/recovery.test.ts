@@ -9,7 +9,11 @@ import {
 } from "./recovery";
 import { manualSlot, recoverySlot } from "./savePolicy";
 import { IndexedDbSaveRepository } from "./indexedDbSaveRepository";
-import { SAVE_VERSION, type SaveEnvelope } from "./saveVersions";
+import {
+  CONTENT_VERSION,
+  SAVE_VERSION,
+  type SaveEnvelope,
+} from "./saveVersions";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { GameSimulation } from "../simulation/GameSimulation";
 import { createInitialGameState } from "../simulation/initialState";
@@ -19,7 +23,7 @@ function envelopeAt(elapsedMinutes: number): SaveEnvelope {
   state.elapsedMinutes = elapsedMinutes;
   return {
     saveVersion: SAVE_VERSION,
-    contentVersion: "city-market-1991-v3",
+    contentVersion: CONTENT_VERSION,
     protocolVersion: PROTOCOL_VERSION,
     rngState: state.rngState,
     state,

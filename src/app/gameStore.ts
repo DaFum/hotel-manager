@@ -31,6 +31,7 @@ export interface GameStore {
   recoveredFrom: string | null;
   /** Why the last load was refused, if it was. */
   validationFailure: string | null;
+  commandStatus: "idle" | "pending" | "accepted" | "rejected";
   setSpeed: (speed: Speed) => void;
   send: (command: GameCommand) => void;
   save: (slot?: string) => void;
@@ -74,6 +75,8 @@ export function useGameStore(seed: number): GameStore {
   const [validationFailure, setValidationFailure] = useState<string | null>(
     null,
   );
+  const [commandStatus, setCommandStatus] =
+    useState<GameStore["commandStatus"]>("idle");
   /** Increments once each save has actually committed to IndexedDB. */
   const [savedAt, setSavedAt] = useState(0);
 
@@ -110,9 +113,11 @@ export function useGameStore(seed: number): GameStore {
       pendingSlotsRef.current.set(client.requestSave(), autosaveSlot(reason));
     });
     client.onError((message) => setErrors((prev) => [...prev, message]));
-    client.onCommandRejected(({ reason }) =>
-      setErrors((prev) => [...prev, `command rejected: ${reason}`]),
-    );
+    client.onCommandRejected(({ reason }) => {
+      setCommandStatus("rejected");
+      setErrors((prev) => [...prev, `command rejected: ${reason}`]);
+    });
+    client.onCommandAccepted(() => setCommandStatus("accepted"));
     client.onSaveData((saveData, requestId) => {
       const envelope = saveData as SaveEnvelope;
       const slot = pendingSlotsRef.current.get(requestId) ?? DEFAULT_SLOT;
@@ -147,6 +152,7 @@ export function useGameStore(seed: number): GameStore {
     slots,
     recoveredFrom,
     validationFailure,
+    commandStatus,
     setSpeed: (next) => {
       setSpeedState(next);
       clientRef.current?.setSpeed(next);
@@ -159,6 +165,7 @@ export function useGameStore(seed: number): GameStore {
         if (requestId)
           pendingSlotsRef.current.set(requestId, autosaveSlot("major-action"));
       }
+      setCommandStatus("pending");
       clientRef.current?.sendCommand(command);
     },
     save: (slot = DEFAULT_SLOT) => {

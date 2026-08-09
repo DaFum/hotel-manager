@@ -217,6 +217,40 @@ describe("booking lifecycle", () => {
     ).toBe(true);
   });
 
+  it("classifies no-show and late-cancellation fees as other revenue", () => {
+    const s = houseWith([
+      reservation({
+        id: "b.noshow.fee",
+        arrivalDateKey: "1991-01-01",
+        nights: 1,
+      }),
+      reservation({
+        id: "b.cancel.fee",
+        arrivalDateKey: "1991-01-03",
+        nights: 1,
+      }),
+    ]);
+    s.state.calendar = { dateKey: "1991-01-02", minuteOfDay: 0 };
+    const phases = s as unknown as {
+      arrivalsDepartures(): void;
+      runCancellations(): void;
+      streams: { guests: { nextUint32(): number } };
+    };
+
+    phases.arrivalsDepartures();
+    phases.streams.guests.nextUint32 = () => 0;
+    phases.runCancellations();
+
+    const fees = s.state.finance.ledger.filter((entry) =>
+      /no-show|late cancellation/.test(entry.memo),
+    );
+    expect(fees).toHaveLength(2);
+    expect(fees.every((entry) => entry.account === "otherRevenue")).toBe(true);
+    expect(fees.reduce((total, entry) => total + entry.amountMinor, 0)).toBe(
+      s.state.finance.month.otherRevenueMinor,
+    );
+  });
+
   it("runs one stay end to end as a single causal chain", () => {
     const s = houseWith([reservation({ id: "b.chain", nights: 1 })]);
 

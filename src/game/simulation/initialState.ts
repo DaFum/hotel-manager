@@ -20,6 +20,7 @@ import {
   type CityMarketState,
   type CompetitorRecord,
 } from "../city/cityMarket";
+import { createUtilityState, type UtilityState } from "../facilities/utilities";
 
 export interface RoomRecord {
   id: string;
@@ -121,6 +122,8 @@ export interface GameState {
   reservations: ReservationRecord[];
   stays: StayRecord[];
   receptionQueue: { bookingId: string; waitedMinutes: number }[];
+  /** Complaint identities whose one-time authoritative effects were applied. */
+  handledComplaintIds: string[];
   stock: Record<string, number>;
   pendingOrders: {
     supplierId: string;
@@ -138,6 +141,19 @@ export interface GameState {
   })[];
   /** Serviced areas recomputed every snapshot; never a source of truth itself. */
   facilities: FacilityRecord[];
+  utilities: UtilityState;
+  renderDescriptors: {
+    floorByRoomId: Record<string, number>;
+    closedNavigationIds: string[];
+    elevator: {
+      id: string;
+      capacity: number;
+      queue: number;
+      travelMinutes: number;
+      failed: boolean;
+    };
+  };
+  savePolicy: { lastManualSlot: string | null; recoveryGeneration: number };
   /** Linen pieces in circulation. */
   linen: { clean: number; dirty: number };
   events: EventRecord[];
@@ -219,6 +235,7 @@ export function createInitialGameState(seed: number): GameState {
     reservations: [],
     stays: [],
     receptionQueue: [],
+    handledComplaintIds: [],
     stock: { "cleaning-unit": 240, "breakfast-portion": 180 },
     pendingOrders: [],
     staff: STARTER_STAFF.map((s) => ({ ...s, absent: false })),
@@ -250,6 +267,24 @@ export function createInitialGameState(seed: number): GameState {
       termMonths: 120,
     },
     facilities: [],
+    utilities: createUtilityState(),
+    renderDescriptors: {
+      floorByRoomId: Object.fromEntries(
+        Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => [
+          `room.${STARTER_HOTEL.firstRoomNumber + i}`,
+          Math.floor(i / 12) + 1,
+        ]),
+      ),
+      closedNavigationIds: [],
+      elevator: {
+        id: "asset.elevator",
+        capacity: 6,
+        queue: 0,
+        travelMinutes: 2,
+        failed: false,
+      },
+    },
+    savePolicy: { lastManualSlot: null, recoveryGeneration: 0 },
     linen: { clean: STARTER_HOTEL.startingLinenPieces, dirty: 0 },
     events: [],
     wellness: {

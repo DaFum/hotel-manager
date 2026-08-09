@@ -9,7 +9,11 @@ import {
   recoverySlot,
 } from "./savePolicy";
 import { migrateEnvelope, validateEnvelope } from "./saveSchema";
-import { SAVE_VERSION, type SaveEnvelope } from "./saveVersions";
+import {
+  CONTENT_VERSION,
+  SAVE_VERSION,
+  type SaveEnvelope,
+} from "./saveVersions";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { createInitialGameState } from "../simulation/initialState";
 import v1 from "./fixtures/save-v1.json";
@@ -18,7 +22,7 @@ import v2 from "./fixtures/save-v2.json";
 const state = createInitialGameState(12);
 const current: SaveEnvelope = {
   saveVersion: SAVE_VERSION,
-  contentVersion: "city-market-1991-v3",
+  contentVersion: CONTENT_VERSION,
   protocolVersion: PROTOCOL_VERSION,
   rngState: state.rngState,
   state,
@@ -64,6 +68,14 @@ describe("save policy", () => {
     expect(() => manualSlot("  ")).toThrow(/name/);
   });
 
+  it("ignores foreign slot ids while retaining every recognized slot", () => {
+    expect(
+      orderSlots(["foreign-slot", recoverySlot(0), manualSlot("kept")]).map(
+        (slot) => slot.id,
+      ),
+    ).toEqual([manualSlot("kept"), recoverySlot(0)]);
+  });
+
   it("schedules monthly, yearly and pre-major-action autosaves", () => {
     const at = (dateKey: string) => ({ dateKey, minuteOfDay: 0 });
 
@@ -90,7 +102,7 @@ describe("save policy", () => {
     ] as const) {
       const migrated = migrateEnvelope(fixture as unknown as SaveEnvelope);
       expect(migrated.saveVersion, label).toBe(SAVE_VERSION);
-      expect(migrated.protocolVersion, label).toBe(PROTOCOL_VERSION);
+      expect(migrated.protocolVersion, label).toBe(2);
       expect(validateEnvelope(migrated), label).toEqual([]);
 
       const state = migrated.state as ReturnType<typeof createInitialGameState>;
@@ -109,5 +121,22 @@ describe("save policy", () => {
       // Migration is idempotent: a save already at this version is left alone.
       expect(migrateEnvelope(migrated), label).toEqual(migrated);
     }
+  });
+
+  it("reports malformed room and stay collections without throwing", () => {
+    const malformed = structuredClone(current) as unknown as {
+      state: { hotel: { rooms: unknown }; stays: unknown };
+    };
+    malformed.state.hotel.rooms = {};
+    malformed.state.stays = {};
+    expect(() =>
+      validateEnvelope(malformed as unknown as SaveEnvelope),
+    ).not.toThrow();
+    expect(validateEnvelope(malformed as unknown as SaveEnvelope)).toEqual(
+      expect.arrayContaining([
+        "the state has no hotel",
+        "the state has no stays",
+      ]),
+    );
   });
 });

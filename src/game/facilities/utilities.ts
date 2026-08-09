@@ -1,0 +1,70 @@
+import { assertCount, assertNonNegativeMinor } from "../domain/units";
+
+export interface UtilityDemand {
+  id: string;
+  waterUnits: number;
+  energyUnits: number;
+}
+
+export interface UtilityState {
+  waterCapacity: number;
+  energyCapacity: number;
+  waterUsed: number;
+  energyUsed: number;
+  expenseMinor: number;
+}
+
+export function createUtilityState(): UtilityState {
+  return {
+    waterCapacity: 2000,
+    energyCapacity: 3000,
+    waterUsed: 0,
+    energyUsed: 0,
+    expenseMinor: 0,
+  };
+}
+
+/** Meters all serviced areas in stable id order and charges actual usage. */
+export function meterUtilities(
+  state: UtilityState,
+  demands: readonly UtilityDemand[],
+  prices: { waterMinor: number; energyMinor: number },
+): { state: UtilityState; causes: Record<string, string> } {
+  assertNonNegativeMinor(prices.waterMinor, "water price");
+  assertNonNegativeMinor(prices.energyMinor, "energy price");
+  let waterLeft = Math.max(0, state.waterCapacity - state.waterUsed);
+  let energyLeft = Math.max(0, state.energyCapacity - state.energyUsed);
+  let water = 0;
+  let energy = 0;
+  const causes: Record<string, string> = {};
+  for (const demand of [...demands].sort((a, b) =>
+    a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
+  )) {
+    assertCount(demand.waterUnits, `${demand.id} water`);
+    assertCount(demand.energyUnits, `${demand.id} energy`);
+    const acceptedWater = Math.min(waterLeft, demand.waterUnits);
+    const acceptedEnergy = Math.min(energyLeft, demand.energyUnits);
+    water += acceptedWater;
+    energy += acceptedEnergy;
+    waterLeft -= acceptedWater;
+    energyLeft -= acceptedEnergy;
+    causes[demand.id] =
+      acceptedWater < demand.waterUnits
+        ? "water capacity"
+        : acceptedEnergy < demand.energyUnits
+          ? "energy capacity"
+          : "demand";
+  }
+  return {
+    state: {
+      ...state,
+      waterUsed: state.waterUsed + water,
+      energyUsed: state.energyUsed + energy,
+      expenseMinor:
+        state.expenseMinor +
+        water * prices.waterMinor +
+        energy * prices.energyMinor,
+    },
+    causes,
+  };
+}

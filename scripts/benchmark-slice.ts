@@ -16,6 +16,9 @@ console.log(
   `slice-benchmark ${TICKS} ticks ${elapsed.toFixed(1)}ms ` +
     `end=${final.calendar.dateKey} cash=${final.finance.cashMinor}`,
 );
+console.log(
+  `deterministic end=${final.calendar.dateKey} cash=${final.finance.cashMinor}; elapsedMs=${elapsed.toFixed(1)} is measurement only`,
+);
 if (elapsed > BUDGET_MS) {
   console.error(
     `benchmark budget exceeded: ${elapsed.toFixed(1)}ms > ${BUDGET_MS}ms`,

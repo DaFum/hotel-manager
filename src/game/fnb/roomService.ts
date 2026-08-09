@@ -51,3 +51,24 @@ export function roomServiceOrders(x: {
     return 0;
   return Math.floor((Math.max(0, x.occupiedRooms) * ORDER_RATE_BP) / 10000);
 }
+
+export function roomServiceCapacity(x: {
+  demand: number;
+  kitchen: number;
+  staffed: number;
+  transport: number;
+  elevator: number;
+}): { served: number; cause: string } {
+  const constraints = [
+    ["kitchen capacity", x.kitchen],
+    ["service staff", x.staffed],
+    ["service transport", x.transport],
+    ["lift capacity", x.elevator],
+  ] as const;
+  let binding: readonly [string, number] = constraints[0];
+  for (const item of constraints) if (item[1] < binding[1]) binding = item;
+  return {
+    served: Math.max(0, Math.min(x.demand, binding[1])),
+    cause: binding[0],
+  };
+}

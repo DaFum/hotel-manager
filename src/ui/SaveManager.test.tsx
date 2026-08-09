@@ -80,4 +80,31 @@ describe("save manager", () => {
 
     expect(screen.getByRole("status").textContent).toMatch(/generation 1/);
   });
+
+  it("shows a pending load and blocks duplicate load requests", async () => {
+    let finish!: () => void;
+    const onLoad = vi.fn(
+      () => new Promise<void>((resolve) => (finish = resolve)),
+    );
+    render(
+      <SaveManager
+        slots={[manualSlot("checkpoint"), recoverySlot(0)]}
+        recoveredFrom={null}
+        validationFailure={null}
+        onSave={noop}
+        onLoad={onLoad}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Load checkpoint" }));
+    expect(
+      screen.getByRole("button", { name: "Loading…" }).hasAttribute("disabled"),
+    ).toBe(true);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Recover generation 0" }),
+    );
+    expect(onLoad).toHaveBeenCalledTimes(1);
+    finish();
+    await screen.findByRole("button", { name: "Load checkpoint" });
+  });
 });

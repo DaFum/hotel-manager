@@ -2,6 +2,7 @@ import { PROTOCOL_VERSION } from "../domain/protocol";
 import type { GameState } from "../simulation/initialState";
 import { migrateV1ToV2 } from "./migrations/v1-to-v2";
 import { migrateV2ToV3 } from "./migrations/v2-to-v3";
+import { migrateV3ToV4 } from "./migrations/v3-to-v4";
 import {
   CONTENT_VERSION,
   MIGRATABLE_SAVE_VERSIONS,
@@ -76,12 +77,16 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
 
   // Every stay must point at a room that exists, or the hotel restores with
   // guests in rooms it does not have.
-  const roomIds = new Set((state.hotel?.rooms ?? []).map((r) => r.id));
-  for (const stay of state.stays ?? [])
-    if (!roomIds.has(stay.roomId))
-      problems.push(
-        `stay ${stay.bookingId} refers to missing room ${stay.roomId}`,
-      );
+  const roomIds = new Set(
+    Array.isArray(state.hotel?.rooms) ? state.hotel.rooms.map((r) => r.id) : [],
+  );
+  if (!Array.isArray(state.stays)) problems.push("the state has no stays");
+  else
+    for (const stay of state.stays)
+      if (!roomIds.has(stay.roomId))
+        problems.push(
+          `stay ${stay.bookingId} refers to missing room ${stay.roomId}`,
+        );
 
   return problems;
 }
@@ -108,6 +113,7 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
   const steps: Record<number, (e: SaveEnvelope) => SaveEnvelope> = {
     1: migrateV1ToV2,
     2: migrateV2ToV3,
+    3: migrateV3ToV4,
   };
   let current = envelope;
   while (

@@ -1,0 +1,173 @@
+{
+  "saveVersion": 4,
+  "contentVersion": "plans-01-03-v4",
+  "protocolVersion": 2,
+  "seed": 4242,
+  "initialRngState": {
+    "guests": 2654431523,
+    "staffing": 1013900272,
+    "failures": 3668344193,
+    "economy": 2027812438,
+    "events": 387281127,
+    "weather": 3041708724,
+    "AI": 1401176901
+  },
+  "commands": [
+    {
+      "envelope": {
+        "commandId": "cmd.replay.rate",
+        "issuedAtMinutes": 0,
+        "actor": "player",
+        "payload": {
+          "type": "SET_RATE",
+          "dateKey": "1991-01-04",
+          "category": "double",
+          "rateMinor": 17000
+        }
+      },
+      "expectedStatus": "accepted"
+    },
+    {
+      "envelope": {
+        "commandId": "cmd.replay.rejected",
+        "issuedAtMinutes": 0,
+        "actor": "player",
+        "payload": {
+          "type": "SET_SPECIALIZATION",
+          "specializationId": "not-real"
+        }
+      },
+      "expectedStatus": "rejected"
+    }
+  ],
+  "orderedEvents": [
+    {
+      "eventId": "evt.1",
+      "sequence": 1,
+      "atMinutes": 0,
+      "entities": ["facility.breakfast_room"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.breakfast_room",
+        "cause": "kitchen line"
+      }
+    },
+    {
+      "eventId": "evt.2",
+      "sequence": 2,
+      "atMinutes": 0,
+      "entities": ["facility.bar"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.bar",
+        "cause": "staffed throughput"
+      }
+    },
+    {
+      "eventId": "evt.3",
+      "sequence": 3,
+      "atMinutes": 0,
+      "entities": ["facility.wellness"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.wellness",
+        "cause": "therapists on duty"
+      }
+    },
+    {
+      "eventId": "evt.4",
+      "sequence": 4,
+      "atMinutes": 0,
+      "entities": ["facility.fitness"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.fitness",
+        "cause": "stations and floor area"
+      }
+    },
+    {
+      "eventId": "evt.5",
+      "sequence": 5,
+      "atMinutes": 0,
+      "entities": ["facility.conference"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.conference",
+        "cause": "hall capacity"
+      }
+    },
+    {
+      "eventId": "evt.6",
+      "sequence": 6,
+      "atMinutes": 0,
+      "entities": ["facility.housekeeping"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.housekeeping",
+        "cause": "housekeepers on duty"
+      }
+    },
+    {
+      "eventId": "evt.7",
+      "sequence": 7,
+      "atMinutes": 0,
+      "entities": ["facility.laundry"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.laundry",
+        "cause": "laundry staff"
+      }
+    },
+    {
+      "eventId": "evt.8",
+      "sequence": 8,
+      "atMinutes": 0,
+      "entities": ["facility.elevator"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.elevator",
+        "cause": "cars in service"
+      }
+    },
+    {
+      "eventId": "evt.9",
+      "sequence": 9,
+      "atMinutes": 0,
+      "entities": ["facility.security"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.security",
+        "cause": "guards rostered"
+      }
+    },
+    {
+      "eventId": "evt.10",
+      "sequence": 10,
+      "atMinutes": 0,
+      "entities": ["facility.staff_area"],
+      "payload": {
+        "type": "FACILITY_CONSTRAINT_CHANGED",
+        "facilityId": "facility.staff_area",
+        "cause": "changing room space"
+      }
+    },
+    {
+      "eventId": "evt.11",
+      "sequence": 11,
+      "atMinutes": 0,
+      "entities": ["hotel.frankfurt.1"],
+      "payload": {
+        "type": "CLASSIFICATION_CHANGED",
+        "from": 0,
+        "to": 1
+      }
+    }
+  ],
+  "monthlyCheckpoints": [
+    {
+      "dateKey": "1991-01-01",
+      "stateHash": "6e0ec4c7"
+    }
+  ],
+  "finalStateHash": "6e0ec4c7"
+}

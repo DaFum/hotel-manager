@@ -61,3 +61,44 @@ export function bookSlot(
     schedule: { ...schedule, booked: schedule.booked + 1 },
   };
 }
+
+export function reserveTreatment(x: {
+  schedule: WellnessSchedule;
+  guestId: string;
+  linen: number;
+  water: number;
+  energy: number;
+  maintained: boolean;
+}): BookingOutcome & {
+  linenUsed: number;
+  waterUsed: number;
+  energyUsed: number;
+} {
+  const reason = !x.maintained
+    ? "maintenance state"
+    : x.schedule.therapists <= 0
+      ? "specialist staff"
+      : x.linen <= 0
+        ? "linen stock"
+        : x.water <= 0
+          ? "water capacity"
+          : x.energy <= 0
+            ? "energy capacity"
+            : null;
+  if (reason)
+    return {
+      accepted: false,
+      reason,
+      schedule: x.schedule,
+      linenUsed: 0,
+      waterUsed: 0,
+      energyUsed: 0,
+    };
+  const outcome = bookSlot(x.schedule, x.guestId);
+  return {
+    ...outcome,
+    linenUsed: outcome.accepted ? 1 : 0,
+    waterUsed: outcome.accepted ? 3 : 0,
+    energyUsed: outcome.accepted ? 2 : 0,
+  };
+}

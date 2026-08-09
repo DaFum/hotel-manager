@@ -59,10 +59,17 @@ const KIND_ORDER: Record<SaveSlotKind, number> = {
  */
 export function orderSlots(ids: readonly string[]): SlotDescriptor[] {
   return ids
-    .map(describeSlot)
+    .flatMap((id) => {
+      try {
+        return [describeSlot(id)];
+      } catch {
+        return [];
+      }
+    })
     .sort(
       (a, b) =>
-        KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a.id.localeCompare(b.id),
+        KIND_ORDER[a.kind] - KIND_ORDER[b.kind] ||
+        (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
     );
 }
 

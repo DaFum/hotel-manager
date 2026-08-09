@@ -31,7 +31,7 @@ import {
 import { MAX_MONTHLY_ACTOR_MOVE, nextActorScale } from "../actors/evolution";
 import { applyRouteChange, connectivityIndex } from "../transport/network";
 import { migrateEnvelope, validateEnvelope } from "../persistence/saveSchema";
-import { SAVE_VERSION } from "../persistence/saveVersions";
+import { CONTENT_VERSION, SAVE_VERSION } from "../persistence/saveVersions";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
@@ -201,7 +201,7 @@ describe("plan 03 city and competitor conformance", () => {
 
     const envelope = migrateEnvelope({
       saveVersion: SAVE_VERSION,
-      contentVersion: "city-market-1991-v3",
+      contentVersion: CONTENT_VERSION,
       protocolVersion: PROTOCOL_VERSION,
       rngState: sim.state.rngState,
       state: sim.snapshot(),

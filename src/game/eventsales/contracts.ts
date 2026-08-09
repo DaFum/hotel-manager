@@ -63,3 +63,38 @@ export function executionLoad(c: EventContract): ExecutionLoad {
     securityGuests: Math.max(0, c.guests),
   };
 }
+
+export type ContractStatus =
+  "offered" | "negotiating" | "confirmed" | "cancelled" | "complete";
+export interface ConferenceContract extends EventContract {
+  status: ContractStatus;
+  offerMinor: number;
+  depositMinor: number;
+}
+
+export function advanceContract(
+  contract: ConferenceContract,
+  action: "negotiate" | "confirm" | "cancel" | "complete",
+): ConferenceContract & { releasedRoomNights: number } {
+  const allowed: Record<typeof action, readonly ContractStatus[]> = {
+    negotiate: ["offered"],
+    confirm: ["negotiating"],
+    cancel: ["offered", "negotiating", "confirmed"],
+    complete: ["confirmed"],
+  };
+  if (!allowed[action].includes(contract.status))
+    throw new Error(`cannot ${action} a ${contract.status} contract`);
+  const status: ContractStatus =
+    action === "negotiate"
+      ? "negotiating"
+      : action === "confirm"
+        ? "confirmed"
+        : action === "cancel"
+          ? "cancelled"
+          : "complete";
+  return {
+    ...contract,
+    status,
+    releasedRoomNights: action === "cancel" ? roomBlockNights(contract) : 0,
+  };
+}

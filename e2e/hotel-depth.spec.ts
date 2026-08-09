@@ -19,6 +19,11 @@ test("shows every facility with the constraint that is binding it", async ({
   await expect(
     facilities.getByRole("listitem", { name: "Wellness" }),
   ).toContainText(/therapists on duty/);
+
+  // The same stable facility target is available without the canvas.
+  await expect(
+    page.getByRole("button", { name: /Breakfast room, .* limited by/i }),
+  ).toBeVisible();
 });
 
 test("rosters a specialist role and declares a specialization", async ({

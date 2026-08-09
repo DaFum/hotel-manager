@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { complaintForWait, resolveComplaint } from "./complaints";
+import {
+  authorizeRecovery,
+  complaintForWait,
+  resolveComplaint,
+} from "./complaints";
 
 describe("complaints", () => {
   it("creates long checkin complaint after twenty minutes", () => {
@@ -25,6 +29,34 @@ describe("complaints", () => {
         10000,
       ),
     ).toEqual({ expenseMinor: 1000, satisfaction: 65 });
+  });
+
+  it("authorizes the same discount amount that resolution posts", () => {
+    const authorized = authorizeRecovery("discount10", 12345, {
+      frontDeskOnDuty: 1,
+      cashMinor: 5000,
+    });
+    const resolved = resolveComplaint(
+      { cause: "longCheckIn", satisfaction: 50 },
+      "discount10",
+      12345,
+    );
+    expect(authorized).toEqual({ ok: true, costMinor: resolved.expenseMinor });
+  });
+
+  it("returns stable keys when recovery cannot be authorized", () => {
+    expect(
+      authorizeRecovery("discount10", 10000, {
+        frontDeskOnDuty: 0,
+        cashMinor: 10000,
+      }),
+    ).toEqual({ ok: false, reason: "alert.recovery.noFrontDesk" });
+    expect(
+      authorizeRecovery("discount10", 10000, {
+        frontDeskOnDuty: 1,
+        cashMinor: 999,
+      }),
+    ).toEqual({ ok: false, reason: "alert.recovery.insufficientCash" });
   });
 
   it("never pushes satisfaction above the scale maximum", () => {

@@ -73,6 +73,7 @@ let published: GameSnapshot | null = null;
 let publication = 0;
 let lastTickMs = 0;
 let lastCommandLatencyMs = 0;
+let tickFailure: string | null = null;
 
 function reply(message: WorkerResponse) {
   self.postMessage(message);
@@ -190,6 +191,7 @@ function tick() {
       simulation.advanceQuantum();
   } catch (error) {
     speed = 0;
+    tickFailure = (error as Error).message;
     reply(
       simulationError("TICK_FAILED", (error as Error).message, {
         recoverable: false,
@@ -222,6 +224,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   }
   switch (m.type) {
     case "INIT_GAME": {
+      tickFailure = null;
       simulation = new GameSimulation(createInitialGameState(m.seed));
       simulation.refreshDerivedState();
       ensureTimer();
@@ -252,7 +255,19 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       // deriving cannot leave the worker holding half a hotel.
       const restored = new GameSimulation(accepted.state);
       restored.refreshDerivedState();
+      for (const [commandId, requests] of correlation)
+        for (const requestId of requests)
+          reply({
+            protocolVersion: PROTOCOL_VERSION,
+            type: "COMMAND_REJECTED",
+            requestId,
+            commandId,
+            reason: "simulation replaced by load",
+          });
+      correlation.clear();
+      arrivedAt.clear();
       simulation = restored;
+      tickFailure = null;
       ensureTimer();
       publishSnapshot();
       publishDomainEvents();
@@ -266,6 +281,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
           requestId: m.requestId,
           commandId: m.commandId,
           reason: "simulation not initialised",
+        });
+        return;
+      }
+      if (tickFailure) {
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "COMMAND_REJECTED",
+          requestId: m.requestId,
+          commandId: m.commandId,
+          reason: `simulation halted after tick failure: ${tickFailure}`,
         });
         return;
       }
@@ -365,6 +390,16 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
             recoverable: true,
             requestId: m.requestId,
           }),
+        );
+        return;
+      }
+      if (tickFailure) {
+        reply(
+          simulationError(
+            "TICK_FAILED",
+            `cannot save a simulation halted after tick failure: ${tickFailure}`,
+            { recoverable: false, requestId: m.requestId },
+          ),
         );
         return;
       }

@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import {
   CONFORMANCE_STATUSES,
@@ -32,6 +33,29 @@ const EXECUTABLE_EVIDENCE =
 
 function rows(): readonly ConformanceRow[] {
   return PLANS_01_03_CONFORMANCE;
+}
+
+function activeTestTitles(source: string): Set<string> {
+  const file = ts.createSourceFile(
+    "evidence.test.ts",
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const titles = new Set<string>();
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      (node.expression.text === "it" || node.expression.text === "test") &&
+      node.arguments[0] &&
+      ts.isStringLiteralLike(node.arguments[0])
+    )
+      titles.add(node.arguments[0].text);
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return titles;
 }
 
 describe("plans 01-03 conformance registry", () => {
@@ -100,9 +124,10 @@ describe("plans 01-03 conformance registry", () => {
       );
       // The named assertion has to actually be in the file that claims it, so a
       // renamed or deleted test cannot leave a row silently "verified".
-      expect(readFileSync(evidence, "utf8"), `${row.id}: assertion`).toContain(
-        row.evidence.assertion,
-      );
+      expect(
+        activeTestTitles(readFileSync(evidence, "utf8")),
+        `${row.id}: assertion`,
+      ).toContain(row.evidence.assertion);
     }
   });
 

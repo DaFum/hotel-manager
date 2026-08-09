@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./SaveManager.css";
 import {
   autosaveSlot,
   describeSlot,
@@ -15,7 +16,7 @@ export interface SaveManagerProps {
   /** Why a load was refused, in the player's words. */
   validationFailure: string | null;
   onSave: (slot: string) => void;
-  onLoad: (slot: string) => void;
+  onLoad: (slot: string) => void | Promise<void>;
 }
 
 const KIND_LABEL: Record<SlotDescriptor["kind"], string> = {
@@ -44,23 +45,35 @@ function slotTitle(slot: SlotDescriptor): string {
  */
 export function SaveManager(props: SaveManagerProps) {
   const [name, setName] = useState("");
+  const [pendingSlot, setPendingSlot] = useState<string | null>(null);
   const slots = orderSlots(props.slots);
   const recovery = Array.from({ length: 3 }, (_, i) => recoverySlot(i)).filter(
     (id) => props.slots.includes(id),
   );
 
+  const load = (slot: string) => {
+    if (pendingSlot) return;
+    setPendingSlot(slot);
+    const result = props.onLoad(slot);
+    if (result && typeof result.then === "function")
+      void result.finally(() => setPendingSlot(null));
+    else setPendingSlot(null);
+  };
+
   return (
-    <section aria-labelledby="save-manager-heading">
+    <section className="save-manager" aria-labelledby="save-manager-heading">
       <h2 id="save-manager-heading">Saved games</h2>
 
       <label htmlFor="save-slot-name">Name this save</label>
       <input
+        className="save-manager__input"
         id="save-slot-name"
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="before the refit"
       />
       <button
+        className="save-manager__button save-manager__button--primary"
         type="button"
         disabled={name.trim().length === 0}
         onClick={() => {
@@ -94,8 +107,15 @@ export function SaveManager(props: SaveManagerProps) {
               {/* The kind is named in words, never by colour alone. */}
               <span>{KIND_LABEL[slot.kind]}</span>:{" "}
               <span>{slotTitle(slot)}</span>
-              <button type="button" onClick={() => props.onLoad(slot.id)}>
-                Load {slotTitle(slot)}
+              <button
+                className="save-manager__button"
+                type="button"
+                disabled={pendingSlot !== null}
+                onClick={() => load(slot.id)}
+              >
+                {pendingSlot === slot.id
+                  ? "Loading…"
+                  : `Load ${slotTitle(slot)}`}
               </button>
             </li>
           ))}
@@ -110,8 +130,16 @@ export function SaveManager(props: SaveManagerProps) {
             deliberate: it will be older than your last save.
           </p>
           {recovery.map((id) => (
-            <button key={id} type="button" onClick={() => props.onLoad(id)}>
-              Recover {slotTitle(describeSlot(id))}
+            <button
+              className="save-manager__button"
+              key={id}
+              type="button"
+              disabled={pendingSlot !== null}
+              onClick={() => load(id)}
+            >
+              {pendingSlot === id
+                ? "Recovering…"
+                : `Recover ${slotTitle(describeSlot(id))}`}
             </button>
           ))}
         </div>
@@ -122,11 +150,16 @@ export function SaveManager(props: SaveManagerProps) {
         {AUTOSAVE_LABEL.year}, and {AUTOSAVE_LABEL["major-action"]}.
       </p>
       <button
+        className="save-manager__button"
         type="button"
-        onClick={() => props.onLoad(autosaveSlot("month"))}
-        disabled={!props.slots.includes(autosaveSlot("month"))}
+        onClick={() => load(autosaveSlot("month"))}
+        disabled={
+          pendingSlot !== null || !props.slots.includes(autosaveSlot("month"))
+        }
       >
-        Load the last monthly autosave
+        {pendingSlot === autosaveSlot("month")
+          ? "Loading monthly autosave…"
+          : "Load the last monthly autosave"}
       </button>
     </section>
   );

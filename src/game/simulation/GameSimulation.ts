@@ -75,6 +75,7 @@ import {
   SERVICE_MINUTES,
 } from "../maintenance/maintenance";
 import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
+import { createUtilityState } from "../facilities/utilities";
 import {
   requiredSecurityStaff,
   securityGapAlert,
@@ -212,6 +213,23 @@ const ARRIVAL_ALERT_IDS = [
   "alert.staff-areas-crowded",
   "alert.construction-noise",
 ];
+const HANDLED_COMPLAINT_LIMIT = 256;
+
+function defaultRenderDescriptors(rooms: readonly { id: string }[]) {
+  return {
+    floorByRoomId: Object.fromEntries(
+      rooms.map((room, index) => [room.id, Math.floor(index / 12) + 1]),
+    ),
+    closedNavigationIds: [],
+    elevator: {
+      id: "asset.elevator",
+      capacity: 6,
+      queue: 0,
+      travelMinutes: 2,
+      failed: false,
+    },
+  };
+}
 
 export class GameSimulation implements CommandExecutor {
   private queued: CommandEnvelope[] = [];
@@ -233,6 +251,11 @@ export class GameSimulation implements CommandExecutor {
     state.commandSequence ??= 0;
     state.commandLog ??= [];
     state.eventJournal ??= createEventJournal();
+    state.guestSatisfaction ??= { score: 70, causes: [] };
+    state.handledComplaintIds ??= [];
+    state.utilities ??= createUtilityState();
+    state.renderDescriptors ??= defaultRenderDescriptors(state.hotel.rooms);
+    state.savePolicy ??= { lastManualSlot: null, recoveryGeneration: 0 };
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -780,7 +803,7 @@ export class GameSimulation implements CommandExecutor {
           // The terms the booking was taken on decide what may be charged.
           const charge = lateChargeMinor(booking, yesterday);
           if (charge > 0) {
-            this.earn(charge, "roomRevenue", `no-show ${booking.id}`);
+            this.earn(charge, "otherRevenue", `no-show ${booking.id}`);
             s.finance.month.otherRevenueMinor += charge;
           }
           this.emit(
@@ -1299,15 +1322,19 @@ export class GameSimulation implements CommandExecutor {
         waiting.waitedMinutes,
       );
       if (!complaint) continue;
-      if (
-        !this.pushAlert({
-          id: `alert.${complaint.id}`,
-          severity: "warning",
-          title: "Long check-in",
-          cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
-        })
-      )
-        continue;
+      this.pushAlert({
+        id: `alert.${complaint.id}`,
+        severity: "warning",
+        title: "Long check-in",
+        cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
+      });
+      if (s.handledComplaintIds.includes(complaint.id)) continue;
+      s.handledComplaintIds.push(complaint.id);
+      if (s.handledComplaintIds.length > HANDLED_COMPLAINT_LIMIT)
+        s.handledComplaintIds.splice(
+          0,
+          s.handledComplaintIds.length - HANDLED_COMPLAINT_LIMIT,
+        );
       this.emit(
         {
           type: "COMPLAINT_RAISED",
@@ -1338,7 +1365,7 @@ export class GameSimulation implements CommandExecutor {
     if (!verdict.ok) {
       this.pushAlert({
         id: `alert.recovery.${complaintId}`,
-        severity: "warning",
+        severity: "critical",
         title: "Complaint left unanswered",
         cause: verdict.reason,
       });
@@ -1452,11 +1479,12 @@ export class GameSimulation implements CommandExecutor {
       // no lead time in which to have held it.
       if (leadDays === 0 && !canWalkIn(this.sameDayInventory())) continue;
       const channel: BookingChannel = leadDays === 0 ? "walkIn" : "directPhone";
+      const bookingId = `booking.${s.elapsedMinutes}.${i}`;
       try {
         const reservation: ReservationRecord = reserve(
           { availableRoomsOn: (date) => this.availableRooms(date, category) },
           {
-            id: `booking.${s.elapsedMinutes}.${i}`,
+            id: bookingId,
             roomsRequested: 1,
             rateMinor,
             // A profile the hotel actually built for lifts what its segment
@@ -1496,9 +1524,21 @@ export class GameSimulation implements CommandExecutor {
           },
           [reservation.id],
         );
-      } catch {
-        /* demand lost to price or inventory; the slice does not yet count
-           the causes, so this is intentionally silent */
+      } catch (error) {
+        const reason = (error as Error).message;
+        if (
+          reason === "price rejected" ||
+          reason.startsWith("no inventory on ")
+        ) {
+          this.pushAlert({
+            id: `alert.booking-refused.${bookingId}`,
+            severity: "info",
+            title: "Booking request refused",
+            cause: reason,
+          });
+          continue;
+        }
+        throw error;
       }
     }
   }
@@ -1524,7 +1564,7 @@ export class GameSimulation implements CommandExecutor {
       booking.status = cancelled.status;
       booking.history = cancelled.history;
       if (charge > 0) {
-        this.earn(charge, "roomRevenue", `late cancellation ${booking.id}`);
+        this.earn(charge, "otherRevenue", `late cancellation ${booking.id}`);
         s.finance.month.otherRevenueMinor += charge;
       }
       this.emit(
@@ -2091,14 +2131,6 @@ export class GameSimulation implements CommandExecutor {
     }
 
     if (step.roomsAdded > 0) {
-      this.emit(
-        {
-          type: "RENOVATION_COMPLETED",
-          projectId: step.job.id,
-          roomsAdded: step.roomsAdded,
-        },
-        [step.job.id],
-      );
       const nextNumber = STARTER_HOTEL.firstRoomNumber + s.hotel.rooms.length;
       for (let i = 0; i < step.roomsAdded; i++)
         s.hotel.rooms.push({
@@ -2110,6 +2142,14 @@ export class GameSimulation implements CommandExecutor {
           styleAgeYears: 0,
         });
       s.renovation = null;
+      this.emit(
+        {
+          type: "RENOVATION_COMPLETED",
+          projectId: step.job.id,
+          roomsAdded: step.roomsAdded,
+        },
+        [step.job.id],
+      );
     }
   }
 

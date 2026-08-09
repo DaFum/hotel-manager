@@ -1,0 +1,50 @@
+.save-manager {
+  --save-control-bg: #f4edda;
+  --save-control-fg: #29251c;
+  --save-control-border: #786a4e;
+  --save-control-hover: #fff8e7;
+  --save-control-pressed: #ded1b5;
+  --save-control-focus: #155f75;
+  --save-control-disabled: #d5d0c4;
+}
+
+.save-manager__input,
+.save-manager__button {
+  color: var(--save-control-fg);
+  background: var(--save-control-bg);
+  border: 1px solid var(--save-control-border);
+  border-radius: 2px;
+  padding: 0.45rem 0.65rem;
+}
+
+.save-manager__button {
+  cursor: pointer;
+}
+
+.save-manager__button:hover:not(:disabled),
+.save-manager__input:hover:not(:disabled) {
+  background: var(--save-control-hover);
+}
+
+.save-manager__button:focus-visible,
+.save-manager__input:focus-visible {
+  outline: 3px solid var(--save-control-focus);
+  outline-offset: 2px;
+}
+
+.save-manager__button:active:not(:disabled) {
+  background: var(--save-control-pressed);
+  transform: translateY(1px);
+}
+
+.save-manager__button:disabled,
+.save-manager__input:disabled {
+  color: #68645b;
+  background: var(--save-control-disabled);
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+.save-manager__button--primary {
+  font-weight: 700;
+}

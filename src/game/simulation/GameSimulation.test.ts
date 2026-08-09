@@ -12,6 +12,17 @@ function runQuanta(sim: GameSimulation, quanta: number) {
 }
 
 describe("simulation order", () => {
+  it("opens legacy state without guest satisfaction or handled complaints", () => {
+    const state = createInitialGameState(3);
+    const legacy = state as unknown as Record<string, unknown>;
+    delete legacy.guestSatisfaction;
+    delete legacy.handledComplaintIds;
+
+    const sim = new GameSimulation(state);
+    expect(sim.state.guestSatisfaction).toEqual({ score: 70, causes: [] });
+    expect(sim.state.handledComplaintIds).toEqual([]);
+  });
+
   it("matches the MASTER deterministic phase contract exactly", () => {
     expect(PHASE_ORDER).toEqual([
       "commands",

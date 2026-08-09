@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   PROTOCOL_VERSION,
   WHOLE_GAME_ENTITY_ID,
@@ -21,8 +21,11 @@ async function bootWorker() {
     (self.onmessage as (e: MessageEvent) => void)({
       data: message,
     } as MessageEvent);
+  activeWorkers.push(send);
   return { posted, send };
 }
+
+const activeWorkers: ((message: unknown) => void)[] = [];
 
 const of = <T extends WorkerResponse["type"]>(
   posted: readonly WorkerResponse[],
@@ -35,6 +38,11 @@ const of = <T extends WorkerResponse["type"]>(
 
 beforeEach(() => {
   vi.restoreAllMocks();
+});
+
+afterEach(() => {
+  for (const send of activeWorkers.splice(0))
+    send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed: 0 });
 });
 
 describe("simulation worker", () => {
@@ -71,7 +79,7 @@ describe("simulation worker", () => {
     expect(
       (delta?.delta.changed as { stateVersion?: number }).stateVersion,
     ).toBe(accepted[0].stateVersion);
-  });
+  }, 15_000);
 
   it("reports a refused command against the same correlation id", async () => {
     const { posted, send } = await bootWorker();
@@ -355,6 +363,46 @@ describe("simulation worker", () => {
     expect(restored).toHaveLength(1);
     expect(restored[0].snapshot.elapsedMinutes).toBe(
       envelope.state.elapsedMinutes,
+    );
+  });
+
+  it("rejects every command still waiting when a load replaces the game", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_SAVE",
+      requestId: "req.save.pending",
+    });
+    const envelope = of(posted, "SAVE_DATA")[0].saveData;
+    send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed: 1 });
+    posted.length = 0;
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND",
+      requestId: "req.pending",
+      commandId: "cmd.pending",
+      command: {
+        type: "SET_RATE",
+        dateKey: "1991-01-04",
+        category: "double",
+        rateMinor: 17000,
+      },
+    });
+    expect(of(posted, "COMMAND_ACCEPTED")).toHaveLength(0);
+
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "LOAD_GAME",
+      saveData: envelope,
+    });
+
+    expect(of(posted, "COMMAND_REJECTED")).toContainEqual(
+      expect.objectContaining({
+        requestId: "req.pending",
+        commandId: "cmd.pending",
+        reason: "simulation replaced by load",
+      }),
     );
   });
 

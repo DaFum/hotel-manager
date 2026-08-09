@@ -42,3 +42,32 @@ export function replacementDecision(
     return { replace: false, reason: "repair is cheaper than replacement" };
   return { replace: true, reason: "worn out and uneconomic to repair" };
 }
+
+export interface EngineeringWork {
+  id: string;
+  status: "failed" | "operational";
+  condition: number;
+  minutesSinceService: number;
+  replacementMinor: number;
+  repairMinor: number;
+}
+
+export function prioritizeEngineering(
+  work: readonly EngineeringWork[],
+): EngineeringWork[] {
+  return [...work].sort((a, b) => {
+    const priority = (x: EngineeringWork) =>
+      x.status === "failed"
+        ? 0
+        : replacementDecision({ rated: 0, condition: x.condition }, x).replace
+          ? 1
+          : isDueForService(x)
+            ? 2
+            : 3;
+    return (
+      priority(a) - priority(b) ||
+      a.condition - b.condition ||
+      (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+    );
+  });
+}

@@ -67,6 +67,9 @@ export function App() {
       <p role="status" aria-live="polite">
         {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
       </p>
+      <p aria-label="Command status" aria-live="polite">
+        Command: {game.commandStatus}
+      </p>
       <p aria-label="Saves committed">Saves committed: {game.savedCount}</p>
       <TopBar
         city={CITY.name}

@@ -31,6 +31,7 @@ export function HotelView(props: {
   rooms: readonly HotelViewRoom[];
   facilities?: readonly HotelViewFacility[];
   onSelect?: (roomId: string) => void;
+  onSelectFacility?: (facilityId: string) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -85,6 +86,20 @@ export function HotelView(props: {
               }}
             >
               {room.id}
+            </button>
+          </li>
+        ))}
+      </ul>
+      <h3>Service areas</h3>
+      <ul>
+        {(props.facilities ?? []).map((facility) => (
+          <li key={facility.id}>
+            <button
+              type="button"
+              aria-label={`${facility.name}, ${facility.demand} demand, ${facility.capacity} capacity, limited by ${facility.cause}`}
+              onClick={() => props.onSelectFacility?.(facility.id)}
+            >
+              Focus {facility.name}
             </button>
           </li>
         ))}

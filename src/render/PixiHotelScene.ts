@@ -61,6 +61,8 @@ export class PixiHotelScene {
         .fill(STATE_COLOURS[room.state] ?? 0x888888);
       tile.position.set(x, y);
       tile.label = room.id;
+      tile.eventMode = "static";
+      tile.cursor = "pointer";
       this.tiles.addChild(tile);
     });
   }

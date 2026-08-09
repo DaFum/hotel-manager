@@ -36,6 +36,8 @@ export interface LaundryDayInput {
   staffed: number;
   /** Pieces the contract laundry will take today. */
   externalPieces: number;
+  /** Clean pieces held on guest floors and unavailable to the laundry. */
+  floorStock?: number;
 }
 
 export interface LaundryDayResult {
@@ -44,6 +46,7 @@ export interface LaundryDayResult {
   washedInHouse: number;
   washedExternally: number;
   externalCostMinor: number;
+  floorStock: number;
 }
 
 /**
@@ -51,6 +54,7 @@ export interface LaundryDayResult {
  * machines and the shift cannot reach goes out to contract at a piece rate.
  */
 export function runLaundryDay(x: LaundryDayInput): LaundryDayResult {
+  const floorStock = Math.max(0, x.floorStock ?? 0);
   const washedInHouse = laundryOutput({
     dirty: x.dirty,
     machine: x.machine,
@@ -61,10 +65,11 @@ export function runLaundryDay(x: LaundryDayInput): LaundryDayResult {
     Math.min(x.dirty - washedInHouse, x.externalPieces),
   );
   return {
-    clean: x.clean + washedInHouse + washedExternally,
+    clean: Math.max(0, x.clean - floorStock) + washedInHouse + washedExternally,
     dirty: x.dirty - washedInHouse - washedExternally,
     washedInHouse,
     washedExternally,
     externalCostMinor: externalLaundryCostMinor(washedExternally),
+    floorStock,
   };
 }

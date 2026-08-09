@@ -5,6 +5,15 @@ export interface Alert {
   cause: string;
 }
 
+const ALERT_CAUSES: Readonly<Record<string, string>> = {
+  "alert.recovery.noFrontDesk": "Nobody is on the desk to authorise it.",
+  "alert.recovery.insufficientCash": "The hotel cannot cover the discount.",
+};
+
+function causeText(cause: string): string {
+  return ALERT_CAUSES[cause] ?? cause;
+}
+
 export function AlertsPanel(props: {
   alerts: readonly Alert[];
   onOpen: (id: string) => void;
@@ -17,7 +26,7 @@ export function AlertsPanel(props: {
         <article key={a.id}>
           <strong>{a.title}</strong>
           <span>{a.severity}</span>
-          <p>{a.cause}</p>
+          <p>{causeText(a.cause)}</p>
           <button
             type="button"
             onClick={() => props.onOpen(a.id)}
@@ -28,7 +37,7 @@ export function AlertsPanel(props: {
           </button>
           {props.openAlertId === a.id ? (
             <p aria-live="polite">
-              {a.id} · {a.severity} · {a.cause}
+              {a.id} · {a.severity} · {causeText(a.cause)}
             </p>
           ) : null}
         </article>

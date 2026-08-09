@@ -95,6 +95,18 @@ import {
 } from "../building/renovations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
+import {
+  commandEnvelope,
+  type CommandActor,
+  type CommandEnvelope,
+  type CommandResult,
+  type GameCommand,
+} from "../commands/commandEnvelope";
+import {
+  CommandHandler,
+  type CommandExecutor,
+  type RngStreams,
+} from "../commands/commandHandler";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
 import type {
@@ -128,24 +140,14 @@ export { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
 
 export const SHIFTS: readonly Shift[] = ["morning", "evening", "night"];
 
-export type GameCommand =
-  | {
-      type: "SET_RATE";
-      dateKey: string;
-      category: RoomCategory;
-      rateMinor: number;
-    }
-  | { type: "ORDER_SUPPLIES"; sku: string; quantity: number }
-  | {
-      type: "HIRE";
-      role: StaffRole;
-      shift: Shift;
-      monthlyWageMinor: number;
-    }
-  | { type: "START_RENOVATION" }
-  | { type: "SET_SPECIALIZATION"; specializationId: string | null }
-  | { type: "EXPAND_FACILITY"; area: ExpandableArea }
-  | { type: "BUY_MARKET_RESEARCH" };
+// The command union and its envelope live in src/game/commands: the
+// simulation executes commands, it does not define what a command is.
+export type {
+  CommandActor,
+  CommandEnvelope,
+  CommandResult,
+  GameCommand,
+} from "../commands/commandEnvelope";
 
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
@@ -183,33 +185,87 @@ const ARRIVAL_ALERT_IDS = [
   "alert.construction-noise",
 ];
 
-export class GameSimulation {
-  private queued: GameCommand[] = [];
-  private streams: ReturnType<typeof restoreRngStreams>;
+export class GameSimulation implements CommandExecutor {
+  private queued: CommandEnvelope[] = [];
+  private decided: CommandResult[] = [];
+  private streams: RngStreams;
   private dayRolled = false;
   private monthRolled = false;
+  /** The one boundary through which authoritative state may change. */
+  private readonly commands: CommandHandler;
 
   constructor(public state: GameState) {
     this.streams = restoreRngStreams(state.rngState);
+    this.commands = new CommandHandler(
+      () => this.state,
+      (next) => {
+        this.state = next;
+        // The committed draft owns the RNG cursor now; the streams the rest of
+        // the quantum draws from have to be the ones that were committed.
+        this.streams = restoreRngStreams(next.rngState);
+      },
+      this,
+    );
   }
 
   get pendingCommandCount(): number {
     return this.queued.length;
   }
 
-  queueCommand(command: GameCommand): void {
-    this.queued.push(command);
+  /**
+   * Verdicts for commands the commands phase has actually decided, drained by
+   * the Worker so an acknowledgement describes an applied command rather than
+   * a queued one.
+   */
+  takeCommandResults(): CommandResult[] {
+    const decided = this.decided;
+    this.decided = [];
+    return decided;
   }
 
   /**
-   * Pre-flight check so the worker can answer COMMAND_ACCEPTED or
-   * COMMAND_REJECTED truthfully; the command still mutates state only in the
-   * commands phase.
+   * Queues a payload as a well-formed envelope. The id is derived from
+   * authoritative state so an uninterrupted run and a replay agree on it.
+   */
+  queueCommand(command: GameCommand, actor: CommandActor = "player"): void {
+    this.queueEnvelope(
+      commandEnvelope({
+        commandId: `cmd.${this.state.commandSequence + this.queued.length}.${command.type}`,
+        issuedAtMinutes: this.state.elapsedMinutes,
+        actor,
+        payload: command,
+      }),
+    );
+  }
+
+  queueEnvelope(envelope: CommandEnvelope): void {
+    this.queued.push(envelope);
+  }
+
+  /**
+   * Decides a batch of envelopes immediately through the command boundary.
+   * This is what the Worker calls, so an acknowledgement can describe an
+   * applied command rather than a queued one.
+   */
+  submitCommands(envelopes: readonly CommandEnvelope[]): CommandResult[] {
+    const results = this.commands.run(envelopes);
+    // Derived sections are only recomputed when something actually changed: a
+    // batch that was refused in full must leave the snapshot untouched.
+    if (results.some((r) => r.status === "accepted")) this.refreshMetrics();
+    assertInvariants(this.state);
+    return results;
+  }
+
+  /**
+   * Pre-flight rules check. It answers from the state it is given and must
+   * never write to it: a question about a command may not be answered by
+   * having started to carry it out.
    */
   validateCommand(
     command: GameCommand,
+    state: GameState = this.state,
   ): { ok: true } | { ok: false; reason: string } {
-    const s = this.state;
+    const s = state;
     try {
       switch (command.type) {
         case "SET_RATE":
@@ -251,7 +307,7 @@ export class GameSimulation {
               monthlyWageMinor: command.monthlyWageMinor,
               // The city's labour market sets the floor; a tight market has
               // to be paid for, not wished away.
-              marketWageMinor: this.marketWageMinor(),
+              marketWageMinor: this.marketWageMinor(s),
             },
           );
           return { ok: true };
@@ -290,6 +346,37 @@ export class GameSimulation {
       }
     } catch (error) {
       return { ok: false, reason: (error as Error).message };
+    }
+  }
+
+  /** The `CommandExecutor` rules half; see `validateCommand`. */
+  validate(
+    state: GameState,
+    command: GameCommand,
+  ): { ok: true } | { ok: false; reason: string } {
+    return this.validateCommand(command, state);
+  }
+
+  /**
+   * The `CommandExecutor` write half. The draft and its RNG streams stand in
+   * for the live ones for exactly as long as the command runs, so every
+   * existing rule writes through the transaction without knowing about it.
+   * Throwing rejects the command and discards the draft entirely.
+   */
+  apply(
+    draft: GameState,
+    streams: RngStreams,
+    envelope: CommandEnvelope,
+  ): void {
+    const liveState = this.state;
+    const liveStreams = this.streams;
+    this.state = draft;
+    this.streams = streams;
+    try {
+      this.applyCommand(envelope.payload);
+    } finally {
+      this.state = liveState;
+      this.streams = liveStreams;
     }
   }
 
@@ -357,19 +444,20 @@ export class GameSimulation {
   // --- phases ------------------------------------------------------------
 
   private applyCommands(): void {
-    this.queued.forEach((command, index) => {
-      try {
-        this.applyCommand(command);
-      } catch (error) {
-        this.pushAlert({
-          id: `alert.command.${this.state.elapsedMinutes}.${index}.${command.type}`,
-          severity: "warning",
-          title: "Command rejected",
-          cause: (error as Error).message,
-        });
-      }
-    });
+    if (this.queued.length === 0) return;
+    const batch = this.queued;
     this.queued = [];
+    const results = this.commands.run(batch);
+    this.decided.push(...results);
+    for (const result of results) {
+      if (result.status === "accepted") continue;
+      this.pushAlert({
+        id: `alert.command.${result.commandId}`,
+        severity: "warning",
+        title: "Command rejected",
+        cause: result.reason ?? "the command was refused",
+      });
+    }
   }
 
   private applyCommand(command: GameCommand): void {
@@ -861,13 +949,17 @@ export class GameSimulation {
         supplier.unitPriceMinor * supplier.minimumQuantity
       )
         continue;
-      // Queue it: commands are the mutation boundary, so the order goes
-      // through validation in the next commands phase like any other.
-      this.queueCommand({
-        type: "ORDER_SUPPLIES",
-        sku,
-        quantity: supplier.minimumQuantity,
-      });
+      // Queue it: commands are the mutation boundary, so the standing order
+      // goes through validation in the next commands phase like any other. It
+      // is issued by the house, not the player, and says so.
+      this.queueCommand(
+        {
+          type: "ORDER_SUPPLIES",
+          sku,
+          quantity: supplier.minimumQuantity,
+        },
+        "automation",
+      );
     }
   }
 
@@ -1163,10 +1255,10 @@ export class GameSimulation {
   }
 
   /** What one post costs in this city this month, in whole Pfennig. */
-  private marketWageMinor(): number {
+  private marketWageMinor(state: GameState = this.state): number {
     return marketWageMinor(
       BASE_MONTHLY_WAGE_MINOR,
-      this.state.cityMarket.wagePressureBp,
+      state.cityMarket.wagePressureBp,
     );
   }
 

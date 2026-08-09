@@ -7,6 +7,7 @@ describe("worker protocol", () => {
       protocolVersion: PROTOCOL_VERSION,
       type: "COMMAND",
       requestId: "r1",
+      commandId: "cmd.1",
       command: {
         type: "SET_RATE",
         dateKey: "1991-01-01",

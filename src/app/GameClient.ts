@@ -11,8 +11,12 @@ type ErrorListener = (message: string) => void;
 type SaveListener = (saveData: unknown) => void;
 type RejectionListener = (rejection: {
   requestId: string;
+  commandId: string;
   reason: string;
 }) => void;
+
+let clients = 0;
+const nextClientId = () => ++clients;
 
 /**
  * Thin, UI-side handle on the authoritative worker. It owns no rules: it only
@@ -24,6 +28,8 @@ export class GameClient {
   private saveListeners: SaveListener[] = [];
   private rejectionListeners: RejectionListener[] = [];
   private requestCounter = 0;
+  /** Distinguishes command ids minted by concurrent clients in one session. */
+  private readonly sessionId = nextClientId();
 
   constructor(private worker: Worker) {
     this.worker.onmessage = (event: MessageEvent<WorkerResponse>) =>
@@ -72,13 +78,23 @@ export class GameClient {
     });
   }
 
-  sendCommand(command: GameCommand): string {
+  /**
+   * Sends a command and returns the correlation id for this exchange. The
+   * command's own identity is separate and travels with it: the request id
+   * only ties a reply back to the caller that is waiting for it.
+   */
+  sendCommand(
+    command: GameCommand,
+    options: { expectedStateVersion?: number } = {},
+  ): string {
     const requestId = `req.${++this.requestCounter}`;
     this.send({
       protocolVersion: PROTOCOL_VERSION,
       type: "COMMAND",
       requestId,
+      commandId: `cmd.${this.sessionId}.${this.requestCounter}`,
       command,
+      expectedStateVersion: options.expectedStateVersion,
     });
     return requestId;
   }
@@ -104,7 +120,11 @@ export class GameClient {
         return;
       case "COMMAND_REJECTED":
         for (const l of this.rejectionListeners)
-          l({ requestId: message.requestId, reason: message.reason });
+          l({
+            requestId: message.requestId,
+            commandId: message.commandId,
+            reason: message.reason,
+          });
         return;
       case "SAVE_DATA":
         for (const l of this.saveListeners) l(message.saveData);

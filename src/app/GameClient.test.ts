@@ -60,16 +60,30 @@ describe("GameClient protocol", () => {
     expect(errors).toEqual(["protocol mismatch"]);
   });
 
-  it("sends commands with a stable request id", () => {
+  it("sends commands with a stable request id and a separate command id", () => {
     const worker = fakeWorker();
     const client = new GameClient(worker);
     expect(client.sendCommand(SET_RATE)).toBe("req.1");
-    expect(worker.postMessage).toHaveBeenLastCalledWith({
+    const sent = worker.postMessage.mock.lastCall![0];
+    expect(sent).toMatchObject({
       protocolVersion: PROTOCOL_VERSION,
       type: "COMMAND",
       requestId: "req.1",
       command: SET_RATE,
     });
+    // Correlation and identity are different things and must not be the same
+    // value: the worker logs one of them for ever and forgets the other.
+    expect(sent.commandId).not.toBe(sent.requestId);
     expect(client.sendCommand(SET_RATE)).toBe("req.2");
+    expect(worker.postMessage.mock.lastCall![0].commandId).not.toBe(
+      sent.commandId,
+    );
+  });
+
+  it("passes an expected state version through when the caller declares one", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    client.sendCommand(SET_RATE, { expectedStateVersion: 12 });
+    expect(worker.postMessage.mock.lastCall![0].expectedStateVersion).toBe(12);
   });
 });

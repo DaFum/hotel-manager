@@ -1,4 +1,5 @@
 import { createRngStreams, type RngStateRecord } from "../domain/rng";
+import type { CommandLogEntry } from "../commands/commandEnvelope";
 import { CITY } from "../content/1991/frankfurt";
 import { STARTER_HOTEL, STARTER_STAFF } from "../content/1991/starterHotel";
 import type { RoomState } from "../rooms/roomState";
@@ -94,6 +95,20 @@ export interface MonthAccumulator {
 
 export interface GameState {
   seed: number;
+  /**
+   * Moves exactly once per applied command. A command may declare the version
+   * it believed it was acting on, so a decision made against a stale view is
+   * refused rather than applied to a world its author never saw.
+   */
+  stateVersion: number;
+  /** The bounded audit trail of decided commands; see COMMAND_LOG_LIMIT. */
+  commandLog: CommandLogEntry[];
+  /**
+   * Decisions taken since the game began, accepted and rejected alike. It
+   * outlives the bounded log so ids the house mints for itself stay unique
+   * even after the log window has scrolled past them.
+   */
+  commandSequence: number;
   calendar: { dateKey: string; minuteOfDay: number };
   hotel: { id: string; name: string; rooms: RoomRecord[] };
   rates: RateGrid;
@@ -168,6 +183,9 @@ export function createInitialGameState(seed: number): GameState {
   const streams = createRngStreams(seed);
   return {
     seed,
+    stateVersion: 0,
+    commandLog: [],
+    commandSequence: 0,
     calendar: { dateKey: CITY.startDateKey, minuteOfDay: 0 },
     hotel: {
       id: STARTER_HOTEL.id,

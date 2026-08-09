@@ -76,7 +76,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/commands/commandHandler.test.ts",
       assertion: "records the envelope identity of an accepted command",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.duplicate.rejected",
@@ -89,7 +89,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/commands/commandHandler.test.ts",
       assertion: "rejects a duplicate command id without touching state",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.staleVersion.rejected",
@@ -102,7 +102,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/commands/commandHandler.test.ts",
       assertion: "rejects a stale expected state version",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.queue.stableOrder",
@@ -114,21 +114,21 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/commands/commandHandler.test.ts",
       assertion: "applies queued commands in acceptance order",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.rejected.byteIdentical",
     masterSection: "MASTER ch. 29, 31",
     task: 2,
     claim:
-      "A rejected command leaves state, RNG streams, ledger, events and the state version byte-for-byte unchanged.",
+      "A rejected command leaves state, RNG streams, ledger, events and the state version byte-for-byte unchanged apart from the command journal entry recording the rejection.",
     implementationPath: "src/game/commands/commandHandler.ts",
     evidence: {
       path: "src/game/commands/commandHandler.test.ts",
       assertion:
         "leaves state byte-for-byte unchanged when a command is rejected",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.rollback.midFailure",
@@ -141,7 +141,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/commands/commandHandler.test.ts",
       assertion: "rolls back a multi-write command that fails midway",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.stateVersion.singleIncrement",
@@ -155,7 +155,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "increments the state version exactly once per applied command",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.log.bounded",
@@ -169,7 +169,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "appends accepted and rejected results to a bounded command log",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.boundary.allPlayerActions",
@@ -182,7 +182,7 @@ const ROWS: readonly ConformanceRow[] = [
       path: "src/game/commands/commandHandler.test.ts",
       assertion: "routes every player action through the same command boundary",
     },
-    status: "planned",
+    status: "verified",
   },
   {
     id: "command.requestId.notAuthoritative",
@@ -196,7 +196,7 @@ const ROWS: readonly ConformanceRow[] = [
       assertion:
         "keeps protocol request ids out of authoritative command identity",
     },
-    status: "planned",
+    status: "verified",
   },
 
   // --- Task 3: domain events ---------------------------------------------

@@ -3,7 +3,8 @@ import {
   type WorkerRequest,
   type WorkerResponse,
 } from "../domain/protocol";
-import { GameSimulation, type GameCommand } from "./GameSimulation";
+import { GameSimulation } from "./GameSimulation";
+import { commandEnvelope, type GameCommand } from "../commands/commandEnvelope";
 import { createInitialGameState, type GameState } from "./initialState";
 import { isCompleteRngState } from "../persistence/saveSchema";
 
@@ -38,9 +39,43 @@ function isRestorableState(value: unknown): value is GameState {
 let simulation: GameSimulation | null = null;
 let speed: 0 | 1 | 2 | 4 | 16 = 0;
 let timer: ReturnType<typeof setInterval> | null = null;
+/** Command id to the request that carried it, so replies can be correlated. */
+const correlation = new Map<string, string>();
 
 function reply(message: WorkerResponse) {
   self.postMessage(message);
+}
+
+/**
+ * Publishes the verdicts of commands the simulation has actually decided.
+ * COMMAND_ACCEPTED therefore means applied, not queued.
+ */
+function publishCommandResults() {
+  if (!simulation) return;
+  for (const result of simulation.takeCommandResults()) {
+    const requestId = correlation.get(result.commandId);
+    correlation.delete(result.commandId);
+    // A verdict the UI never asked for — a standing order, say — has nothing
+    // to correlate against and is reported through domain events instead.
+    if (requestId === undefined) continue;
+    reply(
+      result.status === "accepted"
+        ? {
+            protocolVersion: PROTOCOL_VERSION,
+            type: "COMMAND_ACCEPTED",
+            requestId,
+            commandId: result.commandId,
+            stateVersion: result.stateVersion,
+          }
+        : {
+            protocolVersion: PROTOCOL_VERSION,
+            type: "COMMAND_REJECTED",
+            requestId,
+            commandId: result.commandId,
+            reason: result.reason ?? "the command was refused",
+          },
+    );
+  }
 }
 
 function tick() {
@@ -57,6 +92,7 @@ function tick() {
     });
     return;
   }
+  publishCommandResults();
   reply({
     protocolVersion: PROTOCOL_VERSION,
     type: "STATE_DELTA",
@@ -115,30 +151,42 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
           protocolVersion: PROTOCOL_VERSION,
           type: "COMMAND_REJECTED",
           requestId: m.requestId,
+          commandId: m.commandId,
           reason: "simulation not initialised",
         });
         return;
       }
-      const command = m.command as GameCommand;
-      const verdict = simulation.validateCommand(command);
-      if (!verdict.ok) {
+      let envelope;
+      try {
+        envelope = commandEnvelope({
+          commandId: m.commandId,
+          // Game time is the Worker's to state; the issuer does not get to
+          // decide when, in the simulation, its command was issued.
+          issuedAtMinutes: simulation.state.elapsedMinutes,
+          actor: "player",
+          payload: m.command as GameCommand,
+          expectedStateVersion: m.expectedStateVersion,
+        });
+      } catch (error) {
         reply({
           protocolVersion: PROTOCOL_VERSION,
           type: "COMMAND_REJECTED",
           requestId: m.requestId,
-          reason: verdict.reason,
+          commandId: m.commandId,
+          reason: (error as Error).message,
         });
         return;
       }
-      simulation.queueCommand(command);
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "COMMAND_ACCEPTED",
-        requestId: m.requestId,
-      });
-      // A paused game applies the command without advancing the calendar.
+      // The correlation id is remembered, not stored on the envelope: it is a
+      // transport concern and must not become the command's identity.
+      correlation.set(envelope.commandId, m.requestId);
+      simulation.queueEnvelope(envelope);
+      // A paused game applies the command without advancing the calendar; a
+      // running one decides it in the next commands phase. Either way the
+      // acknowledgement waits until it has actually been applied.
       if (speed === 0) {
         simulation.applyPendingCommands();
+        publishCommandResults();
         reply({
           protocolVersion: PROTOCOL_VERSION,
           type: "STATE_DELTA",

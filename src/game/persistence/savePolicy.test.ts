@@ -154,7 +154,9 @@ describe("save policy", () => {
   });
 
   it("rejects a non-integer persisted hotel treasury balance", () => {
-    const malformed = structuredClone(current);
+    const malformed = structuredClone(current) as SaveEnvelope & {
+      state: ReturnType<typeof createInitialGameState>;
+    };
     malformed.state.company.treasury.hotelCashMinor[malformed.state.hotel.id] =
       1.5;
     expect(validateEnvelope(malformed)).toContain(

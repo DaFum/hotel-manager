@@ -6,6 +6,7 @@
     "jsx": "react-jsx",
     "strict": true,
     "skipLibCheck": true,
+    "types": ["vite/client"],
     "lib": ["DOM", "DOM.Iterable", "ES2022"]
   }
 }

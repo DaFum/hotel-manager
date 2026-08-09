@@ -14,7 +14,7 @@
 
 Canonical design: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`.
 
-This plan depends on: **Plan 03 final verification**.
+This plan depends on: **Plan 03.5 conformance-remediation final verification**. The original Plan 03 green gate alone is insufficient after the implementation audit.
 
 MASTER-spec coverage: MASTER chapters 34–39, plus the technology-dependent chapter 6–7 completion delta. See `2026-08-09-MASTER-spec-coverage-audit.md`.
 

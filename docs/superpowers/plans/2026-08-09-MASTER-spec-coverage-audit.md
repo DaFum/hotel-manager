@@ -11,14 +11,17 @@
 A MASTER chapter is covered only when a plan supplies a production task, targeted
 verification, migration work for persistent state, and an integration gate. A chapter
 number in a header or an acceptance-registry row is not implementation coverage.
-Plans 01-03 are already verified, so uncovered depth in their broad coverage claims is
-assigned to explicit completion-delta tasks in Plans 04-06 rather than retroactively
-changing completed gates.
+Plans 01-03 passed their original gates, but a later implementation audit found that
+those gates prove a playable slice rather than every claimed architecture and integration
+contract. Baseline conformance gaps are now owned by Plan 03.5 before Plan 04. Plans
+04-06 retain only later-system depth beyond that repaired baseline.
 
 ## Gaps found and disposition
 
-1. Plan 01 did not finish difficulty/sandbox/game-over, later distribution, revenue
-   automation, the complete employee lifecycle, or the supplier-contract lifecycle.
+1. Plan 01 proved only the vertical-slice baseline for its broad chapter range.
+   Difficulty/sandbox/game-over, later distribution/revenue automation, and complete
+   employee/supplier lifecycles remain correctly assigned to later plans; Plan 03.5 owns
+   only missing contracts that Plan 01 itself claimed as delivered architecture/slice.
 2. Plan 02 did not explicitly finish lobby automation, shops/operator models, outdoor
    areas, or their specialization dependencies.
 3. Plan 05 claimed Chapters 22-28 but lacked tasks for complete accounting, insurance,
@@ -27,15 +30,16 @@ changing completed gates.
 5. Plan 10 counted 54 requirements without requiring distinct implementation,
    automated-verification, and audit evidence.
 
-Plans 04-06 now own those completion deltas. Plan 10 must reject missing evidence.
+Plan 03.5 owns the Plans 01-03 conformance delta. Plans 04-06 deepen the repaired
+baseline, and Plan 10 must reject missing implementation or verification evidence.
 
 ## 54-requirement ownership ledger
 
 | ID | MASTER requirement | Implementation owner |
 |---:|---|---|
-| 1 | Booking/reservation/distribution | Plan 01 Tasks 8,10; Plan 04 Task 13 |
+| 1 | Booking/reservation/distribution | Plan 01 Tasks 8,10; Plan 03.5 Task 6; Plan 04 Task 13 |
 | 2 | Revenue management | Plan 01 Task 9; Plan 04 Task 13 |
-| 3 | Complete guest model | Plan 01 Tasks 8,10-11; Plan 05 Task 18 |
+| 3 | Complete guest model | Plan 01 Tasks 8,10-11; Plan 03.5 Task 6; Plan 05 Task 18 |
 | 4 | Financial system | Plan 01 Task 14; Plan 05 Task 15 |
 | 5 | Purchasing/inventory/suppliers | Plan 01 Task 7; Plan 05 Task 17 |
 | 6 | Staff/labor market | Plans 01 Task 6, 03 Task 2; Plan 05 Task 17 |
@@ -49,17 +53,17 @@ Plans 04-06 now own those completion deltas. Plan 10 must reject missing evidenc
 | 14 | Currencies/international expansion | Plans 04 Task 9, 05 Tasks 1,10 |
 | 15 | Original parity | Feature owners; Plan 10 Task 2 |
 | 16 | Singleplayer/spiritual successor | Architecture/content policy; Plan 10 Task 2 |
-| 17 | Command system | Plan 01 Tasks 3,16-17 and later command tasks |
+| 17 | Command system | Plan 01 Tasks 3,16-17; Plan 03.5 Tasks 2-3 |
 | 18 | Numeric rules | Plan 01 Tasks 2,14; Plan 05 Task 15 |
-| 19 | Web Worker | Plan 01 Tasks 16-17; Plan 09 Tasks 1,5,7 |
-| 20 | Isometric world | Plans 01 Task 19, 02 Task 12, 05 Task 21 |
+| 19 | Web Worker | Plan 01 Tasks 16-17; Plan 03.5 Tasks 2-5; Plan 09 Tasks 1,5,7 |
+| 20 | Isometric world | Plans 01 Task 19, 02 Task 12; Plan 03.5 Task 8; Plan 05 Task 21 |
 | 21 | Onboarding/accessibility | Plan 08 Tasks 3-7,13 |
 | 22 | Anti-runaway balancing | Plans 04 Tasks 2,6-7,12; 09 Tasks 8-14 |
 | 23 | Sales/Marketing/CRM/Loyalty | Plan 05 Task 16 |
-| 24 | Front-office/housekeeping state machine | Plan 01 Tasks 5,10 |
-| 25 | F&B operation | Plans 01 Task 12, 02 Tasks 4-5; Plan 05 Task 20 |
-| 26 | Groups/conference/events | Plan 02 Task 8; Plan 05 Task 20 |
-| 27 | Reservable ancillary services | Plan 02 Task 7; Plan 05 Task 20 |
+| 24 | Front-office/housekeeping state machine | Plan 01 Tasks 5,10; Plan 03.5 Task 6 |
+| 25 | F&B operation | Plans 01 Task 12, 02 Tasks 4-5; Plan 03.5 Task 7; Plan 05 Task 20 |
+| 26 | Groups/conference/events | Plan 02 Task 8; Plan 03.5 Task 7; Plan 05 Task 20 |
+| 27 | Reservable ancillary services | Plan 02 Task 7; Plan 03.5 Task 7; Plan 05 Task 20 |
 | 28 | Service recovery | Plan 01 Task 11; Plan 05 Task 18 |
 | 29 | Multidimensional reputation | Plan 05 Task 16; Plan 06 Tasks 6-7 |
 | 30 | Operating models | Plan 05 Task 2 |
@@ -79,10 +83,10 @@ Plans 04-06 now own those completion deltas. Plan 10 must reject missing evidenc
 | 44 | Original behavioral parity | Feature owners; Plan 10 Tasks 2,11 |
 | 45 | Content schema | Plan 07 Tasks 1-9 |
 | 46 | Content authoring | Plan 07 Tasks 10-14 |
-| 47 | Observability/replay | Plans 01 Task 21, 09 Tasks 1-2, 10 Tasks 5,13 |
-| 48 | Worker protocol | Plan 01 Tasks 3,17; Plan 09 Tasks 1,5 |
+| 47 | Observability/replay | Plan 01 Task 21; Plan 03.5 Tasks 3,10-11; Plans 09 Tasks 1-2, 10 Tasks 5,13 |
+| 48 | Worker protocol | Plan 01 Tasks 3,17; Plan 03.5 Tasks 3-4; Plan 09 Tasks 1,5 |
 | 49 | Performance budgets | Plan 09 Tasks 1-14 |
-| 50 | Save/content versioning | Migration tasks in Plans 01-07; Plan 07 Tasks 9,15 |
+| 50 | Save/content versioning | Plans 01-03 migrations; Plan 03.5 Tasks 5,12; Plan 07 Tasks 9,15 |
 | 51 | Localization | Plan 08 Tasks 1-2,12-13 |
 | 52 | Audio/feedback | Plan 08 Tasks 9-12 |
 | 53 | Notification management | Plan 08 Task 8 |
@@ -100,6 +104,17 @@ and reviewed evidence where automation cannot prove the claim.
 4. Player and competitor economics reuse shared primitives.
 5. A final E2E is not a substitute for focused system and determinism tests.
 6. This audit establishes plan coverage; it does not claim future implementation exists.
+
+## Plans 01-03 implementation audit status
+
+The original Plan 01-03 checkboxes and green gates remain valid evidence for the
+implemented playable slice, but not for full conformance. The repository audit found
+missing command metadata/atomicity, un-emitted events and performance samples, mislabeled
+full-snapshot deltas, non-specific detail responses, one UI save slot without autosave or
+recovery policy, under-integrated Plan 02 operating depth, a static isometric tile view,
+and a decade market assertion too weak to prove fairness or determinism. These findings
+are release-blocking and are owned by
+`2026-08-09-03.5-plans-01-03-conformance-remediation.md`.
 
 ## Deep chapter and subsection audit
 

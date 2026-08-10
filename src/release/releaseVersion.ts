@@ -8,6 +8,7 @@ export function commandSetForRelease(): string[] {
     "npm run lint",
     "npm run build",
     "npm run test:e2e",
+    "npm run test:release:a11y",
     "npm run benchmark:all",
     "npm run stress:50y",
     "npm run invariant:sweep",

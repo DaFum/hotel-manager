@@ -101,10 +101,8 @@
     "id": 15,
     "name": "Original parity",
     "masterChapters": ["79-81"],
-    "implementationEvidence": [
-      "docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md"
-    ],
-    "automatedEvidence": ["e2e/vertical-slice.spec.ts"]
+    "implementationEvidence": ["src/release/originalParity.ts"],
+    "automatedEvidence": ["src/release/originalParity.test.ts"]
   },
   {
     "id": 16,
@@ -154,8 +152,8 @@
     "id": 22,
     "name": "Anti-runaway balancing",
     "masterChapters": ["34", "77"],
-    "implementationEvidence": ["src/game/world/macro.ts"],
-    "automatedEvidence": ["src/game/world/macro.test.ts"]
+    "implementationEvidence": ["scripts/stress-50-years.ts"],
+    "automatedEvidence": ["src/game/world/longRun.test.ts"]
   },
   {
     "id": 23,

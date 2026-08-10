@@ -10,8 +10,15 @@ test("operates the hotel while company and campaign state remain responsive", as
   await expect(campaign).toContainText("Frankfurt, 1 January 1991");
   await expect(chronicle).toContainText("No milestones recorded yet");
 
+  const singleRate = page
+    .getByRole("region", { name: "Revenue" })
+    .locator("dd")
+    .last();
+  const rateBefore = await singleRate.textContent();
   await page.getByRole("button", { name: /set single rate/i }).click();
   await expect(page.getByLabel("Command status")).toContainText("accepted");
+  // Accepted is what the worker said; the published rate is what it did.
+  await expect(singleRate).not.toHaveText(rateBefore ?? "");
   await page
     .getByRole("region", { name: "Brands" })
     .getByRole("button", {
@@ -24,6 +31,13 @@ test("operates the hotel while company and campaign state remain responsive", as
   ).toContainText("Flag: Rheinstern Collection");
 
   await page.getByRole("button", { name: "4x", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Pause" })).toBeEnabled();
+  // The speed the player asked for is the speed the shell is showing.
+  await expect(
+    page.getByRole("button", { name: "4x", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Pause" })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
   await expect(chronicle).toBeVisible();
 });

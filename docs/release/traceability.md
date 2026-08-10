@@ -89,8 +89,8 @@ This reviewed index mirrors the executable registry. Paths are repository-relati
 ## requirement-15: Original parity
 
 - MASTER: 79-81
-- Implementation: `docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md`
-- Automated evidence: `e2e/vertical-slice.spec.ts`
+- Implementation: `src/release/originalParity.ts`
+- Automated evidence: `src/release/originalParity.test.ts`
 - Reviewed evidence: `docs/superpowers/plans/2026-08-09-MASTER-spec-coverage-audit.md`
 
 ## requirement-16: Singleplayer/spiritual successor
@@ -133,8 +133,8 @@ This reviewed index mirrors the executable registry. Paths are repository-relati
 ## requirement-22: Anti-runaway balancing
 
 - MASTER: 34, 77
-- Implementation: `src/game/world/macro.ts`
-- Automated evidence: `src/game/world/macro.test.ts`
+- Implementation: `scripts/stress-50-years.ts`
+- Automated evidence: `src/game/world/longRun.test.ts`
 
 ## requirement-23: Sales/Marketing/CRM/Loyalty
 

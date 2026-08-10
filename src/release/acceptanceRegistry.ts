@@ -1,4 +1,4 @@
-import { existsSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 
 export interface AcceptanceRequirement {
   id: number;
@@ -112,8 +112,8 @@ const rows: readonly [number, string, string[], string, string][] = [
     15,
     "Original parity",
     ["79-81"],
-    "docs/superpowers/specs/2026-08-08-hotel-management-simulator-MASTER-spec.md",
-    "e2e/vertical-slice.spec.ts",
+    "src/release/originalParity.ts",
+    "src/release/originalParity.test.ts",
   ],
   [
     16,
@@ -161,8 +161,8 @@ const rows: readonly [number, string, string[], string, string][] = [
     22,
     "Anti-runaway balancing",
     ["34", "77"],
-    "src/game/world/macro.ts",
-    "src/game/world/macro.test.ts",
+    "scripts/stress-50-years.ts",
+    "src/game/world/longRun.test.ts",
   ],
   [
     23,
@@ -409,10 +409,35 @@ export const RELEASE_ACCEPTANCE: readonly AcceptanceRequirement[] = rows.map(
 );
 
 function isConcreteFile(target: string): boolean {
+  if (target.includes("*")) return false;
+  // One probe, not an exists-then-stat pair: the file can be deleted between
+  // the two, and a missing path is an answer rather than an exception.
+  return statSync(target, { throwIfNoEntry: false })?.isFile() === true;
+}
+
+/**
+ * Implementation evidence points at the material a requirement is built from:
+ * production source, a script the release runs, or the specification itself.
+ */
+export function resolveConcreteImplementationTarget(target: string): boolean {
   return (
-    !target.includes("*") && existsSync(target) && statSync(target).isFile()
+    isConcreteFile(target) &&
+    !AUTOMATED_TEST.test(target) &&
+    (target.startsWith("src/") ||
+      target.startsWith("scripts/") ||
+      target.startsWith("docs/"))
   );
 }
 
-export const resolveConcreteImplementationTarget = isConcreteFile;
-export const resolveConcreteAutomatedTarget = isConcreteFile;
+const AUTOMATED_TEST = /\.(test|spec)\.tsx?$/;
+
+/**
+ * Automated evidence has to be something a gate can run or compare against:
+ * an executable test, or a recorded artifact such as a replay corpus.
+ */
+export function resolveConcreteAutomatedTarget(target: string): boolean {
+  return (
+    isConcreteFile(target) &&
+    (AUTOMATED_TEST.test(target) || target.startsWith("fixtures/"))
+  );
+}

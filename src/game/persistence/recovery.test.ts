@@ -115,6 +115,67 @@ describe("save recovery", () => {
     expect(outcome.rejected[0]?.reason).toMatch(/rng stream/i);
   });
 
+  it("names the stage that refused each slot", async () => {
+    const slot = manualSlot("every stage");
+    // A store that fails to read, a store with nothing in it, and a store
+    // whose envelope cannot be migrated: one rejection stage each.
+    const unreadable: SaveStore = {
+      ...memoryStore(),
+      async load() {
+        throw new Error("the object store is gone");
+      },
+    };
+    const unreadableOutcome = await loadWithRecovery(unreadable, slot);
+    if (isRecovered(unreadableOutcome))
+      throw new Error("an unreadable store was accepted");
+    expect(unreadableOutcome.rejected.map((r) => r.stage)).toEqual([
+      "read",
+      "read",
+      "read",
+      "read",
+    ]);
+    expect(unreadableOutcome.rejected[0].reason).toMatch(/object store/);
+
+    const emptyOutcome = await loadWithRecovery(memoryStore(), slot);
+    if (isRecovered(emptyOutcome))
+      throw new Error("an empty store was accepted");
+    expect(emptyOutcome.rejected.every((r) => r.stage === "missing")).toBe(
+      true,
+    );
+
+    // An envelope the migration chain cannot even read its version from: the
+    // store hands it back as it found it, so the failure happens inside
+    // migration rather than in the read or in validation.
+    const unmigratable: SaveStore = {
+      ...memoryStore(),
+      async load() {
+        return Object.defineProperty({ ...envelopeAt(400) }, "saveVersion", {
+          get() {
+            throw new Error("the save version is unreadable");
+          },
+        }) as SaveEnvelope;
+      },
+    };
+    const migrationOutcome = await loadWithRecovery(unmigratable, slot);
+    if (isRecovered(migrationOutcome))
+      throw new Error("an unmigratable save was accepted");
+    expect(migrationOutcome.rejected[0].stage).toBe("migration");
+    expect(migrationOutcome.rejected[0].reason).toMatch(/save version/);
+  });
+
+  it("still reports a reason when a store rejects with no error", async () => {
+    const rejecting: SaveStore = {
+      ...memoryStore(),
+      async load() {
+        throw undefined;
+      },
+    };
+    const outcome = await loadWithRecovery(rejecting, manualSlot("silent"));
+    if (isRecovered(outcome)) throw new Error("a silent failure was accepted");
+    expect(outcome.rejected[0].stage).toBe("read");
+    expect(outcome.rejected[0].reason).toBe("no reason given");
+  });
+
   it("refuses a save whose state has lost its rng streams", async () => {
     const store = memoryStore();
     const slot = manualSlot("half a save");

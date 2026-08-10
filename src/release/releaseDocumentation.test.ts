@@ -12,6 +12,7 @@ describe("release documentation", () => {
       for (const target of [
         ...requirement.implementationEvidence,
         ...requirement.automatedEvidence,
+        ...(requirement.reviewedEvidence ?? []),
       ])
         expect(trace).toContain(target);
     }

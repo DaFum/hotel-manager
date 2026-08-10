@@ -28,11 +28,19 @@ const current = JSON.parse(readFileSync("fixtures/saves/current.json", "utf8"));
 if (JSON.stringify(migrateToCurrent(current)) !== JSON.stringify(current))
   throw new Error("current save load is not idempotent");
 for (const invalid of [null, {}, { saveVersion: SAVE_VERSION + 1 }]) {
+  let accepted = false;
   try {
     migrateToCurrent(invalid);
-    throw new Error("invalid save accepted");
+    accepted = true;
   } catch (error) {
-    if ((error as Error).message === "invalid save accepted") throw error;
+    // A rejection is the expected outcome, but only a real refusal counts: an
+    // unexpected failure inside a migration must surface, not pass as success.
+    if (!(error instanceof Error))
+      throw new Error(
+        `${JSON.stringify(invalid)}: rejected with a non-error ${String(error)}`,
+      );
   }
+  if (accepted)
+    throw new Error(`invalid save accepted: ${JSON.stringify(invalid)}`);
 }
 console.log(`migration verification PASS (v1-v${SAVE_VERSION})`);

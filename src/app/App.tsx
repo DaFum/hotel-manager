@@ -12,6 +12,7 @@ import {
   type NotificationRecord,
 } from "../ui/notifications/notificationPreferences";
 import { useGameStore } from "./gameStore";
+import { WorkerRecoveryPanel } from "./WorkerRecoveryPanel";
 import { SaveManager } from "../ui/SaveManager";
 import { SaveTransferPanel } from "../ui/settings/SaveTransferPanel";
 import { CITY } from "../game/content/1991/frankfurt";
@@ -149,9 +150,26 @@ export function App() {
     }
   }, [s, preferences.notifications, game]);
 
+  // The worker is the game: once it has stopped, the surface behind it is a
+  // hotel frozen mid-day. Say so, and offer the newest trustworthy save.
+  if (game.workerFailure)
+    return (
+      <main aria-label={translateGame(preferences.locale, "app.main")}>
+        <WorkerRecoveryPanel
+          message={game.workerFailure}
+          onRecover={() => {
+            void game.recoverFromWorkerFailure().then((recovered) => {
+              // Nothing to go back to; a reload is the only way on.
+              if (!recovered) window.location.reload();
+            });
+          }}
+        />
+      </main>
+    );
+
   if (!s)
     return (
-      <main aria-label="Hotel Manager">
+      <main aria-label={translateGame(preferences.locale, "app.main")}>
         <h1>Hotel Manager</h1>
         <p>Starting {CITY.name} 1991…</p>
       </main>
@@ -191,7 +209,10 @@ export function App() {
           channelManagerBp: adoption["channel-manager"] ?? 0,
         }}
       >
-        <main id="management-content" aria-label="Hotel Manager">
+        <main
+          id="management-content"
+          aria-label={translateGame(preferences.locale, "app.main")}
+        >
           <h1>
             {s.hotel.name}, {CITY.name} 1991
           </h1>

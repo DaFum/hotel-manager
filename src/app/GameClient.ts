@@ -48,6 +48,7 @@ const nextClientId = () => ++clients;
 export class GameClient {
   private snapshotListeners: SnapshotListener[] = [];
   private errorListeners: ErrorListener[] = [];
+  private workerFailureListeners: ErrorListener[] = [];
   private saveListeners: SaveListener[] = [];
   private rejectionListeners: RejectionListener[] = [];
   private acceptanceListeners: AcceptanceListener[] = [];
@@ -70,12 +71,10 @@ export class GameClient {
       this.handle(event.data);
     this.worker.onerror = (event) => {
       event.preventDefault();
-      for (const listener of this.errorListeners)
-        listener(event.message || "Simulation worker stopped");
+      this.fail(event.message || "Simulation worker stopped");
     };
     this.worker.onmessageerror = () => {
-      for (const listener of this.errorListeners)
-        listener("Simulation worker returned unreadable data");
+      this.fail("Simulation worker returned unreadable data");
     };
   }
 
@@ -85,6 +84,20 @@ export class GameClient {
 
   onError(listener: ErrorListener): Unsubscribe {
     return this.subscribe(this.errorListeners, listener);
+  }
+
+  /**
+   * The worker itself has stopped, rather than refusing one command. Nothing
+   * further will arrive on this handle, so the UI has to say so and offer the
+   * player a way back rather than appending another line to the error log.
+   */
+  onWorkerFailure(listener: ErrorListener): Unsubscribe {
+    return this.subscribe(this.workerFailureListeners, listener);
+  }
+
+  private fail(message: string): void {
+    for (const listener of this.errorListeners) listener(message);
+    for (const listener of this.workerFailureListeners) listener(message);
   }
 
   onSaveData(listener: SaveListener): Unsubscribe {
@@ -205,6 +218,7 @@ export class GameClient {
     // flight cannot reach a component that has been unmounted.
     this.snapshotListeners = [];
     this.errorListeners = [];
+    this.workerFailureListeners = [];
     this.saveListeners = [];
     this.rejectionListeners = [];
     this.acceptanceListeners = [];

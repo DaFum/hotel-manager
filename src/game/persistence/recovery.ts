@@ -75,6 +75,22 @@ export interface RecoveryOutcome {
   rejected: RecoveryRejection[];
 }
 
+/**
+ * A store or a migration can reject with anything at all — a string, a plain
+ * object, nothing. The player is still owed a reason they can read, so the
+ * rejection carries a description rather than `undefined`.
+ */
+function rejectionReason(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error) return error;
+  if (error === undefined || error === null) return "no reason given";
+  try {
+    return JSON.stringify(error) ?? String(error);
+  } catch {
+    return String(error);
+  }
+}
+
 export interface RecoveryRejection {
   slot: string;
   stage: "read" | "missing" | "migration" | "validation";
@@ -104,7 +120,7 @@ export async function loadWithRecovery(
       rejected.push({
         slot: candidate,
         stage: "read",
-        reason: (error as Error).message,
+        reason: rejectionReason(error),
       });
       continue;
     }
@@ -123,7 +139,7 @@ export async function loadWithRecovery(
       rejected.push({
         slot: candidate,
         stage: "migration",
-        reason: (error as Error).message,
+        reason: rejectionReason(error),
       });
       continue;
     }

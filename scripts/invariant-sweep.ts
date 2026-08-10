@@ -10,8 +10,12 @@ export function seedsForSweep(): number[] {
 
 function sample(seed: number): string {
   const simulation = new GameSimulation(createInitialGameState(seed));
-  for (let quantum = 0; quantum < 288; quantum++) simulation.advanceQuantum();
-  assertInvariants(simulation.state);
+  // Every quantum, not just the last one: an invariant that breaks at noon and
+  // repairs itself by midnight is still a broken invariant.
+  for (let quantum = 0; quantum < 288; quantum++) {
+    simulation.advanceQuantum();
+    assertInvariants(simulation.state);
+  }
   return stateHash(simulation.snapshot());
 }
 

@@ -136,7 +136,31 @@ implemented. Presentation preferences remain outside authoritative simulation
 state, while save version 7 carries them beside replayable state. Worker pause
 and resume controls are correlated requests, Pixi targets retain equivalent
 semantic DOM controls, and meaningful audio cues always have visual labels.
-Plan 09 (scale, performance, and long-run balancing) is next.
+Plan 09 is implemented. Worker samples now disclose tick, command, delta, save,
+and visible-agent measurements; presentation materialization is capped without
+changing aggregate demand. Detail tiers retain monthly economics, fast-forward
+yields at bounded batches, and deterministic market/technology bounds use
+integer arithmetic. The versioned scenario corpus is the release authority for
+normal, fast-forward, close, facilities, portfolio, crisis, migration/load, and
+50-year mature-scale workloads. `npm run benchmark:all` and
+`npm run stress:50y` must remain green before Plan 10 begins.
+
+Plan 09 remediation replaced the illustrative synthetic workload with real
+domain-system execution. Operational scenarios drive `GameSimulation`, while
+the mature workload runs the existing aggregate managed-hotel, city,
+competitor and world systems for 600 monthly steps across 60 hotels, 25 cities
+and 40 competitors. Yearly checkpoint hashes cover the whole aggregate state.
+Ledger history retains daily detail for two years, monthly account totals for
+the following three years and yearly account totals thereafter; compaction
+must preserve exact account and cash totals. Protocol 4 adds delta/save byte
+measurements to `PERF_SAMPLE`, and save version 8 explicitly migrates v7
+protocol metadata without changing authoritative state.
+
+Fresh Plan 09 remediation verification on 2026-08-10 passed
+`npm run test:run` (184 files, 916 tests), `npm run typecheck`, `npm run lint`,
+`npm run build`, `npm run test:e2e` (29 tests), `npm run content:validate`,
+`npm run benchmark:all`, `npm run stress:50y`, and
+`scripts/replay-plans-01-03.ts`.
 
 Fresh Plan 08 verification on 2026-08-10 passed `npm run test:run` (168 files,
 889 tests), `npm run typecheck`, `npm run lint`, `npm run build`,

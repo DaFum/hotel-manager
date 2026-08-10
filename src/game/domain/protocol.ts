@@ -5,10 +5,9 @@ import type { StateDelta } from "./stateDelta";
 import type { PlayerPreferences } from "../settings/playerPreferences";
 
 /**
- * Version 3 adds required correlation data to PAUSE, RESUME, and REQUEST_SAVE
- * on top of version 2's authoritative command identity and delta contract.
+ * Version 4 adds delta/save byte measurements to performance samples.
  */
-export const PROTOCOL_VERSION = 3 as const;
+export const PROTOCOL_VERSION = 4 as const;
 
 export type ProtocolVersion = typeof PROTOCOL_VERSION;
 
@@ -138,6 +137,10 @@ export type WorkerResponse =
       /** Measured wall time from receiving a command to acknowledging it. */
       commandLatencyMs: number;
       visibleAgents: number;
+      /** Approximate UTF-8 size of the last published delta. */
+      deltaBytes: number;
+      /** Approximate UTF-8 size of a current save envelope. */
+      saveBytes: number;
     };
 
 export function simulationError(

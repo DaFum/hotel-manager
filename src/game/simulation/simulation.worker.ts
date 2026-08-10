@@ -5,7 +5,7 @@ import {
   type WorkerRequest,
   type WorkerResponse,
 } from "../domain/protocol";
-import { computeStateDelta } from "../domain/stateDelta";
+import { computeStateDelta } from "../protocol/stateDelta";
 import { GameSimulation } from "./GameSimulation";
 import { commandEnvelope, type GameCommand } from "../commands/commandEnvelope";
 import { createInitialGameState, type GameState } from "./initialState";
@@ -22,6 +22,10 @@ import {
   normalizePlayerPreferences,
   type PlayerPreferences,
 } from "../settings/playerPreferences";
+import { serializedBytes } from "../perf/perfSample";
+import { VISIBLE_AGENT_BUDGET } from "./materialization";
+import { quantaForBatch } from "./fastForward";
+import { evaluateSaveBudget } from "../persistence/saveBudget";
 
 /** One real tick is 100 ms; at 1x that is one simulated hour. */
 const TICK_MS = 100;
@@ -81,6 +85,8 @@ let published: GameSnapshot | null = null;
 let publication = 0;
 let lastTickMs = 0;
 let lastCommandLatencyMs = 0;
+let lastDeltaBytes = 0;
+let lastSaveBytes = 0;
 interface TickFailure {
   thrown: unknown;
   message: string;
@@ -142,6 +148,7 @@ function publishDelta() {
   published = next;
   publication += 1;
   reply({ protocolVersion: PROTOCOL_VERSION, type: "STATE_DELTA", delta });
+  lastDeltaBytes = serializedBytes(delta);
 }
 
 /** Hands the completed facts recorded since the last drain to the UI. */
@@ -192,12 +199,18 @@ function publishCommandResults() {
 
 function publishPerfSample() {
   if (!simulation) return;
+  const visibleAgents = Math.min(
+    simulation.state.stays.length,
+    VISIBLE_AGENT_BUDGET,
+  );
   reply({
     protocolVersion: PROTOCOL_VERSION,
     type: "PERF_SAMPLE",
     tickMs: lastTickMs,
     commandLatencyMs: lastCommandLatencyMs,
-    visibleAgents: simulation.state.stays.length,
+    visibleAgents,
+    deltaBytes: lastDeltaBytes,
+    saveBytes: lastSaveBytes,
   });
 }
 
@@ -205,8 +218,8 @@ function tick() {
   if (!simulation || speed === 0) return;
   const started = now();
   try {
-    for (let i = 0; i < speed * QUANTA_PER_TICK; i++)
-      simulation.advanceQuantum();
+    const batch = quantaForBatch(speed * QUANTA_PER_TICK);
+    for (let i = 0; i < batch; i++) simulation.advanceQuantum();
   } catch (error) {
     speed = 0;
     tickFailure = { thrown: error, message: failureMessage(error) };
@@ -243,6 +256,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   switch (m.type) {
     case "INIT_GAME": {
       tickFailure = null;
+      lastSaveBytes = 0;
       simulation = new GameSimulation(createInitialGameState(m.seed));
       simulation.refreshDerivedState();
       ensureTimer();
@@ -286,6 +300,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       arrivedAt.clear();
       simulation = restored;
       tickFailure = null;
+      lastSaveBytes = 0;
       ensureTimer();
       publishSnapshot();
       publishDomainEvents();
@@ -461,6 +476,18 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         return;
       }
       const envelope = prepareEnvelope(simulation.snapshot(), m.preferences);
+      lastSaveBytes = serializedBytes(envelope);
+      const budget = evaluateSaveBudget(lastSaveBytes);
+      if (!budget.ok) {
+        reply(
+          simulationError(
+            "INVALID_SAVE",
+            `save exceeds ${budget.maxBytes} byte release budget`,
+            { recoverable: true, requestId: m.requestId },
+          ),
+        );
+        return;
+      }
       const problems = validateEnvelope(envelope);
       if (problems.length > 0) {
         // A save the worker would not accept back is not a save; refusing to

@@ -1,3 +1,5 @@
+import { boundedPeriodTarget } from "../balancing/marketBounds";
+
 /**
  * The city property market. Land is priced by the demand pressure the city is
  * under, but it moves slowly: a price that reacted instantly would let every
@@ -29,11 +31,13 @@ export function nextPrice(
 ): number {
   assertPrice("current", current);
   assertPrice("target", target);
-  if (!Number.isFinite(maxMoveBp) || maxMoveBp < 0)
+  if (!Number.isSafeInteger(maxMoveBp) || maxMoveBp < 0)
     throw new Error("invalid max move");
-  const limit = Math.round((current * maxMoveBp) / 10000);
-  const delta = target - current;
-  return current + Math.sign(delta) * Math.min(Math.abs(delta), limit);
+  return boundedPeriodTarget(
+    current,
+    target,
+    Math.min(MAX_MONTHLY_MOVE_BP, maxMoveBp),
+  );
 }
 
 /**

@@ -7,9 +7,10 @@ import {
   SAVE_VERSION,
   type SaveEnvelope,
 } from "./saveVersions";
+import { evaluateSaveBudget, MAX_SAVE_BYTES } from "./saveBudget";
 
 export const SAVE_TRANSFER_VERSION = 1;
-export const MAX_SAVE_TRANSFER_BYTES = 10 * 1024 * 1024;
+export const MAX_SAVE_TRANSFER_BYTES = MAX_SAVE_BYTES;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -71,7 +72,7 @@ export function validateSaveContentReferences(state: unknown): string[] {
   return [...missing].sort();
 }
 
-function serialize(value: unknown): string {
+export function serializeSavePayload(value: unknown): string {
   return JSON.stringify(value);
 }
 async function sha256(text: string): Promise<string> {
@@ -107,9 +108,16 @@ export async function exportSaveFile(
     requiredContentPacks,
     payload,
   };
-  return encoder.encode(
-    serialize({ ...unsigned, checksum: await sha256(serialize(unsigned)) }),
+  const encoded = encoder.encode(
+    serializeSavePayload({
+      ...unsigned,
+      checksum: await sha256(serializeSavePayload(unsigned)),
+    }),
   );
+  const budget = evaluateSaveBudget(encoded.byteLength);
+  if (!budget.ok)
+    throw new Error(`save file exceeds ${budget.maxBytes} byte release budget`);
+  return encoded;
 }
 
 export async function parseSaveFile(bytes: Uint8Array): Promise<SaveEnvelope> {
@@ -136,7 +144,7 @@ export async function parseSaveFile(bytes: Uint8Array): Promise<SaveEnvelope> {
   )
     throw new Error("save transfer envelope is incomplete");
   const { checksum, ...unsigned } = file as SaveTransferFile;
-  if ((await sha256(serialize(unsigned))) !== checksum)
+  if ((await sha256(serializeSavePayload(unsigned))) !== checksum)
     throw new Error("save checksum mismatch");
   if (
     file.saveVersion !== file.payload.saveVersion ||

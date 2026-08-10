@@ -161,6 +161,9 @@ test("keeps every room reachable and described without the canvas", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await page
+    .getByRole("combobox", { name: /Language|Sprache/ })
+    .selectOption("en-GB");
   const view = page.getByRole("region", { name: "Hotel view" });
   const room = view.getByRole("button", { name: /room.101 single/ });
   // The state is in the label as words, not as a colour swatch.

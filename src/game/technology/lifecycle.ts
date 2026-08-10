@@ -1,3 +1,5 @@
+import { boundedAdoptionStep } from "../balancing/technologyBounds";
+
 export interface TechnologyLifecycle {
   adoptionBp: number;
   peakAdoptionBp: number;
@@ -19,12 +21,9 @@ export function nextAdoptionBp(
   basisPoints(pushBp, "adoption push");
   basisPoints(obsolescenceBp, "obsolescence");
   const organic = Math.round(((10_000 - currentBp) * 300) / 10_000);
-  return Math.max(
-    0,
-    Math.min(
-      10_000,
-      currentBp + organic + Math.trunc(pushBp / 100) - obsolescenceBp,
-    ),
+  return boundedAdoptionStep(
+    currentBp,
+    organic + Math.trunc(pushBp / 100) - obsolescenceBp,
   );
 }
 

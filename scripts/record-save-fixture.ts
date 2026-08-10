@@ -133,13 +133,16 @@ if (problems.length > 0)
   throw new Error(`the recorded fixture is not valid: ${problems.join("; ")}`);
 
 writeFileSync(
-  new URL("../src/game/persistence/fixtures/save-v6.json", import.meta.url),
+  new URL(
+    `../src/game/persistence/fixtures/save-v${SAVE_VERSION}.json`,
+    import.meta.url,
+  ),
   `${JSON.stringify(envelope, null, 2)}\n`,
 );
 
 const state = envelope.state as ReturnType<GameSimulation["snapshot"]>;
 process.stdout.write(
-  `recorded v6 fixture: hotels=${state.company.portfolio.hotelIds.length} ` +
+  `recorded v${SAVE_VERSION} fixture: hotels=${state.company.portfolio.hotelIds.length} ` +
     `results=${Object.keys(state.company.hotelResults).length} ` +
     `audits=${state.company.brandAudits.length} ` +
     `escalations=${state.company.escalations.length} ` +

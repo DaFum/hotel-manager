@@ -1,4 +1,4 @@
-import { saturatingRatio } from "../domain/saturation";
+import { diminishingImpactBasisPoints } from "../balancing/saturation";
 
 /**
  * What the hotels give back to the city. A house that builds conference space
@@ -22,10 +22,10 @@ const CONFERENCE_HALF_SCALE = 600;
  */
 export function conferenceEffect(capacity: number): number {
   if (!Number.isFinite(capacity)) throw new Error("invalid capacity");
-  return saturatingRatio(
-    MAX_CONFERENCE_EFFECT_BP,
-    capacity,
-    CONFERENCE_HALF_SCALE,
+  return Math.round(
+    (MAX_CONFERENCE_EFFECT_BP *
+      diminishingImpactBasisPoints(capacity, CONFERENCE_HALF_SCALE)) /
+      10_000,
   );
 }
 

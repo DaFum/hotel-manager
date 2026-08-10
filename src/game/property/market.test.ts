@@ -17,6 +17,8 @@ it("keeps a price in whole Pfennig and rejects a broken one", () => {
   expect(Number.isSafeInteger(nextPrice(10000001, 20000000, 137))).toBe(true);
   expect(() => nextPrice(1.5, 20000000, 300)).toThrow(/price/);
   expect(() => nextPrice(10000000, 20000000, -1)).toThrow(/move/);
+  expect(() => nextPrice(10000000, 20000000, 1.5)).toThrow(/move/);
+  expect(nextPrice(100, 200, 0)).toBe(100);
 });
 
 it("prices land off the demand pressure the city is under", () => {

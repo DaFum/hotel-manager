@@ -75,3 +75,6 @@ export function stateHash(value: unknown): string {
   }
   return hash.toString(16).padStart(8, "0");
 }
+
+/** Public release-verifier name for the canonical authoritative-state hash. */
+export const stableStateHash = stateHash;

@@ -72,7 +72,29 @@ export interface RecoveryOutcome {
   /** The slot it actually came from, which may not be the one asked for. */
   slot: string;
   /** Slots that were tried and refused, newest first, with the reason. */
-  rejected: { slot: string; reason: string }[];
+  rejected: RecoveryRejection[];
+}
+
+/**
+ * A store or a migration can reject with anything at all — a string, a plain
+ * object, nothing. The player is still owed a reason they can read, so the
+ * rejection carries a description rather than `undefined`.
+ */
+function rejectionReason(error: unknown): string {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error) return error;
+  if (error === undefined || error === null) return "no reason given";
+  try {
+    return JSON.stringify(error) ?? String(error);
+  } catch {
+    return String(error);
+  }
+}
+
+export interface RecoveryRejection {
+  slot: string;
+  stage: "read" | "missing" | "migration" | "validation";
+  reason: string;
 }
 
 /**
@@ -83,8 +105,8 @@ export interface RecoveryOutcome {
 export async function loadWithRecovery(
   store: SaveStore,
   slot: string,
-): Promise<RecoveryOutcome | { rejected: { slot: string; reason: string }[] }> {
-  const rejected: { slot: string; reason: string }[] = [];
+): Promise<RecoveryOutcome | { rejected: RecoveryRejection[] }> {
+  const rejected: RecoveryRejection[] = [];
   const candidates = [
     slot,
     ...Array.from({ length: RECOVERY_GENERATIONS }, (_, i) => recoverySlot(i)),
@@ -95,23 +117,39 @@ export async function loadWithRecovery(
     try {
       stored = await store.load(candidate);
     } catch (error) {
-      rejected.push({ slot: candidate, reason: (error as Error).message });
+      rejected.push({
+        slot: candidate,
+        stage: "read",
+        reason: rejectionReason(error),
+      });
       continue;
     }
     if (!stored) {
-      rejected.push({ slot: candidate, reason: "no save in slot" });
+      rejected.push({
+        slot: candidate,
+        stage: "missing",
+        reason: "no save in slot",
+      });
       continue;
     }
     let migrated: SaveEnvelope;
     try {
       migrated = migrateEnvelope(stored);
     } catch (error) {
-      rejected.push({ slot: candidate, reason: (error as Error).message });
+      rejected.push({
+        slot: candidate,
+        stage: "migration",
+        reason: rejectionReason(error),
+      });
       continue;
     }
     const problems = validateEnvelope(migrated);
     if (problems.length > 0) {
-      rejected.push({ slot: candidate, reason: problems.join("; ") });
+      rejected.push({
+        slot: candidate,
+        stage: "validation",
+        reason: problems.join("; "),
+      });
       continue;
     }
     return { envelope: migrated, slot: candidate, rejected };

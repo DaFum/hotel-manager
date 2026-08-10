@@ -47,6 +47,17 @@ export interface GameStore {
   recoveredFrom: string | null;
   /** Why the last load was refused, if it was. */
   validationFailure: string | null;
+  /**
+   * Set when the worker itself has stopped. Nothing else will arrive, so the
+   * UI shows the failure instead of a hotel that has quietly frozen.
+   */
+  workerFailure: string | null;
+  /**
+   * Replaces the stopped worker and puts the newest trustworthy save back in
+   * it. Resolves to false when there was no save to go back to, which leaves
+   * reloading the page as the only way out.
+   */
+  recoverFromWorkerFailure: () => Promise<boolean>;
   commandStatus: "idle" | "pending" | "accepted" | "rejected";
   pauseStatus: "idle" | "pending" | "accepted" | "rejected";
   preferences: PlayerPreferences;
@@ -121,6 +132,11 @@ export function useGameStore(seed: number): GameStore {
   const [validationFailure, setValidationFailure] = useState<string | null>(
     null,
   );
+  const [workerFailure, setWorkerFailure] = useState<string | null>(null);
+  /** Bumped to build a fresh worker after the previous one stopped. */
+  const [workerGeneration, setWorkerGeneration] = useState(0);
+  /** The save the next worker is started from, when recovering from a stop. */
+  const pendingRecoveryRef = useRef<SaveEnvelope | null>(null);
   const [commandStatus, setCommandStatus] =
     useState<GameStore["commandStatus"]>("idle");
   const [pauseStatus, setPauseStatus] =
@@ -173,6 +189,7 @@ export function useGameStore(seed: number): GameStore {
       );
     });
     client.onError((message) => setErrors((prev) => [...prev, message]));
+    client.onWorkerFailure((message) => setWorkerFailure(message));
     client.onCommandRejected(({ requestId, reason }) => {
       tutorialCommandRef.current.delete(requestId);
       if (controlRequestRef.current?.requestId === requestId) {
@@ -227,13 +244,21 @@ export function useGameStore(seed: number): GameStore {
         );
     });
     client.init(seed);
+    // A worker built to recover starts from the save the player was offered,
+    // not from 1991.
+    const recovered = pendingRecoveryRef.current;
+    pendingRecoveryRef.current = null;
+    if (recovered) {
+      setPreferencesState(normalizePlayerPreferences(recovered.preferences));
+      client.loadGame(recovered);
+    }
     refreshSlots();
     return () => {
       clientRef.current = null;
       lastPointRef.current = null;
       client.dispose();
     };
-  }, [seed, refreshSlots]);
+  }, [seed, refreshSlots, workerGeneration]);
 
   return {
     snapshot,
@@ -243,6 +268,7 @@ export function useGameStore(seed: number): GameStore {
     slots,
     recoveredFrom,
     validationFailure,
+    workerFailure,
     commandStatus,
     pauseStatus,
     preferences,
@@ -289,6 +315,17 @@ export function useGameStore(seed: number): GameStore {
         commandStatesRef.current.set(requestId, "pending");
         setCommandStatus("pending");
       }
+    },
+    recoverFromWorkerFailure: async () => {
+      const outcome = await loadWithRecovery(repoRef.current, DEFAULT_SLOT);
+      if (!isRecovered(outcome)) return false;
+      pendingRecoveryRef.current = outcome.envelope;
+      if (outcome.slot !== DEFAULT_SLOT) setRecoveredFrom(outcome.slot);
+      setSnapshot(null);
+      setSpeedState(0);
+      setWorkerFailure(null);
+      setWorkerGeneration((generation) => generation + 1);
+      return true;
     },
     restart: () => {
       setSnapshot(null);

@@ -1,12 +1,7 @@
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import type { GameState } from "../simulation/initialState";
-import { migrateV1ToV2 } from "./migrations/v1-to-v2";
-import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import { migrateV3ToV4 } from "./migrations/v3-to-v4";
-import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
-import { migrateV5ToV6 } from "./migrations/v5-to-v6";
-import { migrateV6ToV7 } from "./migrations/v6-to-v7";
-import { migrateV7ToV8 } from "./migrations/v7-to-v8";
+import { SAVE_MIGRATIONS } from "./migrateToCurrent";
 import {
   isValidAnnualProfit,
   isValidCampaign,
@@ -214,21 +209,7 @@ export function assertCompatible(envelope: SaveEnvelope): void {
  */
 export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
   if (!envelope) return envelope;
-  // One step per declared version, so adding a version to the list without a
-  // step is a visible gap rather than a silent no-op.
-  const steps: Record<number, (e: SaveEnvelope) => SaveEnvelope> = {
-    1: migrateV1ToV2,
-    2: migrateV2ToV3,
-    3: migrateV3ToV4,
-    4: migrateV4ToV5,
-    5: migrateV5ToV6,
-    6: migrateV6ToV7,
-    7: migrateV7ToV8,
-  };
   let current = envelope;
-  // Early v5 builds wrote fields whose accounting and unit upgrades must be
-  // completed even though the public save version did not change.
-  if (current.saveVersion === 5) current = migrateEarlyV5Fields(current);
   if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
     current = migrateV3ToV4(current);
   while (
@@ -236,7 +217,10 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
       current.saveVersion,
     )
   ) {
-    const step = steps[current.saveVersion];
+    // One shared step table, so the loader and `migrateToCurrent` can never
+    // disagree about what a version means. A declared version without a step
+    // is a visible gap rather than a silent no-op.
+    const step = SAVE_MIGRATIONS[current.saveVersion];
     if (!step) break;
     current = step(current);
   }

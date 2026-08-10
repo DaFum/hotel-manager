@@ -1,4 +1,7 @@
 export const en = {
+  app: {
+    main: "Hotel management",
+  },
   topbar: {
     status: "Status bar",
     cash: "Cash",

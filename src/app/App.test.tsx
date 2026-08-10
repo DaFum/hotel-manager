@@ -5,6 +5,7 @@ import { App } from "./App";
 describe("App", () => {
   it("renders the hotel manager shell", () => {
     render(<App />);
-    expect(screen.getByRole("main", { name: "Hotel Manager" })).toBeTruthy();
+    // The default locale is German, so the shell's landmark is too.
+    expect(screen.getByRole("main", { name: "Hotelverwaltung" })).toBeTruthy();
   });
 });

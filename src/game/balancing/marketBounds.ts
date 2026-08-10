@@ -16,9 +16,12 @@ export function boundedPeriodTarget(
     !Number.isSafeInteger(current) ||
     current < 0 ||
     !Number.isSafeInteger(target) ||
-    target < 0
+    target < 0 ||
+    !Number.isSafeInteger(maxChangeBp) ||
+    maxChangeBp < 0
   )
     throw new Error("market values must be non-negative safe integers");
+  if (maxChangeBp === 0) return current;
   const limit = Math.max(1, Math.round((current * maxChangeBp) / 10_000));
   return (
     current +

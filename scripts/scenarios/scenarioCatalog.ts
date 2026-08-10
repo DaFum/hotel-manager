@@ -17,6 +17,7 @@ export interface ScenarioDefinition {
   cities: number;
   competitors: number;
   visibleAgentBudget: 200 | 300 | 500;
+  benchmarkMonths?: number;
 }
 
 export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
@@ -28,6 +29,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 1,
     competitors: 3,
     visibleAgentBudget: 300,
+    benchmarkMonths: 2,
   },
   {
     id: "fast-forward",
@@ -37,6 +39,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 3,
     competitors: 8,
     visibleAgentBudget: 200,
+    benchmarkMonths: 2,
   },
   {
     id: "monthly-close",
@@ -46,6 +49,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 3,
     competitors: 8,
     visibleAgentBudget: 300,
+    benchmarkMonths: 2,
   },
   {
     id: "dense-facilities",
@@ -55,6 +59,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 1,
     competitors: 5,
     visibleAgentBudget: 500,
+    benchmarkMonths: 2,
   },
   {
     id: "portfolio",
@@ -64,6 +69,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 25,
     competitors: 40,
     visibleAgentBudget: 300,
+    benchmarkMonths: 2,
   },
   {
     id: "crisis",
@@ -73,6 +79,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 10,
     competitors: 40,
     visibleAgentBudget: 200,
+    benchmarkMonths: 2,
   },
   {
     id: "migration-load",
@@ -82,6 +89,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     cities: 5,
     competitors: 15,
     visibleAgentBudget: 300,
+    benchmarkMonths: 2,
   },
   {
     id: "mature-50y",
@@ -94,9 +102,13 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
   },
 ] as const;
 
+const SCENARIO_ALIASES: Readonly<Record<string, ScenarioId>> = {
+  baseline: "normal-view",
+};
+
 export function scenarioDefinition(id: string): ScenarioDefinition {
-  if (id === "baseline") return { ...SCENARIO_CATALOG[0], id: "normal-view" };
-  const found = SCENARIO_CATALOG.find((scenario) => scenario.id === id);
+  const resolvedId = SCENARIO_ALIASES[id] ?? id;
+  const found = SCENARIO_CATALOG.find((scenario) => scenario.id === resolvedId);
   if (!found) throw new Error(`unknown scenario ${id}`);
   return found;
 }

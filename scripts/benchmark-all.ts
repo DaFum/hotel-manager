@@ -13,7 +13,7 @@ const profile = {
   name: `${process.platform}-${process.arch}-${process.version}`,
   scenarioP95Ms: 30_000,
   commandAckP95Ms: 20,
-  workerTickP95Ms: 25,
+  meanTickP95Ms: 25,
   deltaBytes: 250_000,
   heapBytes: 512_000_000,
   saveBytes: 25_000_000,
@@ -40,7 +40,7 @@ const report = SCENARIO_CATALOG.filter(
       runs.map((run) => run.elapsedMs),
       0.95,
     ),
-    workerTickP95Ms: percentile(
+    meanTickP95Ms: percentile(
       runs.map((run) => run.metrics.meanTickMs),
       0.95,
     ),
@@ -62,7 +62,7 @@ const report = SCENARIO_CATALOG.filter(
 const failures = report.flatMap((result) =>
   [
     result.p95Ms > profile.scenarioP95Ms ? `${result.scenario}: runtime` : "",
-    result.workerTickP95Ms > profile.workerTickP95Ms
+    result.meanTickP95Ms > profile.meanTickP95Ms
       ? `${result.scenario}: tick`
       : "",
     result.commandAckP95Ms > profile.commandAckP95Ms

@@ -48,6 +48,17 @@ it("bounds fifty years of daily postings without changing account totals", () =>
   }));
   const compacted = compactLedgerHistory(ledger, 365 * 50);
   expect(compacted.length).toBeLessThan(1_000);
+  for (const account of ["wages", "roomRevenue"]) {
+    expect(
+      compacted
+        .filter((entry) => entry.account === account)
+        .reduce((sum, entry) => sum + entry.amountMinor, 0),
+    ).toBe(
+      ledger
+        .filter((entry) => entry.account === account)
+        .reduce((sum, entry) => sum + entry.amountMinor, 0),
+    );
+  }
   expect(compacted.reduce((sum, entry) => sum + entry.amountMinor, 0)).toBe(
     ledger.reduce((sum, entry) => sum + entry.amountMinor, 0),
   );

@@ -11,6 +11,17 @@ it("moves protocol-three v7 saves to save eight and protocol four", () => {
   );
   expect(next.saveVersion).toBe(8);
   expect(next.protocolVersion).toBe(4);
+  const {
+    saveVersion: _oldSave,
+    protocolVersion: _oldProtocol,
+    ...oldData
+  } = frozenV7;
+  const {
+    saveVersion: _newSave,
+    protocolVersion: _newProtocol,
+    ...newData
+  } = next;
+  expect(newData).toEqual(oldData);
   expect(
     validateEnvelope(
       migrateEnvelope(structuredClone(frozenV7) as unknown as SaveEnvelope),

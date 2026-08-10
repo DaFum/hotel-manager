@@ -20,6 +20,7 @@ export async function cooperativeFastForward(
   yieldToMessages: () => Promise<void> = () =>
     new Promise((resolve) => setTimeout(resolve, 0)),
 ): Promise<void> {
+  quantaForBatch(totalQuanta);
   let remaining = totalQuanta;
   while (remaining > 0) {
     const batch = quantaForBatch(remaining);

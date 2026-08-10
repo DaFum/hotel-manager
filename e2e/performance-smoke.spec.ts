@@ -12,7 +12,13 @@ test("hotel view stays interactive during 16x simulation", async ({ page }) => {
   const room = page
     .getByRole("region", { name: "Hotel view" })
     .getByRole("button", { name: /room.101 single/i });
+  const status = page.getByRole("region", {
+    name: /Status bar|Statusleiste/,
+  });
+  const pausedClock = await status.innerText();
   await page.getByRole("button", { name: "16x", exact: true }).click();
+  await expect(status).not.toHaveText(pausedClock, { timeout: 10_000 });
+  const runningClock = await status.innerText();
   const mainThreadDelayMs = await page.evaluate(
     () =>
       new Promise<number>((resolve) => {
@@ -21,6 +27,7 @@ test("hotel view stays interactive during 16x simulation", async ({ page }) => {
       }),
   );
   expect(mainThreadDelayMs).toBeLessThan(250);
+  await expect(status).not.toHaveText(runningClock, { timeout: 10_000 });
   await room.click();
   await expect(
     page

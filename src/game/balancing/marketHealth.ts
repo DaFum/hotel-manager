@@ -14,6 +14,24 @@ export interface MarketHealthInput {
 export function marketHealthWarnings(
   market: MarketHealthInput,
 ): MarketHealthWarning[] {
+  for (const [label, value] of [
+    ["active competitors", market.activeCompetitors],
+    ["strategy count", market.strategyCount],
+  ] as const) {
+    if (value !== undefined && (!Number.isSafeInteger(value) || value < 0))
+      throw new Error(`${label} must be a non-negative safe integer`);
+  }
+  for (const [label, value] of [
+    ["largest share", market.largestShareBasisPoints],
+    ["ADR index", market.adrIndexBasisPoints],
+    ["wage index", market.wageIndexBasisPoints],
+  ] as const) {
+    if (
+      value !== undefined &&
+      (!Number.isSafeInteger(value) || value < 0 || value > 10_000)
+    )
+      throw new Error(`${label} must be integer basis points in 0..10,000`);
+  }
   const warnings: MarketHealthWarning[] = [];
   if (market.activeCompetitors === 0) warnings.push("no-active-competitors");
   if (market.largestShareBasisPoints >= 9_000)

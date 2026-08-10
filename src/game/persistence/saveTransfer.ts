@@ -72,7 +72,7 @@ export function validateSaveContentReferences(state: unknown): string[] {
   return [...missing].sort();
 }
 
-function serialize(value: unknown): string {
+export function serializeSavePayload(value: unknown): string {
   return JSON.stringify(value);
 }
 async function sha256(text: string): Promise<string> {
@@ -109,7 +109,10 @@ export async function exportSaveFile(
     payload,
   };
   const encoded = encoder.encode(
-    serialize({ ...unsigned, checksum: await sha256(serialize(unsigned)) }),
+    serializeSavePayload({
+      ...unsigned,
+      checksum: await sha256(serializeSavePayload(unsigned)),
+    }),
   );
   const budget = evaluateSaveBudget(encoded.byteLength);
   if (!budget.ok)
@@ -141,7 +144,7 @@ export async function parseSaveFile(bytes: Uint8Array): Promise<SaveEnvelope> {
   )
     throw new Error("save transfer envelope is incomplete");
   const { checksum, ...unsigned } = file as SaveTransferFile;
-  if ((await sha256(serialize(unsigned))) !== checksum)
+  if ((await sha256(serializeSavePayload(unsigned))) !== checksum)
     throw new Error("save checksum mismatch");
   if (
     file.saveVersion !== file.payload.saveVersion ||

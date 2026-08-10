@@ -40,7 +40,9 @@ export function compactByPeriod(
   for (const point of points) {
     const key =
       period === "month" ? point.day.slice(0, 7) : point.day.slice(0, 4);
-    grouped.set(key, [...(grouped.get(key) ?? []), point]);
+    const values = grouped.get(key);
+    if (values) values.push(point);
+    else grouped.set(key, [point]);
   }
   return Object.fromEntries(
     [...grouped]

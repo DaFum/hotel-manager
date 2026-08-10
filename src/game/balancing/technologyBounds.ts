@@ -14,7 +14,8 @@ export function boundedAdoptionStep(
   )
     throw new Error("invalid technology adoption step");
   let delta = Math.max(-maxStepBp, Math.min(maxStepBp, rawDeltaBp));
-  if (rawDeltaBp !== 0 && delta === 0)
-    delta = Math.sign(rawDeltaBp) * MIN_ACTIVE_ADOPTION_STEP_BP;
+  if (rawDeltaBp !== 0 && Math.abs(delta) < MIN_ACTIVE_ADOPTION_STEP_BP)
+    delta =
+      Math.sign(rawDeltaBp) * Math.min(MIN_ACTIVE_ADOPTION_STEP_BP, maxStepBp);
   return Math.max(0, Math.min(10_000, currentBp + delta));
 }

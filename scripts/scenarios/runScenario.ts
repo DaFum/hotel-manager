@@ -23,6 +23,7 @@ import { marketHealthWarnings } from "../../src/game/balancing/marketHealth";
 import { portfolioDetailTiers } from "../../src/game/simulation/detailTiers";
 import { addHotelToPortfolio } from "../../src/game/company/portfolio";
 import { openHotelAccount } from "../../src/game/treasury/treasury";
+import { serializeSavePayload } from "../../src/game/persistence/saveTransfer";
 
 export interface ScenarioInput {
   seed: number;
@@ -45,15 +46,14 @@ const monthKey = (month: number) => {
 
 function runOperational(input: ScenarioInput) {
   const definition = scenarioDefinition(input.scenarioId);
-  const requestedYears = input.years ?? definition.years;
   const months =
     input.years === undefined
-      ? Math.min(requestedYears * 12, 2)
-      : requestedYears * 12;
+      ? (definition.benchmarkMonths ?? definition.years * 12)
+      : input.years * 12;
   const state = createInitialGameState(input.seed);
   if (definition.id === "portfolio") {
     const legalEntityId = state.company.legalEntities[0].id;
-    const additions = matureHotels(59);
+    const additions = matureHotels(59, definition.cities);
     for (const hotel of additions) {
       state.company.portfolio = addHotelToPortfolio(state.company.portfolio, {
         hotelId: hotel.hotelId,
@@ -94,9 +94,7 @@ function runOperational(input: ScenarioInput) {
     });
   }
   const simulation = new GameSimulation(
-    definition.id === "migration-load"
-      ? (JSON.parse(JSON.stringify(state)) as typeof state)
-      : state,
+    definition.id === "migration-load" ? structuredClone(state) : state,
   );
   const commandStarted = performance.now();
   simulation.queueEnvelope(
@@ -163,7 +161,7 @@ function runOperational(input: ScenarioInput) {
   }
   const loadStarted = performance.now();
   const restored = new GameSimulation(
-    JSON.parse(JSON.stringify(snapshot)) as ReturnType<
+    JSON.parse(serializeSavePayload(snapshot)) as ReturnType<
       typeof createInitialGameState
     >,
   );
@@ -179,6 +177,34 @@ function runOperational(input: ScenarioInput) {
         0,
       ),
     });
+  const activeCompetitors = snapshot.competitors.filter(
+    (competitor) => competitor.status === "operate",
+  );
+  const totalRooms =
+    snapshot.hotel.rooms.length +
+    activeCompetitors.reduce((sum, competitor) => sum + competitor.rooms, 0);
+  const largestRooms = Math.max(
+    snapshot.hotel.rooms.length,
+    ...activeCompetitors.map((competitor) => competitor.rooms),
+  );
+  const warnings = marketHealthWarnings({
+    activeCompetitors: activeCompetitors.length,
+    largestShareBasisPoints: Math.round(
+      (largestRooms * 10_000) / Math.max(1, totalRooms),
+    ),
+    strategyCount: new Set(
+      activeCompetitors.map((competitor) => competitor.strategy),
+    ).size,
+    adrIndexBasisPoints: 10_000,
+    wageIndexBasisPoints: Math.min(10_000, snapshot.cityMarket.wagePressureBp),
+  });
+  const detailTiers = portfolioDetailTiers({
+    viewedHotelId: snapshot.hotel.id,
+    playerHotelIds: snapshot.company.portfolio.hotelIds,
+    competitorHotelIds: snapshot.competitors.map((competitor) => competitor.id),
+  });
+  const detailTierCounts = { full: 0, operational: 0, aggregate: 0 };
+  for (const tier of Object.values(detailTiers)) detailTierCounts[tier]++;
   return {
     stateHash: stateHash(snapshot),
     metrics: {
@@ -186,9 +212,12 @@ function runOperational(input: ScenarioInput) {
       authoritativeMonths: months,
       hotels: snapshot.company.portfolio.hotelIds.length,
       hotelRooms: snapshot.hotel.rooms.length,
-      cities: 1,
+      cities: snapshot.cityMarket ? 1 : 0,
       competitors: snapshot.competitors.length,
-      visibleAgents: Math.min(300, snapshot.stays.length),
+      visibleAgents: Math.min(
+        definition.visibleAgentBudget,
+        snapshot.stays.length,
+      ),
       cashMinor: snapshot.finance.cashMinor,
       demandRoomNights: Object.values(snapshot.cityMarket.demand).reduce(
         (a, b) => a + b,
@@ -213,22 +242,18 @@ function runOperational(input: ScenarioInput) {
         (result) => result.status === "accepted",
       ).length,
       domainEvents,
-      warnings: [],
-      detailTierCounts: {
-        full: 1,
-        operational: 0,
-        aggregate: snapshot.competitors.length,
-      },
+      warnings,
+      detailTierCounts,
     },
     checkpoints,
   };
 }
 
-function matureHotels(count: number): ManagedHotelRecord[] {
+function matureHotels(count: number, cityCount: number): ManagedHotelRecord[] {
   return Array.from({ length: count }, (_, index) => ({
     hotelId: `hotel.scale.${String(index).padStart(2, "0")}`,
     name: `Scale hotel ${index}`,
-    cityId: `city.scale.${index % 25}`,
+    cityId: `city.scale.${index % cityCount}`,
     rooms: 150,
     adrMinor: 14_000 + (index % 5) * 500,
     occupancyBasisPoints: 6_500 + (index % 4) * 250,
@@ -251,9 +276,7 @@ function runMature(input: ScenarioInput) {
   let competitors = cities.map((_, cityIndex) => {
     const count = Math.min(
       remainingCompetitors,
-      cityIndex < definition.cities
-        ? Math.ceil(remainingCompetitors / (definition.cities - cityIndex))
-        : 0,
+      Math.ceil(remainingCompetitors / (definition.cities - cityIndex)),
     );
     remainingCompetitors -= count;
     targetCompetitors.push(count);
@@ -264,7 +287,7 @@ function runMature(input: ScenarioInput) {
         id: `hotel.rival.${cityIndex}.${index}`,
       }));
   });
-  const hotels = matureHotels(definition.playerHotels);
+  const hotels = matureHotels(definition.playerHotels, definition.cities);
   let cashMinor = 0;
   let domainEvents = 0;
   let maxDeltaBytes = 0;
@@ -383,9 +406,12 @@ function runMature(input: ScenarioInput) {
       activeCompetitors.map((competitor) => competitor.strategy),
     ).size,
     adrIndexBasisPoints: 10_000,
-    wageIndexBasisPoints: Math.round(
-      cities.reduce((sum, city) => sum + city.wagePressureBp, 0) /
-        cities.length,
+    wageIndexBasisPoints: Math.min(
+      10_000,
+      Math.round(
+        cities.reduce((sum, city) => sum + city.wagePressureBp, 0) /
+          cities.length,
+      ),
     ),
   });
   const detailTiers = portfolioDetailTiers({
@@ -402,7 +428,7 @@ function runMature(input: ScenarioInput) {
       hotelRooms: hotels.reduce((sum, hotel) => sum + hotel.rooms, 0),
       cities: cities.length,
       competitors: competitors.flat().length,
-      visibleAgents: definition.visibleAgentBudget,
+      visibleAgents: 0,
       cashMinor,
       demandRoomNights,
       landPriceMinor: Math.round(

@@ -9,3 +9,11 @@ it("caps batches and yields between them", async () => {
   expect(advance).toHaveBeenCalledTimes(1_001);
   expect(yieldToMessages).toHaveBeenCalledTimes(2);
 });
+
+it("rejects a negative total before advancing", async () => {
+  const advance = vi.fn();
+  await expect(cooperativeFastForward(-1, advance)).rejects.toThrow(
+    "invalid fast-forward batch",
+  );
+  expect(advance).not.toHaveBeenCalled();
+});

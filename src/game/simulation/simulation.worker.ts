@@ -23,7 +23,7 @@ import {
   type PlayerPreferences,
 } from "../settings/playerPreferences";
 import { serializedBytes } from "../perf/perfSample";
-import { selectVisibleAgents, VISIBLE_AGENT_BUDGET } from "./materialization";
+import { VISIBLE_AGENT_BUDGET } from "./materialization";
 import { quantaForBatch } from "./fastForward";
 import { evaluateSaveBudget } from "../persistence/saveBudget";
 
@@ -199,10 +199,10 @@ function publishCommandResults() {
 
 function publishPerfSample() {
   if (!simulation) return;
-  const visibleAgents = selectVisibleAgents(
-    simulation.state.stays.map((stay) => ({ id: stay.bookingId, priority: 1 })),
+  const visibleAgents = Math.min(
+    simulation.state.stays.length,
     VISIBLE_AGENT_BUDGET,
-  ).visible.length;
+  );
   reply({
     protocolVersion: PROTOCOL_VERSION,
     type: "PERF_SAMPLE",
@@ -256,6 +256,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   switch (m.type) {
     case "INIT_GAME": {
       tickFailure = null;
+      lastSaveBytes = 0;
       simulation = new GameSimulation(createInitialGameState(m.seed));
       simulation.refreshDerivedState();
       ensureTimer();
@@ -299,6 +300,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       arrivedAt.clear();
       simulation = restored;
       tickFailure = null;
+      lastSaveBytes = 0;
       ensureTimer();
       publishSnapshot();
       publishDomainEvents();

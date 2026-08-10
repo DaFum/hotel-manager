@@ -27,6 +27,12 @@ it("shows every long-run balancing measure", () => {
   expect(screen.getByText("1000")).toBeTruthy();
   expect(screen.getByText("45%")).toBeTruthy();
   expect(screen.getByText("73%")).toBeTruthy();
+  expect(
+    screen.getByRole("region", { name: "Balancing dashboard" }),
+  ).toBeTruthy();
+  expect(
+    screen.getByRole("heading", { level: 2, name: "Balancing dashboard" }),
+  ).toBeTruthy();
 });
 
 it("derives its values from an authoritative snapshot", () => {

@@ -29,8 +29,8 @@ export function BalancingDashboard({ metrics }: { metrics: BalancingMetrics }) {
     ["Demand room nights", metrics.demandRoomNights],
   ] as const;
   return (
-    <main>
-      <h1>Balancing dashboard</h1>
+    <section aria-labelledby="balancing-dashboard-title">
+      <h2 id="balancing-dashboard-title">Balancing dashboard</h2>
       <table aria-label="Balancing dashboard">
         <tbody>
           {rows.map(([label, value]) => (
@@ -41,7 +41,7 @@ export function BalancingDashboard({ metrics }: { metrics: BalancingMetrics }) {
           ))}
         </tbody>
       </table>
-    </main>
+    </section>
   );
 }
 

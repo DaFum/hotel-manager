@@ -53,6 +53,7 @@ describe("v5 to v6", () => {
     expect(validateEnvelope(current())).toEqual([]);
     // Migrating a current save is a no-op that must still be valid.
     expect(validateEnvelope(migrateEnvelope(current()))).toEqual([]);
+    expect(migrateEnvelope(current())).toEqual(current());
   });
 
   it("keeps a v5 position the migration found, rather than an optimistic one", () => {

@@ -31,7 +31,7 @@ export function nextPrice(
 ): number {
   assertPrice("current", current);
   assertPrice("target", target);
-  if (!Number.isFinite(maxMoveBp) || maxMoveBp < 0)
+  if (!Number.isSafeInteger(maxMoveBp) || maxMoveBp < 0)
     throw new Error("invalid max move");
   return boundedPeriodTarget(
     current,

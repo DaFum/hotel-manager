@@ -6,6 +6,7 @@ import { migrateV3ToV4 } from "./migrations/v3-to-v4";
 import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import { migrateV5ToV6 } from "./migrations/v5-to-v6";
 import { migrateV6ToV7 } from "./migrations/v6-to-v7";
+import { migrateV7ToV8 } from "./migrations/v7-to-v8";
 import {
   isValidAnnualProfit,
   isValidCampaign,
@@ -222,6 +223,7 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     4: migrateV4ToV5,
     5: migrateV5ToV6,
     6: migrateV6ToV7,
+    7: migrateV7ToV8,
   };
   let current = envelope;
   // Early v5 builds wrote fields whose accounting and unit upgrades must be

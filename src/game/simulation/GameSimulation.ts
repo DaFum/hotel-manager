@@ -149,6 +149,7 @@ import {
 import { createNarrativeState } from "../narrative/narrativeState";
 import { detectMilestones } from "../milestones/milestoneEngine";
 import { appendChronicleEntry } from "../chronicle/chronicle";
+import { compactLedgerHistory } from "../history/historyCompaction";
 import {
   chooseEndlessContinuation,
   type RecoveryPath,
@@ -2191,7 +2192,13 @@ export class GameSimulation implements CommandExecutor {
     }
 
     this.settlePayables();
-    if (this.monthRolled) this.closeMonth();
+    if (this.monthRolled) {
+      this.closeMonth();
+      s.finance.ledger = compactLedgerHistory(
+        s.finance.ledger,
+        Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+      );
+    }
     s.finance.month.availableRoomNights += s.hotel.rooms.length;
   }
 

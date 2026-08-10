@@ -65,6 +65,10 @@ import {
   marketableGuestCount,
   reputationRows,
 } from "../ui/company/companyViewModel";
+import {
+  BalancingDashboard,
+  balancingMetricsFromSnapshot,
+} from "../tools/balancing/BalancingDashboard";
 
 function seedFromLocation(): number {
   if (typeof window === "undefined") return 424242;
@@ -318,6 +322,10 @@ export function App() {
             onSave={(slot) => game.save(slot)}
             onLoad={(slot) => game.load(slot)}
           />
+          {new URLSearchParams(window.location.search).get("balancing") ===
+          "on" ? (
+            <BalancingDashboard metrics={balancingMetricsFromSnapshot(s)} />
+          ) : null}
           <HotelView
             rooms={s.hotel.rooms}
             facilities={s.facilities}

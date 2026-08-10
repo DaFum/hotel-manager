@@ -7,9 +7,10 @@ import {
   SAVE_VERSION,
   type SaveEnvelope,
 } from "./saveVersions";
+import { evaluateSaveBudget, MAX_SAVE_BYTES } from "./saveBudget";
 
 export const SAVE_TRANSFER_VERSION = 1;
-export const MAX_SAVE_TRANSFER_BYTES = 10 * 1024 * 1024;
+export const MAX_SAVE_TRANSFER_BYTES = MAX_SAVE_BYTES;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", { fatal: true });
 
@@ -107,9 +108,13 @@ export async function exportSaveFile(
     requiredContentPacks,
     payload,
   };
-  return encoder.encode(
+  const encoded = encoder.encode(
     serialize({ ...unsigned, checksum: await sha256(serialize(unsigned)) }),
   );
+  const budget = evaluateSaveBudget(encoded.byteLength);
+  if (!budget.ok)
+    throw new Error(`save file exceeds ${budget.maxBytes} byte release budget`);
+  return encoded;
 }
 
 export async function parseSaveFile(bytes: Uint8Array): Promise<SaveEnvelope> {

@@ -15,11 +15,10 @@ export function materializeAgents(
   agents: readonly VisualAgent[],
   limit: number,
 ): VisualAgent[] {
-  if (!Number.isSafeInteger(limit) || limit < 0)
-    throw new Error("invalid materialization limit");
-  return [...agents]
-    .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-    .slice(0, limit);
+  return selectVisibleAgents(
+    agents.map((agent) => ({ ...agent, priority: 1 })),
+    limit,
+  ).visible.map(({ priority: _priority, ...agent }) => agent);
 }
 export function elevatorVisual(state: ElevatorVisualState) {
   return {
@@ -35,3 +34,4 @@ export function elevatorVisual(state: ElevatorVisualState) {
         state.travelMinutes,
   };
 }
+import { selectVisibleAgents } from "../game/simulation/materialization";

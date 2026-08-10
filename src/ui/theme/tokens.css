@@ -31,10 +31,15 @@
   --hm-rule-strong: #38434d;
   --hm-rule-faint: #1b2126;
 
-  /* --- Paper: bone, never a clinical white ----------------------------- */
+  /*
+   * Paper: bone, never a clinical white. All three tones clear WCAG AA body
+   * text against the darkest ground in the system — the quietest of them,
+   * --hm-ink-faint, sits at 5.7:1 on --hm-ground and 5.0:1 on a raised panel,
+   * because "quiet" in this interface must never mean "hard to read".
+   */
   --hm-ink: #e9e5db;
   --hm-ink-dim: #a3a79f;
-  --hm-ink-faint: #767b78;
+  --hm-ink-faint: #8a8f8b;
 
   /* --- The single signal: a Deutschmark note under desk light ---------- */
   --hm-signal: #e8a33d;
@@ -53,7 +58,7 @@
   --hm-loss-wash: rgb(226 84 60 / 14%);
   --hm-warn: #e8b53a;
   --hm-warn-wash: rgb(232 181 58 / 12%);
-  --hm-idle: #767b78;
+  --hm-idle: #8a8f8b;
 
   /* --- Type: Anton poster grotesque over IBM Plex ---------------------- */
   --hm-font-display:
@@ -127,6 +132,7 @@
   --hm-ink-faint: #fff;
   --hm-signal: #ff0;
   --hm-signal-bright: #ff0;
+  --hm-signal-deep: #ff0;
   --hm-signal-wash: transparent;
   --hm-steel: #0ff;
   --hm-steel-wash: transparent;

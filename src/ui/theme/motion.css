@@ -9,19 +9,24 @@
  *
  * Nothing here touches the simulation. These are compositor-only properties on
  * the presentation layer; the worker's quantum is never waiting on a frame.
+ *
+ * The arrival moves; it does not fade. Animating opacity would mean that for
+ * the length of the sequence every label on the page is rendered against its
+ * ground at a reduced contrast ratio — which an automated audit reads, quite
+ * correctly, as a serious contrast failure, and which a player on a slow
+ * machine reads as text that is briefly hard to see. Transform costs nothing
+ * in legibility and carries the same sense of the page assembling itself.
  */
 
 @keyframes hm-rise {
   from {
-    opacity: 0;
-    transform: translateY(0.75rem);
+    transform: translateY(0.9rem);
   }
 }
 
 @keyframes hm-rail-in {
   from {
-    opacity: 0;
-    transform: translateX(-0.75rem);
+    transform: translateX(-0.9rem);
   }
 }
 

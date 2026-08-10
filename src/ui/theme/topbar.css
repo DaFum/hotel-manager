@@ -33,6 +33,15 @@
   box-shadow: var(--hm-shadow-lift);
 }
 
+/*
+ * In high contrast the perforation becomes a field of solid white dots sitting
+ * directly behind the date and the cash figure. Texture is the first thing to
+ * go in the mode whose entire purpose is legibility.
+ */
+.hm-root.high-contrast .hm-topbar {
+  background-image: none;
+}
+
 .hm-root .hm-topbar__place {
   display: flex;
   flex-wrap: wrap;

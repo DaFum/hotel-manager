@@ -117,7 +117,7 @@
 .hm-main > :is(section, aside) article:hover,
 .hm-panel article:hover {
   border-left-color: var(--hm-rule-strong);
-  background: rgb(255 255 255 / 2%);
+  background: var(--hm-hover-bg);
 }
 
 .hm-main > :is(section, aside) article > p,
@@ -139,7 +139,7 @@
   margin-bottom: var(--hm-space-4);
   border: 1px solid var(--hm-rule);
   background:
-    radial-gradient(70% 60% at 50% 0%, rgb(109 157 197 / 10%), transparent 70%),
+    radial-gradient(70% 60% at 50% 0%, var(--hm-atmosphere), transparent 70%),
     var(--hm-surface-sunken);
 }
 

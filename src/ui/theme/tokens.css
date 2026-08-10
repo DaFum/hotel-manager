@@ -22,6 +22,7 @@
   /* --- Ground: poured concrete, lit from above ------------------------- */
   --hm-ground: #0b0d0f;
   --hm-ground-deep: #070809;
+  --hm-hover-bg: rgb(255 255 255 / 2%);
   --hm-surface: #14181c;
   --hm-surface-raised: #1b2127;
   --hm-surface-sunken: #0e1114;
@@ -50,6 +51,10 @@
   /* --- Cold counter-accent, used sparingly for market and world -------- */
   --hm-steel: #6d9dc5;
   --hm-steel-wash: rgb(109 157 197 / 12%);
+
+  /* --- Atmospheric accents --------------------------------------------- */
+  --hm-atmosphere: rgb(109 157 197 / 10%);
+  --hm-atmosphere-wash: rgb(232 163 61 / 7%);
 
   /* --- Operational status. Never carried by hue alone. ----------------- */
   --hm-gain: #5cc98f;
@@ -99,6 +104,7 @@
     0 1px 0 rgb(255 255 255 / 4%) inset, 0 12px 28px -18px rgb(0 0 0 / 90%);
   --hm-shadow-lift: 0 18px 44px -22px rgb(0 0 0 / 95%);
   --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
+  --hm-shadow-rail: rgb(0 0 0 / 40%);
 
   /* --- Motion: brisk, mechanical, never bouncy ------------------------- */
   --hm-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -111,6 +117,7 @@
   --hm-z-chrome: 20;
   --hm-z-overlay: 40;
   --hm-z-grain: 60;
+  --hm-backdrop: rgb(4 5 6 / 72%);
 }
 
 /*

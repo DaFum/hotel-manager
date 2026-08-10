@@ -67,6 +67,9 @@ describe("the hotel as a building", () => {
     // A room can be nominally clean and still be below a sellable standard.
     expect(roomConcern("VacantClean", 40)).toBe("needs-cleaning");
     expect(roomConcern("VacantClean", 90)).toBe("none");
+    // A room under construction returns "under-construction" regardless of its cleanliness or occupancy.
+    expect(roomConcern("VacantClean", 100, true)).toBe("under-construction");
+    expect(roomConcern("Occupied", 50, true)).toBe("under-construction");
   });
 
   it("cuts the building away above the floor the player is looking at", () => {

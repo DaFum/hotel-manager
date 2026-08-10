@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "../game/simulation/initialState";
 import { createCamera, zoomCamera } from "../render/camera";
+import { placeRooms } from "../render/sceneLayout";
 import {
   rateByCategory,
   renovatingRoomIds,
@@ -83,9 +84,11 @@ describe("the isometric hotel read off the snapshot", () => {
 
   it("finds a room's place in the world, and holds still for one it cannot", () => {
     const s = snapshot();
-    const known = roomFocusPoint(s.hotel.rooms.at(-1)!.id, s);
+    const targetRoom = s.hotel.rooms.at(-1)!;
+    const known = roomFocusPoint(targetRoom.id, s);
+    const expectedPlacement = placeRooms(s.hotel.rooms, s.renderDescriptors.floorByRoomId).find((p) => p.id === targetRoom.id);
 
-    expect(Number.isFinite(known.x)).toBe(true);
+    expect(known).toEqual({ x: expectedPlacement!.x, y: expectedPlacement!.y, floor: expectedPlacement!.floor });
     expect(roomFocusPoint("room.nowhere", s, { x: 7, y: 8, floor: 2 })).toEqual(
       {
         x: 7,
@@ -117,5 +120,36 @@ describe("the isometric hotel read off the snapshot", () => {
     expect(pinned.kind).toBe("room");
     expect(pinned).toMatchObject(roomFocusPoint(roomId, s));
     expect(house.kind).toBe("problem");
+  });
+
+  it("does not match a shorter prefix room ID for alerts on a longer ID", () => {
+    const s = snapshot();
+    // Simulate a prefix room ID
+    const shortRoomId = s.hotel.rooms[0].id;
+    const longRoomId = shortRoomId + "0";
+
+    // Inject the longer room id at the end, meaning if prefix matching was broken,
+    // the system would match shortRoomId first because it comes earlier in the array.
+    s.hotel.rooms = [...s.hotel.rooms, { ...s.hotel.rooms[0], id: longRoomId }];
+
+    s.alerts = [
+      {
+        id: `alert.${longRoomId}`,
+        severity: "warning",
+        title: "Room out of service",
+        cause: "maintenance",
+      },
+    ];
+
+    // For the test to pass right now, worldProblems must be updated to use strict regex matching.
+    const [pinned] = worldProblems(s);
+
+    // We expect it to find longRoomId, not shortRoomId. We'll use the placement function
+    // directly as our source of truth for the expected point, just to be sure.
+    const placement = placeRooms(s.hotel.rooms, s.renderDescriptors.floorByRoomId).find(p => p.id === longRoomId)!;
+
+    expect(pinned.kind).toBe("room");
+    expect(pinned.x).toBe(placement.x);
+    expect(pinned.y).toBe(placement.y);
   });
 });

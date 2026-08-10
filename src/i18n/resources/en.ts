@@ -1,6 +1,10 @@
 export const en = {
   app: {
     main: "Hotel management",
+    telemetry: {
+      command: "Command: {status}",
+      saves: "Saves committed: {count}"
+    },
   },
   topbar: {
     status: "Status bar",
@@ -94,6 +98,25 @@ export const en = {
       VacantDirty: "vacant dirty",
       Occupied: "occupied",
       OutOfOrder: "out of order",
+    },
+    detail: {
+      status: "Status",
+      category: "Category",
+      guest: "Guest",
+      rate: "Rate",
+      departing: "Departing",
+      condition: "Condition",
+      fittedOutAs: "Fitted out as",
+      yearsSinceRefit: "Years since refit",
+      openProblems: "Open problems",
+      notPriced: "not priced",
+      none: "none",
+    },
+    problems: {
+      outOfService: "Out of service: {state}",
+      needsCleaning: "Needs housekeeping: cleanliness {cleanliness}",
+      renovating: "Shut for renovation",
+      none: "Nothing outstanding in this room.",
     },
   },
   alerts: { liquidityCritical: "Liquidity is critical" },

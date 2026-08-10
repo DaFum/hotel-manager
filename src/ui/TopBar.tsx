@@ -69,14 +69,14 @@ export function TopBar(props: {
           <div>
             <dt>{translateGame(locale, "topbar.monthProfit")}</dt>
             <dd data-trend={trend(props.monthProfitMinor)}>
-              {formatDm(props.monthProfitMinor, locale)}
+              {formatDm(props.monthProfitMinor)}
             </dd>
           </div>
         )}
         {props.occupancyBasisPoints === undefined ? null : (
           <div>
             <dt>{translateGame(locale, "topbar.occupancy")}</dt>
-            <dd>{formatBasisPoints(props.occupancyBasisPoints, locale)}</dd>
+            <dd>{formatBasisPoints(props.occupancyBasisPoints)}</dd>
           </div>
         )}
         {props.reputation === undefined ? null : (
@@ -108,10 +108,10 @@ export function TopBar(props: {
       </nav>
       <div className="hm-topbar__io">
         <button type="button" onClick={props.onSave}>
-          {translateGame(locale, "topbar.save" as any) || "Save"}
+          Save
         </button>
         <button type="button" onClick={props.onLoad}>
-          {translateGame(locale, "topbar.load" as any) || "Load"}
+          Load
         </button>
       </div>
     </section>

@@ -4,7 +4,7 @@ import { roomConcern } from "../render/sceneLayout";
 import { formatDm } from "./money";
 import { dragCamera, wheelZoom, type CameraState } from "../render/camera";
 import type { VisualAgent } from "../render/agentMaterialization";
-import { translateGame, type GameLocale } from "../i18n";
+import type { GameLocale } from "../i18n";
 
 export interface HotelViewRoom {
   id: string;
@@ -33,7 +33,16 @@ export interface HotelViewFacility {
   cause: string;
 }
 
-import type { SceneModel } from "../render/PixiHotelScene";
+interface SceneModel {
+  rooms: readonly HotelViewRoom[];
+  facilities: readonly HotelViewFacility[];
+  agents: readonly VisualAgent[];
+  floorByRoomId: Readonly<Record<string, number>>;
+  renovatingRoomIds: readonly string[];
+  camera?: CameraState;
+  selectedId: string | null;
+  minuteOfDay: number;
+}
 
 interface PixiScene {
   render: (model: SceneModel) => void;
@@ -52,16 +61,13 @@ export function humanRoomState(state: string): string {
 export function roomProblems(
   room: HotelViewRoom,
   renovatingRoomIds: readonly string[] = [],
-): { key: string; values?: Record<string, string | number> }[] {
-  const problems: { key: string; values?: Record<string, string | number> }[] = [];
-  const concern = roomConcern(room.state, room.cleanliness, renovatingRoomIds.includes(room.id));
-  if (concern === "under-construction") {
-    problems.push({ key: "room.problems.renovating" });
-  } else if (concern === "out-of-service") {
-    problems.push({ key: "room.problems.outOfService", values: { state: humanRoomState(room.state) } });
-  } else if (concern === "needs-cleaning") {
-    problems.push({ key: "room.problems.needsCleaning", values: { cleanliness: room.cleanliness } });
-  }
+): string[] {
+  const problems: string[] = [];
+  if (roomConcern(room.state, room.cleanliness) === "out-of-service")
+    problems.push(`Out of service: ${humanRoomState(room.state)}`);
+  if (roomConcern(room.state, room.cleanliness) === "needs-cleaning")
+    problems.push(`Needs housekeeping: cleanliness ${room.cleanliness}`);
+  if (renovatingRoomIds.includes(room.id)) problems.push("Shut for renovation");
   return problems;
 }
 
@@ -107,9 +113,7 @@ export function HotelView(props: {
   // The scene is attached once and keeps the handler it was given, so the
   // callback is held in a ref rather than baked into that one attachment.
   const selectRoom = useRef<(roomId: string) => void>(() => {});
-  useEffect(() => {
-    selectRoom.current = (roomId: string) => props.onSelect?.(roomId);
-  }, [props.onSelect]);
+  selectRoom.current = (roomId: string) => props.onSelect?.(roomId);
 
   // Attach once. The worker republishes a snapshot ten times a second, so
   // rebuilding the WebGL context per update would thrash the renderer.
@@ -218,13 +222,13 @@ export function HotelView(props: {
           const from = drag.current;
           const camera = cameraRef.current;
           if (!from || !camera) return;
-          const dx = event.clientX - from.x;
-          const dy = event.clientY - from.y;
-          // Apply a small drag threshold to differentiate between a click and a pan.
-          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-            drag.current = { x: event.clientX, y: event.clientY };
-            moveCamera.current(dragCamera(camera, { x: dx, y: dy }));
-          }
+          drag.current = { x: event.clientX, y: event.clientY };
+          moveCamera.current(
+            dragCamera(camera, {
+              x: event.clientX - from.x,
+              y: event.clientY - from.y,
+            }),
+          );
         }}
         onPointerUp={(event) => {
           drag.current = null;
@@ -276,44 +280,44 @@ export function HotelView(props: {
             {detail.cleanliness}
           </p>
           <dl>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.status" as any)}</dt>
+            <dt>Status</dt>
             <dd>{humanRoomState(detail.state)}</dd>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.category" as any)}</dt>
+            <dt>Category</dt>
             <dd>{detail.category}</dd>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.guest" as any)}</dt>
-            <dd>{stay ? stay.bookingId : (translateGame(props.locale ?? "en-GB", "room.detail.none" as any) || "none")}</dd>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.rate" as any)}</dt>
+            <dt>Guest</dt>
+            <dd>{stay ? stay.bookingId : "none"}</dd>
+            <dt>Rate</dt>
             <dd>
-              {rateMinor === undefined ? (translateGame(props.locale ?? "en-GB", "room.detail.notPriced" as any) || "not priced") : formatDm(rateMinor)}
+              {rateMinor === undefined ? "not priced" : formatDm(rateMinor, props.locale ?? "en-GB")}
             </dd>
             {stay ? (
               <>
-                <dt>{translateGame(props.locale ?? "en-GB", "room.detail.departing" as any)}</dt>
+                <dt>Departing</dt>
                 <dd>{stay.departureDateKey}</dd>
               </>
             ) : null}
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.condition" as any)}</dt>
+            <dt>Condition</dt>
             <dd>{detail.cleanliness}</dd>
             {detail.moduleId === undefined ? null : (
               <>
-                <dt>{translateGame(props.locale ?? "en-GB", "room.detail.fittedOutAs" as any)}</dt>
+                <dt>Fitted out as</dt>
                 <dd>{detail.moduleId}</dd>
               </>
             )}
             {detail.styleAgeYears === undefined ? null : (
               <>
-                <dt>{translateGame(props.locale ?? "en-GB", "room.detail.yearsSinceRefit" as any)}</dt>
+                <dt>Years since refit</dt>
                 <dd>{detail.styleAgeYears}</dd>
               </>
             )}
           </dl>
-          <h3>{translateGame(props.locale ?? "en-GB", "room.detail.openProblems" as any) || "Open problems"}</h3>
+          <h3>Open problems</h3>
           {problems.length === 0 ? (
-            <p>{translateGame(props.locale ?? "en-GB", "room.problems.none")}</p>
+            <p>Nothing outstanding in this room.</p>
           ) : (
             <ul>
               {problems.map((problem) => (
-                <li key={problem.key}>{translateGame(props.locale ?? "en-GB", problem.key as any, problem.values as any)}</li>
+                <li key={problem}>{problem}</li>
               ))}
             </ul>
           )}

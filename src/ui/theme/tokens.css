@@ -143,6 +143,8 @@
   --hm-signal-wash: transparent;
   --hm-steel: #0ff;
   --hm-steel-wash: transparent;
+  --hm-atmosphere: transparent;
+  --hm-atmosphere-wash: transparent;
   --hm-gain: #0f0;
   --hm-gain-wash: transparent;
   --hm-loss: #f66;

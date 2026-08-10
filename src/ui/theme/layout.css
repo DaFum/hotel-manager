@@ -201,6 +201,8 @@
     padding: var(--hm-space-3) 0 0;
     border-right: 0;
     border-bottom: 1px solid var(--hm-rule);
+    height: auto;
+    overflow-y: visible;
   }
 
   .hm-shell__plate {

@@ -1210,10 +1210,10 @@ export class GameSimulation implements CommandExecutor {
       if (!dirty) return;
       if ((s.stock["cleaning-unit"] ?? 0) < 1) {
         this.pushAlert({
-          id: "alert.cleaning-stockout",
-          severity: "critical",
-          title: "Cleaning supplies out of stock",
-          cause: "housekeeping cannot turn rooms around",
+        id: "alert.cleaning-stockout",
+        severity: "critical",
+        title: "alert.cleaning-stockout.title",
+        cause: "alert.cleaning-stockout.cause",
         });
         return;
       }
@@ -1221,10 +1221,10 @@ export class GameSimulation implements CommandExecutor {
       if (s.linen.clean < pieces) {
         this.clearAlerts(["alert.linen-short"]);
         this.pushAlert({
-          id: "alert.linen-short",
-          severity: "warning",
-          title: "Out of clean linen",
-          cause: "rooms cannot be made up until the laundry catches up",
+        id: "alert.linen-short",
+        severity: "warning",
+        title: "alert.linen-short.title",
+        cause: "alert.linen-short.cause",
         });
         return;
       }
@@ -1417,7 +1417,7 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.security.spaces",
         severity: "warning",
-        title: "Security short",
+        title: "alert.security.spaces.title",
         cause: security.cause,
       });
     else this.clearAlerts(["alert.security.spaces"]);
@@ -1530,7 +1530,7 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.breakfast-queue",
         severity: "warning",
-        title: "Breakfast queue",
+        title: "alert.breakfast-queue.title",
         cause: `${result.queue} guests could not be served`,
       });
   }
@@ -1584,7 +1584,7 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.room-service-late",
         severity: "warning",
-        title: "Room service running late",
+        title: "alert.room-service-late.title",
         cause: `${minutes} minutes door to door, mostly waiting for the lift`,
       });
   }
@@ -1613,10 +1613,10 @@ export class GameSimulation implements CommandExecutor {
       }
       if (demand > sold && s.wellness.therapists === 0)
         this.pushAlert({
-          id: "alert.spa-unstaffed",
-          severity: "warning",
-          title: "Spa unstaffed",
-          cause: "treatment rooms are open but no therapist is rostered",
+        id: "alert.spa-unstaffed",
+        severity: "warning",
+        title: "alert.spa-unstaffed.title",
+        cause: "alert.spa-unstaffed.cause",
         });
     }
   }
@@ -1785,10 +1785,10 @@ export class GameSimulation implements CommandExecutor {
       );
       if (gap)
         this.pushAlert({
-          id: "alert.security-short",
-          severity: "warning",
-          title: "Security understaffed",
-          cause: `${gap.short} guards short for ${gap.cause}`,
+        id: "alert.security-short",
+        severity: "warning",
+        title: "alert.security-short.title",
+        cause: `${gap.short} guards short for ${gap.cause}`,
         });
 
       const pressureBp = changingRoomPressureBp(
@@ -1797,10 +1797,10 @@ export class GameSimulation implements CommandExecutor {
       );
       if (pressureBp > 0)
         this.pushAlert({
-          id: "alert.staff-areas-crowded",
-          severity: "warning",
-          title: "Back of house overcrowded",
-          cause: "changing rooms cannot take the whole shift at once",
+        id: "alert.staff-areas-crowded",
+        severity: "warning",
+        title: "alert.staff-areas-crowded.title",
+        cause: "alert.staff-areas-crowded.cause",
         });
 
       const noiseBp = s.renovation
@@ -1808,10 +1808,10 @@ export class GameSimulation implements CommandExecutor {
         : 0;
       if (noiseBp > 0)
         this.pushAlert({
-          id: "alert.construction-noise",
-          severity: "warning",
-          title: "Construction noise",
-          cause: `${s.stays.length} guests are in the house while the site is live`,
+        id: "alert.construction-noise",
+        severity: "warning",
+        title: "alert.construction-noise.title",
+        cause: `${s.stays.length} guests are in the house while the site is live`,
         });
     }
 
@@ -2373,8 +2373,8 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.housekeeping-backlog",
         severity: "warning",
-        title: "Housekeeping backlog",
-        cause: `${dirty} rooms waiting for cleaning`,
+        title: "alert.housekeeping-backlog.title",
+        cause: `${dirty}`, // Store data instead of prose
       });
     if (s.alerts.length > MAX_ALERTS) {
       // Critical alerts are pushed once and never refreshed, so newer warnings
@@ -3283,7 +3283,7 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.insolvent",
         severity: "critical",
-        title: "Out of cash",
+        title: "alert.insolvent.title",
         cause: `${memo} could not be paid in full`,
       });
     }

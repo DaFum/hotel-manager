@@ -41,7 +41,14 @@ import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
 import { WorldControls } from "../ui/WorldControls";
-import { createCamera, type CameraState } from "../render/camera";
+import { createCamera, focusCamera, type CameraState } from "../render/camera";
+import {
+  rateByCategory,
+  renovatingRoomIds,
+  roomFocusPoint,
+  visualAgents,
+  worldProblems,
+} from "../ui/hotelViewModel";
 import { elevatorVisual } from "../render/agentMaterialization";
 import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
 import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
@@ -249,6 +256,14 @@ export function App() {
             dateKey={s.calendar.dateKey}
             minuteOfDay={s.calendar.minuteOfDay}
             cashMinor={s.finance.cashMinor}
+            monthProfitMinor={
+              s.finance.month.roomRevenueMinor +
+              s.finance.month.otherRevenueMinor -
+              s.finance.month.operatingExpenseMinor
+            }
+            occupancyBasisPoints={s.metrics.occupancyBasisPoints}
+            reputation={s.guestSatisfaction.score}
+            warningCount={s.alerts.length}
             speed={game.speed}
             onSpeed={game.setSpeed}
             onSave={() => game.save()}
@@ -371,6 +386,24 @@ export function App() {
           <HotelView
             rooms={s.hotel.rooms}
             facilities={s.facilities}
+            agents={visualAgents(s, camera)}
+            floorByRoomId={s.renderDescriptors.floorByRoomId}
+            camera={camera}
+            minuteOfDay={s.calendar.minuteOfDay}
+            stays={s.stays}
+            rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
+            renovatingRoomIds={renovatingRoomIds(s)}
+            // Choosing a room anywhere moves the one camera the world uses,
+            // so the register and the building never look at different places.
+            onSelect={(roomId) =>
+              setCamera((current) =>
+                focusCamera(current, {
+                  id: roomId,
+                  ...roomFocusPoint(roomId, s),
+                  kind: "room",
+                }),
+              )
+            }
             disableRenderer={rendererDisabled()}
             locale={preferences.locale}
           />
@@ -381,15 +414,7 @@ export function App() {
             ].sort((a, b) => a - b)}
             minuteOfDay={s.calendar.minuteOfDay}
             elevator={elevatorVisual(s.renderDescriptors.elevator)}
-            problems={s.alerts.map((alert) => ({
-              id: alert.id,
-              title: alert.title,
-              cause: alert.cause,
-              floor: 1,
-              x: 0,
-              y: 0,
-              kind: "problem" as const,
-            }))}
+            problems={worldProblems(s)}
             onCamera={setCamera}
           />
           <FacilitiesDashboard rows={s.facilities} />

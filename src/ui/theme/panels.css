@@ -134,7 +134,8 @@
 .hm-canvas {
   position: relative;
   overflow: hidden;
-  min-height: 12rem;
+  /* The building needs room to be a building; below this it reads as a strip. */
+  min-height: 22rem;
   margin-bottom: var(--hm-space-4);
   border: 1px solid var(--hm-rule);
   background:

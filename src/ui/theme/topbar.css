@@ -1,26 +1,31 @@
 /*
  * The operations strip.
  *
- * Purpose: the four things a manager checks without thinking — where and when
- *   we are, what is in the bank, how fast time is running, and whether the run
- *   is safe on disk.
+ * Purpose: what a manager checks without thinking — where and when we are,
+ *   what is in the bank, how the month and the house are doing, how fast time
+ *   is running, and whether the run is safe on disk.
  * Tone: the status line of a dot-matrix back-office terminal, bolted across the
  *   top of the desk.
  * Constraints: sticky at any scroll depth, readable at every text scale, and it
  *   must not swallow the page on a narrow viewport.
- * Differentiator: the cash figure holds one fixed column of its own, so the
- *   eye returns to the same place on the screen every time it looks up, no
- *   matter how the number's width changes as the company grows.
+ * Differentiator: the vitals are instruments, each labelled and ruled apart, so
+ *   the strip reads as a panel of gauges rather than a sentence of numbers —
+ *   and the reading a player wants is always in the same place on it.
  */
 
 .hm-root .hm-topbar {
   position: sticky;
   top: 0;
   z-index: var(--hm-z-chrome);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  /*
+   * Flex, not a fixed set of tracks: the strip carries a variable number of
+   * readings, and a rigid grid makes the place and the cash figure collide the
+   * moment one more instrument is added to the row.
+   */
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--hm-space-3) var(--hm-space-5);
+  gap: var(--hm-space-3) var(--hm-space-4);
   padding: var(--hm-space-3) var(--hm-space-4);
   border: 1px solid var(--hm-rule-strong);
   border-left: var(--hm-rail) solid var(--hm-signal);
@@ -43,6 +48,7 @@
 }
 
 .hm-root .hm-topbar__place {
+  flex: 1 1 16rem;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -62,11 +68,10 @@
 
 /* The money column. */
 .hm-root .hm-topbar__cash {
+  flex: 0 0 auto;
   display: flex;
   align-items: baseline;
-  justify-content: flex-end;
   gap: var(--hm-space-2);
-  min-width: 14ch;
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
@@ -83,9 +88,56 @@
   color: var(--hm-signal-bright);
 }
 
-/* Time control reads as one segmented switch, not four loose buttons. */
+/*
+ * The vitals. Four readings the player consults constantly, set as small
+ * stacked pairs so the label never competes with the figure, and ruled apart
+ * so the row reads as instruments rather than as a sentence.
+ */
+.hm-root .hm-topbar__vitals {
+  display: flex;
+  gap: 0;
+  grid-template-columns: none;
+}
+
+.hm-root .hm-topbar__vitals > div {
+  padding: 0 var(--hm-space-4);
+  border-left: 1px solid var(--hm-rule);
+}
+
+.hm-root .hm-topbar__vitals dt {
+  padding: 0;
+  border: 0;
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-ink-faint);
+}
+
+.hm-root .hm-topbar__vitals dd {
+  padding: 0;
+  border: 0;
+  font-size: var(--hm-text-base);
+  font-weight: 600;
+  text-align: left;
+}
+
+@media (width <= 60rem) {
+  .hm-root .hm-topbar__vitals {
+    flex-wrap: wrap;
+  }
+
+  .hm-root .hm-topbar__vitals > div:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* Time control reads as one segmented switch, not four loose buttons. It and
+   the save controls sit together at the far end of the strip. */
 .hm-root .hm-topbar__speed {
   display: flex;
+  margin-left: auto;
 }
 
 .hm-root .hm-topbar__speed button {
@@ -118,16 +170,8 @@
 }
 
 @media (width <= 60rem) {
-  .hm-root .hm-topbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .hm-root .hm-topbar__speed,
-  .hm-root .hm-topbar__io {
-    grid-column: 1 / -1;
-  }
-
-  .hm-root .hm-topbar__speed {
-    justify-content: flex-start;
+  .hm-root .hm-topbar__place,
+  .hm-root .hm-topbar__vitals {
+    flex-basis: 100%;
   }
 }

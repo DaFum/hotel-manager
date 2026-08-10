@@ -5,6 +5,10 @@ export const en = {
   topbar: {
     status: "Status bar",
     cash: "Cash",
+    monthProfit: "Month result",
+    occupancy: "Occupancy",
+    reputation: "Standing",
+    warnings: "Warnings",
     language: "Language",
     save: "Save",
     load: "Load",

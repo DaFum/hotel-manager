@@ -21,6 +21,9 @@ const MANUAL_PREFIX = "manual:";
 const AUTOSAVE_PREFIX = "auto:";
 const RECOVERY_PREFIX = "recovery:";
 
+/** The manual slot used by the one-click save and file-transfer surfaces. */
+export const DEFAULT_MANUAL_SLOT = `${MANUAL_PREFIX}quick save`;
+
 export function manualSlot(name: string): string {
   if (!name.trim()) throw new Error("a manual slot needs a name");
   return `${MANUAL_PREFIX}${name}`;

@@ -1,3 +1,24 @@
+import { CORE_CONTENT_REGISTRY } from "../corePack";
+
+const breakfast = CORE_CONTENT_REGISTRY.getByKind(
+  "facility.breakfast_room",
+  "facility",
+);
+const restaurant = CORE_CONTENT_REGISTRY.getByKind(
+  "facility.restaurant",
+  "facility",
+);
+const bar = CORE_CONTENT_REGISTRY.getByKind("facility.bar", "facility");
+const wellness = CORE_CONTENT_REGISTRY.getByKind(
+  "facility.wellness",
+  "facility",
+);
+const fitness = CORE_CONTENT_REGISTRY.getByKind("facility.fitness", "facility");
+const conference = CORE_CONTENT_REGISTRY.getByKind(
+  "facility.conference",
+  "facility",
+);
+
 export const STARTER_HOTEL = {
   id: "hotel.frankfurt.1",
   name: "Hotel Mainblick",
@@ -5,7 +26,7 @@ export const STARTER_HOTEL = {
   /** Room ids run 101..124; the first twelve are singles. */
   firstRoomNumber: 101,
   singleRooms: 12,
-  breakfastSeats: 36,
+  breakfastSeats: breakfast.capacity,
   kitchenCovers: 30,
   startingCashMinor: 40_000_000,
   /** The mortgage the house comes with, and what the bank charges for it. */
@@ -20,8 +41,8 @@ export const STARTER_HOTEL = {
   dailyRepairCostMinor: 25_000,
 
   // --- deep facilities ---------------------------------------------------
-  restaurantSeats: 48,
-  barSeats: 24,
+  restaurantSeats: restaurant.capacity,
+  barSeats: bar.capacity,
   /** Covers the bar draws from the city at market price and average repute. */
   barBaseExternalCovers: 20,
   /** The bar's price against the comparable city price, in basis points. */
@@ -31,13 +52,13 @@ export const STARTER_HOTEL = {
   /** Treatment rooms and the daily opening window of the small spa. */
   treatmentRooms: 2,
   wellnessOpenMinutes: 6 * 60,
-  wellnessSqm: 90,
+  wellnessSqm: wellness.areaSquareMeters,
   wellnessTreatmentPriceMinor: 5500,
   /** Gym floor and stations. */
-  fitnessSqm: 48,
-  fitnessStations: 6,
+  fitnessSqm: fitness.areaSquareMeters,
+  fitnessStations: fitness.capacity,
   /** The one conference room the house starts with. */
-  conferenceSqm: 180,
+  conferenceSqm: conference.areaSquareMeters,
   /** Floor area one seated delegate needs in the hall. */
   conferenceSqmPerSeat: 1.5,
   /** In-house laundry: pieces per day by machine and per laundry hand. */

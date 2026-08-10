@@ -1,0 +1,608 @@
+{
+  "packId": "core",
+  "schemaVersion": 1,
+  "contentVersion": "1991.1",
+  "entries": {
+    "city.frankfurt": {
+      "id": "city.frankfurt",
+      "kind": "city",
+      "nameKey": "city.frankfurt.name",
+      "countryCode": "DE",
+      "currencyCode": "DEM",
+      "baseDemandRoomNights": 4200,
+      "baseMonthlyWageMinor": 200000,
+      "seasonalityBasisPoints": [
+        8000, 9000, 11000, 12000, 11000, 10000, 8500, 8000, 11000, 12000, 10000,
+        7000
+      ]
+    },
+    "item.cleaning-unit": {
+      "id": "item.cleaning-unit",
+      "kind": "item",
+      "nameKey": "item.cleaning-unit.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 500
+    },
+    "item.breakfast-portion": {
+      "id": "item.breakfast-portion",
+      "kind": "item",
+      "nameKey": "item.breakfast-portion.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 450
+    },
+    "item.linen-piece": {
+      "id": "item.linen-piece",
+      "kind": "item",
+      "nameKey": "item.linen-piece.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 900
+    },
+    "item.restaurant-portion": {
+      "id": "item.restaurant-portion",
+      "kind": "item",
+      "nameKey": "item.restaurant-portion.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 900
+    },
+    "item.bar-portion": {
+      "id": "item.bar-portion",
+      "kind": "item",
+      "nameKey": "item.bar-portion.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 110
+    },
+    "item.roomservice-portion": {
+      "id": "item.roomservice-portion",
+      "kind": "item",
+      "nameKey": "item.roomservice-portion.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 620
+    },
+    "facility.breakfast_room": {
+      "id": "facility.breakfast_room",
+      "kind": "facility",
+      "nameKey": "facility.breakfast_room.name",
+      "areaSquareMeters": 80,
+      "capacity": 36,
+      "monthlyFixedCostMinor": 200000,
+      "requiredTechnologyIds": []
+    },
+    "facility.restaurant": {
+      "id": "facility.restaurant",
+      "kind": "facility",
+      "nameKey": "facility.restaurant.name",
+      "areaSquareMeters": 120,
+      "capacity": 48,
+      "monthlyFixedCostMinor": 250000,
+      "requiredTechnologyIds": []
+    },
+    "facility.bar": {
+      "id": "facility.bar",
+      "kind": "facility",
+      "nameKey": "facility.bar.name",
+      "areaSquareMeters": 55,
+      "capacity": 24,
+      "monthlyFixedCostMinor": 120000,
+      "requiredTechnologyIds": []
+    },
+    "facility.wellness": {
+      "id": "facility.wellness",
+      "kind": "facility",
+      "nameKey": "facility.wellness.name",
+      "areaSquareMeters": 90,
+      "capacity": 2,
+      "monthlyFixedCostMinor": 180000,
+      "requiredTechnologyIds": []
+    },
+    "facility.fitness": {
+      "id": "facility.fitness",
+      "kind": "facility",
+      "nameKey": "facility.fitness.name",
+      "areaSquareMeters": 48,
+      "capacity": 6,
+      "monthlyFixedCostMinor": 90000,
+      "requiredTechnologyIds": []
+    },
+    "facility.conference": {
+      "id": "facility.conference",
+      "kind": "facility",
+      "nameKey": "facility.conference.name",
+      "areaSquareMeters": 180,
+      "capacity": 120,
+      "monthlyFixedCostMinor": 160000,
+      "requiredTechnologyIds": []
+    },
+    "room.standard.single": {
+      "id": "room.standard.single",
+      "kind": "roomProduct",
+      "name": "Standard single",
+      "nameKey": "room.standard.single.name",
+      "category": "single",
+      "areaSquareMeters": 16,
+      "capacityGuests": 1,
+      "comfortBasisPoints": 5500,
+      "bathBasisPoints": 5500,
+      "technologyBasisPoints": 2500,
+      "cleanMinutes": 25,
+      "linenPieces": 4,
+      "fitOutCostMinor": 1800000,
+      "requiredTechnologyIds": [],
+      "simulationOrder": 0
+    },
+    "room.standard.double": {
+      "id": "room.standard.double",
+      "kind": "roomProduct",
+      "name": "Standard double",
+      "nameKey": "room.standard.double.name",
+      "category": "double",
+      "areaSquareMeters": 22,
+      "capacityGuests": 2,
+      "comfortBasisPoints": 6200,
+      "bathBasisPoints": 6000,
+      "technologyBasisPoints": 3000,
+      "cleanMinutes": 30,
+      "linenPieces": 6,
+      "fitOutCostMinor": 2400000,
+      "requiredTechnologyIds": [],
+      "simulationOrder": 1
+    },
+    "room.comfort.double": {
+      "id": "room.comfort.double",
+      "kind": "roomProduct",
+      "name": "Comfort double",
+      "nameKey": "room.comfort.double.name",
+      "category": "double",
+      "areaSquareMeters": 26,
+      "capacityGuests": 2,
+      "comfortBasisPoints": 7600,
+      "bathBasisPoints": 7400,
+      "technologyBasisPoints": 5500,
+      "cleanMinutes": 35,
+      "linenPieces": 7,
+      "fitOutCostMinor": 3600000,
+      "requiredTechnologyIds": [],
+      "simulationOrder": 2
+    },
+    "room.suite.junior": {
+      "id": "room.suite.junior",
+      "kind": "roomProduct",
+      "name": "Junior suite",
+      "nameKey": "room.suite.junior.name",
+      "category": "suite",
+      "areaSquareMeters": 38,
+      "capacityGuests": 2,
+      "comfortBasisPoints": 9000,
+      "bathBasisPoints": 8800,
+      "technologyBasisPoints": 7000,
+      "cleanMinutes": 50,
+      "linenPieces": 9,
+      "fitOutCostMinor": 6200000,
+      "requiredTechnologyIds": [],
+      "simulationOrder": 3
+    },
+    "tech.personal-computer": {
+      "id": "tech.personal-computer",
+      "kind": "technology",
+      "runtimeId": "personal-computer",
+      "nameKey": "tech.personal-computer.name",
+      "prerequisiteIds": [],
+      "competingStandardIds": [],
+      "emergenceThresholdBasisPoints": 0,
+      "initialAdoptionBasisPoints": 800,
+      "implementationCostMinor": 3000000,
+      "simulationOrder": 0
+    },
+    "tech.internet": {
+      "id": "tech.internet",
+      "kind": "technology",
+      "runtimeId": "internet",
+      "nameKey": "tech.internet.name",
+      "prerequisiteIds": ["tech.personal-computer"],
+      "competingStandardIds": [],
+      "emergenceThresholdBasisPoints": 500,
+      "initialAdoptionBasisPoints": 0,
+      "implementationCostMinor": 5000000,
+      "simulationOrder": 1
+    },
+    "tech.smartphone": {
+      "id": "tech.smartphone",
+      "kind": "technology",
+      "runtimeId": "smartphone",
+      "nameKey": "tech.smartphone.name",
+      "prerequisiteIds": ["tech.internet"],
+      "competingStandardIds": [],
+      "emergenceThresholdBasisPoints": 1500,
+      "initialAdoptionBasisPoints": 0,
+      "implementationCostMinor": 7000000,
+      "simulationOrder": 2
+    },
+    "tech.channel-manager": {
+      "id": "tech.channel-manager",
+      "kind": "technology",
+      "runtimeId": "channel-manager",
+      "nameKey": "tech.channel-manager.name",
+      "prerequisiteIds": ["tech.internet"],
+      "competingStandardIds": [],
+      "emergenceThresholdBasisPoints": 1200,
+      "initialAdoptionBasisPoints": 0,
+      "implementationCostMinor": 4000000,
+      "simulationOrder": 3
+    },
+    "trend.digital-booking": {
+      "id": "trend.digital-booking",
+      "kind": "trend",
+      "runtimeId": "digital-booking",
+      "nameKey": "trend.digital-booking.name",
+      "driverTechnologyIds": ["tech.internet"],
+      "initialAdoptionBasisPoints": 0,
+      "demandEffectBasisPoints": 1000,
+      "simulationOrder": 0
+    },
+    "segment.business": {
+      "id": "segment.business",
+      "kind": "guestSegment",
+      "name": "Business",
+      "nameKey": "segment.business.name",
+      "shareBasisPoints": 4500,
+      "willingnessToPayMinor": 16000,
+      "averageNights": 2,
+      "breakfastTakeUpBasisPoints": 9000,
+      "preferredFacilityIds": [],
+      "simulationOrder": 0
+    },
+    "segment.corporate": {
+      "id": "segment.corporate",
+      "kind": "guestSegment",
+      "name": "Corporate contract",
+      "nameKey": "segment.corporate.name",
+      "shareBasisPoints": 2000,
+      "willingnessToPayMinor": 13000,
+      "averageNights": 3,
+      "breakfastTakeUpBasisPoints": 9500,
+      "preferredFacilityIds": [],
+      "simulationOrder": 1
+    },
+    "segment.leisure": {
+      "id": "segment.leisure",
+      "kind": "guestSegment",
+      "name": "Leisure",
+      "nameKey": "segment.leisure.name",
+      "shareBasisPoints": 2500,
+      "willingnessToPayMinor": 10000,
+      "averageNights": 2,
+      "breakfastTakeUpBasisPoints": 6000,
+      "preferredFacilityIds": [],
+      "simulationOrder": 2
+    },
+    "segment.budget": {
+      "id": "segment.budget",
+      "kind": "guestSegment",
+      "name": "Budget",
+      "nameKey": "segment.budget.name",
+      "shareBasisPoints": 1000,
+      "willingnessToPayMinor": 7500,
+      "averageNights": 1,
+      "breakfastTakeUpBasisPoints": 3000,
+      "preferredFacilityIds": [],
+      "simulationOrder": 3
+    },
+    "menu.breakfast.buffet": {
+      "id": "menu.breakfast.buffet",
+      "kind": "recipe",
+      "name": "Frühstücksbuffet",
+      "nameKey": "menu.breakfast.buffet.name",
+      "outlet": "breakfast",
+      "ingredients": [
+        {
+          "itemId": "item.breakfast-portion",
+          "quantityMilliUnits": 1000
+        }
+      ],
+      "ingredientCostMinor": 650,
+      "prepMinutes": 4,
+      "priceMinor": 1800,
+      "simulationOrder": 0
+    },
+    "menu.restaurant.tagesgericht": {
+      "id": "menu.restaurant.tagesgericht",
+      "kind": "recipe",
+      "name": "Tagesgericht",
+      "nameKey": "menu.restaurant.tagesgericht.name",
+      "outlet": "restaurant",
+      "ingredients": [
+        {
+          "itemId": "item.restaurant-portion",
+          "quantityMilliUnits": 1000
+        }
+      ],
+      "ingredientCostMinor": 900,
+      "prepMinutes": 12,
+      "priceMinor": 2400,
+      "simulationOrder": 1
+    },
+    "menu.restaurant.rumpsteak": {
+      "id": "menu.restaurant.rumpsteak",
+      "kind": "recipe",
+      "name": "Rumpsteak",
+      "nameKey": "menu.restaurant.rumpsteak.name",
+      "outlet": "restaurant",
+      "ingredients": [
+        {
+          "itemId": "item.restaurant-portion",
+          "quantityMilliUnits": 1000
+        }
+      ],
+      "ingredientCostMinor": 1700,
+      "prepMinutes": 18,
+      "priceMinor": 3800,
+      "simulationOrder": 2
+    },
+    "menu.bar.pils": {
+      "id": "menu.bar.pils",
+      "kind": "recipe",
+      "name": "Pils vom Fass",
+      "nameKey": "menu.bar.pils.name",
+      "outlet": "bar",
+      "ingredients": [
+        {
+          "itemId": "item.bar-portion",
+          "quantityMilliUnits": 1000
+        }
+      ],
+      "ingredientCostMinor": 110,
+      "prepMinutes": 2,
+      "priceMinor": 450,
+      "simulationOrder": 3
+    },
+    "menu.bar.aperitif": {
+      "id": "menu.bar.aperitif",
+      "kind": "recipe",
+      "name": "Aperitif",
+      "nameKey": "menu.bar.aperitif.name",
+      "outlet": "bar",
+      "ingredients": [
+        {
+          "itemId": "item.bar-portion",
+          "quantityMilliUnits": 1000
+        }
+      ],
+      "ingredientCostMinor": 260,
+      "prepMinutes": 3,
+      "priceMinor": 900,
+      "simulationOrder": 4
+    },
+    "menu.roomservice.club": {
+      "id": "menu.roomservice.club",
+      "kind": "recipe",
+      "name": "Club-Sandwich",
+      "nameKey": "menu.roomservice.club.name",
+      "outlet": "roomservice",
+      "ingredients": [
+        {
+          "itemId": "item.roomservice-portion",
+          "quantityMilliUnits": 1000
+        }
+      ],
+      "ingredientCostMinor": 620,
+      "prepMinutes": 10,
+      "priceMinor": 1900,
+      "simulationOrder": 5
+    },
+    "supplier.hygiene-mainz": {
+      "id": "supplier.hygiene-mainz",
+      "kind": "supplier",
+      "name": "Hygiene Mainz",
+      "nameKey": "supplier.hygiene-mainz.name",
+      "itemIds": ["item.cleaning-unit"],
+      "sku": "cleaning-unit",
+      "unitCostMinor": 500,
+      "leadTimeMinutes": 1440,
+      "minimumQuantity": 50,
+      "simulationOrder": 0
+    },
+    "supplier.baecker-sachs": {
+      "id": "supplier.baecker-sachs",
+      "kind": "supplier",
+      "name": "Bäckerei Sachs",
+      "nameKey": "supplier.baecker-sachs.name",
+      "itemIds": ["item.breakfast-portion"],
+      "sku": "breakfast-portion",
+      "unitCostMinor": 450,
+      "leadTimeMinutes": 720,
+      "minimumQuantity": 60,
+      "simulationOrder": 1
+    },
+    "supplier.waeschehaus-offenbach": {
+      "id": "supplier.waeschehaus-offenbach",
+      "kind": "supplier",
+      "name": "Wäschehaus Offenbach",
+      "nameKey": "supplier.waeschehaus-offenbach.name",
+      "itemIds": ["item.linen-piece"],
+      "sku": "linen-piece",
+      "unitCostMinor": 900,
+      "leadTimeMinutes": 2880,
+      "minimumQuantity": 100,
+      "simulationOrder": 2
+    },
+    "hotel.rival.hof": {
+      "id": "hotel.rival.hof",
+      "kind": "rival",
+      "name": "Hotel Am Hof",
+      "nameKey": "hotel.rival.hof.name",
+      "homeCityId": "city.frankfurt",
+      "strategy": "luxury",
+      "rooms": 90,
+      "rateMinor": 24000,
+      "appealBasisPoints": 12000,
+      "openingCapitalMinor": 12000000,
+      "openingDebtMinor": 121000000,
+      "riskToleranceBasisPoints": 7000,
+      "simulationOrder": 0
+    },
+    "hotel.rival.taunusblick": {
+      "id": "hotel.rival.taunusblick",
+      "kind": "rival",
+      "name": "Taunusblick",
+      "nameKey": "hotel.rival.taunusblick.name",
+      "homeCityId": "city.frankfurt",
+      "strategy": "family",
+      "rooms": 40,
+      "rateMinor": 13000,
+      "appealBasisPoints": 10000,
+      "openingCapitalMinor": 6000000,
+      "openingDebtMinor": 32000000,
+      "riskToleranceBasisPoints": 5000,
+      "simulationOrder": 1
+    },
+    "hotel.rival.stern": {
+      "id": "hotel.rival.stern",
+      "kind": "rival",
+      "name": "Pension Stern",
+      "nameKey": "hotel.rival.stern.name",
+      "homeCityId": "city.frankfurt",
+      "strategy": "budget",
+      "rooms": 30,
+      "rateMinor": 9000,
+      "appealBasisPoints": 8000,
+      "openingCapitalMinor": 3000000,
+      "openingDebtMinor": 60000000,
+      "riskToleranceBasisPoints": 3000,
+      "simulationOrder": 2
+    },
+    "brand.mainblick": {
+      "id": "brand.mainblick",
+      "kind": "brand",
+      "name": "Mainblick",
+      "nameKey": "brand.mainblick.name",
+      "minimumRoomQualityBasisPoints": 5500,
+      "minimumGuestSatisfactionBasisPoints": 5500,
+      "requiredFacilityIds": ["facility.breakfast_room"],
+      "requiredTechnologyIds": [],
+      "demandUpliftBasisPoints": 400,
+      "monthlyFeeMinor": 120000,
+      "simulationOrder": 0
+    },
+    "brand.rheinstern": {
+      "id": "brand.rheinstern",
+      "kind": "brand",
+      "name": "Rheinstern Collection",
+      "nameKey": "brand.rheinstern.name",
+      "minimumRoomQualityBasisPoints": 7500,
+      "minimumGuestSatisfactionBasisPoints": 7000,
+      "requiredFacilityIds": ["facility.breakfast_room", "facility.wellness"],
+      "requiredTechnologyIds": [],
+      "demandUpliftBasisPoints": 900,
+      "monthlyFeeMinor": 420000,
+      "minimumStars": 4,
+      "simulationOrder": 1
+    },
+    "narrative.overbooking-scandal": {
+      "id": "narrative.overbooking-scandal",
+      "kind": "event",
+      "titleKey": "narrative.overbooking-scandal.title",
+      "bodyKey": "narrative.overbooking-scandal.body",
+      "conditions": [
+        {
+          "key": "occupancyBasisPoints",
+          "min": 9500
+        },
+        {
+          "key": "mediaReach",
+          "min": 12
+        }
+      ],
+      "choices": [
+        {
+          "id": "compensate",
+          "labelKey": "narrative.overbooking-scandal.choice.compensate",
+          "costMinor": 200000,
+          "reputationDelta": 5,
+          "account": "guest-recovery"
+        },
+        {
+          "id": "decline",
+          "labelKey": "narrative.overbooking-scandal.choice.decline",
+          "costMinor": 0,
+          "reputationDelta": -6,
+          "account": "guest-recovery"
+        }
+      ],
+      "priority": 2,
+      "cooldownMonths": 12,
+      "requiredTechnologyIds": [],
+      "simulationOrder": 0
+    },
+    "narrative.press-profile": {
+      "id": "narrative.press-profile",
+      "kind": "event",
+      "titleKey": "narrative.press-profile.title",
+      "bodyKey": "narrative.press-profile.body",
+      "conditions": [
+        {
+          "key": "guestSatisfaction",
+          "min": 70
+        },
+        {
+          "key": "mediaReach",
+          "min": 6
+        }
+      ],
+      "choices": [
+        {
+          "id": "compensate",
+          "labelKey": "narrative.press-profile.choice.host",
+          "costMinor": 40000,
+          "reputationDelta": 4,
+          "account": "guest-recovery"
+        },
+        {
+          "id": "decline",
+          "labelKey": "narrative.press-profile.choice.decline",
+          "costMinor": 0,
+          "reputationDelta": -1,
+          "account": "guest-recovery"
+        }
+      ],
+      "priority": 1,
+      "cooldownMonths": 24,
+      "requiredTechnologyIds": [],
+      "simulationOrder": 1
+    },
+    "narrative.digital-bet": {
+      "id": "narrative.digital-bet",
+      "kind": "event",
+      "titleKey": "narrative.digital-bet.title",
+      "bodyKey": "narrative.digital-bet.body",
+      "conditions": [
+        {
+          "key": "internetAdoptionBp",
+          "min": 500
+        },
+        {
+          "key": "cashMinor",
+          "min": 2000000
+        }
+      ],
+      "choices": [
+        {
+          "id": "invest",
+          "labelKey": "narrative.digital-bet.choice.invest",
+          "costMinor": 2000000,
+          "reputationDelta": 0,
+          "account": "investment"
+        },
+        {
+          "id": "decline",
+          "labelKey": "narrative.digital-bet.choice.decline",
+          "costMinor": 0,
+          "reputationDelta": 0,
+          "account": "investment"
+        }
+      ],
+      "priority": 3,
+      "cooldownMonths": 120,
+      "requiredTechnologyIds": ["tech.internet"],
+      "simulationOrder": 2
+    }
+  }
+}

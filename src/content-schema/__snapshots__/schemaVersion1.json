@@ -1,0 +1,938 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "packId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9.-]+$"
+    },
+    "schemaVersion": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "contentVersion": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entries": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 3,
+        "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "city"
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "countryCode": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$"
+              },
+              "currencyCode": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$"
+              },
+              "baseDemandRoomNights": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "baseMonthlyWageMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "seasonalityBasisPoints": {
+                "minItems": 12,
+                "maxItems": 12,
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 20000
+                }
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "nameKey",
+              "countryCode",
+              "currencyCode",
+              "baseDemandRoomNights",
+              "baseMonthlyWageMinor",
+              "seasonalityBasisPoints"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "facility"
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "areaSquareMeters": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "capacity": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "monthlyFixedCostMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "requiredTechnologyIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "nameKey",
+              "areaSquareMeters",
+              "capacity",
+              "monthlyFixedCostMinor",
+              "requiredTechnologyIds"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "roomProduct"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "category": {
+                "type": "string",
+                "minLength": 1
+              },
+              "areaSquareMeters": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "capacityGuests": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "comfortBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "bathBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "technologyBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "cleanMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "linenPieces": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "fitOutCostMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "requiredTechnologyIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "name",
+              "nameKey",
+              "category",
+              "areaSquareMeters",
+              "capacityGuests",
+              "comfortBasisPoints",
+              "bathBasisPoints",
+              "technologyBasisPoints",
+              "cleanMinutes",
+              "linenPieces",
+              "fitOutCostMinor",
+              "requiredTechnologyIds"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "technology"
+              },
+              "runtimeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "prerequisiteIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "competingStandardIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "emergenceThresholdBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "initialAdoptionBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "implementationCostMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "replacedByTechnologyId": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "runtimeId",
+              "simulationOrder",
+              "nameKey",
+              "prerequisiteIds",
+              "competingStandardIds",
+              "emergenceThresholdBasisPoints",
+              "initialAdoptionBasisPoints",
+              "implementationCostMinor"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "trend"
+              },
+              "runtimeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "driverTechnologyIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "initialAdoptionBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "demandEffectBasisPoints": {
+                "type": "integer",
+                "minimum": -10000,
+                "maximum": 10000
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "runtimeId",
+              "simulationOrder",
+              "nameKey",
+              "driverTechnologyIds",
+              "initialAdoptionBasisPoints",
+              "demandEffectBasisPoints"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "guestSegment"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "shareBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "willingnessToPayMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "averageNights": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "breakfastTakeUpBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "preferredFacilityIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "name",
+              "nameKey",
+              "shareBasisPoints",
+              "willingnessToPayMinor",
+              "averageNights",
+              "breakfastTakeUpBasisPoints",
+              "preferredFacilityIds"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "item"
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "unitKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "referenceCostMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "nameKey",
+              "unitKey",
+              "referenceCostMinor"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "event"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "titleKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "bodyKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "conditions": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "enum": [
+                        "occupancyBasisPoints",
+                        "mediaReach",
+                        "guestSatisfaction",
+                        "internetAdoptionBp",
+                        "cashMinor"
+                      ]
+                    },
+                    "min": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": ["key", "min"],
+                  "additionalProperties": false
+                }
+              },
+              "choices": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "labelKey": {
+                      "type": "string",
+                      "minLength": 3,
+                      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                    },
+                    "costMinor": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "reputationDelta": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "account": {
+                      "type": "string",
+                      "enum": ["guest-recovery", "investment"]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "labelKey",
+                    "costMinor",
+                    "reputationDelta",
+                    "account"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "priority": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "cooldownMonths": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "requiredTechnologyIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "titleKey",
+              "bodyKey",
+              "conditions",
+              "choices",
+              "priority",
+              "cooldownMonths",
+              "requiredTechnologyIds"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "recipe"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "outlet": {
+                "type": "string",
+                "enum": ["breakfast", "restaurant", "bar", "roomservice"]
+              },
+              "ingredients": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "itemId": {
+                      "type": "string",
+                      "minLength": 3,
+                      "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                    },
+                    "quantityMilliUnits": {
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": ["itemId", "quantityMilliUnits"],
+                  "additionalProperties": false
+                }
+              },
+              "ingredientCostMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "prepMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "priceMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "name",
+              "nameKey",
+              "outlet",
+              "ingredients",
+              "ingredientCostMinor",
+              "prepMinutes",
+              "priceMinor"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "supplier"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "itemIds": {
+                "minItems": 1,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "sku": {
+                "type": "string",
+                "minLength": 1
+              },
+              "unitCostMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "leadTimeMinutes": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "minimumQuantity": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "name",
+              "nameKey",
+              "itemIds",
+              "sku",
+              "unitCostMinor",
+              "leadTimeMinutes",
+              "minimumQuantity"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "rival"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "homeCityId": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "strategy": {
+                "type": "string",
+                "enum": [
+                  "luxury",
+                  "family",
+                  "budget",
+                  "lifestyle",
+                  "aggressive"
+                ]
+              },
+              "rooms": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "rateMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "appealBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 20000
+              },
+              "openingCapitalMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "openingDebtMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "riskToleranceBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "name",
+              "nameKey",
+              "homeCityId",
+              "strategy",
+              "rooms",
+              "rateMinor",
+              "appealBasisPoints",
+              "openingCapitalMinor",
+              "openingDebtMinor",
+              "riskToleranceBasisPoints"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "brand"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "minimumRoomQualityBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "minimumGuestSatisfactionBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "minimumStars": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "requiredFacilityIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "requiredTechnologyIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "demandUpliftBasisPoints": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "monthlyFeeMinor": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "name",
+              "nameKey",
+              "minimumRoomQualityBasisPoints",
+              "minimumGuestSatisfactionBasisPoints",
+              "requiredFacilityIds",
+              "requiredTechnologyIds",
+              "demandUpliftBasisPoints",
+              "monthlyFeeMinor"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    }
+  },
+  "required": ["packId", "schemaVersion", "contentVersion", "entries"],
+  "additionalProperties": false
+}

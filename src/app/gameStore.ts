@@ -7,8 +7,8 @@ import type { SaveEnvelope } from "../game/persistence/saveSchema";
 import {
   autosaveReason,
   autosaveSlot,
+  DEFAULT_MANUAL_SLOT,
   isMajorAction,
-  manualSlot,
 } from "../game/persistence/savePolicy";
 import {
   isRecovered,
@@ -18,7 +18,7 @@ import {
 import type { Speed } from "../ui/TopBar";
 
 /** The slot the plain Save button writes to. */
-export const DEFAULT_SLOT = manualSlot("quick save");
+export const DEFAULT_SLOT = DEFAULT_MANUAL_SLOT;
 
 export interface GameStore {
   snapshot: GameState | null;

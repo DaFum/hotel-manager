@@ -126,7 +126,22 @@ monthly close and the statement disagreed about the same period's operating
 profit, and every result read off `hotelResults` inherited the lower figure. The
 month accumulator now takes trading costs only.
 
-Plan 07 (content and authoring pipeline) is next.
+Plan 07 (content and authoring pipeline) is implemented. Its final gate on
+2026-08-10 passed `npm run test:run` (152 files, 845 tests), `npm run typecheck`,
+`npm run lint`, `npm run build`, `npm run test:e2e` (24 tests), and
+`npm run content:validate`. Plan 08 (accessibility, localization, and audio) is
+next.
+
+Plan 07 made the schema-first content boundary executable: the core pack is
+validated with Zod at build and load time, stable IDs resolve through a
+deep-frozen normalized registry, references, declared processing order and
+technology cycles are release-blocking, and the internal editor uses the same
+schemas. Cities, facilities, room modules, technology/trends, guest segments,
+recipes, suppliers, rivals, brands and narrative events are registry-backed
+runtime content; explicit `simulationOrder` preserves replay behavior. Save content version `1991.1`
+preserves running authoritative values through an explicit compatibility hook.
+Player save transfer is a checksummed, size-bounded envelope validated before an
+atomic sync-provider-neutral repository write.
 
 Plan 06 named scope this build does not model, and the difference must be
 stated rather than implied. Of the eight MASTER 4.5 recovery measures, this

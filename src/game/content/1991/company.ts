@@ -1,3 +1,4 @@
+import { CORE_CONTENT_REGISTRY } from "../corePack";
 /**
  * The corporate starting position in 1991: one hotel, one holding company, one
  * flag the player has not yet earned the right to fly anywhere else. Content,
@@ -36,31 +37,24 @@ export const FEASIBILITY_UNCERTAINTY_BP = 1500;
 /** Gross operating margin new schemes are underwritten at, in bp. */
 export const UNDERWRITING_GOP_MARGIN_BP = 3200;
 
-export const STARTER_BRANDS = [
-  {
-    id: "brand.mainblick",
-    name: "Mainblick",
+export const STARTER_BRANDS = [...CORE_CONTENT_REGISTRY.allByKind("brand")]
+  .sort((a, b) => a.simulationOrder - b.simulationOrder)
+  .map((entry) => ({
+    id: entry.id,
+    name: entry.name,
     standard: {
-      minRoomQuality: 55,
-      requiredFacilities: ["facility.breakfast_room"],
-      minGuestSatisfaction: 55,
+      minRoomQuality: Math.round(entry.minimumRoomQualityBasisPoints / 100),
+      requiredFacilities: entry.requiredFacilityIds,
+      minGuestSatisfaction: Math.round(
+        entry.minimumGuestSatisfactionBasisPoints / 100,
+      ),
+      ...(entry.minimumStars === undefined
+        ? {}
+        : { minStars: entry.minimumStars }),
     },
-    demandUpliftBasisPoints: 400,
-    monthlyProgrammeCostMinor: 120_000,
-  },
-  {
-    id: "brand.rheinstern",
-    name: "Rheinstern Collection",
-    standard: {
-      minRoomQuality: 75,
-      requiredFacilities: ["facility.breakfast_room", "facility.wellness"],
-      minGuestSatisfaction: 70,
-      minStars: 4,
-    },
-    demandUpliftBasisPoints: 900,
-    monthlyProgrammeCostMinor: 420_000,
-  },
-] as const;
+    demandUpliftBasisPoints: entry.demandUpliftBasisPoints,
+    monthlyProgrammeCostMinor: entry.monthlyFeeMinor,
+  }));
 
 /** The manager the player's own house starts under, before any delegation. */
 export const STARTER_MANAGER = {

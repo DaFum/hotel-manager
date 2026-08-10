@@ -5,6 +5,10 @@ export const de = {
   topbar: {
     status: "Statusleiste",
     cash: "Bargeld",
+    monthProfit: "Monatsergebnis",
+    occupancy: "Auslastung",
+    reputation: "Ruf",
+    warnings: "Warnungen",
     language: "Sprache",
     save: "Speichern",
     load: "Laden",
@@ -84,6 +88,7 @@ export const de = {
     },
   },
   room: {
+    floor: "Etage {value}",
     fallback: "Zimmer",
     cleanliness: "Sauberkeit {value}",
     states: {

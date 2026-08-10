@@ -1,0 +1,126 @@
+/*
+ * Operational status.
+ *
+ * AGENTS §13 is explicit: status meaning must never rely on hue alone. Every
+ * rule in this file therefore adds colour to a cue that is already there in
+ * words — the severity is spelled out beside its icon, the loss already carries
+ * its minus sign — and changes the weight of the rail as well as its colour, so
+ * severity survives greyscale, colour blindness and high contrast alike.
+ */
+
+/* --- Severity on a record ----------------------------------------------- */
+
+.hm-root article[data-severity] {
+  border-left-width: var(--hm-rail);
+  border-left-style: solid;
+  padding-left: var(--hm-space-3);
+}
+
+.hm-root article[data-severity="info"] {
+  border-left-color: var(--hm-steel);
+}
+
+.hm-root article[data-severity="notice"] {
+  border-left-color: var(--hm-ink-faint);
+}
+
+.hm-root article[data-severity="warning"] {
+  border-left-color: var(--hm-warn);
+  background: var(--hm-warn-wash);
+}
+
+/*
+ * Critical is the only state allowed to interrupt the page's calm: a heavier
+ * rail, a warmer ground, and a heading that steps up in weight.
+ */
+.hm-root article[data-severity="critical"] {
+  border-left-width: calc(var(--hm-rail) * 2);
+  border-left-color: var(--hm-loss);
+  background: var(--hm-loss-wash);
+}
+
+.hm-root article[data-severity="critical"] :is(h3, strong) {
+  color: var(--hm-loss);
+}
+
+.hm-root article[data-severity="warning"] h3 {
+  color: var(--hm-warn);
+}
+
+/*
+ * The severity word itself, set as a stamped chip. It repeats what the rail
+ * says, which is the point: the rail is the glance, the chip is the proof.
+ */
+.hm-root article[data-severity] > span:not([aria-hidden]) {
+  align-self: center;
+  padding: 0 var(--hm-space-2);
+  border: 1px solid currentcolor;
+  border-radius: var(--hm-radius);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-ink-dim);
+}
+
+.hm-root article[data-severity="warning"] > span:not([aria-hidden]) {
+  color: var(--hm-warn);
+}
+
+.hm-root article[data-severity="critical"] > span:not([aria-hidden]) {
+  color: var(--hm-loss);
+}
+
+/* --- Money that moved --------------------------------------------------- */
+
+/*
+ * Profit and loss. The formatted figure already carries its own minus sign, so
+ * colour here is reinforcement, never the message.
+ */
+.hm-root [data-trend="gain"] {
+  color: var(--hm-gain);
+}
+
+.hm-root [data-trend="loss"] {
+  color: var(--hm-loss);
+}
+
+.hm-root [data-trend="flat"] {
+  color: var(--hm-ink-dim);
+}
+
+/* --- Room state in the register ----------------------------------------- */
+
+/*
+ * A housekeeping list is scanned, not read. Each room's state is written out in
+ * full by the semantic tree; the marker in front of it lets the eye find the
+ * dirty and the out-of-order rooms without reading a single word.
+ */
+.hm-root li[data-room-state] {
+  padding-left: var(--hm-space-3);
+  border-left: var(--hm-rail) solid var(--hm-idle);
+}
+
+/* Sellable tonight. */
+.hm-root li[data-room-state="VacantClean"],
+.hm-root li[data-room-state="Inspected"] {
+  border-left-color: var(--hm-gain);
+}
+
+/* Needs housekeeping before it can earn. */
+.hm-root li[data-room-state="VacantDirty"] {
+  border-left-color: var(--hm-warn);
+}
+
+/* Earning, or spoken for. */
+.hm-root li[data-room-state="Occupied"],
+.hm-root li[data-room-state="Reserved"] {
+  border-left-color: var(--hm-steel);
+}
+
+/* Off the market: the only room state loud enough to tint its own row. */
+.hm-root li[data-room-state="OutOfOrder"],
+.hm-root li[data-room-state="Blocked"] {
+  border-left-color: var(--hm-loss);
+  background: var(--hm-loss-wash);
+}

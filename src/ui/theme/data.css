@@ -1,0 +1,199 @@
+/*
+ * Data surfaces — the ledger.
+ *
+ * This game is played on figures, so the figures get the care usually spent on
+ * hero imagery: one column, one width per digit, a dotted leader carrying the
+ * eye from the label to the amount. Definition lists become ledger rows and
+ * tables become register pages, without a single change to the markup the
+ * components already emit.
+ */
+
+/* --- Ledger rows (dl) --------------------------------------------------- */
+
+.hm-root dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 var(--hm-space-5);
+  margin: 0;
+}
+
+.hm-root dt {
+  grid-column: 1;
+  align-self: end;
+  padding: var(--hm-space-2) 0;
+  border-bottom: 1px dotted var(--hm-rule);
+  font-size: var(--hm-text-sm);
+  color: var(--hm-ink-dim);
+}
+
+.hm-root dd {
+  grid-column: 2;
+  align-self: end;
+  margin: 0;
+  padding: var(--hm-space-2) 0;
+  border-bottom: 1px dotted var(--hm-rule);
+  font-size: var(--hm-text-lg);
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--hm-ink);
+}
+
+/* --- Register pages (table) --------------------------------------------- */
+
+.hm-root table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--hm-text-sm);
+}
+
+.hm-root caption {
+  padding-bottom: var(--hm-space-3);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  text-align: left;
+  color: var(--hm-ink-faint);
+}
+
+.hm-root thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--hm-space-2) var(--hm-space-3);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  background: var(--hm-surface-sunken);
+  font-family: var(--hm-font-body);
+  font-size: var(--hm-text-xs);
+  font-weight: 600;
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--hm-ink-dim);
+}
+
+/* The first column names the row; it reads left, everything else is a figure
+   and reads right, so the decimal points line up down the page. */
+.hm-root thead th:first-child,
+.hm-root tbody th[scope="row"] {
+  text-align: left;
+}
+
+.hm-root tbody th[scope="row"] {
+  padding: var(--hm-space-2) var(--hm-space-3);
+  font-family: var(--hm-font-body);
+  font-weight: 600;
+  color: var(--hm-ink);
+}
+
+.hm-root tbody td {
+  padding: var(--hm-space-2) var(--hm-space-3);
+  text-align: right;
+  color: var(--hm-ink-dim);
+}
+
+.hm-root tbody tr {
+  border-bottom: 1px solid var(--hm-rule-faint);
+  transition: background-color var(--hm-duration-fast) var(--hm-ease);
+}
+
+.hm-root tbody tr:hover {
+  background: var(--hm-signal-wash);
+}
+
+.hm-root tbody tr:hover th[scope="row"] {
+  color: var(--hm-signal-bright);
+}
+
+/*
+ * The player's own house sits on the same rows as its rivals — that is the
+ * point of the competitive set — so it is marked by weight and a rail rather
+ * than pulled out into a box of its own.
+ */
+.hm-root tbody tr:first-child {
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  background: var(--hm-signal-wash);
+}
+
+/* --- Registers (ul) ------------------------------------------------------ */
+
+.hm-root ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hm-root li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--hm-space-2) var(--hm-space-3);
+  padding: var(--hm-space-2) 0;
+  border-bottom: 1px solid var(--hm-rule-faint);
+  font-size: var(--hm-text-sm);
+}
+
+.hm-root li:last-child {
+  border-bottom: 0;
+}
+
+/*
+ * A register entry reads label first, action last. Pushing a trailing control
+ * to the right edge gives the list a straight action column, instead of letting
+ * every button land wherever its neighbour's text happened to stop.
+ */
+.hm-root li > button:last-child:not(:first-child) {
+  margin-left: auto;
+}
+
+/*
+ * The room register runs to every room in the house, which on a large hotel is
+ * longer than the screen and would bury everything under it. It scrolls in its
+ * own frame, ruled at top and bottom so it is legible as a bounded list.
+ */
+.hm-register {
+  max-height: 28rem;
+  overflow-y: auto;
+  border-top: 1px solid var(--hm-rule);
+  border-bottom: 1px solid var(--hm-rule);
+}
+
+/* Scrolling a tall house should never leave you unsure which floor you are
+   reading, so each storey's heading holds the top of the frame. */
+.hm-register h3 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--hm-space-2) 0;
+  background: var(--hm-surface);
+  border-bottom: 1px solid var(--hm-rule);
+}
+
+/*
+ * A list of controls is a rack of switches, not a register of readings: it lays
+ * out across the panel rather than down it, so a dozen service areas cost one
+ * band of the page instead of a screenful.
+ */
+.hm-root ul:has(> li > button:only-child) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-2);
+}
+
+.hm-root li:has(> button:only-child) {
+  padding: 0;
+  border-bottom: 0;
+}
+
+/* --- Wide content never pushes the page sideways ------------------------ */
+
+.hm-root :is(table, pre) {
+  max-width: 100%;
+}
+
+.hm-main > :is(section, aside):has(> table),
+.hm-panel:has(> table) {
+  overflow-x: auto;
+}

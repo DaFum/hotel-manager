@@ -48,6 +48,7 @@ export function NotificationCenter({
           return (
             <article
               key={group.groupId}
+              data-severity={item.severity}
               aria-label={`${translateGame(locale, `notifications.severity.${item.severity}`)}: ${message}`}
             >
               <h3>

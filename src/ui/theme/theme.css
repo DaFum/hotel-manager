@@ -1,0 +1,29 @@
+/*
+ * "Bankenviertel 1991" — the visual system for the whole management surface.
+ *
+ * Purpose: one operating language for every screen the player manages the
+ *   company from, so the ledger, the register and the isometric hotel read as
+ *   one building rather than as a dashboard beside a game.
+ * Tone: tactile early-nineties Frankfurt business character — poured concrete,
+ *   ruled ledger paper, dot-matrix figures, one Deutschmark-amber signal.
+ * Constraints: dark ground, AA contrast, controlled density, text scaling and
+ *   high contrast honoured by the same tokens the decoration is built from,
+ *   status never carried by hue alone, motion never on the simulation's path.
+ * Differentiator: the Leitplanke — the signal rail on the left edge of every
+ *   panel, department and record, the way an operations binder carries its
+ *   status on its spine.
+ *
+ * Import order is the cascade: tokens, then the ground, then the building,
+ * then what sits inside it.
+ */
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./layout.css";
+@import "./panels.css";
+@import "./topbar.css";
+@import "./data.css";
+@import "./controls.css";
+@import "./status.css";
+@import "./overlays.css";
+@import "./motion.css";

@@ -1,0 +1,159 @@
+/*
+ * Panels — the Leitplanke.
+ *
+ * Every management surface is a sheet in an operations binder: a cut rectangle
+ * of lighter concrete, a hairline edge, and a coloured rail down its left side
+ * carrying the department's state. The rail is the one form this game repeats
+ * everywhere — rail on a panel, rail on a selected department, rail on an
+ * alert — so a player learns to read status at the left edge once and for all.
+ *
+ * Status on a rail is never carried by hue alone: the panel that owns it also
+ * says so in words, and the rail changes weight as well as colour.
+ */
+
+.hm-main > :is(section, aside),
+.hm-panel {
+  position: relative;
+  padding: var(--hm-space-4) var(--hm-space-5);
+  border: 1px solid var(--hm-rule);
+  border-left: var(--hm-rail) solid var(--hm-rule-strong);
+  border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
+  background: linear-gradient(
+    180deg,
+    var(--hm-surface-raised),
+    var(--hm-surface) 40%
+  );
+  box-shadow: var(--hm-shadow-panel);
+  transition: border-color var(--hm-duration) var(--hm-ease);
+}
+
+.hm-main > :is(section, aside):hover,
+.hm-panel:hover {
+  border-left-color: var(--hm-signal-deep);
+}
+
+/*
+ * The panel header. A rule runs the full width under the heading and stops at
+ * a short amber tick, which is the only ornament in the interface — the mark a
+ * clerk makes in the margin of a page they have already worked through.
+ */
+.hm-main > :is(section, aside) > h2,
+.hm-panel > h2 {
+  position: relative;
+  margin-bottom: var(--hm-space-4);
+  padding-bottom: var(--hm-space-2);
+  border-bottom: 1px solid var(--hm-rule);
+  color: var(--hm-ink);
+}
+
+.hm-main > :is(section, aside) > h2::after,
+.hm-panel > h2::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 2.5rem;
+  height: 1px;
+  background: var(--hm-signal);
+}
+
+.hm-main > :is(section, aside) > h3,
+.hm-panel > h3 {
+  margin-top: var(--hm-space-4);
+  margin-bottom: var(--hm-space-2);
+}
+
+/*
+ * A panel nested inside a panel is a drawer, not another sheet: it loses the
+ * shadow and the ground, and keeps only the rail, so nesting never reads as a
+ * stack of identical cards.
+ */
+.hm-main > :is(section, aside) section,
+.hm-panel section {
+  padding: var(--hm-space-3) 0 var(--hm-space-3) var(--hm-space-4);
+  border: 0;
+  border-left: 1px solid var(--hm-rule);
+  background: none;
+  box-shadow: none;
+}
+
+.hm-main > :is(section, aside) section > h2,
+.hm-panel section > h2 {
+  font-family: var(--hm-font-body);
+  font-size: var(--hm-text-sm);
+  font-weight: 600;
+  letter-spacing: var(--hm-tracking-label);
+  border-bottom: 0;
+  color: var(--hm-ink-dim);
+}
+
+.hm-main > :is(section, aside) section > h2::after,
+.hm-panel section > h2::after {
+  display: none;
+}
+
+/*
+ * Articles are single records — an alert, a story, a rival's move. They sit
+ * inside a panel as ruled entries, separated by hairlines rather than boxed,
+ * the way lines of a register are separated.
+ */
+.hm-main > :is(section, aside) article,
+.hm-panel article {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hm-space-2) var(--hm-space-3);
+  padding: var(--hm-space-3) 0 var(--hm-space-3) var(--hm-space-3);
+  border-top: 1px solid var(--hm-rule-faint);
+  border-left: var(--hm-rail) solid transparent;
+  transition: border-left-color var(--hm-duration) var(--hm-ease);
+}
+
+.hm-main > :is(section, aside) article:first-of-type,
+.hm-panel article:first-of-type {
+  border-top: 0;
+}
+
+.hm-main > :is(section, aside) article:hover,
+.hm-panel article:hover {
+  border-left-color: var(--hm-rule-strong);
+  background: rgb(255 255 255 / 2%);
+}
+
+.hm-main > :is(section, aside) article > p,
+.hm-panel article > p {
+  flex: 1 1 18rem;
+  font-size: var(--hm-text-sm);
+  color: var(--hm-ink-dim);
+}
+
+/*
+ * The isometric hotel is the other view of this same reality, so its frame is
+ * built from the same materials as a panel — never a floating game window.
+ */
+.hm-canvas {
+  position: relative;
+  overflow: hidden;
+  /* The building needs room to be a building; below this it reads as a strip. */
+  min-height: 22rem;
+  margin-bottom: var(--hm-space-4);
+  border: 1px solid var(--hm-rule);
+  background:
+    radial-gradient(70% 60% at 50% 0%, rgb(109 157 197 / 10%), transparent 70%),
+    var(--hm-surface-sunken);
+}
+
+.hm-canvas canvas {
+  display: block;
+  max-width: 100%;
+}
+
+/*
+ * With no renderer — a headless run, a machine without WebGL, or ?renderer=off
+ * — the frame holds nothing, and an empty lit box would read as a scene that
+ * failed to load. It stands down instead and lets the room register, which is
+ * the accessible source of truth anyway, take the space.
+ */
+.hm-canvas:empty {
+  display: none;
+}

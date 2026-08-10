@@ -15,13 +15,23 @@ export function ManagementShell({
   );
   return (
     <div
+      className="hm-shell"
       data-era-digital={capabilities.digitalBackOffice}
       data-era-smartphone={capabilities.smartphoneVisuals}
     >
       <a href="#management-content">
         {translateGame(locale, "management.skip")}
       </a>
-      <nav aria-label={translateGame(locale, "management.areas")}>
+      <nav
+        className="hm-shell__nav"
+        aria-label={translateGame(locale, "management.areas")}
+      >
+        {/* The binder spine. Decorative signage only: the departments below
+            are the navigation, and this plate is hidden from the tree so it
+            never becomes a second, meaningless landmark to tab past. */}
+        <span className="hm-shell__plate" aria-hidden="true">
+          {translateGame(locale, "management.areas")}
+        </span>
         <FocusManager
           labels={labels}
           targets={areas.map((area) => `management-${area}`)}
@@ -32,6 +42,7 @@ export function ManagementShell({
       {areas.map((area, index) => (
         <section
           key={area}
+          className="hm-shell__panel"
           id={`management-${area}`}
           role="tabpanel"
           aria-label={labels[index]}

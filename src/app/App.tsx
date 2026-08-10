@@ -7,6 +7,7 @@ import { ContextHelp } from "../ui/help/ContextHelp";
 import { AudioEngine } from "../audio/audioEngine";
 import { translateGame } from "../i18n";
 import "../ui/accessibility/accessibility.css";
+import "../ui/theme/theme.css";
 import {
   shouldPauseForAlert,
   type NotificationRecord,
@@ -40,7 +41,14 @@ import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
 import { ManagementShell } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
 import { WorldControls } from "../ui/WorldControls";
-import { createCamera, type CameraState } from "../render/camera";
+import { createCamera, focusCamera, type CameraState } from "../render/camera";
+import {
+  rateByCategory,
+  renovatingRoomIds,
+  roomFocusPoint,
+  visualAgents,
+  worldProblems,
+} from "../ui/hotelViewModel";
 import { elevatorVisual } from "../render/agentMaterialization";
 import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
 import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
@@ -154,7 +162,10 @@ export function App() {
   // hotel frozen mid-day. Say so, and offer the newest trustworthy save.
   if (game.workerFailure)
     return (
-      <main aria-label={translateGame(preferences.locale, "app.main")}>
+      <main
+        className="hm-root hm-boot"
+        aria-label={translateGame(preferences.locale, "app.main")}
+      >
         <WorkerRecoveryPanel
           message={game.workerFailure}
           onRecover={() => {
@@ -169,7 +180,10 @@ export function App() {
 
   if (!s)
     return (
-      <main aria-label={translateGame(preferences.locale, "app.main")}>
+      <main
+        className="hm-root hm-boot"
+        aria-label={translateGame(preferences.locale, "app.main")}
+      >
         <h1>Hotel Manager</h1>
         <p>Starting {CITY.name} 1991…</p>
       </main>
@@ -196,7 +210,7 @@ export function App() {
   return (
     <div
       lang={preferences.locale.slice(0, 2)}
-      className={preferences.accessibility.highContrast ? "high-contrast" : ""}
+      className={`hm-root${preferences.accessibility.highContrast ? " high-contrast" : ""}`}
       style={{ fontSize: `${preferences.accessibility.textScale}rem` }}
       data-reduced-motion={preferences.accessibility.reducedMotion}
     >
@@ -210,24 +224,46 @@ export function App() {
         }}
       >
         <main
+          className="hm-main"
           id="management-content"
           aria-label={translateGame(preferences.locale, "app.main")}
         >
           <h1>
             {s.hotel.name}, {CITY.name} 1991
           </h1>
-          <p role="status" aria-label="Simulation status" aria-live="polite">
-            {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
-          </p>
-          <p aria-label="Command status" aria-live="polite">
-            Command: {game.commandStatus}
-          </p>
-          <p aria-label="Saves committed">Saves committed: {game.savedCount}</p>
+          {/* The telemetry line: three live regions the player can consult but
+              is never interrupted by, set as one quiet status strip. */}
+          <div className="hm-telemetry">
+            <p
+              className="hm-telemetry__status"
+              role="status"
+              aria-label="Simulation status"
+              aria-live="polite"
+            >
+              {game.errors.length > 0
+                ? game.errors[game.errors.length - 1]
+                : ""}
+            </p>
+            <p aria-label="Command status" aria-live="polite">
+              Command: {game.commandStatus}
+            </p>
+            <p aria-label="Saves committed">
+              Saves committed: {game.savedCount}
+            </p>
+          </div>
           <TopBar
             city={CITY.name}
             dateKey={s.calendar.dateKey}
             minuteOfDay={s.calendar.minuteOfDay}
             cashMinor={s.finance.cashMinor}
+            monthProfitMinor={
+              s.finance.month.roomRevenueMinor +
+              s.finance.month.otherRevenueMinor -
+              s.finance.month.operatingExpenseMinor
+            }
+            occupancyBasisPoints={s.metrics.occupancyBasisPoints}
+            reputation={s.guestSatisfaction.score}
+            warningCount={s.alerts.length}
             speed={game.speed}
             onSpeed={game.setSpeed}
             onSave={() => game.save()}
@@ -350,6 +386,25 @@ export function App() {
           <HotelView
             rooms={s.hotel.rooms}
             facilities={s.facilities}
+            agents={visualAgents(s, camera)}
+            floorByRoomId={s.renderDescriptors.floorByRoomId}
+            camera={camera}
+            minuteOfDay={s.calendar.minuteOfDay}
+            stays={s.stays}
+            rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
+            renovatingRoomIds={renovatingRoomIds(s)}
+            // Choosing a room anywhere moves the one camera the world uses,
+            // so the register and the building never look at different places.
+            onSelect={(roomId) =>
+              setCamera((current) =>
+                focusCamera(current, {
+                  id: roomId,
+                  ...roomFocusPoint(roomId, s),
+                  kind: "room",
+                }),
+              )
+            }
+            onCamera={setCamera}
             disableRenderer={rendererDisabled()}
             locale={preferences.locale}
           />
@@ -360,15 +415,7 @@ export function App() {
             ].sort((a, b) => a - b)}
             minuteOfDay={s.calendar.minuteOfDay}
             elevator={elevatorVisual(s.renderDescriptors.elevator)}
-            problems={s.alerts.map((alert) => ({
-              id: alert.id,
-              title: alert.title,
-              cause: alert.cause,
-              floor: 1,
-              x: 0,
-              y: 0,
-              kind: "problem" as const,
-            }))}
+            problems={worldProblems(s)}
             onCamera={setCamera}
           />
           <FacilitiesDashboard rows={s.facilities} />

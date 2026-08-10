@@ -95,6 +95,18 @@ describe("save transfer", () => {
     await expect(
       parseSaveFile(await exportSaveFile(save, [core, core])),
     ).rejects.toThrow(/content pack/);
+    await expect(
+      parseSaveFile(
+        await exportSaveFile(save, [{ ...core, packId: "expansion.not-core" }]),
+      ),
+    ).rejects.toThrow(/content pack/);
+    await expect(
+      parseSaveFile(
+        await exportSaveFile(save, [
+          { ...core, contentVersion: "1991.mismatched" },
+        ]),
+      ),
+    ).rejects.toThrow(/content pack/);
   });
 
   it("rejects payload tampering even when the visible header is plausible", async () => {

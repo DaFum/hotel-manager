@@ -35,8 +35,24 @@ describe("content family schemas", () => {
     ).toThrow();
   });
 
-  it("preserves explicit recipe ingredient quantities", () => {
-    expect(
+  it("preserves recipe quantities and defaults omitted ingredient cost", () => {
+    const recipe = RecipeSchema.parse({
+      id: "recipe.breakfast",
+      kind: "recipe",
+      simulationOrder: 0,
+      name: "Breakfast",
+      nameKey: "recipe.breakfast.name",
+      outlet: "breakfast",
+      ingredients: [{ itemId: "item.egg", quantityMilliUnits: 2000 }],
+      prepMinutes: 6,
+      priceMinor: 1200,
+    });
+    expect(recipe.ingredients[0].quantityMilliUnits).toBe(2000);
+    expect(recipe.ingredientCostMinor).toBe(0);
+  });
+
+  it("rejects negative recipe preparation minutes", () => {
+    expect(() =>
       RecipeSchema.parse({
         id: "recipe.breakfast",
         kind: "recipe",
@@ -45,9 +61,9 @@ describe("content family schemas", () => {
         nameKey: "recipe.breakfast.name",
         outlet: "breakfast",
         ingredients: [{ itemId: "item.egg", quantityMilliUnits: 2000 }],
-        prepMinutes: 6,
+        prepMinutes: -1,
         priceMinor: 1200,
-      }).ingredients[0].quantityMilliUnits,
-    ).toBe(2000);
+      }),
+    ).toThrow();
   });
 });

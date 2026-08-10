@@ -129,7 +129,7 @@ profit, and every result read off `hotelResults` inherited the lower figure. The
 month accumulator now takes trading costs only.
 
 Plan 07 (content and authoring pipeline) is implemented. Its final gate on
-2026-08-10 passed `npm run test:run` (154 files, 863 tests), `npm run typecheck`,
+2026-08-10 passed `npm run test:run` (155 files, 867 tests), `npm run typecheck`,
 `npm run lint`, `npm run build`, `npm run test:e2e` (24 tests), and
 `npm run content:validate`. Plan 08 (accessibility, localization, and audio) is
 next.

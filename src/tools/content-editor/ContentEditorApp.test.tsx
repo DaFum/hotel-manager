@@ -27,4 +27,46 @@ describe("ContentEditorApp", () => {
       }),
     ).toBe("facility.draft-2");
   });
+
+  it("preserves JSON formatting while editing in the middle of a record", () => {
+    render(<ContentEditorApp />);
+    fireEvent.click(
+      screen.getByRole("button", { name: /room.standard.single/ }),
+    );
+    const source = screen.getByLabelText(
+      "Selected record JSON",
+    ) as HTMLTextAreaElement;
+    const edited = source.value.replace(
+      '"fitOutCostMinor": 1800000',
+      '"fitOutCostMinor" : 1800000',
+    );
+    fireEvent.change(source, { target: { value: edited } });
+    expect(source.value).toBe(edited);
+  });
+
+  it("rejects a stable id that belongs to another record", () => {
+    render(<ContentEditorApp />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "facility.breakfast_room (facility)",
+      }),
+    );
+    const source = screen.getByLabelText(
+      "Selected record JSON",
+    ) as HTMLTextAreaElement;
+    fireEvent.change(source, {
+      target: {
+        value: source.value.replace(
+          /"id": "facility.breakfast_room"/,
+          '"id": "facility.restaurant"',
+        ),
+      },
+    });
+    expect(screen.getByRole("alert").textContent).toMatch(/already exists/i);
+    expect(
+      screen.getByRole("button", {
+        name: "facility.breakfast_room (facility)",
+      }),
+    ).toBeTruthy();
+  });
 });

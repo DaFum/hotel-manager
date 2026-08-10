@@ -53,8 +53,10 @@ export function SaveTransferPanel({
           type="file"
           accept="application/json"
           onChange={async (event) => {
-            const file = event.target.files?.[0];
+            const input = event.currentTarget;
+            const file = input.files?.[0];
             if (!file) return;
+            input.value = "";
             try {
               await importSaveFile(
                 repository,

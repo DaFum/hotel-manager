@@ -11,5 +11,5 @@ const target = new URL(
 );
 writeFileSync(
   target,
-  `${JSON.stringify(z.toJSONSchema(ContentPackSchema), null, 2)}\n`,
+  `${JSON.stringify(z.toJSONSchema(ContentPackSchema, { io: "input" }), null, 2)}\n`,
 );

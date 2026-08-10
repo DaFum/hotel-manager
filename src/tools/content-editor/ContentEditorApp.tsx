@@ -5,6 +5,7 @@ import type {
 } from "../../content-schema/contentPack";
 import { ContentEntrySchema } from "../../content-schema/contentPack";
 import { CORE_CONTENT_PACK } from "../../game/content/corePack";
+import { loadContentPack } from "../../game/content/loadContentPack";
 import { validateReferences } from "../../game/content/validateReferences";
 import { exportContentPack, importContentPack } from "./contentFileIO";
 import { ValidationSummary } from "./ValidationSummary";
@@ -74,26 +75,40 @@ export function ContentEditorApp() {
   const selected = pack.entries[selectedId];
   const [jsonDraft, setJsonDraft] = useState("");
   const [jsonError, setJsonError] = useState("");
+  const [validationError, setValidationError] = useState("");
   useEffect(() => {
     setJsonDraft(selected ? JSON.stringify(selected, null, 2) : "");
     setJsonError("");
-  }, [selected]);
+  }, [selectedId]);
   const errors = useMemo(() => validateReferences(entries), [entries]);
+  const replacePack = (candidate: ContentPack): boolean => {
+    try {
+      setPack(loadContentPack(candidate).pack);
+      setValidationError("");
+      return true;
+    } catch (error) {
+      setValidationError(
+        error instanceof Error ? error.message : "Invalid content pack",
+      );
+      return false;
+    }
+  };
   const update = (value: ContentEntry) => {
-    setPack((current) => {
-      const next = { ...current.entries };
-      delete next[selectedId];
-      next[value.id] = value;
-      return { ...current, entries: next };
-    });
-    setSelectedId(value.id);
+    if (value.id !== selectedId && pack.entries[value.id]) {
+      setValidationError(`Content ID ${value.id} already exists.`);
+      return;
+    }
+    const next = { ...pack.entries };
+    delete next[selectedId];
+    next[value.id] = value;
+    if (replacePack({ ...pack, entries: next })) setSelectedId(value.id);
   };
   const addFacility = () => {
     const id = nextDraftFacilityId(pack.entries);
-    setPack((current) => ({
-      ...current,
+    const candidate: ContentPack = {
+      ...pack,
       entries: {
-        ...current.entries,
+        ...pack.entries,
         [id]: {
           id,
           kind: "facility",
@@ -104,17 +119,24 @@ export function ContentEditorApp() {
           requiredTechnologyIds: [],
         },
       },
-    }));
-    setSelectedId(id);
+    };
+    if (replacePack(candidate)) setSelectedId(id);
   };
   const download = () => {
-    const anchor = document.createElement("a");
-    anchor.href = URL.createObjectURL(
-      new Blob([exportContentPack(pack)], { type: "application/json" }),
-    );
-    anchor.download = `${pack.packId}-${pack.contentVersion}.json`;
-    anchor.click();
-    URL.revokeObjectURL(anchor.href);
+    try {
+      const anchor = document.createElement("a");
+      anchor.href = URL.createObjectURL(
+        new Blob([exportContentPack(pack)], { type: "application/json" }),
+      );
+      anchor.download = `${pack.packId}-${pack.contentVersion}.json`;
+      anchor.click();
+      URL.revokeObjectURL(anchor.href);
+      setValidationError("");
+    } catch (error) {
+      setValidationError(
+        error instanceof Error ? error.message : "Invalid content pack",
+      );
+    }
   };
   return (
     <main aria-label="Content editor">
@@ -124,7 +146,9 @@ export function ContentEditorApp() {
         Pack ID
         <input
           value={pack.packId}
-          onChange={(event) => setPack({ ...pack, packId: event.target.value })}
+          onChange={(event) =>
+            replacePack({ ...pack, packId: event.target.value })
+          }
         />
       </label>
       <label>
@@ -132,7 +156,7 @@ export function ContentEditorApp() {
         <input
           value={pack.contentVersion}
           onChange={(event) =>
-            setPack({ ...pack, contentVersion: event.target.value })
+            replacePack({ ...pack, contentVersion: event.target.value })
           }
         />
       </label>
@@ -172,9 +196,12 @@ export function ContentEditorApp() {
         </label>
       )}
       {jsonError && <p role="alert">Invalid JSON or schema: {jsonError}</p>}
+      {validationError && <p role="alert">{validationError}</p>}
       <ValidationSummary errors={errors} />
       <button
-        disabled={errors.length > 0 || Boolean(jsonError)}
+        disabled={
+          errors.length > 0 || Boolean(jsonError) || Boolean(validationError)
+        }
         onClick={download}
       >
         Export pack
@@ -190,9 +217,10 @@ export function ContentEditorApp() {
             if (!file) return;
             try {
               const imported = importContentPack(await file.text());
-              setPack(imported);
-              setSelectedId(Object.keys(imported.entries).sort()[0] ?? "");
-              setImportError("");
+              if (replacePack(imported)) {
+                setSelectedId(Object.keys(imported.entries).sort()[0] ?? "");
+                setImportError("");
+              }
             } catch (error) {
               setImportError(
                 error instanceof Error ? error.message : "Invalid content pack",

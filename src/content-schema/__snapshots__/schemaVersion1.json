@@ -81,8 +81,7 @@
               "baseDemandRoomNights",
               "baseMonthlyWageMinor",
               "seasonalityBasisPoints"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -131,10 +130,8 @@
               "nameKey",
               "areaSquareMeters",
               "capacity",
-              "monthlyFixedCostMinor",
-              "requiredTechnologyIds"
-            ],
-            "additionalProperties": false
+              "monthlyFixedCostMinor"
+            ]
           },
           {
             "type": "object",
@@ -188,7 +185,7 @@
               },
               "cleanMinutes": {
                 "type": "integer",
-                "minimum": -9007199254740991,
+                "minimum": 0,
                 "maximum": 9007199254740991
               },
               "linenPieces": {
@@ -224,10 +221,8 @@
               "technologyBasisPoints",
               "cleanMinutes",
               "linenPieces",
-              "fitOutCostMinor",
-              "requiredTechnologyIds"
-            ],
-            "additionalProperties": false
+              "fitOutCostMinor"
+            ]
           },
           {
             "type": "object",
@@ -300,8 +295,6 @@
               "runtimeId",
               "simulationOrder",
               "nameKey",
-              "prerequisiteIds",
-              "competingStandardIds",
               "emergenceThresholdBasisPoints",
               "initialAdoptionBasisPoints",
               "implementationCostMinor"
@@ -360,11 +353,9 @@
               "runtimeId",
               "simulationOrder",
               "nameKey",
-              "driverTechnologyIds",
               "initialAdoptionBasisPoints",
               "demandEffectBasisPoints"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -431,10 +422,8 @@
               "shareBasisPoints",
               "willingnessToPayMinor",
               "averageNights",
-              "breakfastTakeUpBasisPoints",
-              "preferredFacilityIds"
-            ],
-            "additionalProperties": false
+              "breakfastTakeUpBasisPoints"
+            ]
           },
           {
             "type": "object",
@@ -470,8 +459,7 @@
               "nameKey",
               "unitKey",
               "referenceCostMinor"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -522,8 +510,7 @@
                       "maximum": 9007199254740991
                     }
                   },
-                  "required": ["key", "min"],
-                  "additionalProperties": false
+                  "required": ["key", "min"]
                 }
               },
               "choices": {
@@ -562,8 +549,7 @@
                     "costMinor",
                     "reputationDelta",
                     "account"
-                  ],
-                  "additionalProperties": false
+                  ]
                 }
               },
               "priority": {
@@ -595,10 +581,8 @@
               "conditions",
               "choices",
               "priority",
-              "cooldownMonths",
-              "requiredTechnologyIds"
-            ],
-            "additionalProperties": false
+              "cooldownMonths"
+            ]
           },
           {
             "type": "object",
@@ -647,8 +631,7 @@
                       "maximum": 9007199254740991
                     }
                   },
-                  "required": ["itemId", "quantityMilliUnits"],
-                  "additionalProperties": false
+                  "required": ["itemId", "quantityMilliUnits"]
                 }
               },
               "ingredientCostMinor": {
@@ -659,7 +642,7 @@
               },
               "prepMinutes": {
                 "type": "integer",
-                "minimum": -9007199254740991,
+                "minimum": 0,
                 "maximum": 9007199254740991
               },
               "priceMinor": {
@@ -676,11 +659,9 @@
               "nameKey",
               "outlet",
               "ingredients",
-              "ingredientCostMinor",
               "prepMinutes",
               "priceMinor"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -728,7 +709,7 @@
               },
               "leadTimeMinutes": {
                 "type": "integer",
-                "minimum": -9007199254740991,
+                "minimum": 0,
                 "maximum": 9007199254740991
               },
               "minimumQuantity": {
@@ -748,8 +729,7 @@
               "unitCostMinor",
               "leadTimeMinutes",
               "minimumQuantity"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -832,8 +812,7 @@
               "openingCapitalMinor",
               "openingDebtMinor",
               "riskToleranceBasisPoints"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -908,17 +887,14 @@
               "nameKey",
               "minimumRoomQualityBasisPoints",
               "minimumGuestSatisfactionBasisPoints",
-              "requiredFacilityIds",
-              "requiredTechnologyIds",
               "demandUpliftBasisPoints",
               "monthlyFeeMinor"
-            ],
-            "additionalProperties": false
+            ]
           }
         ]
       }
     }
   },
-  "required": ["packId", "schemaVersion", "contentVersion", "entries"],
+  "required": ["packId", "schemaVersion", "contentVersion"],
   "additionalProperties": false
 }

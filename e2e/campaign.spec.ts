@@ -21,7 +21,7 @@ test("starts the career on the difficulty the player chose, then locks it", asyn
   await page.goto("/?seed=424242&renderer=off");
   const setup = page.getByRole("region", { name: "Campaign setup" });
   const difficulty = setup.getByLabel("Difficulty");
-  const status = page.getByRole("region", { name: "Status bar" });
+  const status = page.getByRole("region", { name: /Status bar|Statusleiste/ });
   const standardCash = await status.textContent();
 
   await expect(difficulty).toBeEnabled();

@@ -5,6 +5,7 @@ import {
   type WorkerResponse,
 } from "../domain/protocol";
 import { SAVE_VERSION } from "../persistence/saveVersions";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 /**
  * The worker module wires itself to `self` on import, so each test gets a
@@ -317,9 +318,18 @@ describe("simulation worker", () => {
   it("validates a save envelope before replacing simulation state", async () => {
     const { posted, send } = await bootWorker();
     send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    const preferences = {
+      ...DEFAULT_PLAYER_PREFERENCES,
+      locale: "en-GB" as const,
+      accessibility: {
+        ...DEFAULT_PLAYER_PREFERENCES.accessibility,
+        reducedMotion: true,
+      },
+    };
     send({
       protocolVersion: PROTOCOL_VERSION,
       type: "REQUEST_SAVE",
+      preferences,
       requestId: "req.save",
     });
     const envelope = of(posted, "SAVE_DATA")[0].saveData as {
@@ -328,6 +338,7 @@ describe("simulation worker", () => {
       contentVersion: string;
       rngState: Record<string, number>;
       state: { elapsedMinutes: number; rngState: Record<string, number> };
+      preferences: typeof preferences;
     };
     // What the worker hands out is a versioned envelope prepared from
     // authoritative state, not a bare snapshot.
@@ -336,6 +347,7 @@ describe("simulation worker", () => {
     // The header and the state carry the same streams; a save where they
     // disagree would replay as a different hotel depending on which is read.
     expect(envelope.rngState).toEqual(envelope.state.rngState);
+    expect(envelope.preferences).toEqual(preferences);
 
     // Move the game on, then offer it a save it must refuse.
     send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed: 1 });
@@ -373,6 +385,7 @@ describe("simulation worker", () => {
     send({
       protocolVersion: PROTOCOL_VERSION,
       type: "REQUEST_SAVE",
+      preferences: DEFAULT_PLAYER_PREFERENCES,
       requestId: "req.save.pending",
     });
     const envelope = of(posted, "SAVE_DATA")[0].saveData;

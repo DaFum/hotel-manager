@@ -33,7 +33,7 @@ describe("NotificationCenter", () => {
       />,
     );
     expect(screen.getByRole("log").getAttribute("aria-live")).toBe("polite");
-    expect(screen.getByText("critical")).toBeTruthy();
+    expect(screen.getByText("Critical")).toBeTruthy();
     expect(screen.getByText("Immediate attention required")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Open finance" }));
     expect(action).toHaveBeenCalledWith("finance");

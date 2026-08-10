@@ -28,6 +28,11 @@ export interface PlayerPreferences {
   audio: AudioPreferences;
   tutorialCompleted: string[];
 }
+export const TUTORIAL_SEQUENCE = [
+  "set-room-price",
+  "inspect-bookings",
+  "hire-housekeeping",
+] as const;
 export const DEFAULT_PLAYER_PREFERENCES: PlayerPreferences = {
   locale: "de-DE",
   accessibility: { textScale: 1, highContrast: false, reducedMotion: false },
@@ -128,6 +133,60 @@ export function normalizePlayerPreferences(value: unknown): PlayerPreferences {
       ui: volume(audio.ui, 0.8),
       warnings: volume(audio.warnings, 0.9),
     },
-    tutorialCompleted: strings(input.tutorialCompleted),
+    tutorialCompleted: TUTORIAL_SEQUENCE.filter((step, index) =>
+      TUTORIAL_SEQUENCE.slice(0, index + 1).every((required) =>
+        strings(input.tutorialCompleted).includes(required),
+      ),
+    ),
   };
+}
+
+export function isValidPlayerPreferences(
+  value: unknown,
+): value is PlayerPreferences {
+  if (!value || typeof value !== "object") return false;
+  const input = value as Partial<PlayerPreferences>;
+  const normalized = normalizePlayerPreferences(value);
+  const arraysEqual = (left: unknown, right: readonly string[]) =>
+    Array.isArray(left) &&
+    left.length === right.length &&
+    left.every((item, index) => item === right[index]);
+  return (
+    input.locale === normalized.locale &&
+    input.accessibility?.textScale === normalized.accessibility.textScale &&
+    input.accessibility.highContrast ===
+      normalized.accessibility.highContrast &&
+    input.accessibility.reducedMotion ===
+      normalized.accessibility.reducedMotion &&
+    arraysEqual(
+      input.notifications?.categories,
+      normalized.notifications.categories,
+    ) &&
+    arraysEqual(
+      input.notifications?.severities,
+      normalized.notifications.severities,
+    ) &&
+    arraysEqual(
+      input.notifications?.hotelIds,
+      normalized.notifications.hotelIds,
+    ) &&
+    arraysEqual(
+      input.notifications?.regionIds,
+      normalized.notifications.regionIds,
+    ) &&
+    input.notifications?.delegated === normalized.notifications.delegated &&
+    input.notifications.autoPauseAt === normalized.notifications.autoPauseAt &&
+    arraysEqual(
+      input.notifications.autoPauseTypes,
+      normalized.notifications.autoPauseTypes,
+    ) &&
+    input.notifications.groupRepeated ===
+      normalized.notifications.groupRepeated &&
+    input.audio?.master === normalized.audio.master &&
+    input.audio.music === normalized.audio.music &&
+    input.audio.ambience === normalized.audio.ambience &&
+    input.audio.ui === normalized.audio.ui &&
+    input.audio.warnings === normalized.audio.warnings &&
+    arraysEqual(input.tutorialCompleted, normalized.tutorialCompleted)
+  );
 }

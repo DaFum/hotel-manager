@@ -18,7 +18,10 @@ import {
   validateEnvelope,
   type SaveEnvelope,
 } from "../persistence/saveSchema";
-import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
+import {
+  normalizePlayerPreferences,
+  type PlayerPreferences,
+} from "../settings/playerPreferences";
 
 /** One real tick is 100 ms; at 1x that is one simulated hour. */
 const TICK_MS = 100;
@@ -46,14 +49,17 @@ function acceptEnvelope(
 }
 
 /** The envelope this build writes, prepared from authoritative state. */
-function prepareEnvelope(state: GameState): SaveEnvelope {
+function prepareEnvelope(
+  state: GameState,
+  preferences: PlayerPreferences,
+): SaveEnvelope {
   return {
     saveVersion: SAVE_VERSION,
     contentVersion: CONTENT_VERSION,
     protocolVersion: PROTOCOL_VERSION,
     rngState: state.rngState,
     state,
-    preferences: DEFAULT_PLAYER_PREFERENCES,
+    preferences: normalizePlayerPreferences(preferences),
   };
 }
 
@@ -454,7 +460,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
         );
         return;
       }
-      const envelope = prepareEnvelope(simulation.snapshot());
+      const envelope = prepareEnvelope(simulation.snapshot(), m.preferences);
       const problems = validateEnvelope(envelope);
       if (problems.length > 0) {
         // A save the worker would not accept back is not a save; refusing to

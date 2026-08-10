@@ -1,18 +1,21 @@
 import type { AccessibilityPreferences as Preferences } from "../../game/settings/playerPreferences";
+import { translateGame, type GameLocale } from "../../i18n";
 export function AccessibilityPreferences({
   value,
   onChange,
+  locale = "en-GB",
 }: {
   value: Preferences;
   onChange: (value: Preferences) => void;
+  locale?: GameLocale;
 }) {
   return (
     <fieldset>
-      <legend>Accessibility</legend>
+      <legend>{translateGame(locale, "settings.accessibility")}</legend>
       <label>
-        Text size{" "}
+        {translateGame(locale, "settings.textSize")}{" "}
         <input
-          aria-label="Text size"
+          aria-label={translateGame(locale, "settings.textSize")}
           type="range"
           min="0.85"
           max="1.5"
@@ -31,7 +34,7 @@ export function AccessibilityPreferences({
             onChange({ ...value, highContrast: e.currentTarget.checked })
           }
         />{" "}
-        High contrast
+        {translateGame(locale, "settings.highContrast")}
       </label>
       <label>
         <input
@@ -41,7 +44,7 @@ export function AccessibilityPreferences({
             onChange({ ...value, reducedMotion: e.currentTarget.checked })
           }
         />{" "}
-        Reduced motion
+        {translateGame(locale, "settings.reducedMotion")}
       </label>
     </fieldset>
   );

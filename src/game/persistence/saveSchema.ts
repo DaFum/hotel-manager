@@ -24,6 +24,7 @@ import {
   type SaveEnvelope,
 } from "./saveVersions";
 import { migrateContentVersion } from "./contentCompatibility";
+import { isValidPlayerPreferences } from "../settings/playerPreferences";
 
 export {
   CONTENT_VERSION,
@@ -64,6 +65,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push(
       `protocol version ${envelope.protocolVersion} is not ${PROTOCOL_VERSION}`,
     );
+  if (!isValidPlayerPreferences(envelope.preferences))
+    problems.push("the save has malformed player presentation preferences");
   if (!isCompleteRngState(envelope.rngState))
     problems.push("one or more rng streams are missing or not whole numbers");
   if (!envelope.state || typeof envelope.state !== "object")

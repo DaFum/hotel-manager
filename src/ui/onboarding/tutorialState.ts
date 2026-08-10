@@ -4,10 +4,12 @@ export interface TutorialState {
   step: TutorialStep;
   completed: string[];
 }
-const expected: Record<TutorialStep, string | null> = {
-  "set-room-price": "SET_ROOM_RATE",
+export type TutorialObservation =
+  "SET_RATE_ACCEPTED" | "OPEN_BOOKINGS" | "HIRE_ACCEPTED";
+const expected: Record<TutorialStep, TutorialObservation | null> = {
+  "set-room-price": "SET_RATE_ACCEPTED",
   "inspect-bookings": "OPEN_BOOKINGS",
-  "hire-housekeeping": "HIRE_EMPLOYEE",
+  "hire-housekeeping": "HIRE_ACCEPTED",
   complete: null,
 };
 const next: Record<TutorialStep, TutorialStep> = {
@@ -18,12 +20,9 @@ const next: Record<TutorialStep, TutorialStep> = {
 };
 export function completeTutorialStep(
   state: TutorialState,
-  action: string,
+  action: TutorialObservation,
 ): TutorialState {
-  const matches =
-    expected[state.step] === action ||
-    (state.step === "set-room-price" && action === "SET_RATE");
-  return matches
+  return expected[state.step] === action
     ? {
         step: next[state.step],
         completed: [...new Set([...state.completed, state.step])],

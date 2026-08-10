@@ -26,4 +26,9 @@ it("normalizes an untrusted persisted preference section", () => {
   expect(result.notifications.severities).toEqual(["critical"]);
   expect(result.audio.master).toBe(1);
   expect(result.audio.warnings).toBe(0);
+  expect(
+    normalizePlayerPreferences({
+      tutorialCompleted: ["unknown", "hire-housekeeping"],
+    }).tutorialCompleted,
+  ).toEqual([]);
 });

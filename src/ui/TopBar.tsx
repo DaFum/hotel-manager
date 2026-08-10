@@ -1,5 +1,6 @@
 import { formatMinorCurrency, formatGameDate } from "../i18n/formatters";
 import { formatDm } from "./money";
+import { translateGame, type GameLocale } from "../i18n";
 
 export type Speed = 0 | 1 | 2 | 4 | 16;
 
@@ -14,13 +15,13 @@ export function TopBar(props: {
   onSpeed: (speed: Speed) => void;
   onSave: () => void;
   onLoad: () => void;
-  locale?: "de-DE" | "en-GB";
+  locale?: GameLocale;
 }) {
   const hours = String(Math.floor(props.minuteOfDay / 60)).padStart(2, "0");
   const minutes = String(props.minuteOfDay % 60).padStart(2, "0");
   const locale = props.locale ?? "de-DE";
   return (
-    <section aria-label="Status bar">
+    <section aria-label={translateGame(locale, "topbar.status")}>
       <p>
         {props.city} ·{" "}
         <time dateTime={props.dateKey}>
@@ -28,7 +29,7 @@ export function TopBar(props: {
           <span className="sr-only"> ({props.dateKey})</span>
         </time>{" "}
         {hours}:{minutes} ·{" "}
-        <span>{locale === "de-DE" ? "Bargeld" : "Cash"}: </span>
+        <span>{translateGame(locale, "topbar.cash")}: </span>
         <span data-testid="cash-value" data-minor={props.cashMinor}>
           {locale === "de-DE"
             ? formatDm(props.cashMinor)

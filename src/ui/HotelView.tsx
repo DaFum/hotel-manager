@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SemanticHotelTree } from "./accessibility/SemanticHotelTree";
+import type { GameLocale } from "../i18n";
 
 export interface HotelViewRoom {
   id: string;
@@ -34,6 +35,7 @@ export function HotelView(props: {
   onSelect?: (roomId: string) => void;
   onSelectFacility?: (facilityId: string) => void;
   disableRenderer?: boolean;
+  locale?: GameLocale;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -82,6 +84,7 @@ export function HotelView(props: {
     <section aria-label="Hotel view">
       <div ref={host} data-testid="hotel-canvas" />
       <SemanticHotelTree
+        locale={props.locale}
         rooms={props.rooms}
         onInspect={(roomId) => {
           setSelected(roomId);

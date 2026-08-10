@@ -17,6 +17,7 @@ export function FocusManager({
     <div role="tablist">
       {labels.map((label, index) => (
         <button
+          type="button"
           key={label}
           ref={(el) => {
             refs.current[index] = el;

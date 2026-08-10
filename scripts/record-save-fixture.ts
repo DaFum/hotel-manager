@@ -21,6 +21,7 @@ import {
 } from "../src/game/persistence/saveVersions";
 import { PROTOCOL_VERSION } from "../src/game/domain/protocol";
 import { validateEnvelope } from "../src/game/persistence/saveSchema";
+import { DEFAULT_PLAYER_PREFERENCES } from "../src/game/settings/playerPreferences";
 
 const simulation = new GameSimulation(createInitialGameState(4242));
 simulation.refreshDerivedState();
@@ -124,6 +125,7 @@ const envelope: SaveEnvelope = {
   protocolVersion: PROTOCOL_VERSION,
   rngState: simulation.state.rngState,
   state: simulation.snapshot(),
+  preferences: DEFAULT_PLAYER_PREFERENCES,
 };
 
 const problems = validateEnvelope(envelope);

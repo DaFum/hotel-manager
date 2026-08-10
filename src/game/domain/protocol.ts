@@ -2,6 +2,7 @@ import type { GameCommand } from "./commands";
 import type { DomainEvent } from "./events";
 import type { GameSnapshot } from "./snapshot";
 import type { StateDelta } from "./stateDelta";
+import type { PlayerPreferences } from "../settings/playerPreferences";
 
 /**
  * Version 2 carries authoritative command identity on COMMAND, an applied
@@ -64,6 +65,7 @@ export type WorkerRequest =
       protocolVersion: ProtocolVersion;
       type: "REQUEST_SAVE";
       requestId: string;
+      preferences: PlayerPreferences;
     }
   | {
       protocolVersion: ProtocolVersion;

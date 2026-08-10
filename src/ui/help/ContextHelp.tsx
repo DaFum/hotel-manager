@@ -1,15 +1,19 @@
+import { translateGame, type GameLocale } from "../../i18n";
+
 export function ContextHelp({
   title,
   drivers,
   onClose,
+  locale = "en-GB",
 }: {
   title: string;
   drivers: readonly string[];
   onClose?: () => void;
+  locale?: GameLocale;
 }) {
   return (
-    <aside aria-label={`${title} help`}>
-      <h2>{title}: Why?</h2>
+    <aside aria-label={translateGame(locale, "help.region", { title })}>
+      <h2>{translateGame(locale, "help.why", { title })}</h2>
       {drivers.length ? (
         <ul>
           {drivers.map((driver, i) => (
@@ -17,9 +21,11 @@ export function ContextHelp({
           ))}
         </ul>
       ) : (
-        <p>No contributing factors are available yet.</p>
+        <p>{translateGame(locale, "help.empty")}</p>
       )}
-      {onClose ? <button onClick={onClose}>Close help</button> : null}
+      {onClose ? (
+        <button onClick={onClose}>{translateGame(locale, "help.close")}</button>
+      ) : null}
     </aside>
   );
 }

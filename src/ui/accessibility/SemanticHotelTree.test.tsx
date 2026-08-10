@@ -15,4 +15,15 @@ describe("SemanticHotelTree", () => {
     );
     expect(inspect).toHaveBeenCalledWith("room.101");
   });
+  it("includes state when a custom room label is supplied", () => {
+    render(
+      <SemanticHotelTree
+        rooms={[{ id: "room.101", label: "Garden room", state: "VacantClean" }]}
+        onInspect={() => undefined}
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: /inspect garden room vacant clean/i }),
+    ).toBeTruthy();
+  });
 });

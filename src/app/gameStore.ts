@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { GameClient } from "./GameClient";
 import type { GameState } from "../game/simulation/initialState";
 import type { GameCommand } from "../game/domain/commands";
@@ -21,7 +27,11 @@ import {
   normalizePlayerPreferences,
   type PlayerPreferences,
 } from "../game/settings/playerPreferences";
-import { completeTutorialStep } from "../ui/onboarding/tutorialState";
+import {
+  completeTutorialStep,
+  type TutorialObservation,
+  type TutorialStep,
+} from "../ui/onboarding/tutorialState";
 
 /** The slot the plain Save button writes to. */
 export const DEFAULT_SLOT = DEFAULT_MANUAL_SLOT;
@@ -42,7 +52,9 @@ export interface GameStore {
   preferences: PlayerPreferences;
   setPreferences: (preferences: PlayerPreferences) => void;
   requestPause: () => void;
-  observeTutorialAction: (action: string) => void;
+  observeTutorialAction: (
+    action: Extract<TutorialObservation, "OPEN_BOOKINGS">,
+  ) => void;
   setSpeed: (speed: Speed) => void;
   send: (command: GameCommand) => void;
   save: (slot?: string) => void;
@@ -94,6 +106,9 @@ export function useGameStore(seed: number): GameStore {
   );
   const currentCommandRequestRef = useRef<string | null>(null);
   const pauseRequestRef = useRef<string | null>(null);
+  const tutorialCommandRef = useRef(
+    new Map<string, Extract<TutorialObservation, `${string}_ACCEPTED`>>(),
+  );
   const [snapshot, setSnapshot] = useState<GameState | null>(null);
   const [speed, setSpeedState] = useState<Speed>(0);
   const [errors, setErrors] = useState<string[]>([]);
@@ -110,7 +125,9 @@ export function useGameStore(seed: number): GameStore {
     structuredClone(DEFAULT_PLAYER_PREFERENCES),
   );
   const preferencesRef = useRef(preferences);
-  preferencesRef.current = preferences;
+  useLayoutEffect(() => {
+    preferencesRef.current = preferences;
+  }, [preferences]);
   /** Increments once each save has actually committed to IndexedDB. */
   const [savedAt, setSavedAt] = useState(0);
 
@@ -146,10 +163,14 @@ export function useGameStore(seed: number): GameStore {
       if (!previous) return;
       const reason = autosaveReason(previous, next.calendar);
       if (!reason) return;
-      pendingSlotsRef.current.set(client.requestSave(), autosaveSlot(reason));
+      pendingSlotsRef.current.set(
+        client.requestSave(preferencesRef.current),
+        autosaveSlot(reason),
+      );
     });
     client.onError((message) => setErrors((prev) => [...prev, message]));
     client.onCommandRejected(({ requestId, reason }) => {
+      tutorialCommandRef.current.delete(requestId);
       if (pauseRequestRef.current === requestId) {
         pauseRequestRef.current = null;
         setPauseStatus("rejected");
@@ -170,6 +191,12 @@ export function useGameStore(seed: number): GameStore {
       commandStatesRef.current.set(requestId, "accepted");
       if (currentCommandRequestRef.current === requestId)
         setCommandStatus("accepted");
+      const tutorialAction = tutorialCommandRef.current.get(requestId);
+      tutorialCommandRef.current.delete(requestId);
+      if (tutorialAction)
+        setPreferencesState((current) =>
+          advanceTutorial(current, tutorialAction),
+        );
     });
     client.onSimulationError((error) => {
       if (!loadingRef.current || !loadCompletionRef.current) return;
@@ -178,10 +205,7 @@ export function useGameStore(seed: number): GameStore {
       loadCompletionRef.current = null;
     });
     client.onSaveData((saveData, requestId) => {
-      const envelope = {
-        ...(saveData as SaveEnvelope),
-        preferences: preferencesRef.current,
-      };
+      const envelope = saveData as SaveEnvelope;
       const slot = pendingSlotsRef.current.get(requestId) ?? DEFAULT_SLOT;
       pendingSlotsRef.current.delete(requestId);
       void repoRef.current
@@ -227,55 +251,28 @@ export function useGameStore(seed: number): GameStore {
       setPauseStatus("pending");
     },
     observeTutorialAction: (action) => {
-      setPreferencesState((current) => {
-        const step =
-          current.tutorialCompleted.length === 0
-            ? "set-room-price"
-            : current.tutorialCompleted.at(-1) === "set-room-price"
-              ? "inspect-bookings"
-              : current.tutorialCompleted.at(-1) === "inspect-bookings"
-                ? "hire-housekeeping"
-                : "complete";
-        const tutorial = completeTutorialStep(
-          { step, completed: current.tutorialCompleted },
-          action,
-        );
-        return tutorial.completed.length === current.tutorialCompleted.length
-          ? current
-          : { ...current, tutorialCompleted: tutorial.completed };
-      });
+      setPreferencesState((current) => advanceTutorial(current, action));
     },
     setSpeed: (next) => {
       setSpeedState(next);
       clientRef.current?.setSpeed(next);
     },
     send: (command) => {
-      setPreferencesState((current) => {
-        const step =
-          current.tutorialCompleted.length === 0
-            ? "set-room-price"
-            : current.tutorialCompleted.at(-1) === "set-room-price"
-              ? "inspect-bookings"
-              : current.tutorialCompleted.at(-1) === "inspect-bookings"
-                ? "hire-housekeeping"
-                : "complete";
-        const tutorial = completeTutorialStep(
-          { step, completed: current.tutorialCompleted },
-          command.type,
-        );
-        return tutorial.completed === current.tutorialCompleted
-          ? current
-          : { ...current, tutorialCompleted: tutorial.completed };
-      });
       // A decision that cannot be undone by issuing the opposite command gets
       // a save of its own first.
       if (isMajorAction(command.type)) {
-        const requestId = clientRef.current?.requestSave();
+        const requestId = clientRef.current?.requestSave(
+          preferencesRef.current,
+        );
         if (requestId)
           pendingSlotsRef.current.set(requestId, autosaveSlot("major-action"));
       }
       const requestId = clientRef.current?.sendCommand(command);
       if (requestId) {
+        if (command.type === "SET_RATE")
+          tutorialCommandRef.current.set(requestId, "SET_RATE_ACCEPTED");
+        if (command.type === "HIRE")
+          tutorialCommandRef.current.set(requestId, "HIRE_ACCEPTED");
         currentCommandRequestRef.current = requestId;
         commandStatesRef.current.set(requestId, "pending");
         setCommandStatus("pending");
@@ -287,7 +284,7 @@ export function useGameStore(seed: number): GameStore {
       clientRef.current?.init(seed);
     },
     save: (slot = DEFAULT_SLOT) => {
-      const requestId = clientRef.current?.requestSave();
+      const requestId = clientRef.current?.requestSave(preferencesRef.current);
       if (requestId) pendingSlotsRef.current.set(requestId, slot);
     },
     load: async (slot = DEFAULT_SLOT) => {
@@ -318,4 +315,27 @@ export function useGameStore(seed: number): GameStore {
       }
     },
   };
+}
+
+function tutorialStep(completed: readonly string[]): TutorialStep {
+  if (!completed.includes("set-room-price")) return "set-room-price";
+  if (!completed.includes("inspect-bookings")) return "inspect-bookings";
+  if (!completed.includes("hire-housekeeping")) return "hire-housekeeping";
+  return "complete";
+}
+
+function advanceTutorial(
+  preferences: PlayerPreferences,
+  action: TutorialObservation,
+): PlayerPreferences {
+  const tutorial = completeTutorialStep(
+    {
+      step: tutorialStep(preferences.tutorialCompleted),
+      completed: preferences.tutorialCompleted,
+    },
+    action,
+  );
+  return tutorial.completed === preferences.tutorialCompleted
+    ? preferences
+    : { ...preferences, tutorialCompleted: tutorial.completed };
 }

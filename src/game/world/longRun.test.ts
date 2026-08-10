@@ -7,6 +7,7 @@ import {
   type SaveEnvelope,
 } from "../persistence/saveVersions";
 import { runWorldMonths, runWorldYears } from "../test/worldScenario";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 it("keeps 50 years bounded and deterministic across a persisted checkpoint", () => {
   const uninterrupted = runWorldYears(50, 9001);
@@ -25,6 +26,7 @@ it("keeps 50 years bounded and deterministic across a persisted checkpoint", () 
     protocolVersion: 2,
     rngState: firstHalf.rngState,
     state: game,
+    preferences: DEFAULT_PLAYER_PREFERENCES,
   } satisfies SaveEnvelope);
   expect(validateEnvelope(saved)).toEqual([]);
   const restored = saved.state as typeof game;

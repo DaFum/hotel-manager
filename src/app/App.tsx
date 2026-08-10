@@ -5,6 +5,7 @@ import { TutorialCoach } from "../ui/onboarding/TutorialCoach";
 import { NotificationCenter } from "../ui/notifications/NotificationCenter";
 import { ContextHelp } from "../ui/help/ContextHelp";
 import { AudioEngine } from "../audio/audioEngine";
+import { translateGame } from "../i18n";
 import "../ui/accessibility/accessibility.css";
 import {
   shouldPauseForAlert,
@@ -101,7 +102,6 @@ export function App() {
   const seenAlerts = useRef(new Set<string>());
   const audio = useRef<AudioEngine | null>(null);
   const audioPreferences = useRef(preferences.audio);
-  audioPreferences.current = preferences.audio;
   const s = game.snapshot;
   const latestMilestone = s?.narrative.achievedMilestones.at(-1) ?? null;
 
@@ -122,7 +122,10 @@ export function App() {
     };
   }, []);
 
-  useEffect(() => audio.current?.apply(preferences.audio), [preferences.audio]);
+  useEffect(() => {
+    audioPreferences.current = preferences.audio;
+    audio.current?.apply(preferences.audio);
+  }, [preferences.audio]);
 
   useEffect(() => {
     if (!s) return;
@@ -176,6 +179,7 @@ export function App() {
       data-reduced-motion={preferences.accessibility.reducedMotion}
     >
       <ManagementShell
+        locale={preferences.locale}
         adoption={{
           personalComputerBp: adoption["personal-computer"] ?? 0,
           internetBp: adoption.internet ?? 0,
@@ -206,14 +210,23 @@ export function App() {
             locale={preferences.locale}
           />
           <ContextHelp
-            title="Guest satisfaction"
+            title={translateGame(preferences.locale, "help.guestSatisfaction")}
             drivers={s.guestSatisfaction.causes}
+            locale={preferences.locale}
           />
-          <section aria-label="Presentation settings">
+          <section
+            aria-label={translateGame(
+              preferences.locale,
+              "settings.presentation",
+            )}
+          >
             <label>
-              Language{" "}
+              {translateGame(preferences.locale, "topbar.language")}{" "}
               <select
-                aria-label="Language"
+                aria-label={translateGame(
+                  preferences.locale,
+                  "topbar.language",
+                )}
                 value={preferences.locale}
                 onChange={(event) => {
                   const locale = event.currentTarget.value as "de-DE" | "en-GB";
@@ -226,12 +239,14 @@ export function App() {
             </label>
             <AccessibilityPreferences
               value={preferences.accessibility}
+              locale={preferences.locale}
               onChange={(accessibility) =>
                 game.setPreferences({ ...preferences, accessibility })
               }
             />
             <AudioSettings
               value={preferences.audio}
+              locale={preferences.locale}
               onChange={(audio) =>
                 game.setPreferences({ ...preferences, audio })
               }
@@ -259,6 +274,7 @@ export function App() {
                 })
               }
               onAction={game.observeTutorialAction}
+              locale={preferences.locale}
             />
           ) : null}
           <NotificationCenter
@@ -279,7 +295,9 @@ export function App() {
               groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
               message: alert.title,
               actionTarget: {
-                label: `Open ${alert.title}`,
+                label: translateGame(preferences.locale, "notifications.open", {
+                  title: alert.title,
+                }),
                 entityId: alert.id,
               },
             }))}
@@ -289,6 +307,7 @@ export function App() {
             onAcknowledge={(id) =>
               setAcknowledgedAlerts((current) => new Set(current).add(id))
             }
+            locale={preferences.locale}
           />
           <SaveTransferPanel />
           <SaveManager
@@ -302,6 +321,7 @@ export function App() {
             rooms={s.hotel.rooms}
             facilities={s.facilities}
             disableRenderer={rendererDisabled()}
+            locale={preferences.locale}
           />
           <WorldControls
             camera={camera}

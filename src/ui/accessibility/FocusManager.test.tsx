@@ -14,5 +14,10 @@ describe("FocusManager", () => {
       key: "Home",
     });
     expect(document.activeElement).toBe(hotel);
+    fireEvent.keyDown(hotel, { key: "End" });
+    const finance = screen.getByRole("tab", { name: "Finance" });
+    expect(document.activeElement).toBe(finance);
+    fireEvent.keyDown(finance, { key: "ArrowRight" });
+    expect(document.activeElement).toBe(hotel);
   });
 });

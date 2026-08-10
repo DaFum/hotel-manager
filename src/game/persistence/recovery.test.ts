@@ -17,6 +17,7 @@ import {
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { GameSimulation } from "../simulation/GameSimulation";
 import { createInitialGameState } from "../simulation/initialState";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 function envelopeAt(elapsedMinutes: number): SaveEnvelope {
   const state = createInitialGameState(21);
@@ -27,6 +28,7 @@ function envelopeAt(elapsedMinutes: number): SaveEnvelope {
     protocolVersion: PROTOCOL_VERSION,
     rngState: state.rngState,
     state,
+    preferences: DEFAULT_PLAYER_PREFERENCES,
   };
 }
 

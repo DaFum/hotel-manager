@@ -7,6 +7,11 @@ import { bufferedCrisisRiskBp } from "../campaign/difficultyEffects";
 import { maybeCreateShock, type WorldShock } from "./shocks";
 import { generateWeather, type WeatherOutcome } from "./climate";
 import { canEmerge } from "../technology/graph";
+import {
+  TECHNOLOGY_CONTENT,
+  TECHNOLOGY_REQUIREMENTS,
+  TREND_CONTENT,
+} from "../content/runtimeContent";
 export const worldStepOrder = [
   "macro",
   "regulation",
@@ -53,23 +58,28 @@ export function createWorldState(): WorldState {
       unemploymentBp: 600,
       growthBp: 150,
     },
-    technologies: [
-      {
-        id: "personal-computer",
-        adoptionBp: 800,
-        peakAdoptionBp: 800,
+    technologies: TECHNOLOGY_CONTENT.map((technology) => {
+      const replacement = technology.replacedByTechnologyId
+        ? TECHNOLOGY_CONTENT.find(
+            (candidate) => candidate.id === technology.replacedByTechnologyId,
+          )
+        : undefined;
+      if (technology.replacedByTechnologyId && !replacement)
+        throw new Error(
+          `missing replacement technology ${technology.replacedByTechnologyId}`,
+        );
+      return {
+        id: technology.runtimeId,
+        adoptionBp: technology.initialAdoptionBasisPoints,
+        peakAdoptionBp: technology.initialAdoptionBasisPoints,
         obsolete: false,
-      },
-      { id: "internet", adoptionBp: 0, peakAdoptionBp: 0, obsolete: false },
-      { id: "smartphone", adoptionBp: 0, peakAdoptionBp: 0, obsolete: false },
-      {
-        id: "channel-manager",
-        adoptionBp: 0,
-        peakAdoptionBp: 0,
-        obsolete: false,
-      },
-    ],
-    trends: [{ id: "digital-booking", adoptionBp: 0 }],
+        ...(replacement ? { replacedBy: replacement.runtimeId } : {}),
+      };
+    }),
+    trends: TREND_CONTENT.map((trend) => ({
+      id: trend.runtimeId,
+      adoptionBp: trend.initialAdoptionBasisPoints,
+    })),
     activeShocks: [],
     weather: {
       kind: "clear",
@@ -130,12 +140,7 @@ export class WorldSimulation {
       10_000,
       next.regulationPressureBp + Math.floor(next.weather.severityBp / 20),
     );
-    const requirements: Readonly<Record<string, readonly string[]>> = {
-      "personal-computer": [],
-      internet: ["personal-computer"],
-      smartphone: ["internet"],
-      "channel-manager": ["internet"],
-    };
+    const requirements = TECHNOLOGY_REQUIREMENTS;
     const available = new Set(
       next.technologies
         .filter(

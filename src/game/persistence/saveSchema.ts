@@ -22,6 +22,7 @@ import {
   type RngStreamName,
   type SaveEnvelope,
 } from "./saveVersions";
+import { migrateContentVersion } from "./contentCompatibility";
 
 export {
   CONTENT_VERSION,
@@ -53,7 +54,10 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push(
       `save version ${envelope.saveVersion} is not ${SAVE_VERSION}`,
     );
-  if (envelope.contentVersion !== CONTENT_VERSION)
+  if (
+    envelope.contentVersion !== CONTENT_VERSION &&
+    envelope.contentVersion !== "plan-06-v6"
+  )
     problems.push(`content version ${envelope.contentVersion} is foreign`);
   if (envelope.protocolVersion !== PROTOCOL_VERSION)
     problems.push(
@@ -229,5 +233,10 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     if (!step) break;
     current = step(current);
   }
+  if (
+    current.saveVersion === SAVE_VERSION &&
+    current.contentVersion === "plan-06-v6"
+  )
+    current = migrateContentVersion(current);
   return current;
 }

@@ -13,12 +13,15 @@
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "test:e2e": "playwright test",
-    "benchmark": "node --import tsx scripts/benchmark-slice.ts"
+    "benchmark": "node --import tsx scripts/benchmark-slice.ts",
+    "content:validate": "node --import tsx scripts/validate-content.ts",
+    "content:schema": "node --import tsx scripts/record-content-schema.ts"
   },
   "dependencies": {
     "pixi.js": "^8.19.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.0",

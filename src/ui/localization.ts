@@ -11,6 +11,15 @@ export const ENGLISH_TEXT = {
   "save.loading": "Loading…",
   "save.recovering": "Recovering…",
   "save.loadingMonthly": "Loading monthly autosave…",
+  "save.transfer.region": "Save transfer",
+  "save.transfer.heading": "Save file transfer",
+  "save.transfer.export": "Export save file",
+  "save.transfer.import": "Import save file",
+  "save.transfer.exported": "Save exported.",
+  "save.transfer.imported": "Save imported.",
+  "save.transfer.noSave": "No save in",
+  "save.transfer.exportFailed": "Export failed",
+  "save.transfer.importFailed": "Import failed",
 
   // --- the campaign and its stories --------------------------------------
   "campaign.setup": "Campaign setup",
@@ -43,6 +52,15 @@ export const ENGLISH_TEXT = {
   "career.recovery.staff-reduction": "Reduce the roster",
   "career.recovery.turnaround": "Run a turnaround",
   "rival.klara-voss.name": "Klara Voss",
+  "brand.mainblick.name": "Mainblick",
+  "brand.rheinstern.name": "Rheinstern Collection",
+  "hotel.rival.hof.name": "Hotel Am Hof",
+  "hotel.rival.taunusblick.name": "Taunusblick",
+  "hotel.rival.stern.name": "Pension Stern",
+  "room.standard.single.name": "Standard single",
+  "room.standard.double.name": "Standard double",
+  "room.comfort.double.name": "Comfort double",
+  "room.suite.junior.name": "Junior suite",
 
   "milestone.first-profitable-year": "First profitable year",
   "milestone.second-hotel": "A second hotel",
@@ -68,8 +86,7 @@ export const ENGLISH_TEXT = {
     "A guide is preparing a profile of the house and would like a stay to write it up.",
   "narrative.press-profile.choice.host": "Host the writer",
   "narrative.press-profile.choice.decline": "Decline the request",
-  "chronicle.narrative.press-profile.compensate":
-    "The house hosted a travel writer.",
+  "chronicle.narrative.press-profile.host": "The house hosted a travel writer.",
   "chronicle.narrative.press-profile.decline":
     "The house turned down a travel profile.",
   "narrative.digital-bet.title": "A stake in an online agency",

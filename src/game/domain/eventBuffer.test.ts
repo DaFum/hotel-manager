@@ -405,7 +405,7 @@ describe("domain event buffer", () => {
     submit(s, {
       type: "RESOLVE_NARRATIVE_EVENT",
       eventId: raised.id,
-      choiceId: "compensate",
+      choiceId: "host",
     });
     collected.push(...s.takeDomainEvents());
 

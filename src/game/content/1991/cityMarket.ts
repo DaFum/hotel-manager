@@ -1,3 +1,4 @@
+import { CORE_CONTENT_REGISTRY } from "../corePack";
 import type { CityActor } from "../../actors/evolution";
 import type { Strategy } from "../../competitors/strategies";
 import type { TransportNetwork } from "../../transport/network";
@@ -66,38 +67,20 @@ export interface CompetitorSeed {
 }
 
 /** The houses trading in Frankfurt when the player takes over the Mainblick. */
-export const FRANKFURT_COMPETITORS: readonly CompetitorSeed[] = [
-  {
-    id: "hotel.rival.hof",
-    name: "Hotel Am Hof",
-    strategy: "luxury",
-    rooms: 90,
-    rateMinor: 24000,
-    appealBp: 12000,
-    cashMinor: 12_000_000,
-    debtMinor: 121_000_000,
-  },
-  {
-    id: "hotel.rival.taunusblick",
-    name: "Taunusblick",
-    strategy: "family",
-    rooms: 40,
-    rateMinor: 13000,
-    appealBp: 10000,
-    cashMinor: 6_000_000,
-    debtMinor: 32_000_000,
-  },
-  {
-    id: "hotel.rival.stern",
-    name: "Pension Stern",
-    strategy: "budget",
-    rooms: 30,
-    rateMinor: 9000,
-    appealBp: 8000,
-    cashMinor: 3_000_000,
-    debtMinor: 60_000_000,
-  },
-];
+export const FRANKFURT_COMPETITORS: readonly CompetitorSeed[] =
+  CORE_CONTENT_REGISTRY.allByKind("rival")
+    .filter((entry) => entry.homeCityId === "city.frankfurt")
+    .sort((a, b) => a.simulationOrder - b.simulationOrder)
+    .map((entry) => ({
+      id: entry.id,
+      name: entry.nameKey,
+      strategy: entry.strategy,
+      rooms: entry.rooms,
+      rateMinor: entry.rateMinor,
+      appealBp: entry.appealBasisPoints,
+      cashMinor: entry.openingCapitalMinor,
+      debtMinor: entry.openingDebtMinor,
+    }));
 
 /** Names a newly built house can be given, used in stable order. */
 export const NEW_ENTRANT_NAMES: readonly string[] = [

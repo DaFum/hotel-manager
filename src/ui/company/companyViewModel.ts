@@ -1,3 +1,4 @@
+import { translateKey } from "../localization";
 import type { GameState } from "../../game/simulation/initialState";
 import { evaluateOpeningReadiness } from "../../game/development/preOpening";
 import { brandForHotel, findBrand } from "../../game/brands/brandTypes";
@@ -63,7 +64,7 @@ export function portfolioRows(state: GameState): PortfolioHotelRow[] {
           ? latestAudit.failures.length
           : 0),
       managerName: managerForHotel(c.managers, hotelId)?.name ?? "unmanaged",
-      brandName: brand?.name,
+      brandName: brand ? translateKey(brand.name) : undefined,
       operatingModel: (c.operatingModels[hotelId] ?? { kind: "owned" }).kind,
     };
   });
@@ -73,7 +74,7 @@ export function brandRows(state: GameState): BrandRow[] {
   const c = state.company;
   return c.brands.map((brand) => ({
     id: brand.id,
-    name: brand.name,
+    name: translateKey(brand.name),
     demandUpliftBasisPoints: brand.demandUpliftBasisPoints,
     monthlyProgrammeCostMinor: brand.monthlyProgrammeCostMinor,
     hotelIds: c.brandAssignments

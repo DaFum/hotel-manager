@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGameStore } from "./gameStore";
 import { SaveManager } from "../ui/SaveManager";
+import { SaveTransferPanel } from "../ui/settings/SaveTransferPanel";
 import { CITY } from "../game/content/1991/frankfurt";
 import { STARTER_HOTEL } from "../game/content/1991/starterHotel";
 import { getRate } from "../game/revenue/rates";
@@ -141,6 +142,7 @@ export function App() {
           onSave={() => game.save()}
           onLoad={() => game.load()}
         />
+        <SaveTransferPanel />
         <SaveManager
           slots={game.slots}
           recoveredFrom={game.recoveredFrom}

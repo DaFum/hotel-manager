@@ -2,7 +2,7 @@ import type { Strategy } from "../../game/competitors/strategies";
 import type { LifecycleAction } from "../../game/competitors/lifecycle";
 import { strategyProfile } from "../../game/competitors/strategies";
 import { formatBasisPoints, formatDm } from "../money";
-import { translate } from "../localization";
+import { translate, translateKey } from "../localization";
 
 export interface CompetitorRow {
   id: string;
@@ -82,7 +82,7 @@ export function CompetitorTable(props: {
           </tr>
           {props.rows.map((r) => (
             <tr key={r.id}>
-              <th scope="row">{r.name}</th>
+              <th scope="row">{translateKey(r.name)}</th>
               <td>{translate(strategyProfile(r.strategy).nameKey)}</td>
               <td>{r.rooms}</td>
               <td>{formatDm(r.rateMinor)}</td>

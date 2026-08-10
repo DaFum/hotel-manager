@@ -62,9 +62,18 @@ export interface AgentPlacement {
  * says it out loud, so the two views never disagree and neither of them
  * carries the meaning in hue alone.
  */
-export type RoomConcern = "out-of-service" | "needs-cleaning" | "none";
+export type RoomConcern =
+  "under-construction" | "out-of-service" | "needs-cleaning" | "none";
 
-export function roomConcern(state: string, cleanliness: number): RoomConcern {
+export function roomConcern(
+  state: string,
+  cleanliness: number,
+  underConstruction = false,
+): RoomConcern {
+  // A room being rebuilt outranks every other reading of it: it is floor area
+  // that is deliberately earning nothing, which is a different fact from a
+  // room that is merely broken.
+  if (underConstruction) return "under-construction";
   if (state === "OutOfOrder" || state === "Blocked") return "out-of-service";
   if (state === "VacantDirty") return "needs-cleaning";
   // An occupied room is the guest's business until they leave.

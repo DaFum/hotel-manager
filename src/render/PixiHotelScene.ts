@@ -31,6 +31,8 @@ export interface SceneModel {
   rooms: readonly SceneRoom[];
   facilities?: readonly FacilityTile[];
   agents?: readonly VisualAgent[];
+  /** Rooms shut for a renovation the house is paying for. */
+  renovatingRoomIds?: readonly string[];
   floorByRoomId?: Readonly<Record<string, number>>;
   camera?: CameraState;
   selectedId?: string | null;
@@ -51,7 +53,14 @@ const STATE_COLOURS: Record<string, number> = {
 /** The signal amber of the interface, so a selection means the same thing in
  *  the world as it does in the management panels. */
 const SELECTION = 0xe8a33d;
-const CONCERN_MARK = { "needs-cleaning": 0xe8b53a, "out-of-service": 0xe2543c };
+const CONCERN_MARK = {
+  "needs-cleaning": 0xe8b53a,
+  "out-of-service": 0xe2543c,
+  "under-construction": 0xe8a33d,
+};
+
+/** The tile under the pointer lifts towards the light. */
+const HOVER_TINT = 0xffe9c4;
 
 /** Night is not darkness — an operator still has to read the building. */
 const LIGHT_TINT = { day: 0xffffff, evening: 0xdcd0bb, night: 0xa8b4c8 };
@@ -78,6 +87,8 @@ export class PixiHotelScene {
   private onSelectRoom: ((roomId: string) => void) | null = null;
   /** The last thing drawn, so a resize can be re-framed without a snapshot. */
   private lastModel: SceneModel | null = null;
+  /** Which room the pointer is over, kept here so hover costs no re-render. */
+  private hoveredId: string | null = null;
 
   async attach(canvasHost: HTMLElement): Promise<void> {
     await this.app.init({ background: 0x0e1114, resizeTo: canvasHost });
@@ -123,6 +134,7 @@ export class PixiHotelScene {
     for (const child of this.marks.removeChildren()) child.destroy();
 
     const tint = LIGHT_TINT[lightingFor(model.minuteOfDay ?? 720)];
+    const renovating = new Set(model.renovatingRoomIds ?? []);
 
     for (const placement of this.placements(model)) {
       const tile = new Graphics()
@@ -144,16 +156,34 @@ export class PixiHotelScene {
       tile.eventMode = "static";
       tile.cursor = "pointer";
       tile.on("pointertap", () => this.onSelectRoom?.(placement.id));
+      // Hover is a pure presentation state: it lights the tile the pointer is
+      // over without asking React to redraw the page for a mouse move.
+      tile.on("pointerover", () => {
+        this.hoveredId = placement.id;
+        tile.tint = HOVER_TINT;
+      });
+      tile.on("pointerout", () => {
+        if (this.hoveredId === placement.id) this.hoveredId = null;
+        tile.tint = tint;
+      });
+      if (this.hoveredId === placement.id) tile.tint = HOVER_TINT;
 
       this.tiles.addChild(tile);
-      this.markConcern(placement);
+      this.markConcern(placement, renovating.has(placement.id));
       if (model.selectedId === placement.id) this.markSelection(placement);
     }
   }
 
   /** A room that needs attention carries a mark, not merely a shade. */
-  private markConcern(placement: RoomPlacement): void {
-    const concern = roomConcern(placement.state, placement.cleanliness);
+  private markConcern(
+    placement: RoomPlacement,
+    underConstruction: boolean,
+  ): void {
+    const concern = roomConcern(
+      placement.state,
+      placement.cleanliness,
+      underConstruction,
+    );
     if (concern === "none") return;
     const mark = new Graphics()
       .circle(placement.x + TILE_WIDTH / 2, placement.y - 4, 4)

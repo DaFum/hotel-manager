@@ -36,6 +36,32 @@ export function focusCamera(
     focusedId: target.id,
   };
 }
+/**
+ * Dragging moves the building with the pointer, so the camera travels the
+ * opposite way — and by the distance the pointer covered *in world units*, or
+ * the house would slide faster than the hand at high zoom.
+ */
+export function dragCamera(camera: CameraState, by: Point): CameraState {
+  // A zoom of zero would be a divide by nothing. The bounds forbid one; this
+  // makes the guarantee local rather than remote.
+  const zoom = camera.zoom || 1;
+  return panCamera(camera, { x: -by.x / zoom, y: -by.y / zoom });
+}
+
+/**
+ * One wheel notch is one step of zoom, whichever way the browser reports the
+ * delta and however large it claims that delta is.
+ */
+export const WHEEL_ZOOM_STEP = 0.25;
+
+export function wheelZoom(camera: CameraState, deltaY: number): CameraState {
+  if (deltaY === 0) return camera;
+  return zoomCamera(
+    camera,
+    camera.zoom + (deltaY < 0 ? WHEEL_ZOOM_STEP : -WHEEL_ZOOM_STEP),
+  );
+}
+
 export function selectFloor(
   camera: CameraState,
   floor: number,

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { SemanticHotelTree } from "./accessibility/SemanticHotelTree";
 import { roomConcern } from "../render/sceneLayout";
 import { formatDm } from "./money";
-import type { CameraState } from "../render/camera";
+import { dragCamera, wheelZoom, type CameraState } from "../render/camera";
 import type { VisualAgent } from "../render/agentMaterialization";
 import type { GameLocale } from "../i18n";
 
@@ -38,6 +38,7 @@ interface SceneModel {
   facilities: readonly HotelViewFacility[];
   agents: readonly VisualAgent[];
   floorByRoomId: Readonly<Record<string, number>>;
+  renovatingRoomIds: readonly string[];
   camera?: CameraState;
   selectedId: string | null;
   minuteOfDay: number;
@@ -97,6 +98,8 @@ export function HotelView(props: {
   renovatingRoomIds?: readonly string[];
   onSelect?: (roomId: string) => void;
   onSelectFacility?: (facilityId: string) => void;
+  /** Moving the view; the world controls move the very same camera. */
+  onCamera?: (camera: CameraState) => void;
   disableRenderer?: boolean;
   locale?: GameLocale;
 }) {
@@ -152,6 +155,7 @@ export function HotelView(props: {
       facilities: props.facilities ?? [],
       agents: props.agents ?? [],
       floorByRoomId: props.floorByRoomId ?? {},
+      renovatingRoomIds: props.renovatingRoomIds ?? [],
       camera: props.camera,
       selectedId: selected,
       minuteOfDay: props.minuteOfDay ?? 720,
@@ -161,11 +165,35 @@ export function HotelView(props: {
     props.facilities,
     props.agents,
     props.floorByRoomId,
+    props.renovatingRoomIds,
     props.camera,
     props.minuteOfDay,
     selected,
     sceneReady,
   ]);
+
+  // Pan by dragging and zoom by wheel, on the same camera the floor buttons
+  // move. The buttons stay the accessible path; this is the direct one.
+  const drag = useRef<{ x: number; y: number } | null>(null);
+  const cameraRef = useRef(props.camera);
+  cameraRef.current = props.camera;
+  const moveCamera = useRef<(camera: CameraState) => void>(() => {});
+  moveCamera.current = (camera: CameraState) => props.onCamera?.(camera);
+
+  useEffect(() => {
+    const node = host.current;
+    if (!node || !props.onCamera) return;
+    // Non-passive, because a wheel over the building must zoom the house
+    // rather than scroll the page out from under it.
+    const onWheel = (event: WheelEvent) => {
+      const camera = cameraRef.current;
+      if (!camera) return;
+      event.preventDefault();
+      moveCamera.current(wheelZoom(camera, event.deltaY));
+    };
+    node.addEventListener("wheel", onWheel, { passive: false });
+    return () => node.removeEventListener("wheel", onWheel);
+  }, [props.onCamera]);
 
   const detail = props.rooms.find((r) => r.id === selected);
   const facilityDetail = (props.facilities ?? []).find(
@@ -181,9 +209,38 @@ export function HotelView(props: {
 
   return (
     <section aria-label="Hotel view">
-      <div className="hm-canvas" ref={host} data-testid="hotel-canvas" />
+      <div
+        className="hm-canvas"
+        ref={host}
+        data-testid="hotel-canvas"
+        onPointerDown={(event) => {
+          if (!props.onCamera) return;
+          drag.current = { x: event.clientX, y: event.clientY };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const from = drag.current;
+          const camera = cameraRef.current;
+          if (!from || !camera) return;
+          drag.current = { x: event.clientX, y: event.clientY };
+          moveCamera.current(
+            dragCamera(camera, {
+              x: event.clientX - from.x,
+              y: event.clientY - from.y,
+            }),
+          );
+        }}
+        onPointerUp={(event) => {
+          drag.current = null;
+          event.currentTarget.releasePointerCapture(event.pointerId);
+        }}
+        onPointerCancel={() => {
+          drag.current = null;
+        }}
+      />
       <SemanticHotelTree
         locale={props.locale}
+        floorByRoomId={props.floorByRoomId}
         rooms={props.rooms}
         onInspect={(roomId) => {
           setSelected(roomId);

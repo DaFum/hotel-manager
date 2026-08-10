@@ -154,9 +154,20 @@
  * own frame, ruled at top and bottom so it is legible as a bounded list.
  */
 .hm-register {
-  max-height: 22rem;
+  max-height: 28rem;
   overflow-y: auto;
   border-top: 1px solid var(--hm-rule);
+  border-bottom: 1px solid var(--hm-rule);
+}
+
+/* Scrolling a tall house should never leave you unsure which floor you are
+   reading, so each storey's heading holds the top of the frame. */
+.hm-register h3 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--hm-space-2) 0;
+  background: var(--hm-surface);
   border-bottom: 1px solid var(--hm-rule);
 }
 

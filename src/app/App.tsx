@@ -404,6 +404,7 @@ export function App() {
                 }),
               )
             }
+            onCamera={setCamera}
             disableRenderer={rendererDisabled()}
             locale={preferences.locale}
           />

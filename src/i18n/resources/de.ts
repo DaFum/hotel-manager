@@ -88,6 +88,7 @@ export const de = {
     },
   },
   room: {
+    floor: "Etage {value}",
     fallback: "Zimmer",
     cleanliness: "Sauberkeit {value}",
     states: {

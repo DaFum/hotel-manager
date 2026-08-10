@@ -4,6 +4,7 @@ import {
   type VisualAgent,
 } from "../render/agentMaterialization";
 import { placeRooms } from "../render/sceneLayout";
+import { VISIBLE_AGENT_BUDGET } from "../game/simulation/materialization";
 import { getRate, isRoomCategory } from "../game/revenue/rates";
 import type { GameSnapshot } from "../game/domain/snapshot";
 
@@ -14,9 +15,6 @@ import type { GameSnapshot } from "../game/domain/snapshot";
  * the world is. The worker owns the rules, so a mistake in this file can make
  * the building look wrong but can never make the hotel behave wrong.
  */
-
-/** People drawn at once before the scene stops adding more. */
-export const VISIBLE_PEOPLE_LIMIT = 60;
 
 /**
  * Who is in the building. Guests come from the stays the house has checked in
@@ -46,7 +44,9 @@ export function visualAgents(
     queuedFor: "reception",
   }));
 
-  return materializeAgents([...waiting, ...inRooms], VISIBLE_PEOPLE_LIMIT);
+  // The house's own budget, not a second number invented beside it: the
+  // simulation already declares how many agents may be drawn at once.
+  return materializeAgents([...waiting, ...inRooms], VISIBLE_AGENT_BUDGET);
 }
 
 /** Tonight's asking price per room category, in minor units. */

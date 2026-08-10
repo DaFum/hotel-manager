@@ -86,6 +86,7 @@ export const en = {
     },
   },
   room: {
+    floor: "Floor {value}",
     fallback: "room",
     cleanliness: "cleanliness {value}",
     states: {

@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   createCamera,
   detailFor,
+  dragCamera,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  WHEEL_ZOOM_STEP,
+  wheelZoom,
   focusCamera,
   lightingFor,
   panCamera,
@@ -48,5 +53,40 @@ describe("isometric camera", () => {
       "rooms",
       "people",
     ]);
+  });
+});
+
+describe("driving the camera with a pointer", () => {
+  it("moves the building with the hand, not against it", () => {
+    const dragged = dragCamera(createCamera(), { x: 30, y: -10 });
+
+    // The pointer went right, so the camera went left and the house followed
+    // the hand.
+    expect(dragged.x).toBe(-30);
+    expect(dragged.y).toBe(10);
+  });
+
+  it("drags by what the hand covered on screen, not in the world", () => {
+    const zoomed = zoomCamera(createCamera(), 2);
+
+    // At twice the zoom, thirty screen pixels are fifteen world pixels.
+    expect(dragCamera(zoomed, { x: 30, y: 0 }).x).toBe(-15);
+  });
+
+  it("takes one wheel notch as one step, whatever the browser reports", () => {
+    const camera = createCamera();
+
+    expect(wheelZoom(camera, -1).zoom).toBe(camera.zoom + WHEEL_ZOOM_STEP);
+    expect(wheelZoom(camera, -240).zoom).toBe(camera.zoom + WHEEL_ZOOM_STEP);
+    expect(wheelZoom(camera, 240).zoom).toBe(camera.zoom - WHEEL_ZOOM_STEP);
+    expect(wheelZoom(camera, 0)).toBe(camera);
+  });
+
+  it("never wheels past the bounds the world declares", () => {
+    let camera = createCamera();
+    for (let i = 0; i < 40; i++) camera = wheelZoom(camera, -1);
+    expect(camera.zoom).toBe(MAX_ZOOM);
+    for (let i = 0; i < 40; i++) camera = wheelZoom(camera, 1);
+    expect(camera.zoom).toBe(MIN_ZOOM);
   });
 });

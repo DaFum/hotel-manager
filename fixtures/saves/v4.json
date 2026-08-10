@@ -1,0 +1,679 @@
+{
+  "saveVersion": 4,
+  "contentVersion": "plan-04-v4",
+  "protocolVersion": 2,
+  "rngState": {
+    "guests": 1619550106,
+    "staffing": 1013484112,
+    "failures": 3667924001,
+    "economy": 2027659254,
+    "events": 209978743,
+    "weather": 3041567508,
+    "AI": 1401039589
+  },
+  "state": {
+    "seed": 424242,
+    "calendar": {
+      "dateKey": "1991-01-04",
+      "minuteOfDay": 0
+    },
+    "hotel": {
+      "id": "hotel.frankfurt.1",
+      "name": "Hotel Mainblick",
+      "rooms": [
+        {
+          "id": "room.101",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.102",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.103",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.104",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.105",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.106",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.107",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.108",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.109",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.110",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.111",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.112",
+          "category": "single",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.single",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.113",
+          "category": "double",
+          "state": "Occupied",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.114",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.115",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.116",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.117",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.118",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.119",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.120",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.121",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.122",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.123",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        },
+        {
+          "id": "room.124",
+          "category": "double",
+          "state": "VacantClean",
+          "cleanliness": 100,
+          "moduleId": "room.standard.double",
+          "styleAgeYears": 16
+        }
+      ]
+    },
+    "rates": {},
+    "reservations": [
+      {
+        "id": "booking.legacy.active",
+        "roomsRequested": 1,
+        "rateMinor": 12500,
+        "status": "confirmed",
+        "category": "double",
+        "arrivalDateKey": "1991-02-01",
+        "nights": 3,
+        "channel": "directPhone",
+        "partySize": 1,
+        "segmentId": "segment.leisure",
+        "terms": {
+          "guaranteed": false,
+          "freeCancellationDays": 1,
+          "lateChargeBp": 10000
+        },
+        "history": [
+          {
+            "status": "confirmed",
+            "atMinutes": 4320
+          }
+        ],
+        "bookingDateKey": "1991-01-01",
+        "ratePlanId": "flexible",
+        "commissionBp": 0,
+        "depositMinor": 0,
+        "specialRequirements": []
+      }
+    ],
+    "stays": [
+      {
+        "bookingId": "booking.3480.1",
+        "roomId": "room.113",
+        "rateMinor": 12000,
+        "departureDateKey": "1991-01-05"
+      }
+    ],
+    "receptionQueue": [],
+    "stock": {
+      "cleaning-unit": 240,
+      "breakfast-portion": 180
+    },
+    "pendingOrders": [],
+    "staff": [
+      {
+        "id": "staff.reception.1",
+        "role": "reception",
+        "shift": "morning",
+        "skill": 70,
+        "monthlyWageMinor": 320000,
+        "absent": false
+      },
+      {
+        "id": "staff.reception.2",
+        "role": "reception",
+        "shift": "evening",
+        "skill": 60,
+        "monthlyWageMinor": 300000,
+        "absent": false
+      },
+      {
+        "id": "staff.housekeeping.1",
+        "role": "housekeeping",
+        "shift": "morning",
+        "skill": 65,
+        "monthlyWageMinor": 260000,
+        "absent": false
+      },
+      {
+        "id": "staff.housekeeping.2",
+        "role": "housekeeping",
+        "shift": "morning",
+        "skill": 55,
+        "monthlyWageMinor": 250000,
+        "absent": false
+      },
+      {
+        "id": "staff.kitchen.1",
+        "role": "kitchen",
+        "shift": "morning",
+        "skill": 60,
+        "monthlyWageMinor": 280000,
+        "absent": false
+      },
+      {
+        "id": "staff.fnb.1",
+        "role": "fnb",
+        "shift": "evening",
+        "skill": 55,
+        "monthlyWageMinor": 245000,
+        "absent": false
+      },
+      {
+        "id": "staff.laundry.1",
+        "role": "laundry",
+        "shift": "morning",
+        "skill": 50,
+        "monthlyWageMinor": 235000,
+        "absent": false
+      },
+      {
+        "id": "staff.technician.1",
+        "role": "technician",
+        "shift": "morning",
+        "skill": 65,
+        "monthlyWageMinor": 295000,
+        "absent": false
+      }
+    ],
+    "assets": [
+      {
+        "id": "asset.boiler",
+        "condition": 8970,
+        "status": "operational",
+        "minutesSinceService": 4320,
+        "rated": 120,
+        "replacementMinor": 4500000
+      },
+      {
+        "id": "asset.lift",
+        "condition": 9470,
+        "status": "operational",
+        "minutesSinceService": 4320,
+        "rated": 180,
+        "replacementMinor": 6000000
+      }
+    ],
+    "finance": {
+      "cashMinor": 39824848,
+      "payableMinor": 0,
+      "ledger": [
+        {
+          "day": 0,
+          "account": "barRevenue",
+          "amountMinor": 8100,
+          "memo": "12 bar covers"
+        },
+        {
+          "day": 1,
+          "account": "wages",
+          "amountMinor": -70484,
+          "memo": "daily payroll"
+        },
+        {
+          "day": 1,
+          "account": "barRevenue",
+          "amountMinor": 8100,
+          "memo": "12 bar covers"
+        },
+        {
+          "day": 2,
+          "account": "wages",
+          "amountMinor": -70484,
+          "memo": "daily payroll"
+        },
+        {
+          "day": 2,
+          "account": "barRevenue",
+          "amountMinor": 8100,
+          "memo": "12 bar covers"
+        },
+        {
+          "day": 3,
+          "account": "roomRevenue",
+          "amountMinor": 12000,
+          "memo": "room.113"
+        },
+        {
+          "day": 3,
+          "account": "wages",
+          "amountMinor": -70484,
+          "memo": "daily payroll"
+        }
+      ],
+      "month": {
+        "openingCashMinor": 40000000,
+        "roomRevenueMinor": 12000,
+        "otherRevenueMinor": 24300,
+        "operatingExpenseMinor": 211452,
+        "soldRoomNights": 1,
+        "availableRoomNights": 96
+      }
+    },
+    "loan": {
+      "principalMinor": 10000000,
+      "annualRateBasisPoints": 900,
+      "termMonths": 120
+    },
+    "facilities": [
+      {
+        "id": "facility.breakfast_room",
+        "name": "Breakfast room",
+        "demand": 1,
+        "capacity": 30,
+        "cause": "kitchen line"
+      },
+      {
+        "id": "facility.bar",
+        "name": "Bar and lounge",
+        "demand": 0,
+        "capacity": 40,
+        "cause": "staffed throughput"
+      },
+      {
+        "id": "facility.wellness",
+        "name": "Wellness",
+        "demand": 0,
+        "capacity": 0,
+        "cause": "therapists on duty"
+      },
+      {
+        "id": "facility.fitness",
+        "name": "Fitness",
+        "demand": 0,
+        "capacity": 6,
+        "cause": "stations and floor area"
+      },
+      {
+        "id": "facility.conference",
+        "name": "Conference",
+        "demand": 0,
+        "capacity": 120,
+        "cause": "hall capacity"
+      },
+      {
+        "id": "facility.housekeeping",
+        "name": "Housekeeping",
+        "demand": 0,
+        "capacity": 960,
+        "cause": "housekeepers on duty"
+      },
+      {
+        "id": "facility.laundry",
+        "name": "Laundry",
+        "demand": 0,
+        "capacity": 120,
+        "cause": "laundry staff"
+      },
+      {
+        "id": "facility.elevator",
+        "name": "Lifts",
+        "demand": 0,
+        "capacity": 400,
+        "cause": "cars in service"
+      },
+      {
+        "id": "facility.security",
+        "name": "Security",
+        "demand": 1,
+        "capacity": 0,
+        "cause": "guards rostered"
+      },
+      {
+        "id": "facility.staff_area",
+        "name": "Staff areas",
+        "demand": 8,
+        "capacity": 18,
+        "cause": "changing room space"
+      }
+    ],
+    "linen": {
+      "floorStock": 0,
+      "clean": 600,
+      "dirty": 0
+    },
+    "events": [],
+    "wellness": {
+      "treatmentRooms": 2,
+      "therapists": 0,
+      "openMinutes": 360,
+      "booked": 0
+    },
+    "elevatorTrips": 0,
+    "eventHousekeepingMinutes": 0,
+    "eventHousekeepingWorkedMinutes": 0,
+    "classification": {
+      "stars": 1,
+      "blockedBy": [
+        {
+          "standard": "room",
+          "actual": 37,
+          "required": 40
+        }
+      ]
+    },
+    "specializationId": null,
+    "investedArea": {
+      "conferenceSqm": 180,
+      "wellnessSqm": 90
+    },
+    "housekeepingMinutes": 8640,
+    "receptionCapacity": 1,
+    "renovation": null,
+    "alerts": [
+      {
+        "id": "alert.security-short",
+        "severity": "warning",
+        "title": "Security understaffed",
+        "cause": "1 guards short for base cover for the house"
+      }
+    ],
+    "lastMonthlyClose": null,
+    "metrics": {
+      "adrMinor": 12000,
+      "revParMinor": 125,
+      "occupancyBasisPoints": 104
+    },
+    "elapsedMinutes": 4320,
+    "rngState": {
+      "guests": 1619550106,
+      "staffing": 1013484112,
+      "failures": 3667924001,
+      "economy": 2027659254,
+      "events": 209978743,
+      "weather": 3041567508,
+      "AI": 1401039589
+    },
+    "stateVersion": 0,
+    "commandSequence": 0,
+    "commandLog": [],
+    "eventJournal": {
+      "sequence": 0,
+      "pending": [],
+      "dropped": 0
+    },
+    "guestSatisfaction": {
+      "score": 70,
+      "causes": []
+    },
+    "handledComplaintIds": [],
+    "utilities": {
+      "waterCapacity": 2000,
+      "energyCapacity": 3000,
+      "waterUsed": 0,
+      "energyUsed": 0,
+      "expenseMinor": 0,
+      "pendingExpenseMinor": 0
+    },
+    "renderDescriptors": {
+      "floorByRoomId": {
+        "room.101": 1,
+        "room.102": 1,
+        "room.103": 1,
+        "room.104": 1,
+        "room.105": 1,
+        "room.106": 1,
+        "room.107": 1,
+        "room.108": 1,
+        "room.109": 1,
+        "room.110": 1,
+        "room.111": 1,
+        "room.112": 1,
+        "room.113": 2,
+        "room.114": 2,
+        "room.115": 2,
+        "room.116": 2,
+        "room.117": 2,
+        "room.118": 2,
+        "room.119": 2,
+        "room.120": 2,
+        "room.121": 2,
+        "room.122": 2,
+        "room.123": 2,
+        "room.124": 2
+      },
+      "closedNavigationIds": [],
+      "elevator": {
+        "id": "asset.elevator",
+        "capacity": 6,
+        "queue": 0,
+        "travelMinutes": 2,
+        "failed": false
+      }
+    },
+    "savePolicy": {
+      "lastManualSlot": null,
+      "recoveryGeneration": 0
+    },
+    "world": {
+      "monthsAdvanced": 0,
+      "yearsAdvanced": 0,
+      "lastStepOrder": [],
+      "macro": {
+        "inflationBp": 250,
+        "interestBp": 900,
+        "unemploymentBp": 600,
+        "growthBp": 150
+      },
+      "technologies": [
+        {
+          "id": "personal-computer",
+          "adoptionBp": 800,
+          "peakAdoptionBp": 800,
+          "obsolete": false
+        },
+        {
+          "id": "internet",
+          "adoptionBp": 0,
+          "peakAdoptionBp": 0,
+          "obsolete": false
+        },
+        {
+          "id": "smartphone",
+          "adoptionBp": 0,
+          "peakAdoptionBp": 0,
+          "obsolete": false
+        },
+        {
+          "id": "channel-manager",
+          "adoptionBp": 0,
+          "peakAdoptionBp": 0,
+          "obsolete": false
+        }
+      ],
+      "trends": [
+        {
+          "id": "digital-booking",
+          "adoptionBp": 0
+        }
+      ],
+      "activeShocks": [],
+      "weather": {
+        "kind": "clear",
+        "severityBp": 0,
+        "demandBp": 10000,
+        "transportReliabilityBp": 10000,
+        "utilityLoadBp": 10000,
+        "outdoorCapacityBp": 10000,
+        "incidentRiskBp": 0,
+        "insurable": false
+      },
+      "commonCurrency": {
+        "id": "european-common",
+        "memberCurrencies": ["DEM"],
+        "coordinationBp": 2000,
+        "tradeIntegrationBp": 4000,
+        "publicSupportBp": 3000,
+        "active": false
+      },
+      "regulationPressureBp": 1000
+    },
+    "revenuePolicy": {
+      "overbookingLimitRooms": 0,
+      "managerAuthorityBp": 0,
+      "ratePlans": [
+        {
+          "id": "flexible",
+          "modifierBp": 10000,
+          "refundable": true,
+          "minimumStayNights": 1,
+          "maximumStayNights": null,
+          "closedToArrival": false
+        }
+      ],
+      "rules": []
+    },
+    "technologyProjects": [],
+    "technologyImplementations": []
+  }
+}

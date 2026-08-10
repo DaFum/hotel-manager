@@ -17,7 +17,12 @@
     "benchmark:all": "node --import tsx scripts/benchmark-all.ts",
     "stress:50y": "node --import tsx scripts/stress-50-years.ts",
     "content:validate": "node --import tsx scripts/validate-content.ts",
-    "content:schema": "node --import tsx scripts/record-content-schema.ts"
+    "content:schema": "node --import tsx scripts/record-content-schema.ts",
+    "test:release:a11y": "playwright test e2e/release/accessibility-localization.spec.ts",
+    "invariant:sweep": "node --import tsx scripts/invariant-sweep.ts",
+    "verify:migrations": "node --import tsx scripts/verify-migrations.ts",
+    "verify:replays": "node --import tsx scripts/verify-replays.ts",
+    "release:check": "node --import tsx scripts/release-check.ts"
   },
   "dependencies": {
     "i18next": "^26.3.6",

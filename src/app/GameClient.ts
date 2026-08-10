@@ -68,6 +68,15 @@ export class GameClient {
   constructor(private worker: Worker) {
     this.worker.onmessage = (event: MessageEvent<WorkerResponse>) =>
       this.handle(event.data);
+    this.worker.onerror = (event) => {
+      event.preventDefault();
+      for (const listener of this.errorListeners)
+        listener(event.message || "Simulation worker stopped");
+    };
+    this.worker.onmessageerror = () => {
+      for (const listener of this.errorListeners)
+        listener("Simulation worker returned unreadable data");
+    };
   }
 
   onSnapshot(listener: SnapshotListener): Unsubscribe {
@@ -205,6 +214,8 @@ export class GameClient {
     this.held = null;
     this.resyncPending = false;
     this.worker.terminate();
+    this.worker.onerror = null;
+    this.worker.onmessageerror = null;
   }
 
   /**

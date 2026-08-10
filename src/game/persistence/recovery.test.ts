@@ -111,6 +111,7 @@ describe("save recovery", () => {
     // The player is told what was refused and why, rather than silently
     // getting an older hotel than the one they asked for.
     expect(outcome.rejected[0]?.slot).toBe(slot);
+    expect(outcome.rejected[0]?.stage).toBe("validation");
     expect(outcome.rejected[0]?.reason).toMatch(/rng stream/i);
   });
 

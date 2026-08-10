@@ -1,6 +1,7 @@
 .high-contrast {
   --a11y-foreground: #fff;
   --a11y-background: #000;
+
   color: var(--a11y-foreground);
   background: var(--a11y-background);
 }

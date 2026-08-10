@@ -2,6 +2,7 @@ import type {
   AlertSeverity,
   NotificationPreferences,
 } from "../../game/settings/playerPreferences";
+import type { LocalizedText } from "../../i18n";
 export interface NotificationRecord {
   id: string;
   type: string;
@@ -9,13 +10,13 @@ export interface NotificationRecord {
   severity: AlertSeverity;
   gameTime: string;
   source: { companyId: string; hotelId?: string; regionId?: string };
-  causes: string[];
+  causes: LocalizedText[];
   delegate?: string;
-  actionTarget?: { label: string; entityId: string };
+  actionTarget?: { label: LocalizedText; entityId: string };
   read: boolean;
   acknowledged: boolean;
   groupId: string;
-  message: string;
+  message: LocalizedText;
 }
 const rank: Record<AlertSeverity, number> = {
   info: 0,

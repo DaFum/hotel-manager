@@ -3,6 +3,10 @@ import { de } from "./resources/de";
 import { en } from "./resources/en";
 
 export type GameLocale = "de-DE" | "en-GB";
+export interface LocalizedText {
+  key: string;
+  values?: Record<string, string | number>;
+}
 export async function createGameI18n(
   locale: GameLocale | "de" | "en",
 ): Promise<i18n> {

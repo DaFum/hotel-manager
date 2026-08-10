@@ -40,10 +40,15 @@ export function NotificationCenter({
       <div role="log" aria-live="polite" aria-relevant="additions text">
         {groupNotifications(visible, preferences.groupRepeated).map((group) => {
           const item = group.latest;
+          const message = translateGame(
+            locale,
+            item.message.key,
+            item.message.values,
+          );
           return (
             <article
               key={group.groupId}
-              aria-label={`${translateGame(locale, `notifications.severity.${item.severity}`)}: ${item.message}`}
+              aria-label={`${translateGame(locale, `notifications.severity.${item.severity}`)}: ${message}`}
             >
               <h3>
                 <span aria-hidden="true">{severityIcon[item.severity]}</span>{" "}
@@ -53,7 +58,7 @@ export function NotificationCenter({
                     `notifications.severity.${item.severity}`,
                   )}
                 </span>
-                : {item.message}
+                : {message}
               </h3>
               {group.count > 1 ? (
                 <p>
@@ -75,13 +80,19 @@ export function NotificationCenter({
                 </strong>
               ) : null}
               <ul>
-                {item.causes.map((cause) => (
-                  <li key={cause}>{cause}</li>
+                {item.causes.map((cause, index) => (
+                  <li key={`${index}:${cause.key}`}>
+                    {translateGame(locale, cause.key, cause.values)}
+                  </li>
                 ))}
               </ul>
               {item.actionTarget ? (
                 <button onClick={() => onAction?.(item.actionTarget!.entityId)}>
-                  {item.actionTarget.label}
+                  {translateGame(
+                    locale,
+                    item.actionTarget.label.key,
+                    item.actionTarget.label.values,
+                  )}
                 </button>
               ) : null}
               {!item.acknowledged ? (

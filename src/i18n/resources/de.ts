@@ -40,6 +40,10 @@ export const de = {
     why: "{title}: Warum?",
     empty: "Noch sind keine Einflussfaktoren verfügbar.",
     close: "Hilfe schließen",
+    drivers: {
+      businessDemand: "Geschäftsnachfrage {value} %",
+      newSupply: "Neues Angebot +{rooms} Zimmer",
+    },
   },
   tutorial: {
     region: "Geführter Einstieg",
@@ -60,6 +64,9 @@ export const de = {
     critical: "Sofortige Aufmerksamkeit erforderlich",
     acknowledge: "Bestätigen",
     open: "{title} öffnen",
+    causes: {
+      negativeLiquidity: "Bargeld abzüglich Verbindlichkeiten ist negativ",
+    },
     severity: {
       info: "Info",
       notice: "Hinweis",
@@ -76,6 +83,12 @@ export const de = {
   room: {
     fallback: "Zimmer",
     cleanliness: "Sauberkeit {value}",
+    states: {
+      VacantClean: "frei und sauber",
+      VacantDirty: "frei und unsauber",
+      Occupied: "belegt",
+      OutOfOrder: "außer Betrieb",
+    },
   },
   alerts: { liquidityCritical: "Liquidität ist kritisch" },
   events: { guestCheckin: "Gast eingecheckt" },

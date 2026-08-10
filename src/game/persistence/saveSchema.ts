@@ -243,5 +243,9 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     current.contentVersion === "plan-06-v6"
   )
     current = migrateContentVersion(current);
+  // Protocol 3 changed request correlation on the wire, not authoritative
+  // save state. Saves written by the preceding protocol remain replayable.
+  if (current.protocolVersion === 2)
+    current = { ...current, protocolVersion: PROTOCOL_VERSION };
   return current;
 }

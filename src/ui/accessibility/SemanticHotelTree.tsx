@@ -1,7 +1,5 @@
 import { translateGame, type GameLocale } from "../../i18n";
 
-const humanRoomState = (state: string) =>
-  state.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
 export interface SemanticRoom {
   id: string;
   label?: string;
@@ -26,7 +24,7 @@ export function SemanticHotelTree({
           const label =
             room.label ??
             `${room.id} ${room.category ?? translateGame(locale, "room.fallback")}`;
-          const state = humanRoomState(room.state);
+          const state = translateGame(locale, `room.states.${room.state}`);
           return (
             <li key={room.id}>
               <span>

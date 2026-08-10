@@ -26,4 +26,20 @@ describe("SemanticHotelTree", () => {
       screen.getByRole("button", { name: /inspect garden room vacant clean/i }),
     ).toBeTruthy();
   });
+  it("localizes the room state in the accessible name", () => {
+    render(
+      <SemanticHotelTree
+        rooms={[
+          { id: "room.101", label: "Gartenzimmer", state: "VacantClean" },
+        ]}
+        onInspect={() => undefined}
+        locale="de-DE"
+      />,
+    );
+    expect(
+      screen.getByRole("button", {
+        name: /prüfen gartenzimmer frei und sauber/i,
+      }),
+    ).toBeTruthy();
+  });
 });

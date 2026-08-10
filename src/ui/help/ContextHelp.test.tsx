@@ -6,12 +6,27 @@ describe("ContextHelp", () => {
     render(
       <ContextHelp
         title="Occupancy"
-        drivers={["Business demand -12%", "New supply +240 rooms"]}
+        drivers={[
+          { key: "help.drivers.businessDemand", values: { value: -12 } },
+          { key: "help.drivers.newSupply", values: { rooms: 240 } },
+        ]}
       />,
     );
     expect(screen.getByText("Business demand -12%")).toBeTruthy();
     expect(
       screen.getByRole("complementary", { name: "Occupancy help" }),
     ).toBeTruthy();
+  });
+  it("localizes interpolated drivers in German", () => {
+    render(
+      <ContextHelp
+        title="Auslastung"
+        drivers={[
+          { key: "help.drivers.businessDemand", values: { value: -12 } },
+        ]}
+        locale="de-DE"
+      />,
+    );
+    expect(screen.getByText("Geschäftsnachfrage -12 %")).toBeTruthy();
   });
 });

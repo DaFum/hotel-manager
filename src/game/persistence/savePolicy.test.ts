@@ -104,7 +104,7 @@ describe("save policy", () => {
     ] as const) {
       const migrated = migrateEnvelope(fixture as unknown as SaveEnvelope);
       expect(migrated.saveVersion, label).toBe(SAVE_VERSION);
-      expect(migrated.protocolVersion, label).toBe(2);
+      expect(migrated.protocolVersion, label).toBe(PROTOCOL_VERSION);
       expect(validateEnvelope(migrated), label).toEqual([]);
 
       const state = migrated.state as ReturnType<typeof createInitialGameState>;

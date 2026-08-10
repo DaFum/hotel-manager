@@ -1,4 +1,4 @@
-import { translateGame, type GameLocale } from "../../i18n";
+import { translateGame, type GameLocale, type LocalizedText } from "../../i18n";
 
 export function ContextHelp({
   title,
@@ -7,7 +7,7 @@ export function ContextHelp({
   locale = "en-GB",
 }: {
   title: string;
-  drivers: readonly string[];
+  drivers: readonly LocalizedText[];
   onClose?: () => void;
   locale?: GameLocale;
 }) {
@@ -17,7 +17,9 @@ export function ContextHelp({
       {drivers.length ? (
         <ul>
           {drivers.map((driver, i) => (
-            <li key={`${i}:${driver}`}>{driver}</li>
+            <li key={`${i}:${driver.key}`}>
+              {translateGame(locale, driver.key, driver.values)}
+            </li>
           ))}
         </ul>
       ) : (

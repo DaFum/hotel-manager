@@ -1,7 +1,7 @@
 {
   "saveVersion": 7,
   "contentVersion": "1991.1",
-  "protocolVersion": 2,
+  "protocolVersion": 3,
   "rngState": {
     "guests": 664291926,
     "staffing": 815383901,

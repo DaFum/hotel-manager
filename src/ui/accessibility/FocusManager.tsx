@@ -3,10 +3,12 @@ export function FocusManager({
   labels,
   selected = 0,
   onSelect,
+  targets,
 }: {
   labels: string[];
   selected?: number;
   onSelect?: (index: number) => void;
+  targets?: string[];
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
   const move = (index: number) => {
@@ -23,6 +25,7 @@ export function FocusManager({
             refs.current[index] = el;
           }}
           role="tab"
+          aria-controls={targets?.[index]}
           aria-selected={selected === index}
           tabIndex={selected === index ? 0 : -1}
           onClick={() => onSelect?.(index)}

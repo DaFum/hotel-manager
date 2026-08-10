@@ -211,7 +211,7 @@ export function App() {
           />
           <ContextHelp
             title={translateGame(preferences.locale, "help.guestSatisfaction")}
-            drivers={s.guestSatisfaction.causes}
+            drivers={s.guestSatisfaction.causes.map((key) => ({ key }))}
             locale={preferences.locale}
           />
           <section
@@ -289,15 +289,16 @@ export function App() {
                 hotelId: s.hotel.id,
                 regionId: CITY.id,
               },
-              causes: [alert.cause],
+              causes: [{ key: alert.cause }],
               read: openAlert === alert.id,
               acknowledged: acknowledgedAlerts.has(alert.id),
               groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
-              message: alert.title,
+              message: { key: alert.title },
               actionTarget: {
-                label: translateGame(preferences.locale, "notifications.open", {
-                  title: alert.title,
-                }),
+                label: {
+                  key: "notifications.open",
+                  values: { title: alert.title },
+                },
                 entityId: alert.id,
               },
             }))}

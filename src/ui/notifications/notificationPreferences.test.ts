@@ -19,7 +19,7 @@ describe("notification preferences", () => {
       read: false,
       acknowledged: false,
       groupId: "cash",
-      message: "Cash",
+      message: { key: "topbar.cash" },
     };
     const items: NotificationRecord[] = [
       { ...base, id: "1", severity: "warning" },

@@ -14,12 +14,15 @@ const item: NotificationRecord = {
     hotelId: "hotel.starter",
     regionId: "region.de",
   },
-  causes: ["Cash less payables is negative"],
-  actionTarget: { label: "Open finance", entityId: "finance" },
+  causes: [{ key: "notifications.causes.negativeLiquidity" }],
+  actionTarget: {
+    label: { key: "notifications.open", values: { title: "Finanzen" } },
+    entityId: "finance",
+  },
   read: false,
   acknowledged: false,
   groupId: "cash",
-  message: "Liquidity critical",
+  message: { key: "alerts.liquidityCritical" },
 };
 describe("NotificationCenter", () => {
   it("exposes non-audio severity, live state, cause, and action", () => {
@@ -35,8 +38,28 @@ describe("NotificationCenter", () => {
     expect(screen.getByRole("log").getAttribute("aria-live")).toBe("polite");
     expect(screen.getByText("Critical")).toBeTruthy();
     expect(screen.getByText("Immediate attention required")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Open finance" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open Finanzen" }));
     expect(action).toHaveBeenCalledWith("finance");
     expect(screen.getByRole("status").textContent).toContain("pending");
+  });
+  it("localizes message, cause, and action in German", () => {
+    render(
+      <NotificationCenter
+        notifications={[item]}
+        preferences={DEFAULT_PLAYER_PREFERENCES.notifications}
+        locale="de-DE"
+      />,
+    );
+    expect(
+      screen.getByRole("heading", {
+        name: "Kritisch: Liquidität ist kritisch",
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Bargeld abzüglich Verbindlichkeiten ist negativ"),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Finanzen öffnen" }),
+    ).toBeTruthy();
   });
 });

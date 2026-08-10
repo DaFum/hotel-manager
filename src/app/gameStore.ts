@@ -52,6 +52,7 @@ export interface GameStore {
   preferences: PlayerPreferences;
   setPreferences: (preferences: PlayerPreferences) => void;
   requestPause: () => void;
+  requestResume: () => void;
   observeTutorialAction: (
     action: Extract<TutorialObservation, "OPEN_BOOKINGS">,
   ) => void;
@@ -105,7 +106,10 @@ export function useGameStore(seed: number): GameStore {
     new Map<string, GameStore["commandStatus"]>(),
   );
   const currentCommandRequestRef = useRef<string | null>(null);
-  const pauseRequestRef = useRef<string | null>(null);
+  const controlRequestRef = useRef<{
+    requestId: string;
+    type: "pause" | "resume";
+  } | null>(null);
   const tutorialCommandRef = useRef(
     new Map<string, Extract<TutorialObservation, `${string}_ACCEPTED`>>(),
   );
@@ -171,8 +175,8 @@ export function useGameStore(seed: number): GameStore {
     client.onError((message) => setErrors((prev) => [...prev, message]));
     client.onCommandRejected(({ requestId, reason }) => {
       tutorialCommandRef.current.delete(requestId);
-      if (pauseRequestRef.current === requestId) {
-        pauseRequestRef.current = null;
+      if (controlRequestRef.current?.requestId === requestId) {
+        controlRequestRef.current = null;
         setPauseStatus("rejected");
         return;
       }
@@ -182,9 +186,10 @@ export function useGameStore(seed: number): GameStore {
       setErrors((prev) => [...prev, `command rejected: ${reason}`]);
     });
     client.onCommandAccepted(({ requestId }) => {
-      if (pauseRequestRef.current === requestId) {
-        pauseRequestRef.current = null;
-        setSpeedState(0);
+      if (controlRequestRef.current?.requestId === requestId) {
+        const control = controlRequestRef.current;
+        controlRequestRef.current = null;
+        setSpeedState(control.type === "pause" ? 0 : 1);
         setPauseStatus("accepted");
         return;
       }
@@ -244,10 +249,17 @@ export function useGameStore(seed: number): GameStore {
     setPreferences: (next) =>
       setPreferencesState(normalizePlayerPreferences(next)),
     requestPause: () => {
-      if (pauseRequestRef.current) return;
+      if (controlRequestRef.current) return;
       const requestId = clientRef.current?.pause();
       if (!requestId) return;
-      pauseRequestRef.current = requestId;
+      controlRequestRef.current = { requestId, type: "pause" };
+      setPauseStatus("pending");
+    },
+    requestResume: () => {
+      if (controlRequestRef.current) return;
+      const requestId = clientRef.current?.resume();
+      if (!requestId) return;
+      controlRequestRef.current = { requestId, type: "resume" };
       setPauseStatus("pending");
     },
     observeTutorialAction: (action) => {

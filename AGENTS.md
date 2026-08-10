@@ -296,10 +296,11 @@ What the completed tasks changed, and that later work must respect:
   entity references and the causing command id. The journal lives in game state, so a
   rolled-back command takes its events with it. All 28 declared transitions are proven to
   publish; `AWAITING_TRANSITION` is empty and must stay empty.
-- **Protocol version 2.** `STATE_DELTA` carries a real section delta against a
+- **Protocol version 3.** `STATE_DELTA` carries a real section delta against a
   publication number; `REQUEST_DETAILS` answers with one entity or a typed
   `ENTITY_NOT_FOUND`; `SIMULATION_ERROR` is structured; `PERF_SAMPLE` reports measured
   tick and command latency. `WHOLE_GAME_ENTITY_ID` is how a client resynchronises.
+  `PAUSE`, `RESUME`, and `REQUEST_SAVE` carry required correlation fields.
 - **Saves** have manual, autosave and recovery slots with three rotating generations.
   `validateEnvelope` names what is wrong rather than answering yes or no, and both
   `REQUEST_SAVE` and `LOAD_GAME` go through it. A refused load leaves the running game

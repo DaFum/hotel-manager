@@ -40,6 +40,10 @@ export const en = {
     why: "{title}: Why?",
     empty: "No contributing factors are available yet.",
     close: "Close help",
+    drivers: {
+      businessDemand: "Business demand {value}%",
+      newSupply: "New supply +{rooms} rooms",
+    },
   },
   tutorial: {
     region: "Guided onboarding",
@@ -60,6 +64,7 @@ export const en = {
     critical: "Immediate attention required",
     acknowledge: "Acknowledge",
     open: "Open {title}",
+    causes: { negativeLiquidity: "Cash less payables is negative" },
     severity: {
       info: "Info",
       notice: "Notice",
@@ -76,6 +81,12 @@ export const en = {
   room: {
     fallback: "room",
     cleanliness: "cleanliness {value}",
+    states: {
+      VacantClean: "vacant clean",
+      VacantDirty: "vacant dirty",
+      Occupied: "occupied",
+      OutOfOrder: "out of order",
+    },
   },
   alerts: { liquidityCritical: "Liquidity is critical" },
   events: { guestCheckin: "Guest checked in" },

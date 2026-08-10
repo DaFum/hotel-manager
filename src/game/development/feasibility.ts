@@ -48,17 +48,19 @@ export function calculateFeasibility(
   if (input.uncertaintyBasisPoints > 10_000)
     throw new Error("invalid uncertainty basis points");
 
-  const gross =
+  // Every fixed-point product is checked before its division: a product that
+  // has already left the safe range would divide down to a plausible-looking
+  // but wrong figure, and the scheme would be underwritten on it.
+  const gross = checkedProduct(
     input.expectedAdrMinor *
-    input.rooms *
-    DAYS_PER_YEAR *
-    input.occupancyBasisPoints;
-  // Checked before the division: a product that has already left the safe
-  // range would divide down to a plausible-looking but wrong figure.
-  if (!Number.isSafeInteger(gross))
-    throw new Error("the scheme's revenue exceeds the safe integer range");
+      input.rooms *
+      DAYS_PER_YEAR *
+      input.occupancyBasisPoints,
+  );
   const base = Math.trunc(gross / 10_000);
-  const spread = Math.trunc((base * input.uncertaintyBasisPoints) / 10_000);
+  const spread = Math.trunc(
+    checkedProduct(base * input.uncertaintyBasisPoints) / 10_000,
+  );
 
   const margin = input.gopMarginBasisPoints;
   if (margin !== undefined) {
@@ -66,7 +68,9 @@ export function calculateFeasibility(
     if (margin > 10_000) throw new Error("invalid gop margin");
   }
   const gop = (revenueMinor: number): number | null =>
-    margin === undefined ? null : Math.trunc((revenueMinor * margin) / 10_000);
+    margin === undefined
+      ? null
+      : Math.trunc(checkedProduct(revenueMinor * margin) / 10_000);
 
   const investment = input.investmentMinor;
   if (investment !== undefined)
@@ -74,7 +78,7 @@ export function calculateFeasibility(
   const returnOnCost = (gopMinor: number | null): number | null =>
     gopMinor === null || investment === undefined || investment === 0
       ? null
-      : Math.trunc((gopMinor * 10_000) / investment);
+      : Math.trunc(checkedProduct(gopMinor * 10_000) / investment);
 
   return {
     downsideAnnualRoomRevenueMinor: base - spread,
@@ -107,4 +111,15 @@ export function feasibilityVerdict(
         proceed: false,
         reason: `return on cost ${roc}bp is short of the ${hurdleBasisPoints}bp hurdle`,
       };
+}
+
+/**
+ * A fixed-point product, proved before it is divided back down. Every figure a
+ * scheme is underwritten on passes through here, because an intermediate that
+ * has already lost precision divides into a number that still looks credible.
+ */
+function checkedProduct(product: number): number {
+  if (!Number.isSafeInteger(product))
+    throw new Error("the scheme's revenue exceeds the safe integer range");
+  return product;
 }

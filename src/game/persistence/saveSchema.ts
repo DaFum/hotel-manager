@@ -147,6 +147,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   else if (
     !company.portfolio.hotelLegalEntity ||
     typeof company.portfolio.hotelLegalEntity !== "object" ||
+    // A list of entities is not a map from hotel to entity.
+    Array.isArray(company.portfolio.hotelLegalEntity) ||
     company.portfolio.hotelIds.some((id) => typeof id !== "string")
   )
     // Reported rather than thrown: a malformed save must be refused with a
@@ -155,8 +157,16 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   else {
     if (!company.portfolio.hotelIds.includes(state.hotel?.id as string))
       problems.push("the company portfolio does not hold this save's hotel");
+    // An own-property check against a named string: a hotel called `toString`
+    // would otherwise resolve an inherited function and pass for an entity.
     for (const hotelId of company.portfolio.hotelIds)
-      if (!company.portfolio.hotelLegalEntity[hotelId])
+      if (
+        typeof hotelId !== "string" ||
+        !hotelId ||
+        !Object.hasOwn(company.portfolio.hotelLegalEntity, hotelId) ||
+        typeof company.portfolio.hotelLegalEntity[hotelId] !== "string" ||
+        !company.portfolio.hotelLegalEntity[hotelId]
+      )
         problems.push(`hotel ${hotelId} is held by no legal entity`);
   }
 

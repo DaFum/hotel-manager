@@ -131,7 +131,9 @@ export function createCompanyState(): CompanyState {
           minGuestSatisfaction: brand.standard.minGuestSatisfaction,
           // Spread rather than assigned: a brand that promises no star rating
           // should not persist an explicit `undefined` for one.
-          ...("minStars" in brand.standard
+          ...("minStars" in brand.standard &&
+          Object.hasOwn(brand.standard, "minStars") &&
+          brand.standard.minStars !== undefined
             ? { minStars: brand.standard.minStars }
             : {}),
         },

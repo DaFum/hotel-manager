@@ -1,5 +1,5 @@
 import { compareIds } from "../domain/ids";
-import { assertNonNegativeMinor } from "../domain/units";
+import { assertMinor, assertNonNegativeMinor } from "../domain/units";
 import type { HotelValuation } from "./valuation";
 
 /**
@@ -66,8 +66,11 @@ export function runDueDiligence(input: {
     uncoveredAreas: DUE_DILIGENCE_AREAS.filter(
       (area) => !examined.includes(area),
     ),
+    // Each finding is valid on its own; their total is what the buyer pays for,
+    // so the running sum is what has to stay postable.
     discoveredLiabilityMinor: findings.reduce(
-      (sum, finding) => sum + finding.costMinor,
+      (sum, finding) =>
+        assertNonNegativeMinor(sum + finding.costMinor, "discovered liability"),
       0,
     ),
     costMinor: examined.length * AREA_COST_MINOR,
@@ -83,9 +86,13 @@ export function adjustedValuation(
   valuation: HotelValuation,
   report: DueDiligenceReport,
 ): HotelValuation {
+  const equityValueMinor =
+    valuation.equityValueMinor - report.discoveredLiabilityMinor;
+  // Equity may go negative — that is what a bad diligence means — but it still
+  // has to be a number the ledger and the UI can read.
+  assertMinor(equityValueMinor, "adjusted equity value");
   return {
     enterpriseValueMinor: valuation.enterpriseValueMinor,
-    equityValueMinor:
-      valuation.equityValueMinor - report.discoveredLiabilityMinor,
+    equityValueMinor,
   };
 }

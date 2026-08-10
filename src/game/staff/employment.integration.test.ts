@@ -81,7 +81,10 @@ describe("the workforce against a real trading hotel", () => {
     const before = s.state.workforce.employees.map((employee) => ({
       id: employee.id,
       overtimeHours: employee.overtimeHours,
-      contract: employee.contract,
+      // Copied, not referenced: a close that mutated the contract in place
+      // would otherwise change this snapshot too and the assertion below
+      // would pass without proving anything.
+      contract: structuredClone(employee.contract),
       leaveDaysTaken: employee.leaveDaysTaken,
     }));
     expect(before.length).toBeGreaterThan(0);

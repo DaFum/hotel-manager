@@ -33,9 +33,12 @@ describe("commercial spaces in a real hotel", () => {
     // The month reset leaves the current month's counters, which is what the
     // panel shows; the ledger holds what the previous month earned.
     expect(Object.values(sold).some((value) => value > 0)).toBe(true);
-    for (const space of s.state.commercialSpaces.spaces)
-      // Nothing may sell more than it can serve at once in a day.
-      expect(sold[space.id] ?? 0).toBeLessThanOrEqual(space.capacity * 40);
+    // A negative count would satisfy "something sold" on its own, so every
+    // space is checked. There is deliberately no upper bound here: `capacity`
+    // is what a space serves at once, not a daily ceiling the simulation
+    // enforces, and asserting one would pin a rule that does not exist.
+    for (const value of Object.values(sold))
+      expect(value).toBeGreaterThanOrEqual(0);
     const earned = s.state.finance.ledger.filter(
       (entry) => entry.account === "commercialSpaces",
     );

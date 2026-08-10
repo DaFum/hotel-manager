@@ -186,8 +186,13 @@ export function assistedCostMinor(
   // which is not a harder game, it is an unpostable amount.
   if (inputs.assistanceBasisPoints === 0) throw new Error("invalid assistance");
   if (baseCostMinor === 0) return 0;
-  return Math.max(
-    1,
-    Math.ceil((baseCostMinor * NEUTRAL_BP) / inputs.assistanceBasisPoints),
-  );
+  // Both the scaled product and the rounded result are checked: two individually
+  // valid numbers can multiply into an amount no ledger can post precisely.
+  const scaledMinor = baseCostMinor * NEUTRAL_BP;
+  if (!Number.isSafeInteger(scaledMinor))
+    throw new Error("invalid assisted cost");
+  const costMinor = Math.ceil(scaledMinor / inputs.assistanceBasisPoints);
+  if (!Number.isSafeInteger(costMinor))
+    throw new Error("invalid assisted cost");
+  return Math.max(1, costMinor);
 }

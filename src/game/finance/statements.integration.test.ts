@@ -86,8 +86,11 @@ describe("the statements against a real trading hotel", () => {
     for (let i = 0; i < (40 * 1440) / QUANTUM_MINUTES; i += 1)
       reloaded.advanceQuantum();
 
-    // Exactly one further month was charged, and it was a different month.
-    const oneMonth = before / 2;
+    // Exactly one further month was charged, and it was a different month. The
+    // charge is read from the statement rather than halving the accumulated
+    // total, which would silently measure something else if the setup above
+    // ever ran for a different number of months.
+    const oneMonth = statements.depreciationThisPeriodMinor;
     expect(reloaded.state.statements.accumulatedDepreciationMinor).toBe(
       before + oneMonth,
     );
@@ -143,5 +146,22 @@ describe("the statements against a real trading hotel", () => {
     expect(s.state.meters.energy).toBeGreaterThan(0);
     expect(s.state.meters.water).toBeGreaterThan(0);
     expect(s.state.meters.waste).toBeGreaterThan(0);
+  });
+
+  it("posts each standing charge once a month, not once a day", () => {
+    // The bug this guards: the standing charge used to ride along with every
+    // daily meter posting, charging a month's line rental thirty times over.
+    const s = play(40);
+    const contracts = s.state.utilityContracts;
+    for (const kind of ["energy", "water", "waste"] as const) {
+      const postings = s.state.finance.ledger.filter(
+        (e) => e.memo === `${kind} standing charge`,
+      );
+      expect(postings).toHaveLength(1);
+      expect(postings[0].account).toBe("utilities");
+      expect(postings[0].amountMinor).toBe(
+        -contracts[kind].standingChargeMinor,
+      );
+    }
   });
 });

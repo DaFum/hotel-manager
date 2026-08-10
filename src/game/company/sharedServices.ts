@@ -75,10 +75,16 @@ export function headquartersMonthlyCostMinor(input: {
   assertCount(input.hotelCount, "hotel count");
   assertNonNegativeMinor(input.baseMinor, "headquarters base cost");
   assertNonNegativeMinor(input.perHotelMinor, "headquarters cost per hotel");
-  return (
+  // The product is checked by safeProductMinor; the sum it lands in is not, and
+  // a valid base plus a valid product can still leave the safe range.
+  const totalMinor =
     input.baseMinor +
-    safeProductMinor(input.hotelCount, input.perHotelMinor, "headquarters cost")
-  );
+    safeProductMinor(
+      input.hotelCount,
+      input.perHotelMinor,
+      "headquarters cost",
+    );
+  return assertNonNegativeMinor(totalMinor, "headquarters cost");
 }
 
 /**

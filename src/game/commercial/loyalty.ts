@@ -123,6 +123,15 @@ export function burnPoints(
  * same points be burnt later against a liability that no longer covers them,
  * and the group would end up owing a negative amount.
  */
+/**
+ * One member's share of the write-off. The total released and the balances it
+ * comes off have to be the same arithmetic, or the liability stops reconciling
+ * to the points outstanding — so both read it from here.
+ */
+function memberBreakagePoints(member: { points: number }): number {
+  return Math.trunc((member.points * BREAKAGE_BASIS_POINTS) / 10_000);
+}
+
 export function releaseBreakageMinor(state: LoyaltyState): {
   state: LoyaltyState;
   releasedMinor: number;
@@ -130,19 +139,13 @@ export function releaseBreakageMinor(state: LoyaltyState): {
 } {
   const writtenOffPoints = [...state.members]
     .sort((a, b) => compareIds(a.guestId, b.guestId))
-    .reduce(
-      (sum, member) =>
-        sum + Math.trunc((member.points * BREAKAGE_BASIS_POINTS) / 10_000),
-      0,
-    );
+    .reduce((sum, member) => sum + memberBreakagePoints(member), 0);
   const releasedMinor = writtenOffPoints * POINT_VALUE_MINOR;
   return {
     state: {
       members: state.members.map((member) => ({
         ...member,
-        points:
-          member.points -
-          Math.trunc((member.points * BREAKAGE_BASIS_POINTS) / 10_000),
+        points: member.points - memberBreakagePoints(member),
       })),
       liabilityMinor: state.liabilityMinor - releasedMinor,
     },

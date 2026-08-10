@@ -64,6 +64,18 @@ export type CompanyCommand = Extract<
   { type: (typeof COMPANY_COMMAND_TYPES)[number] }
 >;
 
+/**
+ * What the advisers actually charge. A disclosed difficulty input: an easier
+ * game buys the same advice cheaper, and the findings are unchanged because
+ * assistance is a discount on help rather than better information.
+ *
+ * Read by validation and by the posting, so the two can never disagree about
+ * what the group is being asked to pay.
+ */
+function advisoryFeeMinor(state: GameState, listPriceMinor: number): number {
+  return assistedCostMinor(listPriceMinor, state.narrative.campaign.inputs);
+}
+
 export function isCompanyCommand(
   command: GameCommand,
 ): command is CompanyCommand {
@@ -151,9 +163,12 @@ export function validateCompanyCommand(
       if (findDevelopment(c, command.developmentId))
         return no("development already started");
       // The hotel id is derived from the development id, so two schemes with
-      // different ids can still collide on the house they would become.
+      // different ids can still collide on the house they would become — and a
+      // scheme still under construction has not reached the portfolio yet.
+      const plannedHotelId = developmentHotelId(command.developmentId);
       if (
-        c.portfolio.hotelIds.includes(developmentHotelId(command.developmentId))
+        c.portfolio.hotelIds.includes(plannedHotelId) ||
+        c.developments.some((d) => d.hotelId === plannedHotelId)
       )
         return no("the group already holds that hotel");
       if (!Number.isSafeInteger(command.rooms) || command.rooms <= 0)
@@ -205,7 +220,10 @@ export function validateCompanyCommand(
       } catch (error) {
         return no((error as Error).message);
       }
-      if (state.finance.cashMinor < report.costMinor)
+      // The assisted fee, the same one the apply path spends: validating
+      // against the list price would accept a diligence the group cannot pay
+      // for and then book the shortfall as a payable.
+      if (state.finance.cashMinor < advisoryFeeMinor(state, report.costMinor))
         return no("insufficient cash");
       return ok;
     }
@@ -492,7 +510,7 @@ export function applyCompanyCommand(
           development.feasibility.baseAnnualRoomRevenueMinor /
             Math.max(1, development.rooms * 365),
         ),
-        occupancyBasisPoints: 7000,
+        occupancyBasisPoints: development.occupancyBasisPoints,
         gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
         openedDateKey: state.calendar.dateKey,
       });
@@ -515,13 +533,7 @@ export function applyCompanyCommand(
         areas: command.areas,
         findings: target.hiddenFindings,
       });
-      // What the advisers charge is a disclosed difficulty input: an easier
-      // game buys the same advice cheaper. The report itself is unchanged —
-      // assistance is a discount on help, not better findings.
-      const feeMinor = assistedCostMinor(
-        report.costMinor,
-        state.narrative.campaign.inputs,
-      );
+      const feeMinor = advisoryFeeMinor(state, report.costMinor);
       ctx.spend(feeMinor, "advisory", `diligence on ${target.name}`);
       c.dueDiligence = { ...c.dueDiligence, [command.targetId]: report };
       ctx.emit(

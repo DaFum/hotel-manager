@@ -562,7 +562,13 @@ export class GameSimulation implements CommandExecutor {
               ok: false,
               reason: "market information is already complete",
             };
-          if (s.finance.cashMinor < REPORT_COST_MINOR)
+          // The adjusted fee, not the list price: validating against one number
+          // and spending another would accept a purchase the player cannot
+          // afford and then book the shortfall as a payable.
+          if (
+            s.finance.cashMinor <
+            assistedCostMinor(REPORT_COST_MINOR, s.narrative.campaign.inputs)
+          )
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         case "ADOPT_TECHNOLOGY": {
@@ -3249,8 +3255,11 @@ export class GameSimulation implements CommandExecutor {
     // asset and an investment buys a stake, and neither is a cost of running
     // the hotel this month. The expense is recognised in full even when cash
     // cannot cover it.
-    const cls = accountClass(account);
-    if (cls === "operating" || cls === "financing")
+    // Trading costs only. Interest is a financing cost, and `profitAndLoss`
+    // reports it as one; counting it here as well would make the close's
+    // operating profit disagree with the statement's for the same period, and
+    // every result read off `hotelResults` would inherit the lower figure.
+    if (accountClass(account) === "operating")
       s.finance.month.operatingExpenseMinor += amountMinor;
     // Capital spend buys something: the balance sheet has to know it exists.
     if (account === "capex")

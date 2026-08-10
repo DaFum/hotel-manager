@@ -104,20 +104,27 @@ are implemented.
 Fresh verification of the Plan 06 gate on 2026-08-09 produced these exact
 results:
 
-- `npm run test:run` — passed (136 files, 813 tests).
+- `npm run test:run` — passed (137 files, 818 tests).
 - `npm run typecheck` — passed.
 - `npm run lint` — passed.
 - `npm run build` — passed.
 - `npm run test:e2e` — passed (22 tests).
 - `npm run benchmark` — passed (a simulated year in 5.9s against a 30s budget).
-- `scripts/replay-plans-01-03.ts` — passed with hash `da457f73`.
+- `scripts/replay-plans-01-03.ts` — passed with hash `a7f91d3b`.
 - `scripts/verify-plans-01-03-long-run.ts` — passed.
 
-The replay hash moved from `4c76b90b` to `c84d4e4c` when the utility standing
-charge became a monthly posting instead of a daily one, and to `da457f73` when
-the difficulty levers were wired up — the narrative month now takes a second
-draw for its frequency gate. Both times the corpus was re-recorded with
-`scripts/record-replay-corpus.ts` rather than edited.
+The replay hash has moved three times, and each time the corpus was re-recorded
+with `scripts/record-replay-corpus.ts` rather than edited: to `c84d4e4c` when the
+utility standing charge became a monthly posting instead of a daily one, to
+`da457f73` when the difficulty levers were wired up and the narrative month began
+taking a second draw for its frequency gate, and to `a7f91d3b` when interest
+stopped counting toward the month's operating expense.
+
+Interest is a financing cost and `profitAndLoss` has always reported it as one.
+While `spend()` also added it to `finance.month.operatingExpenseMinor`, the
+monthly close and the statement disagreed about the same period's operating
+profit, and every result read off `hotelResults` inherited the lower figure. The
+month accumulator now takes trading costs only.
 
 Plan 07 (content and authoring pipeline) is next.
 

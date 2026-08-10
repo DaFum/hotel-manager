@@ -39,6 +39,13 @@ export interface ManagedHotelRecord {
  * the price the buyer paid and the money the house makes describe two
  * different hotels.
  */
+/** A basis-point share of one whole: never negative, never over 100%. */
+function assertShareBp(value: number, label: string): number {
+  assertBasisPoints(value, label);
+  if (value > 10_000) throw new Error(`invalid ${label}`);
+  return value;
+}
+
 export function adrForAnnualGopMinor(input: {
   annualGopMinor: number;
   rooms: number;
@@ -46,25 +53,33 @@ export function adrForAnnualGopMinor(input: {
   gopMarginBasisPoints: number;
 }): number {
   assertCount(input.rooms, "rooms");
+  assertNonNegativeMinor(input.annualGopMinor, "annual gop");
+  // Both are shares of one, so the general basis-point bound is not enough:
+  // a house cannot sell more nights than it has or keep more than it earns.
+  assertShareBp(input.occupancyBasisPoints, "occupancy");
+  assertShareBp(input.gopMarginBasisPoints, "gop margin");
   if (
     input.rooms === 0 ||
     input.occupancyBasisPoints === 0 ||
     input.gopMarginBasisPoints === 0 ||
-    input.annualGopMinor <= 0
+    input.annualGopMinor === 0
   )
     return 0;
-  const revenueMinor = Math.trunc(
+  const revenueMinor = Math.ceil(
     (input.annualGopMinor * 10_000) / input.gopMarginBasisPoints,
   );
-  const roomRevenueMinor = Math.trunc(
+  const roomRevenueMinor = Math.ceil(
     (revenueMinor * 10_000) / (10_000 + ANCILLARY_REVENUE_SHARE_BP),
   );
   const soldRoomNights = Math.trunc(
     (input.rooms * 365 * input.occupancyBasisPoints) / 10_000,
   );
+  // Rounded up at every step, so the rate this returns actually reaches the
+  // GOP it was asked for. Truncating each inverse step in turn lands a Pfennig
+  // or two short, and a house underwritten on it would miss its own number.
   return soldRoomNights === 0
     ? 0
-    : Math.max(1, Math.trunc(roomRevenueMinor / soldRoomNights));
+    : Math.max(1, Math.ceil(roomRevenueMinor / soldRoomNights));
 }
 
 /** The rate implied by a whole year of room revenue at a stated occupancy. */
@@ -74,6 +89,8 @@ export function adrForAnnualRoomRevenueMinor(input: {
   occupancyBasisPoints: number;
 }): number {
   assertCount(input.rooms, "rooms");
+  assertNonNegativeMinor(input.annualRoomRevenueMinor, "annual room revenue");
+  assertShareBp(input.occupancyBasisPoints, "occupancy");
   const soldRoomNights = Math.trunc(
     (input.rooms * 365 * input.occupancyBasisPoints) / 10_000,
   );

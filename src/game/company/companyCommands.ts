@@ -1,4 +1,5 @@
 import type { GameState } from "../simulation/initialState";
+import { assistedCostMinor } from "../campaign/difficultyEffects";
 import type { GameCommand } from "../commands/commandEnvelope";
 import type { DomainEventPayload } from "../domain/events";
 import { addDays } from "../domain/calendar";
@@ -31,7 +32,11 @@ import {
   markTargetStatus,
 } from "../ma/acquisition";
 import { addHotelToPortfolio } from "./portfolio";
-import { createManagedHotel, registerManagedHotel } from "./managedHotels";
+import {
+  createManagedHotel,
+  registerManagedHotel,
+  underwrittenOccupancyBp,
+} from "./managedHotels";
 import { findDevelopment } from "./companyState";
 import {
   DEVELOPMENT_HURDLE_BP,
@@ -62,6 +67,18 @@ export type CompanyCommand = Extract<
   GameCommand,
   { type: (typeof COMPANY_COMMAND_TYPES)[number] }
 >;
+
+/**
+ * What the advisers actually charge. A disclosed difficulty input: an easier
+ * game buys the same advice cheaper, and the findings are unchanged because
+ * assistance is a discount on help rather than better information.
+ *
+ * Read by validation and by the posting, so the two can never disagree about
+ * what the group is being asked to pay.
+ */
+function advisoryFeeMinor(state: GameState, listPriceMinor: number): number {
+  return assistedCostMinor(listPriceMinor, state.narrative.campaign.inputs);
+}
 
 export function isCompanyCommand(
   command: GameCommand,
@@ -149,6 +166,15 @@ export function validateCompanyCommand(
     case "START_DEVELOPMENT": {
       if (findDevelopment(c, command.developmentId))
         return no("development already started");
+      // The hotel id is derived from the development id, so two schemes with
+      // different ids can still collide on the house they would become — and a
+      // scheme still under construction has not reached the portfolio yet.
+      const plannedHotelId = developmentHotelId(command.developmentId);
+      if (
+        c.portfolio.hotelIds.includes(plannedHotelId) ||
+        c.developments.some((d) => d.hotelId === plannedHotelId)
+      )
+        return no("the group already holds that hotel");
       if (!Number.isSafeInteger(command.rooms) || command.rooms <= 0)
         return no("a development needs whole rooms");
       let feasibility;
@@ -198,7 +224,10 @@ export function validateCompanyCommand(
       } catch (error) {
         return no((error as Error).message);
       }
-      if (state.finance.cashMinor < report.costMinor)
+      // The assisted fee, the same one the apply path spends: validating
+      // against the list price would accept a diligence the group cannot pay
+      // for and then book the shortfall as a payable.
+      if (state.finance.cashMinor < advisoryFeeMinor(state, report.costMinor))
         return no("insufficient cash");
       return ok;
     }
@@ -247,6 +276,11 @@ export function acquisitionFloorMinor(
   // findings nobody looked for are not, and travel with the deal instead.
   const adjusted = report ? adjustedValuation(base, report) : base;
   return Math.max(0, adjusted.equityValueMinor);
+}
+
+/** The hotel a scheme becomes; derived once, so nothing can disagree on it. */
+export function developmentHotelId(developmentId: string): string {
+  return `hotel.${developmentId.split(".").slice(1).join(".")}`;
 }
 
 function studyFor(
@@ -405,7 +439,7 @@ export function applyCompanyCommand(
       return;
     }
     case "START_DEVELOPMENT": {
-      const hotelId = `hotel.${command.developmentId.split(".").slice(1).join(".")}`;
+      const hotelId = developmentHotelId(command.developmentId);
       ctx.spend(command.investmentMinor, "capex", command.name);
       c.developments = [
         ...c.developments,
@@ -415,6 +449,7 @@ export function applyCompanyCommand(
           name: command.name,
           cityId: command.cityId,
           rooms: command.rooms,
+          occupancyBasisPoints: command.occupancyBasisPoints,
           investmentMinor: command.investmentMinor,
           feasibility: studyFor(command),
           preOpening: createPreOpening(
@@ -479,7 +514,7 @@ export function applyCompanyCommand(
           development.feasibility.baseAnnualRoomRevenueMinor /
             Math.max(1, development.rooms * 365),
         ),
-        occupancyBasisPoints: 7000,
+        occupancyBasisPoints: underwrittenOccupancyBp(development),
         gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
         openedDateKey: state.calendar.dateKey,
       });
@@ -502,14 +537,15 @@ export function applyCompanyCommand(
         areas: command.areas,
         findings: target.hiddenFindings,
       });
-      ctx.spend(report.costMinor, "advisory", `diligence on ${target.name}`);
+      const feeMinor = advisoryFeeMinor(state, report.costMinor);
+      ctx.spend(feeMinor, "advisory", `diligence on ${target.name}`);
       c.dueDiligence = { ...c.dueDiligence, [command.targetId]: report };
       ctx.emit(
         {
           type: "DUE_DILIGENCE_COMPLETED",
           targetId: command.targetId,
           areas: report.areas,
-          costMinor: report.costMinor,
+          costMinor: feeMinor,
         },
         [command.targetId],
       );

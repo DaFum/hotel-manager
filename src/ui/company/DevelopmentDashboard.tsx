@@ -1,6 +1,5 @@
-import { formatDm } from "../money";
-import { formatBasisPoints } from "../money";
 import type { OpeningChecklistItem } from "../../game/development/preOpening";
+import { formatBasisPoints, formatDm } from "../money";
 
 export interface DevelopmentRow {
   id: string;
@@ -62,7 +61,7 @@ export function DevelopmentDashboard(props: {
             <p>Opened {development.openedDateKey}</p>
           ) : (
             <>
-              <p id={`development-${development.id}-requirements`}>
+              <p id={`${development.id}.outstanding`}>
                 {development.missing.length === 0
                   ? "Ready to open"
                   : `Outstanding: ${development.missing.join(", ")}`}
@@ -80,11 +79,8 @@ export function DevelopmentDashboard(props: {
               <button
                 type="button"
                 disabled={development.missing.length > 0}
-                aria-describedby={
-                  development.missing.length > 0
-                    ? `development-${development.id}-requirements`
-                    : undefined
-                }
+                // A disabled control has to say why, or it is just a dead end.
+                aria-describedby={`${development.id}.outstanding`}
                 onClick={() => props.onOpen(development.id)}
                 aria-label={`Open ${development.name}`}
               >

@@ -10,11 +10,12 @@ test("shows the group as a portfolio the player can drill into", async ({
   // The house the player runs is a row in the group, not a special case.
   const flagship = portfolio.getByRole("article", { name: "Hotel Mainblick" });
   await expect(flagship).toBeVisible();
-  await expect(flagship).toContainText(/% occupancy/);
+  await expect(flagship).toContainText(/\d+\.\d% occupancy/);
   await expect(flagship).toContainText(/Manager: /);
   await expect(flagship).toContainText(/held owned/);
 
   await flagship.getByRole("button", { name: /open hotel mainblick/i }).click();
+  // The drill-down names the house, not the id it is stored under.
   await expect(page.getByLabel("Selected hotel")).toContainText(
     "Hotel Mainblick",
   );
@@ -51,6 +52,9 @@ test("keeps delegated authority and the decisions it sent up on one panel", asyn
   await expect(governance).toContainText(/repairs to .*DM/);
   await expect(governance).toContainText(/service recovery to .*DM/);
 
+  // The starter manager may commission 5000,00 DM of repairs; raising the
+  // limit doubles it to a value the panel then states.
+  await expect(governance).toContainText("repairs to 5000,00 DM");
   await governance
     .getByRole("button", { name: /raise the repair limit/i })
     .click();
@@ -85,7 +89,7 @@ test("carries the group through a save and a reload", async ({ page }) => {
   ).toContainText("Flag: Mainblick");
 });
 
-test("shows Commercial advertising, negotiated rates, and loyalty liability", async ({
+test("shows what is advertised, what is agreed, and what loyalty owes", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
@@ -100,6 +104,10 @@ test("shows Commercial advertising, negotiated rates, and loyalty liability", as
   await expect(commercial.getByLabel("Loyalty liability")).toContainText(
     /members, .*DM owed in points/,
   );
+
+  // Nothing has been scored yet on a fresh game: reputation only moves when
+  // something has actually happened to somebody, and no month has closed.
+  await expect(commercial).toContainText("Reputation");
 });
 
 test("shows the parts of the hotel that are not bedrooms as a business", async ({

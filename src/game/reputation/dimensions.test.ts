@@ -100,7 +100,7 @@ describe("reputation dimensions", () => {
 
   it("clamps to the declared range instead of running away", () => {
     let state = createReputationState();
-    for (let i = 0; i < 20; i += 1)
+    for (let i = 0; i < CONTRIBUTOR_LIMIT + 4; i += 1)
       state = applyReputationEvent(state, {
         dimension: "media",
         scopeId: "company.player",

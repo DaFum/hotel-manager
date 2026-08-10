@@ -202,6 +202,7 @@ import {
   workOvertime,
 } from "../staff/employeeLifecycle";
 import { createProcurementState } from "../purchasing/contracts";
+import { createManagerAuthority } from "../management/managerAuthority";
 import {
   beginStay,
   createGuestRelationsState,
@@ -237,6 +238,13 @@ import {
 } from "../company/companyCommands";
 import { runCompanyMonth, syncTreasury } from "../company/companyMonth";
 import {
+  adjustedForecastQuality,
+  assistedCostMinor,
+  bufferedCrisisRiskBp,
+  toleratedSatisfactionDelta,
+} from "../campaign/difficultyEffects";
+import {
+  accountClass,
   capitaliseAsset,
   createStatements,
   depreciationMinor,
@@ -247,9 +255,11 @@ import {
   totalMonthlyPremiumMinor,
 } from "../risk/insurance";
 import {
+  UTILITY_KINDS,
   createUtilityContracts,
   readMeters,
-  utilityBillMinor,
+  standingChargeMinor,
+  utilityUsageMinor,
   wasteDisposalMinor,
 } from "../utilities/consumption";
 /** The MASTER deterministic phase contract; order is part of the save format. */
@@ -332,6 +342,8 @@ const ARRIVAL_ALERT_IDS = [
 const HANDLED_COMPLAINT_LIMIT = 256;
 /** The minute of the hotel day the commercial spaces are settled for. */
 const SHOP_TRADING_MINUTE = 1080;
+/** Share of the house's waste that is actually sorted before collection. */
+const SORTED_WASTE_BP = 2500;
 
 const WATER_UNIT_MINOR = 2;
 const ENERGY_UNIT_MINOR = 3;
@@ -550,7 +562,13 @@ export class GameSimulation implements CommandExecutor {
               ok: false,
               reason: "market information is already complete",
             };
-          if (s.finance.cashMinor < REPORT_COST_MINOR)
+          // The adjusted fee, not the list price: validating against one number
+          // and spending another would accept a purchase the player cannot
+          // afford and then book the shortfall as a payable.
+          if (
+            s.finance.cashMinor <
+            assistedCostMinor(REPORT_COST_MINOR, s.narrative.campaign.inputs)
+          )
             return { ok: false, reason: "insufficient cash" };
           return { ok: true };
         case "ADOPT_TECHNOLOGY": {
@@ -864,19 +882,26 @@ export class GameSimulation implements CommandExecutor {
       case "BUY_MARKET_RESEARCH": {
         const verdict = this.validateCommand(command);
         if (!verdict.ok) throw new Error(verdict.reason);
-        this.spend(REPORT_COST_MINOR, "marketResearch", "city market report");
+        const reportCostMinor = assistedCostMinor(
+          REPORT_COST_MINOR,
+          s.narrative.campaign.inputs,
+        );
+        this.spend(reportCostMinor, "marketResearch", "city market report");
         s.cityMarket.informationQuality = qualityAfterReport(
           s.cityMarket.informationQuality,
         );
         s.cityMarket.forecast = forecastBand(
           totalRoomNights(s.cityMarket.demand),
-          s.cityMarket.informationQuality,
+          adjustedForecastQuality(
+            s.cityMarket.informationQuality,
+            s.narrative.campaign.inputs,
+          ),
         );
         this.emit(
           {
             type: "MARKET_RESEARCH_PURCHASED",
             informationQuality: s.cityMarket.informationQuality,
-            costMinor: REPORT_COST_MINOR,
+            costMinor: reportCostMinor,
           },
           [s.hotel.id],
         );
@@ -1335,6 +1360,8 @@ export class GameSimulation implements CommandExecutor {
     this.runBar();
     this.runRoomService();
     this.runWellness();
+    // Metered before the wash: facility.laundry is charged for the linen it
+    // is about to put through, not for the empty pile it leaves behind.
     if (this.state.calendar.minuteOfDay === LAUNDRY_MINUTE)
       this.meterDailyUtilities();
     this.runLaundry();
@@ -1439,7 +1466,9 @@ export class GameSimulation implements CommandExecutor {
     return lobbyThroughput({
       demand: deflectedDemand(demand, installed).demand,
       receptionists: this.onDuty("reception"),
-      porters: this.onDuty("reception"),
+      // The same people carry the bags in a house this size, but not at the
+      // same time as they are working the desk.
+      porters: Math.floor(this.onDuty("reception") / 2),
       partiesPerReceptionist: STARTER_HOTEL.partiesPerReceptionist,
       bagsPerPorter: STARTER_HOTEL.bagsPerPorter,
     });
@@ -1882,7 +1911,13 @@ export class GameSimulation implements CommandExecutor {
         remedy: "goodwill discount",
         costMinor: outcome.expenseMinor,
       },
-      manager?.authority ?? { repairLimitMinor: 0, recoveryLimitMinor: 0 },
+      // An unmanaged house delegates nothing: every gesture goes up.
+      manager?.authority ??
+        createManagerAuthority({
+          repairLimitMinor: 0,
+          capexLimitMinor: 0,
+          recoveryLimitMinor: 0,
+        }),
       manager?.id ?? "unmanaged",
     );
     s.recoveries = [...s.recoveries, record].slice(-HANDLED_COMPLAINT_LIMIT);
@@ -1908,7 +1943,7 @@ export class GameSimulation implements CommandExecutor {
       fullRemedyCostMinor: Math.max(1, roomChargeMinor),
     });
     this.moveSatisfaction(
-      explained.after - s.guestSatisfaction.score,
+      explained.after - Math.round(s.guestSatisfaction.score),
       `recovery for ${bookingId}: ${explained.causes.join("; ")}`,
     );
     this.emit(
@@ -1916,6 +1951,7 @@ export class GameSimulation implements CommandExecutor {
         type: "SERVICE_RECOVERY_APPLIED",
         complaintId,
         bookingId,
+        // What the ledger actually took, not what a full remedy would cost.
         costMinor: record.postedCostMinor,
       },
       [complaintId, bookingId],
@@ -1970,7 +2006,16 @@ export class GameSimulation implements CommandExecutor {
   /** Moves goodwill and records why, so the number is always explainable. */
   private moveSatisfaction(delta: number, cause: string): void {
     const s = this.state;
-    const score = Math.max(0, Math.min(100, s.guestSatisfaction.score + delta));
+    // How hard a failure lands is what the guests are like, and that is a
+    // disclosed difficulty input. Goodwill earned is never scaled.
+    const applied = toleratedSatisfactionDelta(
+      delta,
+      s.narrative.campaign.inputs,
+    );
+    const score = Math.max(
+      0,
+      Math.min(100, s.guestSatisfaction.score + applied),
+    );
     if (score === s.guestSatisfaction.score) return;
     s.guestSatisfaction = {
       score,
@@ -1991,19 +2036,22 @@ export class GameSimulation implements CommandExecutor {
 
     if (energyUnits > 0 || waterUnits > 0) {
       this.spend(
-        utilityBillMinor(s.utilityContracts.energy, energyUnits),
+        utilityUsageMinor(s.utilityContracts.energy, energyUnits),
         "utilities",
         `metered energy: ${energyUnits} units`,
       );
       this.spend(
-        utilityBillMinor(s.utilityContracts.water, waterUnits),
+        utilityUsageMinor(s.utilityContracts.water, waterUnits),
         "utilities",
         `metered water: ${waterUnits} units`,
       );
     }
     if (wasteKilos > 0)
       this.spend(
-        wasteDisposalMinor({ kilos: wasteKilos, sortedBasisPoints: 2500 }),
+        wasteDisposalMinor(s.utilityContracts.waste, {
+          kilos: wasteKilos,
+          sortedBasisPoints: SORTED_WASTE_BP,
+        }),
         "utilities",
         `waste: ${wasteKilos} kilos`,
       );
@@ -2414,9 +2462,13 @@ export class GameSimulation implements CommandExecutor {
         dateKey: s.calendar.dateKey,
         economy: this.streams.economy,
         ai: this.streams.AI,
+        difficulty: s.narrative.campaign.inputs,
       },
     );
-    s.world = new WorldSimulation(this.streams).stepMonth(s.world);
+    s.world = new WorldSimulation(
+      this.streams,
+      s.narrative.campaign.inputs.crisisBufferBasisPoints,
+    ).stepMonth(s.world);
     s.technologyProjects = s.technologyProjects.map(advanceTechnologyProject);
     for (const project of s.technologyProjects)
       if (
@@ -2914,29 +2966,15 @@ export class GameSimulation implements CommandExecutor {
 
   private closeMonth(): void {
     const s = this.state;
-    const m = s.finance.month;
     const periodKey = addDays(s.calendar.dateKey, -1).slice(0, 7);
-    const report = () =>
-      closeMonth({
-        periodKey,
-        openingCashMinor: m.openingCashMinor,
-        closingCashMinor: s.finance.cashMinor,
-        roomRevenueMinor: m.roomRevenueMinor,
-        otherRevenueMinor: m.otherRevenueMinor,
-        operatingExpenseMinor: m.operatingExpenseMinor,
-        soldRoomNights: m.soldRoomNights,
-        availableRoomNights: m.availableRoomNights,
-      });
+
+    // Everything the closed month owes is charged first, so the report the
+    // player reads is the whole month rather than the month before overheads.
+    this.chargeUtilityStandingCharges();
     this.runCommercialSpaceMonth();
     this.runEmploymentMonth();
     this.runCommercialMonth();
     this.chargeInsuranceAndDepreciation(periodKey);
-    // Corporate publishing needs a close to read, but corporate postings are
-    // themselves part of this period. Publish provisionally, then replace it
-    // with the report that includes every close-time posting.
-    s.lastMonthlyClose = report();
-    // The company's month runs on the closed period, after the flagship has
-    // published what it earned and before the new month starts accumulating.
     runCompanyMonth(s, `${periodKey}-01`, {
       emit: (payload, entities) => this.emit(payload, entities),
       earn: (amountMinor, account, memo) =>
@@ -2944,16 +2982,25 @@ export class GameSimulation implements CommandExecutor {
       spend: (amountMinor, account, memo) =>
         this.spend(amountMinor, account, memo),
     });
-    s.lastMonthlyClose = report();
-    const flagship = s.company.hotelResults[s.hotel.id];
-    if (flagship)
-      s.company.hotelResults[s.hotel.id] = {
-        ...flagship,
-        roomRevenueMinor: s.lastMonthlyClose.roomRevenueMinor,
-        otherRevenueMinor: s.lastMonthlyClose.otherRevenueMinor,
-        operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
-        grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
-      };
+
+    const m = s.finance.month;
+    s.lastMonthlyClose = closeMonth({
+      periodKey,
+      openingCashMinor: m.openingCashMinor,
+      closingCashMinor: s.finance.cashMinor,
+      roomRevenueMinor: m.roomRevenueMinor,
+      otherRevenueMinor: m.otherRevenueMinor,
+      operatingExpenseMinor: m.operatingExpenseMinor,
+      soldRoomNights: m.soldRoomNights,
+      availableRoomNights: m.availableRoomNights,
+    });
+    // The flagship's own result is what `publishFlagshipResult` already read
+    // off the month accumulator, and it is deliberately not restated from this
+    // report. The report is the group's: by the time it is drawn up it also
+    // carries every managed house's trading, the brand programmes, the
+    // ownership costs and headquarters. Copying it onto Frankfurt would charge
+    // one house for the whole company, and every escalation, valuation and
+    // portfolio table that reads `hotelResults` would inherit the error.
     // The period that just closed, not the day the close is being posted on:
     // December's close happens on 1 January and belongs to December's year.
     const closedYear = Number(periodKey.slice(0, 4));
@@ -3050,6 +3097,20 @@ export class GameSimulation implements CommandExecutor {
     // The period stamp moves even when nothing was left to depreciate, so the
     // guard above still holds for a fully written-down hotel.
     s.statements = { ...s.statements, lastDepreciationPeriodKey: periodKey };
+  }
+
+  /**
+   * The three utility contracts' standing charges. They are owed once a month
+   * whatever the meters read, which is why they are not part of the daily
+   * usage posting.
+   */
+  private chargeUtilityStandingCharges(): void {
+    for (const kind of UTILITY_KINDS)
+      this.spend(
+        standingChargeMinor(this.state.utilityContracts[kind]),
+        "utilities",
+        `${kind} standing charge`,
+      );
   }
 
   /**
@@ -3190,12 +3251,19 @@ export class GameSimulation implements CommandExecutor {
     const paid = Math.min(amountMinor, s.finance.cashMinor);
     const unpaid = amountMinor - paid;
     s.finance.cashMinor -= paid;
-    // CapEx buys an asset; it is cash out but not an operating expense. The
-    // expense is recognised in full even when cash cannot cover it.
-    if (account !== "capex")
+    // What the account is decides this, not what it is called: capex buys an
+    // asset and an investment buys a stake, and neither is a cost of running
+    // the hotel this month. The expense is recognised in full even when cash
+    // cannot cover it.
+    // Trading costs only. Interest is a financing cost, and `profitAndLoss`
+    // reports it as one; counting it here as well would make the close's
+    // operating profit disagree with the statement's for the same period, and
+    // every result read off `hotelResults` would inherit the lower figure.
+    if (accountClass(account) === "operating")
       s.finance.month.operatingExpenseMinor += amountMinor;
     // Capital spend buys something: the balance sheet has to know it exists.
-    else s.statements = capitaliseAsset(s.statements, amountMinor);
+    if (account === "capex")
+      s.statements = capitaliseAsset(s.statements, amountMinor);
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

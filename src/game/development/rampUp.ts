@@ -42,9 +42,6 @@ export function monthsOpen(openedDateKey: string, dateKey: string): number {
   const months = (ny - oy) * 12 + (nm - om);
   // The last month is only complete once the day of the month has come round,
   // and a shorter target month completes on its own last day.
-  const lastDayOfTargetMonth = daysInMonth(
-    `${ny}-${String(nm).padStart(2, "0")}-01`,
-  );
-  const anniversaryDay = Math.min(od, lastDayOfTargetMonth);
+  const anniversaryDay = Math.min(od, daysInMonth(dateKey));
   return Math.max(0, nd >= anniversaryDay ? months : months - 1);
 }

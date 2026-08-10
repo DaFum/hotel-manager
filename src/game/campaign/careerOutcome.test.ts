@@ -49,20 +49,26 @@ describe("career outcomes", () => {
     ).toBe("healthy");
   });
 
-  it("keeps playing after a terminal reading is continued", () => {
+  it("records the endless decision without declining insolvency", () => {
     const terminal = assessCareerOutcome(facts({ sellableHotelCount: 0 }));
     expect(terminal.ended).toBe(true);
-    expect(chooseEndlessContinuation(terminal).ended).toBe(false);
+    const continued = chooseEndlessContinuation(terminal);
+    expect(continued.continueEndless).toBe(true);
+    // Endless play answers the 2026 review, not the bank. A company with no
+    // measure left is still closed, and the modal still offers the restart.
+    expect(continued.ended).toBe(true);
   });
 
-  it("does not re-end a career the player already chose to continue", () => {
-    // The next monthly reading sees the same terminal position, and must not
-    // undo the decision that was already taken about it.
+  it("never leaves a continued career with nothing it can do", () => {
+    // The dead end this guards: terminal distress offers no recovery paths, so
+    // if `ended` were suppressed the outcome dialog would open with neither a
+    // measure nor a restart while the simulation carried on running.
     const again = assessCareerOutcome(
       facts({ sellableHotelCount: 0, continueEndless: true }),
     );
     expect(again.distress).toBe("terminal");
-    expect(again.ended).toBe(false);
+    expect(again.availableRecoveryPaths).toEqual([]);
+    expect(again.ended).toBe(true);
     expect(again.continueEndless).toBe(true);
   });
 

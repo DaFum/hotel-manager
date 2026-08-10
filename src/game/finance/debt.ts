@@ -10,6 +10,9 @@ import type { Loan } from "./loans";
  * how much it owes but when it has to pay, and how much of each payment is
  * interest that buys nothing.
  */
+/** The longest a lender will ever write; fifty years, in months. */
+export const MAX_TERM_MONTHS = 600;
+
 export interface DebtInstalment {
   month: number;
   openingPrincipalMinor: number;
@@ -18,7 +21,12 @@ export interface DebtInstalment {
   closingPrincipalMinor: number;
 }
 
-export const MAX_LOAN_TERM_MONTHS = 1200;
+/**
+ * One bound, under two names. A restructuring that was allowed to run past
+ * what `debtSchedule` will write would produce a loan nobody can draw up a
+ * payment plan for, so both gates have to be the same number.
+ */
+export const MAX_LOAN_TERM_MONTHS = MAX_TERM_MONTHS;
 
 /**
  * Straight-line amortisation of principal with interest on the balance
@@ -28,10 +36,12 @@ export const MAX_LOAN_TERM_MONTHS = 1200;
 export function debtSchedule(loan: Loan): DebtInstalment[] {
   assertNonNegativeMinor(loan.principalMinor, "loan principal");
   assertBasisPoints(loan.annualRateBasisPoints, "loan rate");
-  if (!Number.isSafeInteger(loan.termMonths) || loan.termMonths <= 0)
+  if (
+    !Number.isSafeInteger(loan.termMonths) ||
+    loan.termMonths <= 0 ||
+    loan.termMonths > MAX_TERM_MONTHS
+  )
     throw new Error("invalid loan term");
-  if (loan.termMonths > MAX_LOAN_TERM_MONTHS)
-    throw new Error("loan term exceeds maximum");
 
   const perMonth = Math.trunc(loan.principalMinor / loan.termMonths);
   const schedule: DebtInstalment[] = [];
@@ -113,8 +123,13 @@ export function restructure(
     throw new Error("a restructuring must add extra months");
   const penalty = terms.penaltyBasisPoints ?? 0;
   assertBasisPoints(penalty, "restructuring penalty");
-  const annualRateBasisPoints = loan.annualRateBasisPoints + penalty;
-  assertBasisPoints(annualRateBasisPoints, "restructured loan rate");
+  // The rate the borrower ends up paying is what has to be valid, not just
+  // the penalty that was added to it, and the same goes for the term the
+  // extra months add up to.
+  const annualRateBasisPoints = assertBasisPoints(
+    loan.annualRateBasisPoints + penalty,
+    "restructured rate",
+  );
   const termMonths = loan.termMonths + terms.extraMonths;
   if (!Number.isSafeInteger(termMonths)) throw new Error("invalid loan term");
   if (termMonths > MAX_LOAN_TERM_MONTHS)

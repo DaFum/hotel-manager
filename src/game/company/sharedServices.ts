@@ -1,4 +1,8 @@
-import { assertCount, assertNonNegativeMinor } from "../domain/units";
+import {
+  assertCount,
+  assertNonNegativeMinor,
+  safeProductMinor,
+} from "../domain/units";
 
 /**
  * What headquarters is actually for. Scale buys buying power and a place to
@@ -53,7 +57,10 @@ export function discountedUnitPriceMinor(
     discountBp > 10_000
   )
     throw new Error("invalid purchasing discount");
-  return Math.trunc((listPriceMinor * (10_000 - discountBp)) / 10_000);
+  return Math.trunc(
+    safeProductMinor(10_000 - discountBp, listPriceMinor, "discounted price") /
+      10_000,
+  );
 }
 
 /**
@@ -68,7 +75,16 @@ export function headquartersMonthlyCostMinor(input: {
   assertCount(input.hotelCount, "hotel count");
   assertNonNegativeMinor(input.baseMinor, "headquarters base cost");
   assertNonNegativeMinor(input.perHotelMinor, "headquarters cost per hotel");
-  return input.baseMinor + input.hotelCount * input.perHotelMinor;
+  // The product is checked by safeProductMinor; the sum it lands in is not, and
+  // a valid base plus a valid product can still leave the safe range.
+  const totalMinor =
+    input.baseMinor +
+    safeProductMinor(
+      input.hotelCount,
+      input.perHotelMinor,
+      "headquarters cost",
+    );
+  return assertNonNegativeMinor(totalMinor, "headquarters cost");
 }
 
 /**

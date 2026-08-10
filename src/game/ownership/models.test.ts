@@ -127,6 +127,27 @@ describe("ownership models", () => {
     ).toThrow(/management fee/);
   });
 
+  it("refuses revenue that is not whole non-negative Pfennig", () => {
+    expect(() =>
+      monthlyOwnershipPostings(
+        { kind: "franchise", royaltyBasisPoints: 500 },
+        -1,
+      ),
+    ).toThrow(/room revenue/);
+    expect(() =>
+      monthlyOwnershipPostings(
+        { kind: "management", managementFeeBasisPoints: 300 },
+        1.5,
+      ),
+    ).toThrow(/room revenue/);
+  });
+
+  it("returns an owned contract unchanged, because it has no terms", () => {
+    expect(createOperatingContract({ kind: "owned" })).toEqual({
+      kind: "owned",
+    });
+  });
+
   it("accepts well-formed terms unchanged", () => {
     expect(
       createOperatingContract({ kind: "lease", monthlyRentMinor: 1_000_000 }),

@@ -70,7 +70,7 @@ describe("due diligence", () => {
     });
     expect(report.findings).toEqual([]);
     expect(report.uncoveredAreas).toEqual([...DUE_DILIGENCE_AREAS]);
-    expect(report.undisclosedLiabilityMinor).toBe(0);
+    expect(report.discoveredLiabilityMinor).toBe(0);
   });
 
   it("surfaces only findings in the areas that were actually examined", () => {
@@ -82,7 +82,7 @@ describe("due diligence", () => {
       ],
     });
     expect(report.findings.map((f) => f.area)).toEqual(["building"]);
-    expect(report.undisclosedLiabilityMinor).toBe(5_000_000);
+    expect(report.discoveredLiabilityMinor).toBe(5_000_000);
     expect(report.uncoveredAreas).not.toContain("building");
     expect(report.uncoveredAreas).toContain("staff");
   });
@@ -106,6 +106,16 @@ describe("due diligence", () => {
     const adjusted = adjustedValuation(valueHotel(TARGET), report);
     expect(adjusted.equityValueMinor).toBe(110_000_000);
     expect(adjusted.enterpriseValueMinor).toBe(160_000_000);
+  });
+
+  it("charges for an area once, however many times it was asked for", () => {
+    const once = runDueDiligence({ areas: ["building"], findings: [] });
+    const repeated = runDueDiligence({
+      areas: ["building", "building", "building"],
+      findings: [],
+    });
+    expect(repeated.costMinor).toBe(once.costMinor);
+    expect(repeated.areas).toEqual(["building"]);
   });
 
   it("charges for each area examined so information is never free", () => {

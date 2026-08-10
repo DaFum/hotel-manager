@@ -3,6 +3,7 @@ import {
   assertBasisPoints,
   assertCount,
   assertNonNegativeMinor,
+  assertScore,
 } from "../domain/units";
 import { contractValueMinor, type ContractLines } from "./contracts";
 
@@ -86,7 +87,8 @@ export function executionPeaks(input: {
     { minuteOfDay: 630, covers: input.guests, cause: "morning coffee" },
     { minuteOfDay: 750, covers: input.guests, cause: "lunch" },
   ];
-  // Each further session adds an afternoon break of its own.
+  // Each further session adds an afternoon break of its own, until the day
+  // runs out: a peak past midnight belongs to a day that is not this one.
   for (let session = 1; session < input.sessionCount; session += 1) {
     const minuteOfDay = 900 + session * 60;
     if (minuteOfDay >= 1440) break;
@@ -112,7 +114,7 @@ export function delayedCityEffect(input: {
   startDateKey: string;
 }): { fromDateKey: string; extraRoomNights: number; cause: string } {
   assertCount(input.guests, "event guests");
-  assertCount(input.satisfaction, "event satisfaction");
+  assertScore(input.satisfaction, "event satisfaction");
   // Only an event the delegates enjoyed brings anybody back.
   const extraRoomNights =
     input.satisfaction < 60

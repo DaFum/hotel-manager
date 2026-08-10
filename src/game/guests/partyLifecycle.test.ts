@@ -24,6 +24,7 @@ import {
   refuseRecovery,
   satisfactionAfterRecovery,
 } from "./recoveryAuthority";
+import { createManagerAuthority } from "../management/managerAuthority";
 
 const PARTY = createParty({
   id: "party.1",
@@ -204,7 +205,10 @@ const COMPLAINT = {
 
 describe("service recovery under authority", () => {
   it("lets a manager settle within their limit and escalates the rest", () => {
-    const authority = { repairLimitMinor: 0, recoveryLimitMinor: 20_000 };
+    const authority = createManagerAuthority({
+      repairLimitMinor: 0,
+      recoveryLimitMinor: 20_000,
+    });
     expect(
       authoriseRecovery(authority, {
         id: "offer.1",
@@ -220,7 +224,11 @@ describe("service recovery under authority", () => {
       costMinor: 20_001,
     });
     expect(refused.authorised).toBe(false);
-    expect(refused).toMatchObject({ reason: /exceeds the 20000/ });
+    // A bare RegExp inside toMatchObject is compared structurally and would
+    // pass against any string at all.
+    expect(refused).toMatchObject({
+      reason: expect.stringMatching(/exceeds the 20000/),
+    });
   });
 
   it("posts nothing at all when the authorisation is refused", () => {
@@ -232,7 +240,10 @@ describe("service recovery under authority", () => {
         remedy: "two free nights",
         costMinor: 90_000,
       },
-      { repairLimitMinor: 0, recoveryLimitMinor: 20_000 },
+      createManagerAuthority({
+        repairLimitMinor: 0,
+        recoveryLimitMinor: 20_000,
+      }),
       "manager.1",
     );
     expect(record.status).toBe("escalated");
@@ -249,7 +260,10 @@ describe("service recovery under authority", () => {
         remedy: "free night",
         costMinor: 15_000,
       },
-      { repairLimitMinor: 0, recoveryLimitMinor: 20_000 },
+      createManagerAuthority({
+        repairLimitMinor: 0,
+        recoveryLimitMinor: 20_000,
+      }),
       "manager.1",
     );
     expect(record.status).toBe("accepted");

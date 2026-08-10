@@ -9178,7 +9178,7 @@
             "type": "HOTEL_RESULT_PUBLISHED",
             "hotelId": "hotel.frankfurt.1",
             "periodKey": "1991-01",
-            "grossOperatingProfitMinor": -2463163
+            "grossOperatingProfitMinor": -708163
           }
         },
         {
@@ -9229,7 +9229,7 @@
           "payload": {
             "type": "MONTH_CLOSED",
             "periodKey": "1991-01",
-            "profitMinor": -4918787,
+            "profitMinor": -3163787,
             "occupancyBasisPoints": 3454
           }
         },
@@ -13214,7 +13214,6 @@
     "reservations": [
       {
         "id": "booking.6360.3",
-        "guestId": "guest.segment.business.7",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -13251,7 +13250,6 @@
       },
       {
         "id": "booking.6360.7",
-        "guestId": "guest.segment.corporate.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13288,7 +13286,6 @@
       },
       {
         "id": "booking.7800.1",
-        "guestId": "guest.segment.corporate.6",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13325,7 +13322,6 @@
       },
       {
         "id": "booking.7800.2",
-        "guestId": "guest.segment.business.7",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13362,7 +13358,6 @@
       },
       {
         "id": "booking.9240.1",
-        "guestId": "guest.segment.business.7",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "cancelled",
@@ -13395,7 +13390,6 @@
       },
       {
         "id": "booking.9240.2",
-        "guestId": "guest.segment.business.8",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13432,7 +13426,6 @@
       },
       {
         "id": "booking.9240.3",
-        "guestId": "guest.segment.business.9",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "cancelled",
@@ -13465,7 +13458,6 @@
       },
       {
         "id": "booking.10680.0",
-        "guestId": "guest.segment.business.7",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -13502,7 +13494,6 @@
       },
       {
         "id": "booking.10680.3",
-        "guestId": "guest.segment.corporate.10",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13539,7 +13530,6 @@
       },
       {
         "id": "booking.10680.4",
-        "guestId": "guest.segment.business.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "cancelled",
@@ -13572,7 +13562,6 @@
       },
       {
         "id": "booking.12120.0",
-        "guestId": "guest.segment.business.8",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13609,7 +13598,6 @@
       },
       {
         "id": "booking.12120.1",
-        "guestId": "guest.segment.corporate.9",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13646,7 +13634,6 @@
       },
       {
         "id": "booking.12120.2",
-        "guestId": "guest.segment.business.10",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13683,7 +13670,6 @@
       },
       {
         "id": "booking.12120.3",
-        "guestId": "guest.segment.business.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13720,7 +13706,6 @@
       },
       {
         "id": "booking.12120.4",
-        "guestId": "guest.segment.business.12",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13757,7 +13742,6 @@
       },
       {
         "id": "booking.12120.5",
-        "guestId": "guest.segment.corporate.13",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13794,7 +13778,6 @@
       },
       {
         "id": "booking.12120.6",
-        "guestId": "guest.segment.business.14",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13831,7 +13814,6 @@
       },
       {
         "id": "booking.12120.7",
-        "guestId": "guest.segment.business.15",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13868,7 +13850,6 @@
       },
       {
         "id": "booking.12120.8",
-        "guestId": "guest.segment.business.16",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13905,7 +13886,6 @@
       },
       {
         "id": "booking.13560.1",
-        "guestId": "guest.segment.business.10",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "cancelled",
@@ -13938,7 +13918,6 @@
       },
       {
         "id": "booking.13560.2",
-        "guestId": "guest.segment.business.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -13975,7 +13954,6 @@
       },
       {
         "id": "booking.13560.3",
-        "guestId": "guest.segment.leisure.12",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14012,7 +13990,6 @@
       },
       {
         "id": "booking.15000.0",
-        "guestId": "guest.segment.corporate.10",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14049,7 +14026,6 @@
       },
       {
         "id": "booking.15000.1",
-        "guestId": "guest.segment.leisure.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14086,7 +14062,6 @@
       },
       {
         "id": "booking.15000.3",
-        "guestId": "guest.segment.business.13",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14123,7 +14098,6 @@
       },
       {
         "id": "booking.16440.0",
-        "guestId": "guest.segment.business.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14160,7 +14134,6 @@
       },
       {
         "id": "booking.16440.1",
-        "guestId": "guest.segment.leisure.12",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14197,7 +14170,6 @@
       },
       {
         "id": "booking.16440.2",
-        "guestId": "guest.segment.business.13",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14234,7 +14206,6 @@
       },
       {
         "id": "booking.16440.3",
-        "guestId": "guest.segment.business.14",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14271,7 +14242,6 @@
       },
       {
         "id": "booking.16440.4",
-        "guestId": "guest.segment.leisure.15",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14308,7 +14278,6 @@
       },
       {
         "id": "booking.16440.6",
-        "guestId": "guest.segment.business.17",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14345,7 +14314,6 @@
       },
       {
         "id": "booking.16440.7",
-        "guestId": "guest.segment.business.18",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14382,7 +14350,6 @@
       },
       {
         "id": "booking.16440.8",
-        "guestId": "guest.segment.leisure.19",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14419,7 +14386,6 @@
       },
       {
         "id": "booking.17880.0",
-        "guestId": "guest.segment.business.12",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14456,7 +14422,6 @@
       },
       {
         "id": "booking.17880.2",
-        "guestId": "guest.segment.business.14",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14493,7 +14458,6 @@
       },
       {
         "id": "booking.17880.4",
-        "guestId": "guest.segment.corporate.16",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14530,7 +14494,6 @@
       },
       {
         "id": "booking.19320.0",
-        "guestId": "guest.segment.leisure.13",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14567,7 +14530,6 @@
       },
       {
         "id": "booking.19320.1",
-        "guestId": "guest.segment.business.14",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14604,7 +14566,6 @@
       },
       {
         "id": "booking.19320.2",
-        "guestId": "guest.segment.business.15",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14641,7 +14602,6 @@
       },
       {
         "id": "booking.20760.0",
-        "guestId": "guest.segment.corporate.14",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14678,7 +14638,6 @@
       },
       {
         "id": "booking.20760.2",
-        "guestId": "guest.segment.business.16",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14715,7 +14674,6 @@
       },
       {
         "id": "booking.20760.3",
-        "guestId": "guest.segment.business.17",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14752,7 +14710,6 @@
       },
       {
         "id": "booking.22200.0",
-        "guestId": "guest.segment.business.15",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14789,7 +14746,6 @@
       },
       {
         "id": "booking.22200.1",
-        "guestId": "guest.segment.business.16",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14826,7 +14782,6 @@
       },
       {
         "id": "booking.22200.6",
-        "guestId": "guest.segment.business.21",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -14863,7 +14818,6 @@
       },
       {
         "id": "booking.22200.7",
-        "guestId": "guest.segment.business.22",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14900,7 +14854,6 @@
       },
       {
         "id": "booking.23640.0",
-        "guestId": "guest.segment.corporate.16",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14937,7 +14890,6 @@
       },
       {
         "id": "booking.23640.1",
-        "guestId": "guest.segment.business.17",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -14974,7 +14926,6 @@
       },
       {
         "id": "booking.23640.2",
-        "guestId": "guest.segment.leisure.18",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "cancelled",
@@ -15007,7 +14958,6 @@
       },
       {
         "id": "booking.23640.3",
-        "guestId": "guest.segment.business.19",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15044,7 +14994,6 @@
       },
       {
         "id": "booking.23640.4",
-        "guestId": "guest.segment.business.20",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15081,7 +15030,6 @@
       },
       {
         "id": "booking.23640.5",
-        "guestId": "guest.segment.leisure.21",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15118,7 +15066,6 @@
       },
       {
         "id": "booking.23640.6",
-        "guestId": "guest.segment.corporate.22",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15155,7 +15102,6 @@
       },
       {
         "id": "booking.25080.0",
-        "guestId": "guest.segment.corporate.17",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15192,7 +15138,6 @@
       },
       {
         "id": "booking.25080.1",
-        "guestId": "guest.segment.corporate.18",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15229,7 +15174,6 @@
       },
       {
         "id": "booking.25080.2",
-        "guestId": "guest.segment.business.19",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15266,7 +15210,6 @@
       },
       {
         "id": "booking.25080.3",
-        "guestId": "guest.segment.business.20",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15303,7 +15246,6 @@
       },
       {
         "id": "booking.26520.0",
-        "guestId": "guest.segment.business.18",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15340,7 +15282,6 @@
       },
       {
         "id": "booking.26520.2",
-        "guestId": "guest.segment.leisure.20",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15377,7 +15318,6 @@
       },
       {
         "id": "booking.26520.4",
-        "guestId": "guest.segment.leisure.22",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15414,7 +15354,6 @@
       },
       {
         "id": "booking.26520.5",
-        "guestId": "guest.segment.business.23",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15451,7 +15390,6 @@
       },
       {
         "id": "booking.26520.7",
-        "guestId": "guest.segment.business.25",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15488,7 +15426,6 @@
       },
       {
         "id": "booking.27960.1",
-        "guestId": "guest.segment.leisure.20",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15525,7 +15462,6 @@
       },
       {
         "id": "booking.27960.3",
-        "guestId": "guest.segment.corporate.22",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15562,7 +15498,6 @@
       },
       {
         "id": "booking.29400.0",
-        "guestId": "guest.segment.corporate.20",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15599,7 +15534,6 @@
       },
       {
         "id": "booking.29400.2",
-        "guestId": "guest.segment.leisure.22",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15636,7 +15570,6 @@
       },
       {
         "id": "booking.29400.3",
-        "guestId": "guest.segment.corporate.23",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15673,7 +15606,6 @@
       },
       {
         "id": "booking.30840.0",
-        "guestId": "guest.segment.business.21",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15710,7 +15642,6 @@
       },
       {
         "id": "booking.30840.2",
-        "guestId": "guest.segment.business.23",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15747,7 +15678,6 @@
       },
       {
         "id": "booking.30840.3",
-        "guestId": "guest.segment.corporate.24",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15784,7 +15714,6 @@
       },
       {
         "id": "booking.30840.4",
-        "guestId": "guest.segment.business.25",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15821,7 +15750,6 @@
       },
       {
         "id": "booking.30840.5",
-        "guestId": "guest.segment.business.26",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15858,7 +15786,6 @@
       },
       {
         "id": "booking.30840.7",
-        "guestId": "guest.segment.corporate.28",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15895,7 +15822,6 @@
       },
       {
         "id": "booking.32280.0",
-        "guestId": "guest.segment.business.22",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -15932,7 +15858,6 @@
       },
       {
         "id": "booking.32280.3",
-        "guestId": "guest.segment.corporate.25",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -15969,7 +15894,6 @@
       },
       {
         "id": "booking.33720.0",
-        "guestId": "guest.segment.business.23",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16006,7 +15930,6 @@
       },
       {
         "id": "booking.33720.1",
-        "guestId": "guest.segment.leisure.24",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16043,7 +15966,6 @@
       },
       {
         "id": "booking.33720.2",
-        "guestId": "guest.segment.business.25",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16080,7 +16002,6 @@
       },
       {
         "id": "booking.33720.4",
-        "guestId": "guest.segment.business.27",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16117,7 +16038,6 @@
       },
       {
         "id": "booking.35160.0",
-        "guestId": "guest.segment.corporate.24",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16154,7 +16074,6 @@
       },
       {
         "id": "booking.35160.1",
-        "guestId": "guest.segment.corporate.25",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16191,7 +16110,6 @@
       },
       {
         "id": "booking.35160.2",
-        "guestId": "guest.segment.business.26",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "cancelled",
@@ -16224,7 +16142,6 @@
       },
       {
         "id": "booking.35160.3",
-        "guestId": "guest.segment.business.27",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16261,7 +16178,6 @@
       },
       {
         "id": "booking.35160.4",
-        "guestId": "guest.segment.corporate.28",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16298,7 +16214,6 @@
       },
       {
         "id": "booking.35160.5",
-        "guestId": "guest.segment.business.29",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16335,7 +16250,6 @@
       },
       {
         "id": "booking.36600.0",
-        "guestId": "guest.segment.business.25",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16372,7 +16286,6 @@
       },
       {
         "id": "booking.36600.1",
-        "guestId": "guest.segment.corporate.26",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16409,7 +16322,6 @@
       },
       {
         "id": "booking.36600.2",
-        "guestId": "guest.segment.corporate.27",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16446,7 +16358,6 @@
       },
       {
         "id": "booking.38040.0",
-        "guestId": "guest.segment.corporate.26",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16483,7 +16394,6 @@
       },
       {
         "id": "booking.38040.1",
-        "guestId": "guest.segment.corporate.27",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16520,7 +16430,6 @@
       },
       {
         "id": "booking.38040.2",
-        "guestId": "guest.segment.business.28",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16557,7 +16466,6 @@
       },
       {
         "id": "booking.38040.3",
-        "guestId": "guest.segment.business.29",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16594,7 +16502,6 @@
       },
       {
         "id": "booking.38040.4",
-        "guestId": "guest.segment.business.30",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16631,7 +16538,6 @@
       },
       {
         "id": "booking.38040.5",
-        "guestId": "guest.segment.business.31",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16668,7 +16574,6 @@
       },
       {
         "id": "booking.38040.7",
-        "guestId": "guest.segment.leisure.1",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16705,7 +16610,6 @@
       },
       {
         "id": "booking.38040.8",
-        "guestId": "guest.segment.leisure.2",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16742,7 +16646,6 @@
       },
       {
         "id": "booking.39480.0",
-        "guestId": "guest.segment.business.27",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16779,7 +16682,6 @@
       },
       {
         "id": "booking.39480.1",
-        "guestId": "guest.segment.corporate.28",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16816,7 +16718,6 @@
       },
       {
         "id": "booking.39480.3",
-        "guestId": "guest.segment.business.30",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16853,7 +16754,6 @@
       },
       {
         "id": "booking.39480.4",
-        "guestId": "guest.segment.leisure.31",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -16890,7 +16790,6 @@
       },
       {
         "id": "booking.39480.6",
-        "guestId": "guest.segment.business.1",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16927,7 +16826,6 @@
       },
       {
         "id": "booking.40920.0",
-        "guestId": "guest.segment.business.28",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -16964,7 +16862,6 @@
       },
       {
         "id": "booking.40920.2",
-        "guestId": "guest.segment.leisure.30",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17001,7 +16898,6 @@
       },
       {
         "id": "booking.40920.3",
-        "guestId": "guest.segment.business.31",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17038,7 +16934,6 @@
       },
       {
         "id": "booking.40920.4",
-        "guestId": "guest.segment.corporate.0",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17075,7 +16970,6 @@
       },
       {
         "id": "booking.40920.5",
-        "guestId": "guest.segment.business.1",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17112,7 +17006,6 @@
       },
       {
         "id": "booking.42360.0",
-        "guestId": "guest.segment.leisure.29",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17149,7 +17042,6 @@
       },
       {
         "id": "booking.42360.1",
-        "guestId": "guest.segment.leisure.30",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17186,7 +17078,6 @@
       },
       {
         "id": "booking.42360.2",
-        "guestId": "guest.segment.business.31",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17223,7 +17114,6 @@
       },
       {
         "id": "booking.42360.3",
-        "guestId": "guest.segment.corporate.0",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17260,7 +17150,6 @@
       },
       {
         "id": "booking.42360.5",
-        "guestId": "guest.segment.corporate.2",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17297,7 +17186,6 @@
       },
       {
         "id": "booking.42360.6",
-        "guestId": "guest.segment.business.3",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17334,7 +17222,6 @@
       },
       {
         "id": "booking.42360.7",
-        "guestId": "guest.segment.corporate.4",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17371,7 +17258,6 @@
       },
       {
         "id": "booking.42360.8",
-        "guestId": "guest.segment.business.5",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17408,7 +17294,6 @@
       },
       {
         "id": "booking.43800.0",
-        "guestId": "guest.segment.corporate.30",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17445,7 +17330,6 @@
       },
       {
         "id": "booking.43800.1",
-        "guestId": "guest.segment.business.31",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17482,7 +17366,6 @@
       },
       {
         "id": "booking.43800.2",
-        "guestId": "guest.segment.business.0",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17519,7 +17402,6 @@
       },
       {
         "id": "booking.43800.4",
-        "guestId": "guest.segment.corporate.2",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17556,7 +17438,6 @@
       },
       {
         "id": "booking.43800.5",
-        "guestId": "guest.segment.leisure.3",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17593,7 +17474,6 @@
       },
       {
         "id": "booking.45240.0",
-        "guestId": "guest.segment.business.31",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17630,7 +17510,6 @@
       },
       {
         "id": "booking.45240.1",
-        "guestId": "guest.segment.business.0",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17667,7 +17546,6 @@
       },
       {
         "id": "booking.45240.2",
-        "guestId": "guest.segment.business.1",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17704,7 +17582,6 @@
       },
       {
         "id": "booking.46680.0",
-        "guestId": "guest.segment.business.0",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17741,7 +17618,6 @@
       },
       {
         "id": "booking.46680.1",
-        "guestId": "guest.segment.corporate.1",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17778,7 +17654,6 @@
       },
       {
         "id": "booking.46680.2",
-        "guestId": "guest.segment.business.2",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17815,7 +17690,6 @@
       },
       {
         "id": "booking.46680.3",
-        "guestId": "guest.segment.corporate.3",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "checkedIn",
@@ -17848,7 +17722,6 @@
       },
       {
         "id": "booking.46680.5",
-        "guestId": "guest.segment.corporate.5",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -17885,7 +17758,6 @@
       },
       {
         "id": "booking.48120.0",
-        "guestId": "guest.segment.corporate.1",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17922,7 +17794,6 @@
       },
       {
         "id": "booking.48120.1",
-        "guestId": "guest.segment.leisure.2",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17959,7 +17830,6 @@
       },
       {
         "id": "booking.48120.2",
-        "guestId": "guest.segment.business.3",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -17996,7 +17866,6 @@
       },
       {
         "id": "booking.48120.3",
-        "guestId": "guest.segment.business.4",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18033,7 +17902,6 @@
       },
       {
         "id": "booking.48120.4",
-        "guestId": "guest.segment.corporate.5",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -18070,7 +17938,6 @@
       },
       {
         "id": "booking.48120.6",
-        "guestId": "guest.segment.business.7",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18107,7 +17974,6 @@
       },
       {
         "id": "booking.49560.1",
-        "guestId": "guest.segment.business.3",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18144,7 +18010,6 @@
       },
       {
         "id": "booking.49560.2",
-        "guestId": "guest.segment.business.4",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -18177,7 +18042,6 @@
       },
       {
         "id": "booking.49560.3",
-        "guestId": "guest.segment.corporate.5",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "checkedIn",
@@ -18210,7 +18074,6 @@
       },
       {
         "id": "booking.49560.4",
-        "guestId": "guest.segment.business.6",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -18247,7 +18110,6 @@
       },
       {
         "id": "booking.49560.5",
-        "guestId": "guest.segment.corporate.7",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -18276,7 +18138,6 @@
       },
       {
         "id": "booking.49560.6",
-        "guestId": "guest.segment.business.8",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18313,7 +18174,6 @@
       },
       {
         "id": "booking.49560.7",
-        "guestId": "guest.segment.business.9",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18350,7 +18210,6 @@
       },
       {
         "id": "booking.49560.8",
-        "guestId": "guest.segment.business.10",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -18379,7 +18238,6 @@
       },
       {
         "id": "booking.51000.1",
-        "guestId": "guest.segment.business.4",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -18412,7 +18270,6 @@
       },
       {
         "id": "booking.51000.2",
-        "guestId": "guest.segment.business.5",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -18445,7 +18302,6 @@
       },
       {
         "id": "booking.51000.4",
-        "guestId": "guest.segment.corporate.7",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "checkedIn",
@@ -18478,7 +18334,6 @@
       },
       {
         "id": "booking.51000.6",
-        "guestId": "guest.segment.business.9",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18515,7 +18370,6 @@
       },
       {
         "id": "booking.51000.7",
-        "guestId": "guest.segment.corporate.10",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -18548,7 +18402,6 @@
       },
       {
         "id": "booking.52440.0",
-        "guestId": "guest.segment.business.4",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -18577,7 +18430,6 @@
       },
       {
         "id": "booking.52440.1",
-        "guestId": "guest.segment.corporate.5",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -18606,7 +18458,6 @@
       },
       {
         "id": "booking.52440.3",
-        "guestId": "guest.segment.leisure.7",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -18639,7 +18490,6 @@
       },
       {
         "id": "booking.52440.4",
-        "guestId": "guest.segment.leisure.8",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -18668,7 +18518,6 @@
       },
       {
         "id": "booking.52440.5",
-        "guestId": "guest.segment.business.9",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18705,7 +18554,6 @@
       },
       {
         "id": "booking.52440.6",
-        "guestId": "guest.segment.business.10",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -18734,7 +18582,6 @@
       },
       {
         "id": "booking.52440.7",
-        "guestId": "guest.segment.corporate.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -18767,7 +18614,6 @@
       },
       {
         "id": "booking.53880.0",
-        "guestId": "guest.segment.corporate.5",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -18796,7 +18642,6 @@
       },
       {
         "id": "booking.53880.1",
-        "guestId": "guest.segment.business.6",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "completed",
@@ -18833,7 +18678,6 @@
       },
       {
         "id": "booking.53880.2",
-        "guestId": "guest.segment.business.7",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -18862,7 +18706,6 @@
       },
       {
         "id": "booking.53880.4",
-        "guestId": "guest.segment.business.9",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "completed",
@@ -18899,7 +18742,6 @@
       },
       {
         "id": "booking.53880.5",
-        "guestId": "guest.segment.corporate.10",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "checkedIn",
@@ -18932,7 +18774,6 @@
       },
       {
         "id": "booking.55320.0",
-        "guestId": "guest.segment.business.6",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -18961,7 +18802,6 @@
       },
       {
         "id": "booking.55320.2",
-        "guestId": "guest.segment.business.8",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -18990,7 +18830,6 @@
       },
       {
         "id": "booking.55320.3",
-        "guestId": "guest.segment.business.9",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -19019,7 +18858,6 @@
       },
       {
         "id": "booking.55320.4",
-        "guestId": "guest.segment.business.10",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "checkedIn",
@@ -19052,7 +18890,6 @@
       },
       {
         "id": "booking.55320.5",
-        "guestId": "guest.segment.corporate.11",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "checkedIn",
@@ -19085,7 +18922,6 @@
       },
       {
         "id": "booking.55320.6",
-        "guestId": "guest.segment.leisure.12",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -19114,7 +18950,6 @@
       },
       {
         "id": "booking.56760.0",
-        "guestId": "guest.segment.corporate.7",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -19143,7 +18978,6 @@
       },
       {
         "id": "booking.56760.1",
-        "guestId": "guest.segment.corporate.8",
         "roomsRequested": 1,
         "rateMinor": 9000,
         "status": "confirmed",
@@ -19172,7 +19006,6 @@
       },
       {
         "id": "booking.56760.3",
-        "guestId": "guest.segment.business.10",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -19201,7 +19034,6 @@
       },
       {
         "id": "booking.56760.4",
-        "guestId": "guest.segment.corporate.11",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -19230,7 +19062,6 @@
       },
       {
         "id": "booking.56760.5",
-        "guestId": "guest.segment.business.12",
         "roomsRequested": 1,
         "rateMinor": 12000,
         "status": "confirmed",
@@ -19440,7 +19271,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 2906229,
+      "cashMinor": 5227669,
       "payableMinor": 0,
       "ledger": [
         {
@@ -19506,13 +19337,13 @@
         {
           "day": 2,
           "account": "utilities",
-          "amountMinor": -45064,
+          "amountMinor": -64,
           "memo": "metered energy: 2 units"
         },
         {
           "day": 2,
           "account": "utilities",
-          "amountMinor": -18011,
+          "amountMinor": -11,
           "memo": "metered water: 1 units"
         },
         {
@@ -19560,13 +19391,13 @@
         {
           "day": 3,
           "account": "utilities",
-          "amountMinor": -45192,
+          "amountMinor": -192,
           "memo": "metered energy: 6 units"
         },
         {
           "day": 3,
           "account": "utilities",
-          "amountMinor": -18033,
+          "amountMinor": -33,
           "memo": "metered water: 3 units"
         },
         {
@@ -19620,13 +19451,13 @@
         {
           "day": 4,
           "account": "utilities",
-          "amountMinor": -45320,
+          "amountMinor": -320,
           "memo": "metered energy: 10 units"
         },
         {
           "day": 4,
           "account": "utilities",
-          "amountMinor": -18088,
+          "amountMinor": -88,
           "memo": "metered water: 8 units"
         },
         {
@@ -19692,13 +19523,13 @@
         {
           "day": 5,
           "account": "utilities",
-          "amountMinor": -45480,
+          "amountMinor": -480,
           "memo": "metered energy: 15 units"
         },
         {
           "day": 5,
           "account": "utilities",
-          "amountMinor": -18132,
+          "amountMinor": -132,
           "memo": "metered water: 12 units"
         },
         {
@@ -19770,13 +19601,13 @@
         {
           "day": 6,
           "account": "utilities",
-          "amountMinor": -45608,
+          "amountMinor": -608,
           "memo": "metered energy: 19 units"
         },
         {
           "day": 6,
           "account": "utilities",
-          "amountMinor": -18220,
+          "amountMinor": -220,
           "memo": "metered water: 20 units"
         },
         {
@@ -19860,13 +19691,13 @@
         {
           "day": 7,
           "account": "utilities",
-          "amountMinor": -45608,
+          "amountMinor": -608,
           "memo": "metered energy: 19 units"
         },
         {
           "day": 7,
           "account": "utilities",
-          "amountMinor": -18220,
+          "amountMinor": -220,
           "memo": "metered water: 20 units"
         },
         {
@@ -19956,13 +19787,13 @@
         {
           "day": 8,
           "account": "utilities",
-          "amountMinor": -45640,
+          "amountMinor": -640,
           "memo": "metered energy: 20 units"
         },
         {
           "day": 8,
           "account": "utilities",
-          "amountMinor": -18110,
+          "amountMinor": -110,
           "memo": "metered water: 10 units"
         },
         {
@@ -20052,13 +19883,13 @@
         {
           "day": 9,
           "account": "utilities",
-          "amountMinor": -46088,
+          "amountMinor": -1088,
           "memo": "metered energy: 34 units"
         },
         {
           "day": 9,
           "account": "utilities",
-          "amountMinor": -18418,
+          "amountMinor": -418,
           "memo": "metered water: 38 units"
         },
         {
@@ -20154,13 +19985,13 @@
         {
           "day": 10,
           "account": "utilities",
-          "amountMinor": -46024,
+          "amountMinor": -1024,
           "memo": "metered energy: 32 units"
         },
         {
           "day": 10,
           "account": "utilities",
-          "amountMinor": -18341,
+          "amountMinor": -341,
           "memo": "metered water: 31 units"
         },
         {
@@ -20238,13 +20069,13 @@
         {
           "day": 11,
           "account": "utilities",
-          "amountMinor": -45800,
+          "amountMinor": -800,
           "memo": "metered energy: 25 units"
         },
         {
           "day": 11,
           "account": "utilities",
-          "amountMinor": -18286,
+          "amountMinor": -286,
           "memo": "metered water: 26 units"
         },
         {
@@ -20322,13 +20153,13 @@
         {
           "day": 12,
           "account": "utilities",
-          "amountMinor": -45928,
+          "amountMinor": -928,
           "memo": "metered energy: 29 units"
         },
         {
           "day": 12,
           "account": "utilities",
-          "amountMinor": -18374,
+          "amountMinor": -374,
           "memo": "metered water: 34 units"
         },
         {
@@ -20412,13 +20243,13 @@
         {
           "day": 13,
           "account": "utilities",
-          "amountMinor": -45704,
+          "amountMinor": -704,
           "memo": "metered energy: 22 units"
         },
         {
           "day": 13,
           "account": "utilities",
-          "amountMinor": -18187,
+          "amountMinor": -187,
           "memo": "metered water: 17 units"
         },
         {
@@ -20508,13 +20339,13 @@
         {
           "day": 14,
           "account": "utilities",
-          "amountMinor": -45960,
+          "amountMinor": -960,
           "memo": "metered energy: 30 units"
         },
         {
           "day": 14,
           "account": "utilities",
-          "amountMinor": -18330,
+          "amountMinor": -330,
           "memo": "metered water: 30 units"
         },
         {
@@ -20610,13 +20441,13 @@
         {
           "day": 15,
           "account": "utilities",
-          "amountMinor": -46024,
+          "amountMinor": -1024,
           "memo": "metered energy: 32 units"
         },
         {
           "day": 15,
           "account": "utilities",
-          "amountMinor": -18341,
+          "amountMinor": -341,
           "memo": "metered water: 31 units"
         },
         {
@@ -20706,13 +20537,13 @@
         {
           "day": 16,
           "account": "utilities",
-          "amountMinor": -45960,
+          "amountMinor": -960,
           "memo": "metered energy: 30 units"
         },
         {
           "day": 16,
           "account": "utilities",
-          "amountMinor": -18330,
+          "amountMinor": -330,
           "memo": "metered water: 30 units"
         },
         {
@@ -20802,13 +20633,13 @@
         {
           "day": 17,
           "account": "utilities",
-          "amountMinor": -46088,
+          "amountMinor": -1088,
           "memo": "metered energy: 34 units"
         },
         {
           "day": 17,
           "account": "utilities",
-          "amountMinor": -18418,
+          "amountMinor": -418,
           "memo": "metered water: 38 units"
         },
         {
@@ -20922,13 +20753,13 @@
         {
           "day": 18,
           "account": "utilities",
-          "amountMinor": -46024,
+          "amountMinor": -1024,
           "memo": "metered energy: 32 units"
         },
         {
           "day": 18,
           "account": "utilities",
-          "amountMinor": -18275,
+          "amountMinor": -275,
           "memo": "metered water: 25 units"
         },
         {
@@ -21000,13 +20831,13 @@
         {
           "day": 19,
           "account": "utilities",
-          "amountMinor": -45928,
+          "amountMinor": -928,
           "memo": "metered energy: 29 units"
         },
         {
           "day": 19,
           "account": "utilities",
-          "amountMinor": -18407,
+          "amountMinor": -407,
           "memo": "metered water: 37 units"
         },
         {
@@ -21066,13 +20897,13 @@
         {
           "day": 20,
           "account": "utilities",
-          "amountMinor": -45736,
+          "amountMinor": -736,
           "memo": "metered energy: 23 units"
         },
         {
           "day": 20,
           "account": "utilities",
-          "amountMinor": -18440,
+          "amountMinor": -440,
           "memo": "metered water: 40 units"
         },
         {
@@ -21132,13 +20963,13 @@
         {
           "day": 21,
           "account": "utilities",
-          "amountMinor": -45320,
+          "amountMinor": -320,
           "memo": "metered energy: 10 units"
         },
         {
           "day": 21,
           "account": "utilities",
-          "amountMinor": -18187,
+          "amountMinor": -187,
           "memo": "metered water: 17 units"
         },
         {
@@ -21216,13 +21047,13 @@
         {
           "day": 22,
           "account": "utilities",
-          "amountMinor": -45576,
+          "amountMinor": -576,
           "memo": "metered energy: 18 units"
         },
         {
           "day": 22,
           "account": "utilities",
-          "amountMinor": -18198,
+          "amountMinor": -198,
           "memo": "metered water: 18 units"
         },
         {
@@ -21300,13 +21131,13 @@
         {
           "day": 23,
           "account": "utilities",
-          "amountMinor": -45640,
+          "amountMinor": -640,
           "memo": "metered energy: 20 units"
         },
         {
           "day": 23,
           "account": "utilities",
-          "amountMinor": -18176,
+          "amountMinor": -176,
           "memo": "metered water: 16 units"
         },
         {
@@ -21420,13 +21251,13 @@
         {
           "day": 24,
           "account": "utilities",
-          "amountMinor": -45992,
+          "amountMinor": -992,
           "memo": "metered energy: 31 units"
         },
         {
           "day": 24,
           "account": "utilities",
-          "amountMinor": -18319,
+          "amountMinor": -319,
           "memo": "metered water: 29 units"
         },
         {
@@ -21528,13 +21359,13 @@
         {
           "day": 25,
           "account": "utilities",
-          "amountMinor": -46152,
+          "amountMinor": -1152,
           "memo": "metered energy: 36 units"
         },
         {
           "day": 25,
           "account": "utilities",
-          "amountMinor": -18462,
+          "amountMinor": -462,
           "memo": "metered water: 42 units"
         },
         {
@@ -21636,13 +21467,13 @@
         {
           "day": 26,
           "account": "utilities",
-          "amountMinor": -45992,
+          "amountMinor": -992,
           "memo": "metered energy: 31 units"
         },
         {
           "day": 26,
           "account": "utilities",
-          "amountMinor": -18286,
+          "amountMinor": -286,
           "memo": "metered water: 26 units"
         },
         {
@@ -21720,13 +21551,13 @@
         {
           "day": 27,
           "account": "utilities",
-          "amountMinor": -46056,
+          "amountMinor": -1056,
           "memo": "metered energy: 33 units"
         },
         {
           "day": 27,
           "account": "utilities",
-          "amountMinor": -18462,
+          "amountMinor": -462,
           "memo": "metered water: 42 units"
         },
         {
@@ -21828,13 +21659,13 @@
         {
           "day": 28,
           "account": "utilities",
-          "amountMinor": -46120,
+          "amountMinor": -1120,
           "memo": "metered energy: 35 units"
         },
         {
           "day": 28,
           "account": "utilities",
-          "amountMinor": -18374,
+          "amountMinor": -374,
           "memo": "metered water: 34 units"
         },
         {
@@ -21960,13 +21791,13 @@
         {
           "day": 29,
           "account": "utilities",
-          "amountMinor": -46248,
+          "amountMinor": -1248,
           "memo": "metered energy: 39 units"
         },
         {
           "day": 29,
           "account": "utilities",
-          "amountMinor": -18363,
+          "amountMinor": -363,
           "memo": "metered water: 33 units"
         },
         {
@@ -22074,13 +21905,13 @@
         {
           "day": 30,
           "account": "utilities",
-          "amountMinor": -46184,
+          "amountMinor": -1184,
           "memo": "metered energy: 37 units"
         },
         {
           "day": 30,
           "account": "utilities",
-          "amountMinor": -18418,
+          "amountMinor": -418,
           "memo": "metered water: 38 units"
         },
         {
@@ -22163,6 +21994,24 @@
         },
         {
           "day": 31,
+          "account": "utilities",
+          "amountMinor": -45000,
+          "memo": "energy standing charge"
+        },
+        {
+          "day": 31,
+          "account": "utilities",
+          "amountMinor": -18000,
+          "memo": "water standing charge"
+        },
+        {
+          "day": 31,
+          "account": "utilities",
+          "amountMinor": -9000,
+          "memo": "waste standing charge"
+        },
+        {
+          "day": 31,
           "account": "commercialSpaces",
           "amountMinor": 111960,
           "memo": "space.carpark self-operated"
@@ -22182,7 +22031,7 @@
         {
           "day": 31,
           "account": "loyaltyBreakage",
-          "amountMinor": 24848,
+          "amountMinor": 24288,
           "memo": "loyalty points released"
         },
         {
@@ -22224,13 +22073,13 @@
         {
           "day": 31,
           "account": "utilities",
-          "amountMinor": -46184,
+          "amountMinor": -1184,
           "memo": "metered energy: 37 units"
         },
         {
           "day": 31,
           "account": "utilities",
-          "amountMinor": -18517,
+          "amountMinor": -517,
           "memo": "metered water: 47 units"
         },
         {
@@ -22308,13 +22157,13 @@
         {
           "day": 32,
           "account": "utilities",
-          "amountMinor": -45864,
+          "amountMinor": -864,
           "memo": "metered energy: 27 units"
         },
         {
           "day": 32,
           "account": "utilities",
-          "amountMinor": -18330,
+          "amountMinor": -330,
           "memo": "metered water: 30 units"
         },
         {
@@ -22434,13 +22283,13 @@
         {
           "day": 33,
           "account": "utilities",
-          "amountMinor": -46056,
+          "amountMinor": -1056,
           "memo": "metered energy: 33 units"
         },
         {
           "day": 33,
           "account": "utilities",
-          "amountMinor": -18264,
+          "amountMinor": -264,
           "memo": "metered water: 24 units"
         },
         {
@@ -22566,13 +22415,13 @@
         {
           "day": 34,
           "account": "utilities",
-          "amountMinor": -46344,
+          "amountMinor": -1344,
           "memo": "metered energy: 42 units"
         },
         {
           "day": 34,
           "account": "utilities",
-          "amountMinor": -18429,
+          "amountMinor": -429,
           "memo": "metered water: 39 units"
         },
         {
@@ -22674,13 +22523,13 @@
         {
           "day": 35,
           "account": "utilities",
-          "amountMinor": -46184,
+          "amountMinor": -1184,
           "memo": "metered energy: 37 units"
         },
         {
           "day": 35,
           "account": "utilities",
-          "amountMinor": -18418,
+          "amountMinor": -418,
           "memo": "metered water: 38 units"
         },
         {
@@ -22800,13 +22649,13 @@
         {
           "day": 36,
           "account": "utilities",
-          "amountMinor": -46344,
+          "amountMinor": -1344,
           "memo": "metered energy: 42 units"
         },
         {
           "day": 36,
           "account": "utilities",
-          "amountMinor": -18561,
+          "amountMinor": -561,
           "memo": "metered water: 51 units"
         },
         {
@@ -22926,13 +22775,13 @@
         {
           "day": 37,
           "account": "utilities",
-          "amountMinor": -46216,
+          "amountMinor": -1216,
           "memo": "metered energy: 38 units"
         },
         {
           "day": 37,
           "account": "utilities",
-          "amountMinor": -18440,
+          "amountMinor": -440,
           "memo": "metered water: 40 units"
         },
         {
@@ -23064,13 +22913,13 @@
         {
           "day": 38,
           "account": "utilities",
-          "amountMinor": -46472,
+          "amountMinor": -1472,
           "memo": "metered energy: 46 units"
         },
         {
           "day": 38,
           "account": "utilities",
-          "amountMinor": -18517,
+          "amountMinor": -517,
           "memo": "metered water: 47 units"
         },
         {
@@ -23214,13 +23063,13 @@
         {
           "day": 39,
           "account": "utilities",
-          "amountMinor": -46472,
+          "amountMinor": -1472,
           "memo": "metered energy: 46 units"
         },
         {
           "day": 39,
           "account": "utilities",
-          "amountMinor": -18451,
+          "amountMinor": -451,
           "memo": "metered water: 41 units"
         },
         {
@@ -23321,10 +23170,10 @@
         }
       ],
       "month": {
-        "openingCashMinor": 1895962,
+        "openingCashMinor": 3650402,
         "roomRevenueMinor": 1155210,
         "otherRevenueMinor": 1390350,
-        "operatingExpenseMinor": 1535293,
+        "operatingExpenseMinor": 968293,
         "soldRoomNights": 120,
         "availableRoomNights": 240
       }
@@ -23727,15 +23576,15 @@
     "lastMonthlyClose": {
       "periodKey": "1991-01",
       "openingCashMinor": 40000000,
-      "closingCashMinor": 1895962,
+      "closingCashMinor": 3650402,
       "roomRevenueMinor": 2429760,
       "otherRevenueMinor": 2701050,
-      "operatingExpenseMinor": 10049597,
+      "operatingExpenseMinor": 8294597,
       "soldRoomNights": 257,
       "availableRoomNights": 744,
       "revenueMinor": 5130810,
-      "operatingProfitMinor": -4918787,
-      "cashDeltaMinor": -38104038,
+      "operatingProfitMinor": -3163787,
+      "cashDeltaMinor": -36349598,
       "occupancyBasisPoints": 3454,
       "adrMinor": 9454,
       "revParMinor": 3266
@@ -23931,6 +23780,7 @@
           "name": "Hanau Park",
           "cityId": "city.frankfurt.de",
           "rooms": 60,
+          "occupancyBasisPoints": 6500,
           "investmentMinor": 4000000,
           "feasibility": {
             "downsideAnnualRoomRevenueMinor": 169396500,
@@ -24009,7 +23859,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 1194191,
+        "hqMinor": 3515631,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -24070,7 +23920,7 @@
             }
           ],
           "uncoveredAreas": ["legal", "finance", "staff"],
-          "undisclosedLiabilityMinor": 4200000,
+          "discoveredLiabilityMinor": 4200000,
           "costMinor": 3000000
         }
       },
@@ -24086,8 +23936,8 @@
           "periodKey": "1991-01",
           "roomRevenueMinor": 2429760,
           "otherRevenueMinor": 2701050,
-          "operatingExpenseMinor": 10049597,
-          "grossOperatingProfitMinor": -4918787,
+          "operatingExpenseMinor": 5838973,
+          "grossOperatingProfitMinor": -708163,
           "occupancyBasisPoints": 3454,
           "soldRoomNights": 257,
           "availableRoomNights": 744
@@ -24158,559 +24008,1011 @@
       "crm": {
         "profiles": [
           {
-            "guestId": "guest.segment.business.0",
+            "guestId": "guest.booking.10680.0",
             "preferences": [],
-            "stayHistory": [
-              "booking.43800.2",
-              "booking.46680.0",
-              "booking.45240.1"
-            ],
+            "stayHistory": ["booking.10680.0"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.business.1",
+            "guestId": "guest.booking.10680.3",
             "preferences": [],
-            "stayHistory": [
-              "booking.39480.6",
-              "booking.40920.5",
-              "booking.45240.2"
-            ],
+            "stayHistory": ["booking.10680.3"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.business.10",
+            "guestId": "guest.booking.12120.0",
             "preferences": [],
-            "stayHistory": [
-              "booking.7800.5",
-              "booking.3480.8",
-              "booking.12120.2",
-              "booking.55320.4"
-            ],
+            "stayHistory": ["booking.12120.0"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.business.11",
-            "preferences": [],
-            "stayHistory": [
-              "booking.12120.3",
-              "booking.13560.2",
-              "booking.16440.0"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.12",
-            "preferences": [],
-            "stayHistory": ["booking.12120.4", "booking.17880.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.13",
-            "preferences": [],
-            "stayHistory": ["booking.15000.3", "booking.16440.2"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.14",
-            "preferences": [],
-            "stayHistory": [
-              "booking.17880.2",
-              "booking.19320.1",
-              "booking.12120.6",
-              "booking.16440.3"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.15",
-            "preferences": [],
-            "stayHistory": [
-              "booking.12120.7",
-              "booking.19320.2",
-              "booking.22200.0"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.16",
-            "preferences": [],
-            "stayHistory": [
-              "booking.12120.8",
-              "booking.20760.2",
-              "booking.22200.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.17",
-            "preferences": [],
-            "stayHistory": [
-              "booking.16440.6",
-              "booking.20760.3",
-              "booking.23640.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.18",
-            "preferences": [],
-            "stayHistory": ["booking.16440.7", "booking.26520.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.19",
-            "preferences": [],
-            "stayHistory": ["booking.23640.3", "booking.25080.2"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.2",
-            "preferences": [],
-            "stayHistory": ["booking.46680.2"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.20",
-            "preferences": [],
-            "stayHistory": ["booking.23640.4", "booking.25080.3"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.21",
-            "preferences": [],
-            "stayHistory": ["booking.22200.6", "booking.30840.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.22",
-            "preferences": [],
-            "stayHistory": ["booking.22200.7", "booking.32280.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.23",
-            "preferences": [],
-            "stayHistory": [
-              "booking.26520.5",
-              "booking.30840.2",
-              "booking.33720.0"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.25",
-            "preferences": [],
-            "stayHistory": [
-              "booking.30840.4",
-              "booking.26520.7",
-              "booking.33720.2",
-              "booking.36600.0"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.26",
-            "preferences": [],
-            "stayHistory": ["booking.30840.5"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.27",
-            "preferences": [],
-            "stayHistory": [
-              "booking.33720.4",
-              "booking.39480.0",
-              "booking.35160.3"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.28",
-            "preferences": [],
-            "stayHistory": ["booking.38040.2", "booking.40920.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.29",
-            "preferences": [],
-            "stayHistory": ["booking.35160.5", "booking.38040.3"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.3",
-            "preferences": [],
-            "stayHistory": [
-              "booking.3480.1",
-              "booking.48120.2",
-              "booking.42360.6",
-              "booking.49560.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.30",
-            "preferences": [],
-            "stayHistory": ["booking.38040.4", "booking.39480.3"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.31",
-            "preferences": [],
-            "stayHistory": [
-              "booking.38040.5",
-              "booking.42360.2",
-              "booking.45240.0",
-              "booking.40920.3",
-              "booking.43800.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.4",
-            "preferences": [],
-            "stayHistory": [
-              "booking.2040.3",
-              "booking.4920.1",
-              "booking.48120.3",
-              "booking.49560.2",
-              "booking.51000.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.5",
-            "preferences": [],
-            "stayHistory": [
-              "booking.2040.4",
-              "booking.42360.8",
-              "booking.51000.2"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.6",
-            "preferences": [],
-            "stayHistory": [
-              "booking.3480.4",
-              "booking.4920.3",
-              "booking.49560.4",
-              "booking.53880.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.7",
-            "preferences": [],
-            "stayHistory": [
-              "booking.4920.4",
-              "booking.6360.3",
-              "booking.7800.2",
-              "booking.10680.0",
-              "booking.48120.6"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.8",
-            "preferences": [],
-            "stayHistory": [
-              "booking.3480.6",
-              "booking.2040.7",
-              "booking.7800.3",
-              "booking.12120.0",
-              "booking.9240.2",
-              "booking.49560.6"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.business.9",
-            "preferences": [],
-            "stayHistory": [
-              "booking.3480.7",
-              "booking.7800.4",
-              "booking.49560.7",
-              "booking.51000.6",
-              "booking.52440.5",
-              "booking.53880.4"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.0",
-            "preferences": [],
-            "stayHistory": ["booking.42360.3", "booking.40920.4"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.1",
-            "preferences": [],
-            "stayHistory": ["booking.46680.1", "booking.48120.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.10",
-            "preferences": [],
-            "stayHistory": [
-              "booking.15000.0",
-              "booking.10680.3",
-              "booking.53880.5",
-              "booking.51000.7"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.11",
-            "preferences": [],
-            "stayHistory": [
-              "booking.6360.7",
-              "booking.52440.7",
-              "booking.55320.5"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.13",
-            "preferences": [],
-            "stayHistory": ["booking.12120.5"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.14",
-            "preferences": [],
-            "stayHistory": ["booking.20760.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.16",
-            "preferences": [],
-            "stayHistory": ["booking.17880.4", "booking.23640.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.17",
-            "preferences": [],
-            "stayHistory": ["booking.25080.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.18",
-            "preferences": [],
-            "stayHistory": ["booking.25080.1"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.2",
-            "preferences": [],
-            "stayHistory": ["booking.42360.5", "booking.43800.4"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.20",
-            "preferences": [],
-            "stayHistory": ["booking.29400.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.22",
-            "preferences": [],
-            "stayHistory": ["booking.23640.6", "booking.27960.3"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.23",
-            "preferences": [],
-            "stayHistory": ["booking.29400.3"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.24",
-            "preferences": [],
-            "stayHistory": ["booking.30840.3", "booking.35160.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.25",
-            "preferences": [],
-            "stayHistory": ["booking.32280.3", "booking.35160.1"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.26",
-            "preferences": [],
-            "stayHistory": ["booking.38040.0", "booking.36600.1"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.27",
-            "preferences": [],
-            "stayHistory": ["booking.36600.2", "booking.38040.1"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.28",
-            "preferences": [],
-            "stayHistory": [
-              "booking.30840.7",
-              "booking.35160.4",
-              "booking.39480.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.3",
-            "preferences": [],
-            "stayHistory": ["booking.2040.2", "booking.46680.3"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.30",
-            "preferences": [],
-            "stayHistory": ["booking.43800.0"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.4",
-            "preferences": [],
-            "stayHistory": ["booking.42360.7"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.5",
-            "preferences": [],
-            "stayHistory": [
-              "booking.46680.5",
-              "booking.48120.4",
-              "booking.49560.3"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.6",
-            "preferences": [],
-            "stayHistory": [
-              "booking.2040.5",
-              "booking.6360.2",
-              "booking.7800.1"
-            ],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.7",
-            "preferences": [],
-            "stayHistory": ["booking.2040.6", "booking.51000.4"],
-            "consent": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.9",
+            "guestId": "guest.booking.12120.1",
             "preferences": [],
             "stayHistory": ["booking.12120.1"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.1",
+            "guestId": "guest.booking.12120.2",
             "preferences": [],
-            "stayHistory": ["booking.600.1", "booking.38040.7"],
+            "stayHistory": ["booking.12120.2"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.11",
+            "guestId": "guest.booking.12120.3",
+            "preferences": [],
+            "stayHistory": ["booking.12120.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.4",
+            "preferences": [],
+            "stayHistory": ["booking.12120.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.5",
+            "preferences": [],
+            "stayHistory": ["booking.12120.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.6",
+            "preferences": [],
+            "stayHistory": ["booking.12120.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.7",
+            "preferences": [],
+            "stayHistory": ["booking.12120.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.8",
+            "preferences": [],
+            "stayHistory": ["booking.12120.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.2",
+            "preferences": [],
+            "stayHistory": ["booking.13560.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.3",
+            "preferences": [],
+            "stayHistory": ["booking.13560.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.0",
+            "preferences": [],
+            "stayHistory": ["booking.15000.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.1",
             "preferences": [],
             "stayHistory": ["booking.15000.1"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.12",
+            "guestId": "guest.booking.15000.3",
             "preferences": [],
-            "stayHistory": ["booking.13560.3", "booking.16440.1"],
+            "stayHistory": ["booking.15000.3"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.13",
+            "guestId": "guest.booking.16440.0",
             "preferences": [],
-            "stayHistory": ["booking.19320.0"],
+            "stayHistory": ["booking.16440.0"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.15",
+            "guestId": "guest.booking.16440.1",
+            "preferences": [],
+            "stayHistory": ["booking.16440.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.2",
+            "preferences": [],
+            "stayHistory": ["booking.16440.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.3",
+            "preferences": [],
+            "stayHistory": ["booking.16440.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.4",
             "preferences": [],
             "stayHistory": ["booking.16440.4"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.19",
+            "guestId": "guest.booking.16440.6",
+            "preferences": [],
+            "stayHistory": ["booking.16440.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.7",
+            "preferences": [],
+            "stayHistory": ["booking.16440.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.8",
             "preferences": [],
             "stayHistory": ["booking.16440.8"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.2",
+            "guestId": "guest.booking.17880.0",
             "preferences": [],
-            "stayHistory": [
-              "booking.3480.0",
-              "booking.38040.8",
-              "booking.48120.1"
-            ],
+            "stayHistory": ["booking.17880.0"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.20",
+            "guestId": "guest.booking.17880.2",
             "preferences": [],
-            "stayHistory": ["booking.26520.2", "booking.27960.1"],
+            "stayHistory": ["booking.17880.2"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.21",
+            "guestId": "guest.booking.17880.4",
+            "preferences": [],
+            "stayHistory": ["booking.17880.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.0",
+            "preferences": [],
+            "stayHistory": ["booking.19320.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.1",
+            "preferences": [],
+            "stayHistory": ["booking.19320.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.2",
+            "preferences": [],
+            "stayHistory": ["booking.19320.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.2",
+            "preferences": [],
+            "stayHistory": ["booking.2040.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.3",
+            "preferences": [],
+            "stayHistory": ["booking.2040.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.4",
+            "preferences": [],
+            "stayHistory": ["booking.2040.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.5",
+            "preferences": [],
+            "stayHistory": ["booking.2040.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.6",
+            "preferences": [],
+            "stayHistory": ["booking.2040.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.7",
+            "preferences": [],
+            "stayHistory": ["booking.2040.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.0",
+            "preferences": [],
+            "stayHistory": ["booking.20760.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.2",
+            "preferences": [],
+            "stayHistory": ["booking.20760.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.3",
+            "preferences": [],
+            "stayHistory": ["booking.20760.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.0",
+            "preferences": [],
+            "stayHistory": ["booking.22200.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.1",
+            "preferences": [],
+            "stayHistory": ["booking.22200.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.6",
+            "preferences": [],
+            "stayHistory": ["booking.22200.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.7",
+            "preferences": [],
+            "stayHistory": ["booking.22200.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.0",
+            "preferences": [],
+            "stayHistory": ["booking.23640.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.1",
+            "preferences": [],
+            "stayHistory": ["booking.23640.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.3",
+            "preferences": [],
+            "stayHistory": ["booking.23640.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.4",
+            "preferences": [],
+            "stayHistory": ["booking.23640.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.5",
             "preferences": [],
             "stayHistory": ["booking.23640.5"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.22",
+            "guestId": "guest.booking.23640.6",
             "preferences": [],
-            "stayHistory": ["booking.26520.4", "booking.29400.2"],
+            "stayHistory": ["booking.23640.6"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.24",
+            "guestId": "guest.booking.25080.0",
+            "preferences": [],
+            "stayHistory": ["booking.25080.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.1",
+            "preferences": [],
+            "stayHistory": ["booking.25080.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.2",
+            "preferences": [],
+            "stayHistory": ["booking.25080.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.3",
+            "preferences": [],
+            "stayHistory": ["booking.25080.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.0",
+            "preferences": [],
+            "stayHistory": ["booking.26520.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.2",
+            "preferences": [],
+            "stayHistory": ["booking.26520.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.4",
+            "preferences": [],
+            "stayHistory": ["booking.26520.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.5",
+            "preferences": [],
+            "stayHistory": ["booking.26520.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.7",
+            "preferences": [],
+            "stayHistory": ["booking.26520.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.1",
+            "preferences": [],
+            "stayHistory": ["booking.27960.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.3",
+            "preferences": [],
+            "stayHistory": ["booking.27960.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.0",
+            "preferences": [],
+            "stayHistory": ["booking.29400.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.2",
+            "preferences": [],
+            "stayHistory": ["booking.29400.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.3",
+            "preferences": [],
+            "stayHistory": ["booking.29400.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.0",
+            "preferences": [],
+            "stayHistory": ["booking.30840.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.2",
+            "preferences": [],
+            "stayHistory": ["booking.30840.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.3",
+            "preferences": [],
+            "stayHistory": ["booking.30840.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.4",
+            "preferences": [],
+            "stayHistory": ["booking.30840.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.5",
+            "preferences": [],
+            "stayHistory": ["booking.30840.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.7",
+            "preferences": [],
+            "stayHistory": ["booking.30840.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.0",
+            "preferences": [],
+            "stayHistory": ["booking.32280.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.3",
+            "preferences": [],
+            "stayHistory": ["booking.32280.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.0",
+            "preferences": [],
+            "stayHistory": ["booking.33720.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.1",
             "preferences": [],
             "stayHistory": ["booking.33720.1"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.29",
+            "guestId": "guest.booking.33720.2",
             "preferences": [],
-            "stayHistory": ["booking.42360.0"],
+            "stayHistory": ["booking.33720.2"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.3",
+            "guestId": "guest.booking.33720.4",
             "preferences": [],
-            "stayHistory": ["booking.43800.5"],
+            "stayHistory": ["booking.33720.4"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.30",
+            "guestId": "guest.booking.3480.0",
             "preferences": [],
-            "stayHistory": ["booking.40920.2", "booking.42360.1"],
+            "stayHistory": ["booking.3480.0"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.31",
+            "guestId": "guest.booking.3480.1",
             "preferences": [],
-            "stayHistory": ["booking.39480.4"],
+            "stayHistory": ["booking.3480.1"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.4",
+            "guestId": "guest.booking.3480.2",
             "preferences": [],
             "stayHistory": ["booking.3480.2"],
             "consent": "none"
           },
           {
-            "guestId": "guest.segment.leisure.7",
+            "guestId": "guest.booking.3480.4",
             "preferences": [],
-            "stayHistory": ["booking.3480.5", "booking.52440.3"],
+            "stayHistory": ["booking.3480.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.5",
+            "preferences": [],
+            "stayHistory": ["booking.3480.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.6",
+            "preferences": [],
+            "stayHistory": ["booking.3480.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.7",
+            "preferences": [],
+            "stayHistory": ["booking.3480.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.8",
+            "preferences": [],
+            "stayHistory": ["booking.3480.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.0",
+            "preferences": [],
+            "stayHistory": ["booking.35160.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.1",
+            "preferences": [],
+            "stayHistory": ["booking.35160.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.3",
+            "preferences": [],
+            "stayHistory": ["booking.35160.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.4",
+            "preferences": [],
+            "stayHistory": ["booking.35160.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.5",
+            "preferences": [],
+            "stayHistory": ["booking.35160.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.0",
+            "preferences": [],
+            "stayHistory": ["booking.36600.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.1",
+            "preferences": [],
+            "stayHistory": ["booking.36600.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.2",
+            "preferences": [],
+            "stayHistory": ["booking.36600.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.0",
+            "preferences": [],
+            "stayHistory": ["booking.38040.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.1",
+            "preferences": [],
+            "stayHistory": ["booking.38040.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.2",
+            "preferences": [],
+            "stayHistory": ["booking.38040.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.3",
+            "preferences": [],
+            "stayHistory": ["booking.38040.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.4",
+            "preferences": [],
+            "stayHistory": ["booking.38040.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.5",
+            "preferences": [],
+            "stayHistory": ["booking.38040.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.7",
+            "preferences": [],
+            "stayHistory": ["booking.38040.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.8",
+            "preferences": [],
+            "stayHistory": ["booking.38040.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.0",
+            "preferences": [],
+            "stayHistory": ["booking.39480.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.1",
+            "preferences": [],
+            "stayHistory": ["booking.39480.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.3",
+            "preferences": [],
+            "stayHistory": ["booking.39480.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.4",
+            "preferences": [],
+            "stayHistory": ["booking.39480.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.6",
+            "preferences": [],
+            "stayHistory": ["booking.39480.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.0",
+            "preferences": [],
+            "stayHistory": ["booking.40920.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.2",
+            "preferences": [],
+            "stayHistory": ["booking.40920.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.3",
+            "preferences": [],
+            "stayHistory": ["booking.40920.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.4",
+            "preferences": [],
+            "stayHistory": ["booking.40920.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.5",
+            "preferences": [],
+            "stayHistory": ["booking.40920.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.0",
+            "preferences": [],
+            "stayHistory": ["booking.42360.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.1",
+            "preferences": [],
+            "stayHistory": ["booking.42360.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.2",
+            "preferences": [],
+            "stayHistory": ["booking.42360.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.3",
+            "preferences": [],
+            "stayHistory": ["booking.42360.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.5",
+            "preferences": [],
+            "stayHistory": ["booking.42360.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.6",
+            "preferences": [],
+            "stayHistory": ["booking.42360.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.7",
+            "preferences": [],
+            "stayHistory": ["booking.42360.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.42360.8",
+            "preferences": [],
+            "stayHistory": ["booking.42360.8"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.0",
+            "preferences": [],
+            "stayHistory": ["booking.43800.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.1",
+            "preferences": [],
+            "stayHistory": ["booking.43800.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.2",
+            "preferences": [],
+            "stayHistory": ["booking.43800.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.4",
+            "preferences": [],
+            "stayHistory": ["booking.43800.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.5",
+            "preferences": [],
+            "stayHistory": ["booking.43800.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.0",
+            "preferences": [],
+            "stayHistory": ["booking.45240.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.1",
+            "preferences": [],
+            "stayHistory": ["booking.45240.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.45240.2",
+            "preferences": [],
+            "stayHistory": ["booking.45240.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.0",
+            "preferences": [],
+            "stayHistory": ["booking.46680.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.1",
+            "preferences": [],
+            "stayHistory": ["booking.46680.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.2",
+            "preferences": [],
+            "stayHistory": ["booking.46680.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.3",
+            "preferences": [],
+            "stayHistory": ["booking.46680.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.46680.5",
+            "preferences": [],
+            "stayHistory": ["booking.46680.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.0",
+            "preferences": [],
+            "stayHistory": ["booking.48120.0"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.1",
+            "preferences": [],
+            "stayHistory": ["booking.48120.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.2",
+            "preferences": [],
+            "stayHistory": ["booking.48120.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.3",
+            "preferences": [],
+            "stayHistory": ["booking.48120.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.4",
+            "preferences": [],
+            "stayHistory": ["booking.48120.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.6",
+            "preferences": [],
+            "stayHistory": ["booking.48120.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.1",
+            "preferences": [],
+            "stayHistory": ["booking.4920.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.3",
+            "preferences": [],
+            "stayHistory": ["booking.4920.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.4",
+            "preferences": [],
+            "stayHistory": ["booking.4920.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.1",
+            "preferences": [],
+            "stayHistory": ["booking.49560.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.2",
+            "preferences": [],
+            "stayHistory": ["booking.49560.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.3",
+            "preferences": [],
+            "stayHistory": ["booking.49560.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.4",
+            "preferences": [],
+            "stayHistory": ["booking.49560.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.6",
+            "preferences": [],
+            "stayHistory": ["booking.49560.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.7",
+            "preferences": [],
+            "stayHistory": ["booking.49560.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.1",
+            "preferences": [],
+            "stayHistory": ["booking.51000.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.2",
+            "preferences": [],
+            "stayHistory": ["booking.51000.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.4",
+            "preferences": [],
+            "stayHistory": ["booking.51000.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.6",
+            "preferences": [],
+            "stayHistory": ["booking.51000.6"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.7",
+            "preferences": [],
+            "stayHistory": ["booking.51000.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.3",
+            "preferences": [],
+            "stayHistory": ["booking.52440.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.5",
+            "preferences": [],
+            "stayHistory": ["booking.52440.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.7",
+            "preferences": [],
+            "stayHistory": ["booking.52440.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.1",
+            "preferences": [],
+            "stayHistory": ["booking.53880.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.4",
+            "preferences": [],
+            "stayHistory": ["booking.53880.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.5",
+            "preferences": [],
+            "stayHistory": ["booking.53880.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.4",
+            "preferences": [],
+            "stayHistory": ["booking.55320.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.5",
+            "preferences": [],
+            "stayHistory": ["booking.55320.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.600.1",
+            "preferences": [],
+            "stayHistory": ["booking.600.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.2",
+            "preferences": [],
+            "stayHistory": ["booking.6360.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.3",
+            "preferences": [],
+            "stayHistory": ["booking.6360.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.7",
+            "preferences": [],
+            "stayHistory": ["booking.6360.7"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.1",
+            "preferences": [],
+            "stayHistory": ["booking.7800.1"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.2",
+            "preferences": [],
+            "stayHistory": ["booking.7800.2"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.3",
+            "preferences": [],
+            "stayHistory": ["booking.7800.3"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.4",
+            "preferences": [],
+            "stayHistory": ["booking.7800.4"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.7800.5",
+            "preferences": [],
+            "stayHistory": ["booking.7800.5"],
+            "consent": "none"
+          },
+          {
+            "guestId": "guest.booking.9240.2",
+            "preferences": [],
+            "stayHistory": ["booking.9240.2"],
             "consent": "none"
           }
         ]
@@ -24718,445 +25020,1015 @@
       "loyalty": {
         "members": [
           {
-            "guestId": "guest.segment.business.0",
-            "points": 540,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.10680.0",
+            "points": 212,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.1",
+            "guestId": "guest.booking.10680.3",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.1",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.3",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.4",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.5",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.6",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.7",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.12120.8",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.13560.3",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.0",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.15000.3",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.3",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.4",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.6",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.7",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.16440.8",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.17880.4",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.1",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.19320.2",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.2",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.3",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.4",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.5",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.6",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.2040.7",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.0",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.20760.3",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.0",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.6",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.22200.7",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.0",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.3",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.4",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.5",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.23640.6",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.0",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.1",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.2",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.25080.3",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.0",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.4",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.5",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.26520.7",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.27960.3",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.0",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.29400.3",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.2",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.3",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.4",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.5",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.30840.7",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.0",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.32280.3",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.0",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.33720.4",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.1",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.4",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.5",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.6",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.7",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.3480.8",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.0",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.1",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.3",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.4",
+            "points": 260,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.35160.5",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.0",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.1",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.36600.2",
+            "points": 238,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.0",
+            "points": 317,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.1",
+            "points": 346,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.2",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.3",
             "points": 180,
-            "qualifyingNights": 6,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.10",
+            "guestId": "guest.booking.38040.4",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.5",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.7",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.38040.8",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.0",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.1",
+            "points": 360,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.3",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.4",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.39480.6",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.0",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.2",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.40920.3",
             "points": 240,
-            "qualifyingNights": 8,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.11",
-            "points": 0,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.40920.4",
+            "points": 270,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.12",
-            "points": 0,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.40920.5",
+            "points": 212,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.13",
-            "points": 0,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.42360.0",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.14",
-            "points": 134,
-            "qualifyingNights": 8,
+            "guestId": "guest.booking.42360.1",
+            "points": 170,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.15",
-            "points": 660,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.business.16",
-            "points": 540,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.business.17",
-            "points": 660,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.business.18",
-            "points": 480,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.business.19",
-            "points": 480,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.business.2",
+            "guestId": "guest.booking.42360.2",
             "points": 240,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.20",
-            "points": 480,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.42360.3",
+            "points": 270,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.21",
-            "points": 420,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.42360.5",
+            "points": 260,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.22",
-            "points": 420,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.42360.6",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.23",
-            "points": 720,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.42360.7",
+            "points": 360,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.25",
-            "points": 720,
-            "qualifyingNights": 8,
+            "guestId": "guest.booking.42360.8",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.26",
+            "guestId": "guest.booking.43800.0",
+            "points": 270,
+            "qualifyingNights": 3,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.43800.1",
             "points": 240,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.27",
-            "points": 660,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.43800.2",
+            "points": 226,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.28",
-            "points": 480,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.43800.4",
+            "points": 360,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.29",
-            "points": 420,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.43800.5",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.3",
-            "points": 780,
-            "qualifyingNights": 8,
+            "guestId": "guest.booking.45240.0",
+            "points": 240,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.30",
-            "points": 420,
-            "qualifyingNights": 4,
+            "guestId": "guest.booking.45240.1",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.31",
-            "points": 1140,
-            "qualifyingNights": 10,
+            "guestId": "guest.booking.45240.2",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.4",
-            "points": 960,
-            "qualifyingNights": 10,
+            "guestId": "guest.booking.46680.0",
+            "points": 240,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.5",
-            "points": 600,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.46680.1",
+            "points": 360,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.6",
-            "points": 840,
-            "qualifyingNights": 8,
+            "guestId": "guest.booking.46680.2",
+            "points": 240,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.7",
-            "points": 1080,
-            "qualifyingNights": 10,
+            "guestId": "guest.booking.46680.3",
+            "points": 240,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.business.8",
-            "points": 1080,
-            "qualifyingNights": 12,
-            "tier": "silver"
-          },
-          {
-            "guestId": "guest.segment.business.9",
-            "points": 1140,
-            "qualifyingNights": 12,
-            "tier": "silver"
-          },
-          {
-            "guestId": "guest.segment.corporate.0",
-            "points": 540,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.46680.5",
+            "points": 360,
+            "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.1",
-            "points": 630,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.10",
-            "points": 870,
-            "qualifyingNights": 9,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.11",
-            "points": 630,
-            "qualifyingNights": 7,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.13",
+            "guestId": "guest.booking.48120.0",
             "points": 270,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.14",
+            "guestId": "guest.booking.48120.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.48120.4",
             "points": 360,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.16",
-            "points": 540,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.48120.6",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.17",
+            "guestId": "guest.booking.4920.1",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.3",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.4920.4",
+            "points": 212,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.3",
             "points": 360,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.18",
+            "guestId": "guest.booking.49560.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.6",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.49560.7",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.1",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.2",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.51000.4",
             "points": 360,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.2",
-            "points": 630,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.51000.6",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.20",
+            "guestId": "guest.booking.51000.7",
+            "points": 90,
+            "qualifyingNights": 1,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.3",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.5",
+            "points": 180,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.52440.7",
             "points": 270,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.22",
-            "points": 630,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.53880.1",
+            "points": 180,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.23",
-            "points": 270,
+            "guestId": "guest.booking.53880.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.53880.5",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.4",
+            "points": 240,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.55320.5",
+            "points": 90,
+            "qualifyingNights": 1,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.600.1",
+            "points": 159,
+            "qualifyingNights": 2,
+            "tier": "none"
+          },
+          {
+            "guestId": "guest.booking.6360.2",
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.24",
-            "points": 540,
-            "qualifyingNights": 6,
+            "guestId": "guest.booking.6360.3",
+            "points": 212,
+            "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.25",
-            "points": 540,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.26",
-            "points": 630,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.27",
-            "points": 630,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.28",
-            "points": 990,
-            "qualifyingNights": 9,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.3",
-            "points": 510,
-            "qualifyingNights": 5,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.30",
-            "points": 270,
+            "guestId": "guest.booking.6360.7",
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.4",
-            "points": 360,
+            "guestId": "guest.booking.7800.1",
+            "points": 238,
             "qualifyingNights": 3,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.corporate.5",
-            "points": 1080,
-            "qualifyingNights": 9,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.6",
-            "points": 900,
-            "qualifyingNights": 9,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.7",
-            "points": 720,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.corporate.9",
-            "points": 270,
-            "qualifyingNights": 3,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.1",
-            "points": 360,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.11",
-            "points": 180,
+            "guestId": "guest.booking.7800.2",
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.leisure.12",
-            "points": 360,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.13",
-            "points": 180,
+            "guestId": "guest.booking.7800.3",
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.leisure.15",
-            "points": 180,
+            "guestId": "guest.booking.7800.4",
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.leisure.19",
-            "points": 180,
+            "guestId": "guest.booking.7800.5",
+            "points": 159,
             "qualifyingNights": 2,
             "tier": "none"
           },
           {
-            "guestId": "guest.segment.leisure.2",
-            "points": 540,
-            "qualifyingNights": 6,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.20",
-            "points": 360,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.21",
-            "points": 180,
+            "guestId": "guest.booking.9240.2",
+            "points": 159,
             "qualifyingNights": 2,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.22",
-            "points": 360,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.24",
-            "points": 180,
-            "qualifyingNights": 2,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.29",
-            "points": 180,
-            "qualifyingNights": 2,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.3",
-            "points": 180,
-            "qualifyingNights": 2,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.30",
-            "points": 360,
-            "qualifyingNights": 4,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.31",
-            "points": 180,
-            "qualifyingNights": 2,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.4",
-            "points": 180,
-            "qualifyingNights": 2,
-            "tier": "none"
-          },
-          {
-            "guestId": "guest.segment.leisure.7",
-            "points": 360,
-            "qualifyingNights": 4,
             "tier": "none"
           }
         ],
-        "liabilityMinor": 280432
+        "liabilityMinor": 280992
       }
     },
     "reputation": {
@@ -30592,7 +31464,7 @@
             "marginBasisPoints": 7000
           },
           "staffRequired": 0,
-          "fitBp": 7000,
+          "fit": 70,
           "maintenanceMinor": 30000
         },
         {
@@ -30607,7 +31479,7 @@
             "marginBasisPoints": 3500
           },
           "staffRequired": 0,
-          "fitBp": 5500,
+          "fit": 55,
           "maintenanceMinor": 25000
         },
         {
@@ -30622,7 +31494,7 @@
             "marginBasisPoints": 0
           },
           "staffRequired": 0,
-          "fitBp": 6500,
+          "fit": 65,
           "maintenanceMinor": 12000
         }
       ],

@@ -44,13 +44,13 @@ import {
   brandRows,
   developmentRows,
   escalationRows,
+  hotelName,
   managerRows,
   portfolioRows,
   accountRows,
   campaignRows,
   marketableGuestCount,
   reputationRows,
-  hotelName,
 } from "../ui/company/companyViewModel";
 
 function seedFromLocation(): number {
@@ -124,7 +124,7 @@ export function App() {
         <h1>
           {s.hotel.name}, {CITY.name} 1991
         </h1>
-        <p role="status" aria-live="polite">
+        <p role="status" aria-label="Simulation status" aria-live="polite">
           {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
         </p>
         <p aria-label="Command status" aria-live="polite">

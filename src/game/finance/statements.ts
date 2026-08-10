@@ -9,12 +9,25 @@ import type { LedgerEntry } from "./ledger";
  */
 
 export type AccountClass =
-  "revenue" | "operating" | "capital" | "financing" | "settlement";
+  | "revenue"
+  | "operating"
+  | "capital"
+  | "investing"
+  | "borrowing"
+  | "equity"
+  | "financing"
+  | "settlement";
 
 /**
  * Which statement each account belongs to. An account missing from here is
  * treated as operating, which is the safe reading: a cost of unknown kind is
  * a cost of trading, never quietly capitalised into an asset.
+ *
+ * That default is safe for a cost and wrong for everything else, which is why
+ * money that is not trading has to be named here. Capital contributed by the
+ * owner, a loan drawn down and a hotel sold are not things the hotel earned,
+ * and a stake bought in something is not a cost of running it; left to the
+ * default, each of them would move operating profit by its full amount.
  */
 export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   roomRevenue: "revenue",
@@ -41,7 +54,17 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   portfolioOperating: "operating",
   insurancePremium: "operating",
   capex: "capital",
+  // A stake bought in a venture and a house sold out of the group are both the
+  // group moving capital about, not the hotel trading.
+  investment: "investing",
+  disposal: "investing",
+  // Principal drawn from the bank is money owed, not money earned; the cost of
+  // having borrowed it is the interest, and that is a financing cost.
+  loan: "borrowing",
+  capital: "equity",
   interest: "financing",
+  // Paying an overdue bill is cash leaving for an expense already recognised.
+  // Counting it again would double the cost and inflate interest.
   payables: "settlement",
 };
 
@@ -79,6 +102,9 @@ export function profitAndLoss(ledger: readonly LedgerEntry[]): ProfitAndLoss {
         interestMinor += -entry.amountMinor;
         break;
       case "capital":
+      case "investing":
+      case "borrowing":
+      case "equity":
       case "settlement":
         break;
     }
@@ -96,10 +122,18 @@ export interface CashFlowStatement {
   openingCashMinor: number;
   operatingCashMinor: number;
   investingCashMinor: number;
+  /** Money from the owner and the bank, and principal handed back to them. */
+  financingCashMinor: number;
   closingCashMinor: number;
 }
 
-/** The same period as money actually moving, where capital spend does count. */
+/**
+ * The same period as money actually moving, where capital spend does count.
+ *
+ * Interest stays in operating: it is what this month's trading cost to
+ * finance. Principal and contributed capital do not, because a hotel that
+ * covers its wages out of a new loan is not a hotel that covered its wages.
+ */
 export function cashFlowStatement(
   ledger: readonly LedgerEntry[],
   input: { openingCashMinor: number },
@@ -107,16 +141,30 @@ export function cashFlowStatement(
   assertMinor(input.openingCashMinor, "opening cash");
   let operatingCashMinor = 0;
   let investingCashMinor = 0;
+  let financingCashMinor = 0;
   for (const entry of ledger)
-    if (accountClass(entry.account) === "capital")
-      investingCashMinor += entry.amountMinor;
-    else operatingCashMinor += entry.amountMinor;
+    switch (accountClass(entry.account)) {
+      case "capital":
+      case "investing":
+        investingCashMinor += entry.amountMinor;
+        break;
+      case "borrowing":
+      case "equity":
+        financingCashMinor += entry.amountMinor;
+        break;
+      default:
+        operatingCashMinor += entry.amountMinor;
+    }
   return {
     openingCashMinor: input.openingCashMinor,
     operatingCashMinor,
     investingCashMinor,
+    financingCashMinor,
     closingCashMinor:
-      input.openingCashMinor + operatingCashMinor + investingCashMinor,
+      input.openingCashMinor +
+      operatingCashMinor +
+      investingCashMinor +
+      financingCashMinor,
   };
 }
 

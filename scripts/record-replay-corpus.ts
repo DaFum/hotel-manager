@@ -56,7 +56,8 @@ const rerecorded: ReplayCorpus = {
   finalStateHash: stateHash(simulation.snapshot()),
 };
 
-// A recording nobody can reproduce is worthless, so prove it immediately.
+// Proved before it is written: a recording nobody can reproduce must not be
+// allowed to replace the corpus it was taken from.
 const verify = replayCorpus(rerecorded);
 if (verify.hash !== rerecorded.finalStateHash)
   throw new Error("the re-recorded corpus does not reproduce its own hash");

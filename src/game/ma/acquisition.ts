@@ -103,7 +103,9 @@ export function createAcquisitionTarget(input: {
     annualGopMinor: input.annualGopMinor,
     debtAssumedMinor: input.debtAssumedMinor,
     renovationNeedMinor: input.renovationNeedMinor,
-    hiddenFindings: [...(input.hiddenFindings ?? [])],
+    // Copied per finding, so a caller mutating its content later cannot
+    // rewrite what is wrong with a building the player already inspected.
+    hiddenFindings: (input.hiddenFindings ?? []).map((f) => ({ ...f })),
     status: "available",
   };
 }

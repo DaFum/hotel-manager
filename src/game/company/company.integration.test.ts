@@ -114,7 +114,7 @@ describe("acquisitions through the simulation", () => {
     ).toBe("accepted");
 
     const report = s.state.company.dueDiligence["target.offenbach.1"];
-    expect(report.undisclosedLiabilityMinor).toBe(4_200_000);
+    expect(report.discoveredLiabilityMinor).toBe(4_200_000);
     // The finding is now the buyer's lever, so the same low offer that was
     // refused before is refused by exactly that much less.
     const rejected = submit(s, {
@@ -220,6 +220,35 @@ describe("acquisitions through the simulation", () => {
     const result = s.state.company.hotelResults[s.state.hotel.id];
     expect(royalties[0].amountMinor).toBe(
       -Math.trunc((result.roomRevenueMinor * 500) / 10_000),
+    );
+  });
+
+  it("keeps the group's own costs out of the flagship's published result", () => {
+    const s = sim();
+    // A brand programme is a company cost, charged at the close through the
+    // same ledger the flagship trades in.
+    submit(s, {
+      type: "ASSIGN_BRAND",
+      hotelId: s.state.hotel.id,
+      brandId: "brand.mainblick",
+    });
+    runDays(s, 40);
+
+    const result = s.state.company.hotelResults[s.state.hotel.id];
+    const close = s.state.lastMonthlyClose;
+    expect(result).toBeDefined();
+    expect(close).not.toBeNull();
+    // The group's close carries headquarters and the brand programme; the
+    // house's result must not, or one house is charged for the whole company.
+    const groupOnly = s.state.finance.ledger
+      .filter((e) => ["headquarters", "brandProgramme"].includes(e.account))
+      .reduce((sum, e) => sum + -e.amountMinor, 0);
+    expect(groupOnly).toBeGreaterThan(0);
+    expect(result.operatingExpenseMinor).toBe(
+      close!.operatingExpenseMinor - groupOnly,
+    );
+    expect(result.grossOperatingProfitMinor).toBe(
+      close!.operatingProfitMinor + groupOnly,
     );
   });
 });

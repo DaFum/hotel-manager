@@ -76,11 +76,27 @@ describe("the statements against a real trading hotel", () => {
     expect(statements.accumulatedDepreciationMinor).toBeGreaterThan(0);
     expect(statements.lastDepreciationPeriodKey).toMatch(/^\d{4}-\d{2}$/);
 
+    // A reload has to actually reach another close for the guard to be
+    // exercised: it is the period stamp, not the reload, that stops the
+    // already-charged month being charged again.
     const before = statements.accumulatedDepreciationMinor;
-    // Re-running the same closed period must add nothing.
+    const chargedPeriod = statements.lastDepreciationPeriodKey;
     const reloaded = new GameSimulation(structuredClone(s.state));
     reloaded.refreshDerivedState();
-    expect(reloaded.state.statements.accumulatedDepreciationMinor).toBe(before);
+    for (let i = 0; i < (40 * 1440) / QUANTUM_MINUTES; i += 1)
+      reloaded.advanceQuantum();
+
+    // Exactly one further month was charged, and it was a different month. The
+    // charge is read from the statement rather than halving the accumulated
+    // total, which would silently measure something else if the setup above
+    // ever ran for a different number of months.
+    const oneMonth = statements.depreciationThisPeriodMinor;
+    expect(reloaded.state.statements.accumulatedDepreciationMinor).toBe(
+      before + oneMonth,
+    );
+    expect(reloaded.state.statements.lastDepreciationPeriodKey).not.toBe(
+      chargedPeriod,
+    );
 
     // Depreciation is not cash: it never appears in the ledger.
     expect(
@@ -130,5 +146,22 @@ describe("the statements against a real trading hotel", () => {
     expect(s.state.meters.energy).toBeGreaterThan(0);
     expect(s.state.meters.water).toBeGreaterThan(0);
     expect(s.state.meters.waste).toBeGreaterThan(0);
+  });
+
+  it("posts each standing charge once a month, not once a day", () => {
+    // The bug this guards: the standing charge used to ride along with every
+    // daily meter posting, charging a month's line rental thirty times over.
+    const s = play(40);
+    const contracts = s.state.utilityContracts;
+    for (const kind of ["energy", "water", "waste"] as const) {
+      const postings = s.state.finance.ledger.filter(
+        (e) => e.memo === `${kind} standing charge`,
+      );
+      expect(postings).toHaveLength(1);
+      expect(postings[0].account).toBe("utilities");
+      expect(postings[0].amountMinor).toBe(
+        -contracts[kind].standingChargeMinor,
+      );
+    }
   });
 });

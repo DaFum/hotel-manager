@@ -18,7 +18,7 @@ describe("PortfolioDashboard", () => {
   it("shows each hotel with occupancy, profit, warning count, and manager", () => {
     render(<PortfolioDashboard hotels={[HOTEL]} onOpenHotel={() => {}} />);
     expect(screen.getByText("Frankfurt Central")).toBeTruthy();
-    expect(screen.getByText(/78\.0% occupancy/)).toBeTruthy();
+    expect(screen.getByText("78.0% occupancy")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /open frankfurt central/i }),
     ).toBeTruthy();
@@ -158,7 +158,7 @@ describe("DevelopmentDashboard", () => {
     const onOpen = vi.fn();
     render(
       <DevelopmentDashboard
-        developments={[{ ...DEVELOPMENT, missing: [] }]}
+        developments={[{ ...DEVELOPMENT, missing: [] as const }]}
         onCompleteTask={() => {}}
         onOpen={onOpen}
       />,
@@ -186,6 +186,39 @@ describe("DevelopmentDashboard", () => {
     expect(onCompleteTask).toHaveBeenCalledWith(
       "development.hanau.1",
       "inventory",
+    );
+  });
+
+  it("tells a screen reader why the open button is disabled", () => {
+    // A disabled control has to say why, or it is a dead end to anybody who
+    // cannot see the checklist sitting above it.
+    const { rerender } = render(
+      <DevelopmentDashboard
+        developments={[DEVELOPMENT]}
+        onCompleteTask={() => {}}
+        onOpen={() => {}}
+      />,
+    );
+    const blocked = screen.getByRole("button", { name: /open hanau park/i });
+    const describedBy = blocked.getAttribute("aria-describedby");
+    expect(describedBy).toBe("development.hanau.1.outstanding");
+    expect(document.getElementById(describedBy!)?.textContent).toBe(
+      "Outstanding: inventory",
+    );
+
+    // The same description stays wired up once the scheme is ready, so the
+    // button explains its enabled state too rather than going silent.
+    rerender(
+      <DevelopmentDashboard
+        developments={[{ ...DEVELOPMENT, missing: [] as const }]}
+        onCompleteTask={() => {}}
+        onOpen={() => {}}
+      />,
+    );
+    const ready = screen.getByRole("button", { name: /open hanau park/i });
+    expect(ready.getAttribute("aria-describedby")).toBe(describedBy);
+    expect(document.getElementById(describedBy!)?.textContent).toBe(
+      "Ready to open",
     );
   });
 });

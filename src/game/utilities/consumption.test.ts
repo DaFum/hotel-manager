@@ -7,7 +7,9 @@ import {
   outageConsequences,
   readMeters,
   startOutage,
+  standingChargeMinor,
   utilityBillMinor,
+  utilityUsageMinor,
   wasteDisposalMinor,
 } from "./consumption";
 import { XorShift32 } from "../domain/rng";
@@ -25,18 +27,25 @@ describe("utility contracts and meters", () => {
     );
   });
 
-  it("bills the standing charge plus metered units, in whole Pfennig", () => {
+  it("separates the metered usage from the monthly standing charge", () => {
     const contracts = createUtilityContracts();
+    // Usage alone is what a daily billing run may charge; the standing charge
+    // is owed once a month and would otherwise be charged thirty times.
+    expect(utilityUsageMinor(contracts.energy, 1_000)).toBe(
+      contracts.energy.unitPriceMinor * 1_000,
+    );
+    expect(utilityUsageMinor(contracts.energy, 0)).toBe(0);
+    expect(standingChargeMinor(contracts.energy)).toBe(
+      contracts.energy.standingChargeMinor,
+    );
+
     const bill = utilityBillMinor(contracts.energy, 1_000);
     expect(bill).toBe(
       contracts.energy.standingChargeMinor +
         contracts.energy.unitPriceMinor * 1_000,
     );
     expect(Number.isSafeInteger(bill)).toBe(true);
-    expect(utilityBillMinor(contracts.energy, 0)).toBe(
-      contracts.energy.standingChargeMinor,
-    );
-    expect(() => utilityBillMinor(contracts.energy, -1)).toThrow(/units/);
+    expect(() => utilityUsageMinor(contracts.energy, -1)).toThrow(/units/);
   });
 
   it("reads each meter as a cumulative total that never goes backwards", () => {
@@ -68,17 +77,48 @@ describe("utility contracts and meters", () => {
     );
   });
 
-  it("prices waste by weight and by how much of it was sorted", () => {
-    expect(wasteDisposalMinor({ kilos: 400, sortedBasisPoints: 0 })).toBe(
-      40_000,
-    );
+  it("prices waste off its own contract, by weight and by sorting", () => {
+    const contracts = createUtilityContracts();
+    expect(
+      wasteDisposalMinor(contracts.waste, {
+        kilos: 400,
+        sortedBasisPoints: 0,
+      }),
+    ).toBe(400 * contracts.waste.unitPriceMinor);
     // Sorting is cheaper to dispose of, so it is an operational choice with a
     // number attached rather than a virtue score.
     expect(
-      wasteDisposalMinor({ kilos: 400, sortedBasisPoints: 5000 }),
-    ).toBeLessThan(wasteDisposalMinor({ kilos: 400, sortedBasisPoints: 0 }));
+      wasteDisposalMinor(contracts.waste, {
+        kilos: 400,
+        sortedBasisPoints: 5000,
+      }),
+    ).toBeLessThan(
+      wasteDisposalMinor(contracts.waste, {
+        kilos: 400,
+        sortedBasisPoints: 0,
+      }),
+    );
+    // Efficiency bought against the waste contract shows up on the bill.
+    const efficient = applyEfficiencyInvestment(contracts, {
+      kind: "waste",
+      savingBasisPoints: 2000,
+    });
+    expect(
+      wasteDisposalMinor(efficient.waste, {
+        kilos: 400,
+        sortedBasisPoints: 0,
+      }),
+    ).toBeLessThan(
+      wasteDisposalMinor(contracts.waste, {
+        kilos: 400,
+        sortedBasisPoints: 0,
+      }),
+    );
     expect(() =>
-      wasteDisposalMinor({ kilos: 400, sortedBasisPoints: 10_001 }),
+      wasteDisposalMinor(contracts.waste, {
+        kilos: 400,
+        sortedBasisPoints: 10_001,
+      }),
     ).toThrow(/sorted/);
   });
 

@@ -44,11 +44,37 @@ export function openHotelAccount(
   };
 }
 
+/**
+ * Retires the account of a house the group no longer owns, sweeping whatever
+ * was allocated to it back to headquarters.
+ *
+ * The balance is moved rather than dropped: the group's cash did not change
+ * because a house changed hands, and `consolidatedCashMinor` has to keep
+ * matching the ledger. Closing an account that was never opened is a no-op,
+ * so a disposal can be replayed without inventing money.
+ */
+export function closeHotelAccount(
+  treasury: TreasuryState,
+  hotelId: string,
+): TreasuryState {
+  if (!hotelId.trim()) throw new Error("a hotel id is required");
+  if (!Object.hasOwn(treasury.hotelCashMinor, hotelId)) return treasury;
+  const { [hotelId]: swept, ...rest } = treasury.hotelCashMinor;
+  return {
+    ...treasury,
+    hqMinor: treasury.hqMinor + swept,
+    hotelCashMinor: rest,
+  };
+}
+
 export function hotelCashMinor(
   treasury: TreasuryState,
   hotelId: string,
 ): number {
+  // A blank id is a caller mistake, not an account that happens to be missing.
   if (!hotelId.trim()) throw new Error("a hotel id is required");
+  // An own-property check, so an inherited key such as `toString` can never
+  // be read as a balance the group does not have.
   if (!Object.hasOwn(treasury.hotelCashMinor, hotelId))
     throw new Error(`hotel ${hotelId} has no treasury account`);
   return treasury.hotelCashMinor[hotelId];

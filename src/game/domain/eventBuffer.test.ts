@@ -270,6 +270,10 @@ function companyScenario(): DomainEvent[] {
     (e) => e.status === "open",
   );
   expect(escalation).toBeDefined();
+  // The one the failed Rheinstern audit raised, against the flagship, for
+  // capital its manager is not allowed to commit.
+  expect(escalation!.hotelId).toBe(hotelId);
+  expect(escalation!.reason).toMatch(/capex of \d+ exceeds the 0 capex limit/);
   run({
     type: "RESOLVE_ESCALATION",
     escalationId: escalation!.id,

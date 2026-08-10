@@ -123,8 +123,8 @@ export function menuQuadrant(input: {
   assertBasisPoints(input.soldShareBasisPoints, "sold share");
   assertBasisPoints(input.averageMarginBasisPoints, "average margin");
   const { recipe } = input;
-  assertNonNegativeMinor(recipe.sellingPriceMinor, "selling price");
-  assertNonNegativeMinor(recipe.ingredientCostMinor, "ingredient cost");
+  assertNonNegativeMinor(recipe.sellingPriceMinor, "recipe selling price");
+  assertNonNegativeMinor(recipe.ingredientCostMinor, "recipe ingredient cost");
   if (recipe.sellingPriceMinor === 0)
     return {
       quadrant: "dog",
@@ -182,6 +182,9 @@ export function foodWaste(input: {
           Math.trunc(totalCostMinor / input.recipes.length),
           "average ingredient cost",
         );
+  // Distributed so the stations reconcile exactly with the total: the
+  // remainder goes to the earliest stations rather than being truncated away,
+  // which would report less waste than actually happened.
   const byStation: Record<string, number> = {};
   const recipes = [...input.recipes].sort((a, b) =>
     compareIds(a.stationId, b.stationId),

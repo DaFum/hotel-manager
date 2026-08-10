@@ -6,6 +6,7 @@ import { assertNonNegativeMinor } from "../domain/units";
 import { drawLoan } from "../finance/loans";
 import { dismiss } from "../staff/employeeLifecycle";
 import { removeHotelFromPortfolio } from "../company/portfolio";
+import { closeHotelAccount } from "../treasury/treasury";
 import { valueHotel } from "../ma/valuation";
 import { financingAccessBonusBasisPoints } from "../prestige/prestige";
 import { consequencesForClosure } from "../narrative/choiceConsequences";
@@ -185,14 +186,7 @@ export function applyRecoveryPath(
         cause: `sale of ${hotelId}: ${consequences.jobsLost} jobs`,
         atMinutes: state.elapsedMinutes,
       });
-      state.company.portfolio = removeHotelFromPortfolio(
-        state.company.portfolio,
-        hotelId,
-      );
-      state.company.managedHotels = state.company.managedHotels.filter(
-        (h) => h.hotelId !== hotelId,
-      );
-      delete state.company.hotelResults[hotelId];
+      retireHotelFromCompany(state, hotelId);
       ctx.earn(proceeds, "disposal", `sale of ${hotelId}`);
       return { measure: path, amountMinor: proceeds };
     }
@@ -220,4 +214,37 @@ export function applyRecoveryPath(
     default:
       throw new Error(`${path} is not modelled yet`);
   }
+}
+
+/**
+ * Closes every company record that only existed because the group owned this
+ * house. A disposal that removed the house from the portfolio but left the
+ * rest behind kept a manager managing nothing, escalations waiting on a
+ * decision nobody can take, a brand flying over somebody else's building and
+ * cash allocated to a hotel the group no longer owns.
+ *
+ * The treasury account is swept rather than dropped, so the group's cash still
+ * reconciles to the ledger, and the brand audit history goes with the flag:
+ * the group cannot be held to a standard at an address it has sold.
+ *
+ * Retiring a house the group does not own is refused by the portfolio rather
+ * than tolerated, because a caller that has the wrong id is a bug worth
+ * hearing about, not a no-op worth hiding.
+ */
+export function retireHotelFromCompany(
+  state: GameState,
+  hotelId: string,
+): void {
+  const c = state.company;
+  c.portfolio = removeHotelFromPortfolio(c.portfolio, hotelId);
+  c.managedHotels = c.managedHotels.filter((h) => h.hotelId !== hotelId);
+  delete c.hotelResults[hotelId];
+  c.treasury = closeHotelAccount(c.treasury, hotelId);
+  c.managers = c.managers.filter((m) => m.hotelId !== hotelId);
+  c.escalations = c.escalations.filter((e) => e.hotelId !== hotelId);
+  c.budgets = c.budgets.filter((b) => b.hotelId !== hotelId);
+  c.brandAssignments = c.brandAssignments.filter((a) => a.hotelId !== hotelId);
+  c.brandAudits = c.brandAudits.filter((a) => a.hotelId !== hotelId);
+  const { [hotelId]: _sold, ...models } = c.operatingModels;
+  c.operatingModels = models;
 }

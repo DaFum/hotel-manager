@@ -25,9 +25,12 @@ import {
   type HotelOperatingResult,
 } from "./companyState";
 import { consolidatedCashMinor } from "../treasury/treasury";
+import { occupancyBasisPoints } from "../revenue/metrics";
+
 /** What putting one failed brand standard right is reckoned to cost. */
 export const REMEDIATION_COST_PER_FAILURE_MINOR = 1_500_000;
 
+/** What the corporate month needs from the simulation to do its work. */
 export interface CompanyMonthContext {
   emit(payload: DomainEventPayload, entities: readonly string[]): void;
   earn(amountMinor: number, account: string, memo: string): void;
@@ -44,7 +47,6 @@ export function runCompanyMonth(
   periodStartDateKey: string,
   ctx: CompanyMonthContext,
 ): void {
-  const c = state.company;
   const periodKey = periodStartDateKey.slice(0, 7);
 
   publishFlagshipResult(state, periodKey, ctx);
@@ -54,33 +56,39 @@ export function runCompanyMonth(
   chargeHeadquarters(state, ctx);
   raiseManagerEscalations(state, periodKey, ctx);
   syncTreasury(state);
-  void c;
 }
 
-/** The house the player runs in full reports what its own close produced. */
+/**
+ * The house the player runs in full reports what its own month produced. It
+ * reads the month accumulator rather than the close report, so the corporate
+ * month can run before the report is drawn up — and the report can then
+ * include what the corporate month charged.
+ */
 function publishFlagshipResult(
   state: GameState,
   periodKey: string,
   ctx: CompanyMonthContext,
 ): void {
-  const close = state.lastMonthlyClose;
-  if (!close) return;
+  const month = state.finance.month;
+  const revenueMinor = month.roomRevenueMinor + month.otherRevenueMinor;
   publishResult(
     state.company,
     {
       hotelId: state.hotel.id,
-      periodKey: close.periodKey,
-      roomRevenueMinor: close.roomRevenueMinor,
-      otherRevenueMinor: close.otherRevenueMinor,
-      operatingExpenseMinor: close.operatingExpenseMinor,
-      grossOperatingProfitMinor: close.operatingProfitMinor,
-      occupancyBasisPoints: close.occupancyBasisPoints,
-      soldRoomNights: close.soldRoomNights,
-      availableRoomNights: close.availableRoomNights,
+      periodKey,
+      roomRevenueMinor: month.roomRevenueMinor,
+      otherRevenueMinor: month.otherRevenueMinor,
+      operatingExpenseMinor: month.operatingExpenseMinor,
+      grossOperatingProfitMinor: revenueMinor - month.operatingExpenseMinor,
+      occupancyBasisPoints: occupancyBasisPoints(
+        month.soldRoomNights,
+        month.availableRoomNights,
+      ),
+      soldRoomNights: month.soldRoomNights,
+      availableRoomNights: month.availableRoomNights,
     },
     ctx,
   );
-  void periodKey;
 }
 
 /** Every other house in the group trades its own month and hands up the result. */
@@ -207,6 +215,8 @@ function auditBrands(
     const audit = recordAudit({
       hotelId,
       brandId: brand.id,
+      // The audit covers the month that just closed, so its remediation
+      // deadline runs from that month rather than from the day of the close.
       dateKey: periodStartDateKey,
       result,
     });
@@ -222,8 +232,10 @@ function auditBrands(
       [hotelId, brand.id],
     );
     if (audit.compliant) continue;
-    // Two consecutive failures on the same flag is the point at which the
-    // brand stops waiting: the grace period has been and gone.
+    // Two *consecutive* failures on the same flag, with the remediation date
+    // already gone by, is the point at which the brand stops waiting. Counting
+    // the whole history would take the flag for a failure years ago that the
+    // house has since put right.
     const matching = c.brandAudits.filter(
       (a) => a.hotelId === hotelId && a.brandId === brand.id,
     );
@@ -234,6 +246,10 @@ function auditBrands(
   }
 }
 
+/**
+ * Whether the flag comes off: the two most recent audits both failed and the
+ * grace period the first of them started has run out.
+ */
 export function shouldRemoveBrand(
   audits: readonly BrandAuditRecord[],
   dateKey: string,
@@ -250,7 +266,11 @@ export function shouldRemoveBrand(
   );
 }
 
-/** What a brand actually earns a house today; nothing while it is failing. */
+/**
+ * What a brand actually earns a house today; nothing while it is failing.
+ * The rule itself lives in the brand module — this only says what the auditor
+ * would see when they walked into this particular house.
+ */
 export function compliantBrandUpliftBp(
   state: GameState,
   hotelId: string,

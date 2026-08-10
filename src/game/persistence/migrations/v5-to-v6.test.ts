@@ -98,6 +98,38 @@ describe("v5 to v6", () => {
     expect(normalised.achievedMilestones).toEqual(["first-profitable-year"]);
   });
 
+  it("drops unreadable entries instead of migrating them into a crash", () => {
+    // A shallow Array.isArray check let these through, and the save schema's
+    // check is shallow too: the save loaded and the next narrative month blew
+    // up reading `event.definitionId` off null.
+    const normalised = normaliseNarrative(
+      {
+        activeEvents: [
+          null,
+          { id: "e1" },
+          {
+            id: "e2",
+            definitionId: "story.audit",
+            triggeredDateKey: "1991-03-01",
+            choices: [],
+          },
+        ],
+        achievedMilestones: ["first-profitable-year", 7, null],
+        rivals: [{ id: "r1" }, undefined],
+        opportunities: [{ id: "o1", openedDateKey: "1991-02-01" }],
+      },
+      career,
+    );
+    expect(normalised.activeEvents.map((e) => e.id)).toEqual(["e2"]);
+    expect(normalised.achievedMilestones).toEqual(["first-profitable-year"]);
+    expect(normalised.rivals).toEqual([]);
+    expect(normalised.opportunities).toEqual([]);
+    // And what survived is genuinely usable by the system that reads it.
+    expect(
+      normalised.activeEvents.some((e) => e.definitionId === "story.audit"),
+    ).toBe(true);
+  });
+
   it("refuses a save whose campaign numbers are not whole", () => {
     const broken = migrateEnvelope(v5());
     const state = broken.state as {

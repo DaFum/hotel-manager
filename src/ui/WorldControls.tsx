@@ -120,7 +120,7 @@ export function WorldControls(props: {
       </button>
 
       <h3>Lifts</h3>
-      <p aria-label="Elevator state">
+      <p role="status" aria-label="Elevator state">
         {props.elevator.queue} waiting, {props.elevator.waitMinutes} minutes,{" "}
         {props.elevator.cause}
       </p>
@@ -135,8 +135,9 @@ export function WorldControls(props: {
               <button
                 type="button"
                 aria-label={`Go to ${problem.title}: ${problem.cause}`}
+                // Where the camera is, not a toggle the player switched on.
                 aria-current={
-                  camera.focusedId === problem.id ? "true" : undefined
+                  camera.focusedId === problem.id ? true : undefined
                 }
                 onClick={() =>
                   props.onCamera(

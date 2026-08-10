@@ -125,18 +125,23 @@ export function normaliseNarrative(
     chronicle: Array.isArray(partial.chronicle)
       ? partial.chronicle.filter(isChronicleEntry)
       : defaults.chronicle,
-    activeEvents: array(partial.activeEvents, defaults.activeEvents),
-    achievedMilestones: array(
+    activeEvents: arrayOf(
+      partial.activeEvents,
+      defaults.activeEvents,
+      isActiveEvent,
+    ),
+    achievedMilestones: arrayOf(
       partial.achievedMilestones,
       defaults.achievedMilestones,
-    ).filter((id): id is string => typeof id === "string"),
+      (id) => typeof id === "string",
+    ),
     lastFiredByDefinition: isRecord(partial.lastFiredByDefinition)
       ? partial.lastFiredByDefinition
       : defaults.lastFiredByDefinition,
     annualProfit: isValidAnnualProfit(partial.annualProfit)
       ? partial.annualProfit
       : defaults.annualProfit,
-    rivals: array(partial.rivals, defaults.rivals),
+    rivals: arrayOf(partial.rivals, defaults.rivals, isRival),
     // Somebody whose months in the job cannot be counted cannot have a career
     // progressed from them.
     keyPeople: Array.isArray(partial.keyPeople)
@@ -146,7 +151,11 @@ export function normaliseNarrative(
     prestige: isValidPrestige(partial.prestige)
       ? partial.prestige
       : defaults.prestige,
-    opportunities: array(partial.opportunities, defaults.opportunities),
+    opportunities: arrayOf(
+      partial.opportunities,
+      defaults.opportunities,
+      isOpportunity,
+    ),
     // Configuration and career reading are the two a wrong value would make
     // the run unreplayable, so both are all-or-nothing.
     campaign: isValidCampaign(partial.campaign)
@@ -159,8 +168,36 @@ export function normaliseNarrative(
 const record = (value: unknown): Record<string, unknown> =>
   isRecord(value) ? value : {};
 
-const array = <T>(value: unknown, fallback: T[]): T[] =>
-  Array.isArray(value) ? (value as T[]) : fallback;
+/**
+ * An array is only as sound as the entries in it. A shallow `Array.isArray`
+ * lets `[null]` through, and the save schema's own check is shallow too, so a
+ * partial save would load and then crash the first time a system read the
+ * entry. Each element is proved instead, and an unreadable one is dropped:
+ * the rest of the history is still true.
+ */
+const arrayOf = <T>(
+  value: unknown,
+  fallback: T[],
+  isElement: (candidate: unknown) => boolean,
+): T[] => (Array.isArray(value) ? (value.filter(isElement) as T[]) : fallback);
+
+const hasStringField = (value: unknown, ...fields: string[]): boolean =>
+  isRecord(value) && fields.every((field) => typeof value[field] === "string");
+
+/** An active story needs the definition it came from and the day it fired. */
+const isActiveEvent = (value: unknown): boolean =>
+  hasStringField(value, "id", "definitionId", "triggeredDateKey") &&
+  Array.isArray((value as { choices?: unknown }).choices);
+
+/** A rival nobody can name or place has no part left to play. */
+const isRival = (value: unknown): boolean =>
+  hasStringField(value, "id", "nameKey", "strategy") &&
+  isRecord((value as { relationship?: unknown }).relationship);
+
+/** An opportunity is a date and a stake; without either it cannot resolve. */
+const isOpportunity = (value: unknown): boolean =>
+  hasStringField(value, "id", "openedDateKey", "resolveDateKey", "status") &&
+  Number.isSafeInteger((value as { investedMinor?: unknown }).investedMinor);
 
 const safeInteger = (value: unknown, fallback: number): number =>
   typeof value === "number" && Number.isSafeInteger(value) ? value : fallback;

@@ -117,34 +117,49 @@ export function burnPoints(
  * Points nobody will ever come back for. Releasing them is income, and the
  * group has to say how much it released rather than letting the liability
  * quietly drift.
+ *
+ * Releasing writes off the points as well as the money. Taking the money into
+ * income while leaving the points on the members' balances would let those
+ * same points be burnt later against a liability that no longer covers them,
+ * and the group would end up owing a negative amount.
  */
+/**
+ * One member's share of the write-off. The total released and the balances it
+ * comes off have to be the same arithmetic, or the liability stops reconciling
+ * to the points outstanding — so both read it from here.
+ */
+function memberBreakagePoints(member: { points: number }): number {
+  return Math.trunc((member.points * BREAKAGE_BASIS_POINTS) / 10_000);
+}
+
 export function releaseBreakageMinor(state: LoyaltyState): {
   state: LoyaltyState;
   releasedMinor: number;
+  writtenOffPoints: number;
 } {
-  const totalPoints = state.members.reduce(
-    (sum, member) => sum + member.points,
-    0,
-  );
-  let pointsToRelease = Math.trunc(
-    (totalPoints * BREAKAGE_BASIS_POINTS) / 10_000,
-  );
-  const members = state.members.map((member) => {
-    const released = Math.min(member.points, pointsToRelease);
-    pointsToRelease -= released;
-    return { ...member, points: member.points - released };
-  });
-  const releasedMinor =
-    (Math.trunc((totalPoints * BREAKAGE_BASIS_POINTS) / 10_000) -
-      pointsToRelease) *
-    POINT_VALUE_MINOR;
+  const writtenOffPoints = [...state.members]
+    .sort((a, b) => compareIds(a.guestId, b.guestId))
+    .reduce((sum, member) => sum + memberBreakagePoints(member), 0);
+  const releasedMinor = writtenOffPoints * POINT_VALUE_MINOR;
   return {
     state: {
-      members,
-      liabilityMinor: Math.max(0, state.liabilityMinor - releasedMinor),
+      members: state.members.map((member) => ({
+        ...member,
+        points: member.points - memberBreakagePoints(member),
+      })),
+      liabilityMinor: state.liabilityMinor - releasedMinor,
     },
     releasedMinor,
+    writtenOffPoints,
   };
+}
+
+/** What the group would owe if every outstanding point were burnt today. */
+export function outstandingLiabilityMinor(state: LoyaltyState): number {
+  return (
+    state.members.reduce((sum, member) => sum + member.points, 0) *
+    POINT_VALUE_MINOR
+  );
 }
 
 /**

@@ -44,6 +44,8 @@ export interface DevelopmentProject {
   name: string;
   cityId: string;
   rooms: number;
+  /** The occupancy the study underwrote, and the house then trades at. */
+  occupancyBasisPoints: number;
   investmentMinor: number;
   feasibility: FeasibilityResult;
   preOpening: PreOpeningProject;
@@ -127,8 +129,13 @@ export function createCompanyState(): CompanyState {
           minRoomQuality: brand.standard.minRoomQuality,
           requiredFacilities: [...brand.standard.requiredFacilities],
           minGuestSatisfaction: brand.standard.minGuestSatisfaction,
-          minStars:
-            "minStars" in brand.standard ? brand.standard.minStars : undefined,
+          // Spread rather than assigned: a brand that promises no star rating
+          // should not persist an explicit `undefined` for one.
+          ...("minStars" in brand.standard &&
+          Object.hasOwn(brand.standard, "minStars") &&
+          brand.standard.minStars !== undefined
+            ? { minStars: brand.standard.minStars }
+            : {}),
         },
         demandUpliftBasisPoints: brand.demandUpliftBasisPoints,
         monthlyProgrammeCostMinor: brand.monthlyProgrammeCostMinor,
@@ -160,10 +167,7 @@ export function createCompanyState(): CompanyState {
       0,
     ),
     acquisitionTargets: ACQUISITION_TARGETS.map((target) =>
-      createAcquisitionTarget({
-        ...target,
-        hiddenFindings: target.hiddenFindings.map((f) => ({ ...f })),
-      }),
+      createAcquisitionTarget({ ...target }),
     ),
     dueDiligence: {},
     headquarters: {

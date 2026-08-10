@@ -88,20 +88,29 @@ export function signSupplierContract(
   };
 }
 
+/**
+ * The contract in force for a sku on a date. Where two overlap, the one that
+ * started most recently wins — the later deal is the one the buyer actually
+ * negotiated — rather than whichever happened to be stored first.
+ */
 export function contractForSku(
   state: ProcurementState,
   sku: string,
   dateKey: string,
 ): SupplierContract | null {
   return (
-    [...state.contracts]
-      .sort((a, b) => b.validFromDateKey.localeCompare(a.validFromDateKey))
-      .find(
+    state.contracts
+      .filter(
         (c) =>
           c.sku === sku &&
           c.validFromDateKey <= dateKey &&
           dateKey < c.validToDateKey,
-      ) ?? null
+      )
+      .sort(
+        (a, b) =>
+          compareIds(b.validFromDateKey, a.validFromDateKey) ||
+          compareIds(a.id, b.id),
+      )[0] ?? null
   );
 }
 
@@ -206,6 +215,9 @@ export function recordStockout(
   return { ...state, stockouts: [...state.stockouts, { ...input }] };
 }
 
+/** Days a central order waits for the group's consolidation run. */
+export const CONSOLIDATION_DELAY_DAYS = 3;
+
 /**
  * The central-purchasing trade, stated plainly. Buying through the group is
  * cheaper per unit and slower to arrive, so a house that centralises
@@ -228,8 +240,6 @@ export function centralPurchasingTradeOff(
     ),
     localLeadTimeDays: contract.leadTimeDays,
     // A central order waits for the consolidation run.
-    centralLeadTimeDays: contract.leadTimeDays + CENTRAL_PURCHASING_DELAY_DAYS,
+    centralLeadTimeDays: contract.leadTimeDays + CONSOLIDATION_DELAY_DAYS,
   };
 }
-
-export const CENTRAL_PURCHASING_DELAY_DAYS = 3;

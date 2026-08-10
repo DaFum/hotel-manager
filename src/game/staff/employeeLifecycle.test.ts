@@ -115,9 +115,8 @@ describe("employee lifecycle", () => {
   it("loses people whose morale the player spent, and says so to the market", () => {
     let state = workOvertime(hired(), "employee.1", 200);
     expect(state.employees[0].morale).toBeLessThan(50);
-    expect(willResign(state.employees[0], new XorShift32(2))).toBeTypeOf(
-      "boolean",
-    );
+    // Morale this low actually costs the house the person, for this seed.
+    expect(willResign(state.employees[0], new XorShift32(2))).toBe(true);
     state = resign(state, "employee.1", "constant overtime");
     expect(state.employees[0].status).toBe("resigned");
     expect(state.employerEvents[0]).toEqual({

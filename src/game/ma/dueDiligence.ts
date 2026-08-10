@@ -1,5 +1,5 @@
 import { compareIds } from "../domain/ids";
-import { assertNonNegativeMinor } from "../domain/units";
+import { assertMinor, assertNonNegativeMinor } from "../domain/units";
 import type { HotelValuation } from "./valuation";
 
 /**
@@ -32,7 +32,8 @@ export interface DueDiligenceReport {
   findings: DueDiligenceFinding[];
   /** Areas nobody examined; whatever is in them travels with the deal. */
   uncoveredAreas: DueDiligenceArea[];
-  undisclosedLiabilityMinor: number;
+  /** What the examined areas actually turned up; nothing hidden is in here. */
+  discoveredLiabilityMinor: number;
   costMinor: number;
 }
 
@@ -65,8 +66,11 @@ export function runDueDiligence(input: {
     uncoveredAreas: DUE_DILIGENCE_AREAS.filter(
       (area) => !examined.includes(area),
     ),
-    undisclosedLiabilityMinor: findings.reduce(
-      (sum, finding) => sum + finding.costMinor,
+    // Each finding is valid on its own; their total is what the buyer pays for,
+    // so the running sum is what has to stay postable.
+    discoveredLiabilityMinor: findings.reduce(
+      (sum, finding) =>
+        assertNonNegativeMinor(sum + finding.costMinor, "discovered liability"),
       0,
     ),
     costMinor: examined.length * AREA_COST_MINOR,
@@ -82,9 +86,13 @@ export function adjustedValuation(
   valuation: HotelValuation,
   report: DueDiligenceReport,
 ): HotelValuation {
+  const equityValueMinor =
+    valuation.equityValueMinor - report.discoveredLiabilityMinor;
+  // Equity may go negative — that is what a bad diligence means — but it still
+  // has to be a number the ledger and the UI can read.
+  assertMinor(equityValueMinor, "adjusted equity value");
   return {
     enterpriseValueMinor: valuation.enterpriseValueMinor,
-    equityValueMinor:
-      valuation.equityValueMinor - report.undisclosedLiabilityMinor,
+    equityValueMinor,
   };
 }

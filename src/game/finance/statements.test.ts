@@ -171,6 +171,32 @@ describe("debt, collateral and insolvency", () => {
     ).toThrow(/term exceeds maximum/);
   });
 
+  it("never restructures into a loan that cannot be scheduled", () => {
+    // Extending a thirty-year loan by twenty-five years used to be accepted
+    // against a 1200-month bound while debtSchedule refused anything over 600,
+    // leaving a loan nobody could draw up a payment plan for.
+    expect(() =>
+      restructure(
+        {
+          principalMinor: 1_000_000,
+          annualRateBasisPoints: 800,
+          termMonths: 360,
+        },
+        { extraMonths: 300 },
+      ),
+    ).toThrow(/term exceeds maximum/);
+    const extended = restructure(
+      {
+        principalMinor: 1_000_000,
+        annualRateBasisPoints: 800,
+        termMonths: 360,
+      },
+      { extraMonths: 120 },
+    );
+    expect(extended.termMonths).toBe(480);
+    expect(debtSchedule(extended)).toHaveLength(480);
+  });
+
   it("calls a house insolvent on the balance sheet, not on a bad month", () => {
     expect(
       isInsolvent({

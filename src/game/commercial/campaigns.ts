@@ -67,6 +67,10 @@ export function createCampaign(input: Omit<Campaign, "status">): Campaign {
     throw new Error("invalid campaign duration");
   assertNonNegativeMinor(input.budgetMinor, "campaign budget");
   assertScore(input.creativeQuality, "creative quality");
+  // A persisted or hand-built campaign can name a channel the game does not
+  // sell; costing it would divide by an undefined rate.
+  if (!Object.hasOwn(COST_PER_CONTACT_MINOR, input.channel))
+    throw new Error(`unknown campaign channel: ${input.channel}`);
   return { ...input, status: "running" };
 }
 

@@ -3,6 +3,7 @@ import {
   acquisitionCostMinor,
   createAcquisitionTarget,
   executeAcquisition,
+  markTargetStatus,
 } from "./acquisition";
 import { runDueDiligence } from "./dueDiligence";
 
@@ -38,6 +39,39 @@ describe("acquisition transaction", () => {
     });
     // The original is untouched: the transaction returns a new state.
     expect(state).toEqual({ cashMinor: 10_000_000, hotelIds: ["hotel.a"] });
+  });
+
+  it("completes a deal priced at exactly the cash on hand", () => {
+    const state = { cashMinor: 4_000_000, hotelIds: ["hotel.a"] };
+    expect(
+      executeAcquisition(state, {
+        hotelId: "hotel.b",
+        priceMinor: 4_000_000,
+      }),
+    ).toEqual({ cashMinor: 0, hotelIds: ["hotel.a", "hotel.b"] });
+  });
+
+  it("marks a target once, and refuses an unknown or decided one", () => {
+    const targets = [
+      createAcquisitionTarget({
+        id: "target.1",
+        hotelId: "hotel.b",
+        name: "Kurpark Hof",
+        rooms: 84,
+        askingPriceMinor: 120_000_000,
+        annualGopMinor: 18_000_000,
+        debtAssumedMinor: 30_000_000,
+        renovationNeedMinor: 15_000_000,
+      }),
+    ];
+    const acquired = markTargetStatus(targets, "target.1", "acquired");
+    expect(acquired[0].status).toBe("acquired");
+    expect(() => markTargetStatus(acquired, "target.1", "withdrawn")).toThrow(
+      /already acquired/,
+    );
+    expect(() => markTargetStatus(targets, "target.404", "acquired")).toThrow(
+      /unknown/,
+    );
   });
 
   it("refuses a price that is not whole Pfennig", () => {

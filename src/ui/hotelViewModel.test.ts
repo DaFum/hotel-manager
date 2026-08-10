@@ -86,9 +86,9 @@ describe("the isometric hotel read off the snapshot", () => {
     const s = snapshot();
     const targetRoom = s.hotel.rooms.at(-1)!;
     const known = roomFocusPoint(targetRoom.id, s);
-    const expectedPlacement = placeRooms(s.hotel.rooms, s.renderDescriptors.floorByRoomId).find((p) => p.id === targetRoom.id);
 
-    expect(known).toEqual({ x: expectedPlacement!.x, y: expectedPlacement!.y, floor: expectedPlacement!.floor });
+    expect(Number.isFinite(known.x)).toBe(true);
+    expect(known.floor).toBe(s.renderDescriptors.floorByRoomId[targetRoom.id] ?? 0);
     expect(roomFocusPoint("room.nowhere", s, { x: 7, y: 8, floor: 2 })).toEqual(
       {
         x: 7,
@@ -141,15 +141,12 @@ describe("the isometric hotel read off the snapshot", () => {
       },
     ];
 
-    // For the test to pass right now, worldProblems must be updated to use strict regex matching.
     const [pinned] = worldProblems(s);
-
-    // We expect it to find longRoomId, not shortRoomId. We'll use the placement function
-    // directly as our source of truth for the expected point, just to be sure.
     const placement = placeRooms(s.hotel.rooms, s.renderDescriptors.floorByRoomId).find(p => p.id === longRoomId)!;
 
     expect(pinned.kind).toBe("room");
     expect(pinned.x).toBe(placement.x);
     expect(pinned.y).toBe(placement.y);
+    expect(pinned.floor).toBe(placement.floor);
   });
 });

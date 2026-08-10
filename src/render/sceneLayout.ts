@@ -95,19 +95,10 @@ export function placeRooms(
   columns = DEFAULT_COLUMNS,
 ): RoomPlacement[] {
   const width = Math.max(1, Math.floor(columns));
-  const byFloor = new Map<number, LayoutRoom[]>();
-  for (const room of rooms) {
-    // A room the descriptors forgot still exists, and a guest may be in it.
-    const floor = floorByRoomId[room.id] ?? 0;
-    const bucket = byFloor.get(floor);
-    if (bucket) bucket.push(room);
-    else byFloor.set(floor, [room]);
-  }
+  const floors = groupByFloor(rooms, floorByRoomId);
 
-  return [...byFloor.keys()]
-    .sort((a, b) => a - b)
-    .flatMap((floor) =>
-      byFloor.get(floor)!.map((room, index) => {
+  return floors.flatMap(([floor, floorRooms]) =>
+      floorRooms.map((room, index) => {
         const gridX = index % width;
         const gridY = Math.floor(index / width);
         const { x, y } = isoProject(gridX, gridY, TILE_WIDTH, TILE_HEIGHT);

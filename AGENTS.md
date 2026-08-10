@@ -132,7 +132,17 @@ Plan 07 (content and authoring pipeline) is implemented. Its final gate on
 2026-08-10 passed `npm run test:run` (155 files, 867 tests), `npm run typecheck`,
 `npm run lint`, `npm run build`, `npm run test:e2e` (24 tests), and
 `npm run content:validate`. Plan 08 (accessibility, localization, and audio) is
-next.
+implemented. Presentation preferences remain outside authoritative simulation
+state, while save version 7 carries them beside replayable state. Worker pause
+and resume controls are correlated requests, Pixi targets retain equivalent
+semantic DOM controls, and meaningful audio cues always have visual labels.
+Plan 09 (scale, performance, and long-run balancing) is next.
+
+Fresh Plan 08 verification on 2026-08-10 passed `npm run test:run` (168 files,
+886 tests), `npm run typecheck`, `npm run lint`, `npm run build`,
+`npm run test:e2e` (28 tests), `npm run content:validate`, `npm run benchmark`
+(a simulated year in 7.1s against a 30s budget), and
+`scripts/replay-plans-01-03.ts` with hash `49da2991`.
 
 Plan 07 made the schema-first content boundary executable: the core pack is
 validated with Zod at build and load time, stable IDs resolve through a

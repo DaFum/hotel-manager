@@ -24,6 +24,22 @@ const SET_RATE = {
 } as const;
 
 describe("GameClient protocol", () => {
+  it("correlates pause and resume control requests", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    expect(client.pause()).toBe("req.1");
+    expect(worker.postMessage).toHaveBeenLastCalledWith({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "PAUSE",
+      requestId: "req.1",
+    });
+    expect(client.resume()).toBe("req.2");
+    expect(worker.postMessage).toHaveBeenLastCalledWith({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "RESUME",
+      requestId: "req.2",
+    });
+  });
   it("sends versioned INIT_GAME", () => {
     const worker = fakeWorker();
     new GameClient(worker).init(42);

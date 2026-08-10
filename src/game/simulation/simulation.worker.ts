@@ -18,6 +18,7 @@ import {
   validateEnvelope,
   type SaveEnvelope,
 } from "../persistence/saveSchema";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 /** One real tick is 100 ms; at 1x that is one simulated hour. */
 const TICK_MS = 100;
@@ -52,6 +53,7 @@ function prepareEnvelope(state: GameState): SaveEnvelope {
     protocolVersion: PROTOCOL_VERSION,
     rngState: state.rngState,
     state,
+    preferences: DEFAULT_PLAYER_PREFERENCES,
   };
 }
 
@@ -351,12 +353,49 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
       return;
     }
     case "PAUSE": {
+      if (!simulation || tickFailure !== null) {
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "COMMAND_REJECTED",
+          requestId: m.requestId,
+          commandId: "control.pause",
+          reason: !simulation
+            ? "simulation not initialised"
+            : "simulation halted",
+        });
+        return;
+      }
       speed = 0;
+      reply({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "COMMAND_ACCEPTED",
+        requestId: m.requestId,
+        commandId: "control.pause",
+        stateVersion: simulation.state.stateVersion,
+      });
       return;
     }
     case "RESUME": {
-      if (tickFailure !== null) return;
+      if (!simulation || tickFailure !== null) {
+        reply({
+          protocolVersion: PROTOCOL_VERSION,
+          type: "COMMAND_REJECTED",
+          requestId: m.requestId,
+          commandId: "control.resume",
+          reason: !simulation
+            ? "simulation not initialised"
+            : "simulation halted",
+        });
+        return;
+      }
       speed = speed || 1;
+      reply({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "COMMAND_ACCEPTED",
+        requestId: m.requestId,
+        commandId: "control.resume",
+        stateVersion: simulation.state.stateVersion,
+      });
       return;
     }
     case "REQUEST_DETAILS": {

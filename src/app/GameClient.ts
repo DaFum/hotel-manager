@@ -118,6 +118,18 @@ export class GameClient {
     this.send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed });
   }
 
+  pause(): string {
+    const requestId = `req.${++this.requestCounter}`;
+    this.send({ protocolVersion: PROTOCOL_VERSION, type: "PAUSE", requestId });
+    return requestId;
+  }
+
+  resume(): string {
+    const requestId = `req.${++this.requestCounter}`;
+    this.send({ protocolVersion: PROTOCOL_VERSION, type: "RESUME", requestId });
+    return requestId;
+  }
+
   requestSave(): string {
     const requestId = `req.${++this.requestCounter}`;
     this.send({

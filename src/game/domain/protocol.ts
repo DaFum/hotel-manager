@@ -58,8 +58,8 @@ export type WorkerRequest =
       type: "SET_SPEED";
       speed: 0 | 1 | 2 | 4 | 16;
     }
-  | { protocolVersion: ProtocolVersion; type: "PAUSE" }
-  | { protocolVersion: ProtocolVersion; type: "RESUME" }
+  | { protocolVersion: ProtocolVersion; type: "PAUSE"; requestId: string }
+  | { protocolVersion: ProtocolVersion; type: "RESUME"; requestId: string }
   | {
       protocolVersion: ProtocolVersion;
       type: "REQUEST_SAVE";

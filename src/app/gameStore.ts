@@ -16,6 +16,12 @@ import {
   rotateRecovery,
 } from "../game/persistence/recovery";
 import type { Speed } from "../ui/TopBar";
+import {
+  DEFAULT_PLAYER_PREFERENCES,
+  normalizePlayerPreferences,
+  type PlayerPreferences,
+} from "../game/settings/playerPreferences";
+import { completeTutorialStep } from "../ui/onboarding/tutorialState";
 
 /** The slot the plain Save button writes to. */
 export const DEFAULT_SLOT = DEFAULT_MANUAL_SLOT;
@@ -32,6 +38,11 @@ export interface GameStore {
   /** Why the last load was refused, if it was. */
   validationFailure: string | null;
   commandStatus: "idle" | "pending" | "accepted" | "rejected";
+  pauseStatus: "idle" | "pending" | "accepted" | "rejected";
+  preferences: PlayerPreferences;
+  setPreferences: (preferences: PlayerPreferences) => void;
+  requestPause: () => void;
+  observeTutorialAction: (action: string) => void;
   setSpeed: (speed: Speed) => void;
   send: (command: GameCommand) => void;
   save: (slot?: string) => void;
@@ -82,6 +93,7 @@ export function useGameStore(seed: number): GameStore {
     new Map<string, GameStore["commandStatus"]>(),
   );
   const currentCommandRequestRef = useRef<string | null>(null);
+  const pauseRequestRef = useRef<string | null>(null);
   const [snapshot, setSnapshot] = useState<GameState | null>(null);
   const [speed, setSpeedState] = useState<Speed>(0);
   const [errors, setErrors] = useState<string[]>([]);
@@ -92,6 +104,13 @@ export function useGameStore(seed: number): GameStore {
   );
   const [commandStatus, setCommandStatus] =
     useState<GameStore["commandStatus"]>("idle");
+  const [pauseStatus, setPauseStatus] =
+    useState<GameStore["pauseStatus"]>("idle");
+  const [preferences, setPreferencesState] = useState<PlayerPreferences>(() =>
+    structuredClone(DEFAULT_PLAYER_PREFERENCES),
+  );
+  const preferencesRef = useRef(preferences);
+  preferencesRef.current = preferences;
   /** Increments once each save has actually committed to IndexedDB. */
   const [savedAt, setSavedAt] = useState(0);
 
@@ -131,12 +150,23 @@ export function useGameStore(seed: number): GameStore {
     });
     client.onError((message) => setErrors((prev) => [...prev, message]));
     client.onCommandRejected(({ requestId, reason }) => {
+      if (pauseRequestRef.current === requestId) {
+        pauseRequestRef.current = null;
+        setPauseStatus("rejected");
+        return;
+      }
       commandStatesRef.current.set(requestId, "rejected");
       if (currentCommandRequestRef.current === requestId)
         setCommandStatus("rejected");
       setErrors((prev) => [...prev, `command rejected: ${reason}`]);
     });
     client.onCommandAccepted(({ requestId }) => {
+      if (pauseRequestRef.current === requestId) {
+        pauseRequestRef.current = null;
+        setSpeedState(0);
+        setPauseStatus("accepted");
+        return;
+      }
       commandStatesRef.current.set(requestId, "accepted");
       if (currentCommandRequestRef.current === requestId)
         setCommandStatus("accepted");
@@ -148,7 +178,10 @@ export function useGameStore(seed: number): GameStore {
       loadCompletionRef.current = null;
     });
     client.onSaveData((saveData, requestId) => {
-      const envelope = saveData as SaveEnvelope;
+      const envelope = {
+        ...(saveData as SaveEnvelope),
+        preferences: preferencesRef.current,
+      };
       const slot = pendingSlotsRef.current.get(requestId) ?? DEFAULT_SLOT;
       pendingSlotsRef.current.delete(requestId);
       void repoRef.current
@@ -182,11 +215,58 @@ export function useGameStore(seed: number): GameStore {
     recoveredFrom,
     validationFailure,
     commandStatus,
+    pauseStatus,
+    preferences,
+    setPreferences: (next) =>
+      setPreferencesState(normalizePlayerPreferences(next)),
+    requestPause: () => {
+      if (pauseRequestRef.current) return;
+      const requestId = clientRef.current?.pause();
+      if (!requestId) return;
+      pauseRequestRef.current = requestId;
+      setPauseStatus("pending");
+    },
+    observeTutorialAction: (action) => {
+      setPreferencesState((current) => {
+        const step =
+          current.tutorialCompleted.length === 0
+            ? "set-room-price"
+            : current.tutorialCompleted.at(-1) === "set-room-price"
+              ? "inspect-bookings"
+              : current.tutorialCompleted.at(-1) === "inspect-bookings"
+                ? "hire-housekeeping"
+                : "complete";
+        const tutorial = completeTutorialStep(
+          { step, completed: current.tutorialCompleted },
+          action,
+        );
+        return tutorial.completed.length === current.tutorialCompleted.length
+          ? current
+          : { ...current, tutorialCompleted: tutorial.completed };
+      });
+    },
     setSpeed: (next) => {
       setSpeedState(next);
       clientRef.current?.setSpeed(next);
     },
     send: (command) => {
+      setPreferencesState((current) => {
+        const step =
+          current.tutorialCompleted.length === 0
+            ? "set-room-price"
+            : current.tutorialCompleted.at(-1) === "set-room-price"
+              ? "inspect-bookings"
+              : current.tutorialCompleted.at(-1) === "inspect-bookings"
+                ? "hire-housekeeping"
+                : "complete";
+        const tutorial = completeTutorialStep(
+          { step, completed: current.tutorialCompleted },
+          command.type,
+        );
+        return tutorial.completed === current.tutorialCompleted
+          ? current
+          : { ...current, tutorialCompleted: tutorial.completed };
+      });
       // A decision that cannot be undone by issuing the opposite command gets
       // a save of its own first.
       if (isMajorAction(command.type)) {
@@ -222,6 +302,9 @@ export function useGameStore(seed: number): GameStore {
           throw new Error(reason);
         }
         if (outcome.slot !== slot) setRecoveredFrom(outcome.slot);
+        setPreferencesState(
+          normalizePlayerPreferences(outcome.envelope.preferences),
+        );
         await new Promise<void>((resolve, reject) => {
           loadingRef.current = true;
           loadCompletionRef.current = { resolve, reject };

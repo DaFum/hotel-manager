@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { SemanticHotelTree } from "./accessibility/SemanticHotelTree";
 
 export interface HotelViewRoom {
   id: string;
@@ -80,22 +81,13 @@ export function HotelView(props: {
   return (
     <section aria-label="Hotel view">
       <div ref={host} data-testid="hotel-canvas" />
-      <ul>
-        {props.rooms.map((room) => (
-          <li key={room.id}>
-            <button
-              type="button"
-              aria-label={`${room.id} ${room.category} ${humanRoomState(room.state)}`}
-              onClick={() => {
-                setSelected(room.id);
-                props.onSelect?.(room.id);
-              }}
-            >
-              {room.id}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <SemanticHotelTree
+        rooms={props.rooms}
+        onInspect={(roomId) => {
+          setSelected(roomId);
+          props.onSelect?.(roomId);
+        }}
+      />
       <h3>Service areas</h3>
       <ul>
         {(props.facilities ?? []).map((facility) => (

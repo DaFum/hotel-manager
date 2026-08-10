@@ -3,10 +3,10 @@
  * migration read it, so keeping it a leaf stops the schema and the migrations
  * from importing each other.
  */
-export const SAVE_VERSION = 6 as const;
+export const SAVE_VERSION = 7 as const;
 export const CONTENT_VERSION = "1991.1" as const;
 /** Save versions this build knows how to bring forward, oldest first. */
-export const MIGRATABLE_SAVE_VERSIONS = [1, 2, 3, 4, 5] as const;
+export const MIGRATABLE_SAVE_VERSIONS = [1, 2, 3, 4, 5, 6] as const;
 
 export type RngStreamName =
   | "guests"
@@ -29,6 +29,8 @@ export interface SaveEnvelope {
   protocolVersion: number;
   rngState: Record<RngStreamName, number>;
   state: unknown;
+  /** Presentation-only settings travel with the campaign but never affect replay. */
+  preferences?: import("../settings/playerPreferences").PlayerPreferences;
 }
 
 export const RNG_STREAM_NAMES: readonly RngStreamName[] = [

@@ -12,6 +12,7 @@ import {
   exportSaveFile,
   importSaveFile,
   parseSaveFile,
+  validateSaveContentReferences,
 } from "./saveTransfer";
 import { IndexedDbSaveRepository } from "./indexedDbSaveRepository";
 const state = createInitialGameState(9);
@@ -73,6 +74,27 @@ describe("save transfer", () => {
     await expect(
       exportSaveFile({ ...save, state: brokenState }),
     ).rejects.toThrow(/room.removed/);
+  });
+
+  it("rejects malformed and cross-family authoritative content references", () => {
+    expect(
+      validateSaveContentReferences({
+        moduleId: { id: "room.standard.single" },
+      }),
+    ).toContain("moduleId");
+    expect(
+      validateSaveContentReferences({ moduleId: "brand.mainblick" }),
+    ).toContain("brand.mainblick");
+  });
+
+  it("requires exactly one valid core content-pack descriptor", async () => {
+    await expect(parseSaveFile(await exportSaveFile(save, []))).rejects.toThrow(
+      /content pack/,
+    );
+    const core = { packId: "core", contentVersion: CONTENT_VERSION };
+    await expect(
+      parseSaveFile(await exportSaveFile(save, [core, core])),
+    ).rejects.toThrow(/content pack/);
   });
 
   it("rejects payload tampering even when the visible header is plausible", async () => {

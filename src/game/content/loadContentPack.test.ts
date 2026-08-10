@@ -25,4 +25,15 @@ describe("loadContentPack", () => {
       }),
     ).toThrow(/tech.missing/);
   });
+
+  it("normalizes recipe cost from referenced portion items, not quantities", () => {
+    const raw = structuredClone(corePack);
+    const recipe = raw.entries["menu.breakfast.buffet"];
+    recipe.ingredients[0].quantityMilliUnits = 9_999;
+    const loaded = loadContentPack(raw).registry.getByKind(
+      "menu.breakfast.buffet",
+      "recipe",
+    );
+    expect(loaded.ingredientCostMinor).toBe(650);
+  });
 });

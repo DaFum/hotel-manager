@@ -1,4 +1,5 @@
 import { CORE_CONTENT_REGISTRY } from "../corePack";
+import type { Brand } from "../../brands/brandTypes";
 /**
  * The corporate starting position in 1991: one hotel, one holding company, one
  * flag the player has not yet earned the right to fly anywhere else. Content,
@@ -37,11 +38,13 @@ export const FEASIBILITY_UNCERTAINTY_BP = 1500;
 /** Gross operating margin new schemes are underwritten at, in bp. */
 export const UNDERWRITING_GOP_MARGIN_BP = 3200;
 
-export const STARTER_BRANDS = [...CORE_CONTENT_REGISTRY.allByKind("brand")]
+export const STARTER_BRANDS: Brand[] = [
+  ...CORE_CONTENT_REGISTRY.allByKind("brand"),
+]
   .sort((a, b) => a.simulationOrder - b.simulationOrder)
   .map((entry) => ({
     id: entry.id,
-    name: entry.name,
+    name: entry.nameKey,
     standard: {
       minRoomQuality: Math.round(entry.minimumRoomQualityBasisPoints / 100),
       requiredFacilities: entry.requiredFacilityIds,

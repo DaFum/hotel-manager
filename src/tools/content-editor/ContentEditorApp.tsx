@@ -52,6 +52,14 @@ function Editor({
   }
 }
 
+export function nextDraftFacilityId(
+  entries: Readonly<Record<string, { id: string }>>,
+): string {
+  let suffix = 1;
+  while (Object.hasOwn(entries, `facility.draft-${suffix}`)) suffix++;
+  return `facility.draft-${suffix}`;
+}
+
 export function ContentEditorApp() {
   const [pack, setPack] = useState<ContentPack>(
     () => structuredClone(CORE_CONTENT_PACK) as ContentPack,
@@ -81,7 +89,7 @@ export function ContentEditorApp() {
     setSelectedId(value.id);
   };
   const addFacility = () => {
-    const id = `facility.draft-${entries.filter((entry) => entry.kind === "facility").length + 1}`;
+    const id = nextDraftFacilityId(pack.entries);
     setPack((current) => ({
       ...current,
       entries: {

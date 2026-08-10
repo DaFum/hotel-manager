@@ -4,7 +4,7 @@ import { TechnologySchema } from "./technology";
 import { RecipeSchema } from "./recipe";
 
 describe("content family schemas", () => {
-  it("makes units explicit and rejects fixed technology years", () => {
+  it("requires explicit facility units", () => {
     expect(
       FacilitySchema.parse({
         id: "facility.breakfast",
@@ -15,6 +15,9 @@ describe("content family schemas", () => {
         monthlyFixedCostMinor: 200_000,
       }).capacity,
     ).toBe(50);
+  });
+
+  it("rejects fixed technology years", () => {
     expect(() =>
       TechnologySchema.parse({
         id: "tech.wifi",
@@ -30,6 +33,9 @@ describe("content family schemas", () => {
         fixedYear: 1999,
       }),
     ).toThrow();
+  });
+
+  it("preserves explicit recipe ingredient quantities", () => {
     expect(
       RecipeSchema.parse({
         id: "recipe.breakfast",
@@ -40,7 +46,6 @@ describe("content family schemas", () => {
         outlet: "breakfast",
         ingredients: [{ itemId: "item.egg", quantityMilliUnits: 2000 }],
         prepMinutes: 6,
-        ingredientCostMinor: 500,
         priceMinor: 1200,
       }).ingredients[0].quantityMilliUnits,
     ).toBe(2000);

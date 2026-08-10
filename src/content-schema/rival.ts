@@ -9,7 +9,6 @@ export const RivalSchema = z.object({
   id: StableIdSchema,
   kind: z.literal("rival"),
   simulationOrder: z.number().int().nonnegative(),
-  name: z.string().min(1),
   nameKey: StableIdSchema,
   homeCityId: StableIdSchema,
   strategy: z.enum(["luxury", "family", "budget", "lifestyle", "aggressive"]),

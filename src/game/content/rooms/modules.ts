@@ -18,7 +18,7 @@ export const MODULE_LIBRARY: readonly RoomModule[] = [
   .sort((a, b) => a.simulationOrder - b.simulationOrder)
   .map((entry) => ({
     id: entry.id,
-    name: entry.name,
+    name: entry.nameKey,
     category: entry.category,
     areaSqm: entry.areaSquareMeters,
     comfort: Math.round(entry.comfortBasisPoints / 100),

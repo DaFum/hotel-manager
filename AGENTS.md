@@ -113,12 +113,14 @@ results:
 - `scripts/replay-plans-01-03.ts` — passed with hash `a7f91d3b`.
 - `scripts/verify-plans-01-03-long-run.ts` — passed.
 
-The replay hash has moved three times, and each time the corpus was re-recorded
+The replay hash has moved four times, and each time the corpus was re-recorded
 with `scripts/record-replay-corpus.ts` rather than edited: to `c84d4e4c` when the
 utility standing charge became a monthly posting instead of a daily one, to
 `da457f73` when the difficulty levers were wired up and the narrative month began
 taking a second draw for its frequency gate, and to `a7f91d3b` when interest
-stopped counting toward the month's operating expense.
+stopped counting toward the month's operating expense, and to `49da2991` when
+authoritative display names moved to localization keys and the press-profile choice
+ID was aligned with its label key.
 
 Interest is a financing cost and `profitAndLoss` has always reported it as one.
 While `spend()` also added it to `finance.month.operatingExpenseMinor`, the
@@ -127,7 +129,7 @@ profit, and every result read off `hotelResults` inherited the lower figure. The
 month accumulator now takes trading costs only.
 
 Plan 07 (content and authoring pipeline) is implemented. Its final gate on
-2026-08-10 passed `npm run test:run` (152 files, 845 tests), `npm run typecheck`,
+2026-08-10 passed `npm run test:run` (154 files, 863 tests), `npm run typecheck`,
 `npm run lint`, `npm run build`, `npm run test:e2e` (24 tests), and
 `npm run content:validate`. Plan 08 (accessibility, localization, and audio) is
 next.

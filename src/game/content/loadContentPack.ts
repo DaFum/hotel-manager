@@ -13,7 +13,31 @@ export interface LoadedContentPack {
 
 /** The single build/load boundary: no raw pack reaches runtime systems. */
 export function loadContentPack(raw: unknown): LoadedContentPack {
-  const pack = ContentPackSchema.parse(raw);
+  const parsed = ContentPackSchema.parse(raw);
+  const items = new Map(
+    Object.values(parsed.entries)
+      .filter((entry) => entry.kind === "item")
+      .map((entry) => [entry.id, entry.referenceCostMinor]),
+  );
+  const pack = ContentPackSchema.parse({
+    ...parsed,
+    entries: Object.fromEntries(
+      Object.entries(parsed.entries).map(([id, entry]) => [
+        id,
+        entry.kind === "recipe"
+          ? {
+              ...entry,
+              // A quantity describes preparation, not the normalized cost of
+              // one sold portion. Cost comes from each referenced portion.
+              ingredientCostMinor: entry.ingredients.reduce(
+                (sum, ingredient) => sum + (items.get(ingredient.itemId) ?? 0),
+                0,
+              ),
+            }
+          : entry,
+      ]),
+    ),
+  });
   if (pack.schemaVersion !== CONTENT_SCHEMA_VERSION)
     throw new Error(
       `unsupported content schema version ${pack.schemaVersion}; expected ${CONTENT_SCHEMA_VERSION}`,

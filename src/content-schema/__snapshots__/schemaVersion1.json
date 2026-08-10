@@ -153,10 +153,6 @@
                 "minimum": 0,
                 "maximum": 9007199254740991
               },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
               "nameKey": {
                 "type": "string",
                 "minLength": 3,
@@ -219,7 +215,6 @@
               "id",
               "kind",
               "simulationOrder",
-              "name",
               "nameKey",
               "category",
               "areaSquareMeters",
@@ -657,6 +652,7 @@
                 }
               },
               "ingredientCostMinor": {
+                "default": 0,
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
@@ -772,10 +768,6 @@
                 "minimum": 0,
                 "maximum": 9007199254740991
               },
-              "name": {
-                "type": "string",
-                "minLength": 1
-              },
               "nameKey": {
                 "type": "string",
                 "minLength": 3,
@@ -831,7 +823,6 @@
               "id",
               "kind",
               "simulationOrder",
-              "name",
               "nameKey",
               "homeCityId",
               "strategy",
@@ -860,10 +851,6 @@
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 9007199254740991
-              },
-              "name": {
-                "type": "string",
-                "minLength": 1
               },
               "nameKey": {
                 "type": "string",
@@ -918,7 +905,6 @@
               "id",
               "kind",
               "simulationOrder",
-              "name",
               "nameKey",
               "minimumRoomQualityBasisPoints",
               "minimumGuestSatisfactionBasisPoints",

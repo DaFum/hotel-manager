@@ -5,6 +5,7 @@ import {
   importSaveFile,
 } from "../../game/persistence/saveTransfer";
 import { DEFAULT_MANUAL_SLOT } from "../../game/persistence/savePolicy";
+import { translate } from "../localization";
 
 export function SaveTransferPanel({
   databaseName = "hotel-manager",
@@ -21,7 +22,8 @@ export function SaveTransferPanel({
   const download = async () => {
     try {
       const save = await repository.load(slot);
-      if (!save) throw new Error(`No save in ${slot}`);
+      if (!save)
+        throw new Error(`${translate("save.transfer.noSave")} ${slot}`);
       const bytes = await exportSaveFile(save);
       const anchor = document.createElement("a");
       anchor.href = URL.createObjectURL(
@@ -30,17 +32,23 @@ export function SaveTransferPanel({
       anchor.download = `hotel-manager-${slot}.json`;
       anchor.click();
       URL.revokeObjectURL(anchor.href);
-      setStatus("Save exported.");
+      setStatus(translate("save.transfer.exported"));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : "Export failed");
+      setStatus(
+        error instanceof Error
+          ? error.message
+          : translate("save.transfer.exportFailed"),
+      );
     }
   };
   return (
-    <section aria-label="Save transfer">
-      <h2>Save file transfer</h2>
-      <button onClick={() => void download()}>Export save file</button>
+    <section aria-label={translate("save.transfer.region")}>
+      <h2>{translate("save.transfer.heading")}</h2>
+      <button onClick={() => void download()}>
+        {translate("save.transfer.export")}
+      </button>
       <label>
-        Import save file
+        {translate("save.transfer.import")}
         <input
           type="file"
           accept="application/json"
@@ -53,10 +61,12 @@ export function SaveTransferPanel({
                 slot,
                 new Uint8Array(await file.arrayBuffer()),
               );
-              setStatus("Save imported.");
+              setStatus(translate("save.transfer.imported"));
             } catch (error) {
               setStatus(
-                error instanceof Error ? error.message : "Import failed",
+                error instanceof Error
+                  ? error.message
+                  : translate("save.transfer.importFailed"),
               );
             }
           }}

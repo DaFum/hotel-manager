@@ -73,7 +73,7 @@ export const FRANKFURT_COMPETITORS: readonly CompetitorSeed[] =
     .sort((a, b) => a.simulationOrder - b.simulationOrder)
     .map((entry) => ({
       id: entry.id,
-      name: entry.name,
+      name: entry.nameKey,
       strategy: entry.strategy,
       rooms: entry.rooms,
       rateMinor: entry.rateMinor,

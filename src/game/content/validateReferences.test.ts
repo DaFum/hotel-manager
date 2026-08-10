@@ -78,4 +78,18 @@ describe("content references", () => {
       }),
     );
   });
+
+  it("reports the same errors in the same order for shuffled input", () => {
+    const records = Object.values(
+      structuredClone(corePack).entries,
+    ) as ContentEntry[];
+    const broken = records.map((record) =>
+      record.id === "tech.personal-computer"
+        ? { ...record, prerequisiteIds: ["tech.internet"] }
+        : record,
+    ) as ContentEntry[];
+    expect(validateReferences([...broken].reverse())).toEqual(
+      validateReferences(broken),
+    );
+  });
 });

@@ -28,7 +28,7 @@
       "kind": "item",
       "nameKey": "item.breakfast-portion.name",
       "unitKey": "unit.each",
-      "referenceCostMinor": 450
+      "referenceCostMinor": 650
     },
     "item.linen-piece": {
       "id": "item.linen-piece",
@@ -115,7 +115,6 @@
     "room.standard.single": {
       "id": "room.standard.single",
       "kind": "roomProduct",
-      "name": "Standard single",
       "nameKey": "room.standard.single.name",
       "category": "single",
       "areaSquareMeters": 16,
@@ -132,7 +131,6 @@
     "room.standard.double": {
       "id": "room.standard.double",
       "kind": "roomProduct",
-      "name": "Standard double",
       "nameKey": "room.standard.double.name",
       "category": "double",
       "areaSquareMeters": 22,
@@ -149,7 +147,6 @@
     "room.comfort.double": {
       "id": "room.comfort.double",
       "kind": "roomProduct",
-      "name": "Comfort double",
       "nameKey": "room.comfort.double.name",
       "category": "double",
       "areaSquareMeters": 26,
@@ -166,7 +163,6 @@
     "room.suite.junior": {
       "id": "room.suite.junior",
       "kind": "roomProduct",
-      "name": "Junior suite",
       "nameKey": "room.suite.junior.name",
       "category": "suite",
       "areaSquareMeters": 38,
@@ -298,7 +294,6 @@
           "quantityMilliUnits": 1000
         }
       ],
-      "ingredientCostMinor": 650,
       "prepMinutes": 4,
       "priceMinor": 1800,
       "simulationOrder": 0
@@ -315,7 +310,6 @@
           "quantityMilliUnits": 1000
         }
       ],
-      "ingredientCostMinor": 900,
       "prepMinutes": 12,
       "priceMinor": 2400,
       "simulationOrder": 1
@@ -328,11 +322,10 @@
       "outlet": "restaurant",
       "ingredients": [
         {
-          "itemId": "item.restaurant-portion",
+          "itemId": "item.rumpsteak-portion",
           "quantityMilliUnits": 1000
         }
       ],
-      "ingredientCostMinor": 1700,
       "prepMinutes": 18,
       "priceMinor": 3800,
       "simulationOrder": 2
@@ -349,7 +342,6 @@
           "quantityMilliUnits": 1000
         }
       ],
-      "ingredientCostMinor": 110,
       "prepMinutes": 2,
       "priceMinor": 450,
       "simulationOrder": 3
@@ -362,11 +354,10 @@
       "outlet": "bar",
       "ingredients": [
         {
-          "itemId": "item.bar-portion",
+          "itemId": "item.aperitif-portion",
           "quantityMilliUnits": 1000
         }
       ],
-      "ingredientCostMinor": 260,
       "prepMinutes": 3,
       "priceMinor": 900,
       "simulationOrder": 4
@@ -383,7 +374,6 @@
           "quantityMilliUnits": 1000
         }
       ],
-      "ingredientCostMinor": 620,
       "prepMinutes": 10,
       "priceMinor": 1900,
       "simulationOrder": 5
@@ -427,7 +417,6 @@
     "hotel.rival.hof": {
       "id": "hotel.rival.hof",
       "kind": "rival",
-      "name": "Hotel Am Hof",
       "nameKey": "hotel.rival.hof.name",
       "homeCityId": "city.frankfurt",
       "strategy": "luxury",
@@ -442,7 +431,6 @@
     "hotel.rival.taunusblick": {
       "id": "hotel.rival.taunusblick",
       "kind": "rival",
-      "name": "Taunusblick",
       "nameKey": "hotel.rival.taunusblick.name",
       "homeCityId": "city.frankfurt",
       "strategy": "family",
@@ -457,7 +445,6 @@
     "hotel.rival.stern": {
       "id": "hotel.rival.stern",
       "kind": "rival",
-      "name": "Pension Stern",
       "nameKey": "hotel.rival.stern.name",
       "homeCityId": "city.frankfurt",
       "strategy": "budget",
@@ -472,7 +459,6 @@
     "brand.mainblick": {
       "id": "brand.mainblick",
       "kind": "brand",
-      "name": "Mainblick",
       "nameKey": "brand.mainblick.name",
       "minimumRoomQualityBasisPoints": 5500,
       "minimumGuestSatisfactionBasisPoints": 5500,
@@ -485,7 +471,6 @@
     "brand.rheinstern": {
       "id": "brand.rheinstern",
       "kind": "brand",
-      "name": "Rheinstern Collection",
       "nameKey": "brand.rheinstern.name",
       "minimumRoomQualityBasisPoints": 7500,
       "minimumGuestSatisfactionBasisPoints": 7000,
@@ -549,7 +534,7 @@
       ],
       "choices": [
         {
-          "id": "compensate",
+          "id": "host",
           "labelKey": "narrative.press-profile.choice.host",
           "costMinor": 40000,
           "reputationDelta": 4,
@@ -603,6 +588,20 @@
       "cooldownMonths": 120,
       "requiredTechnologyIds": ["tech.internet"],
       "simulationOrder": 2
+    },
+    "item.rumpsteak-portion": {
+      "id": "item.rumpsteak-portion",
+      "kind": "item",
+      "nameKey": "item.rumpsteak-portion.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 1700
+    },
+    "item.aperitif-portion": {
+      "id": "item.aperitif-portion",
+      "kind": "item",
+      "nameKey": "item.aperitif-portion.name",
+      "unitKey": "unit.each",
+      "referenceCostMinor": 260
     }
   }
 }

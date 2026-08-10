@@ -58,19 +58,24 @@ export function createWorldState(): WorldState {
       unemploymentBp: 600,
       growthBp: 150,
     },
-    technologies: TECHNOLOGY_CONTENT.map((technology) => ({
-      id: technology.runtimeId,
-      adoptionBp: technology.initialAdoptionBasisPoints,
-      peakAdoptionBp: technology.initialAdoptionBasisPoints,
-      obsolete: false,
-      ...(technology.replacedByTechnologyId
-        ? {
-            replacedBy: TECHNOLOGY_CONTENT.find(
-              (candidate) => candidate.id === technology.replacedByTechnologyId,
-            )?.runtimeId,
-          }
-        : {}),
-    })),
+    technologies: TECHNOLOGY_CONTENT.map((technology) => {
+      const replacement = technology.replacedByTechnologyId
+        ? TECHNOLOGY_CONTENT.find(
+            (candidate) => candidate.id === technology.replacedByTechnologyId,
+          )
+        : undefined;
+      if (technology.replacedByTechnologyId && !replacement)
+        throw new Error(
+          `missing replacement technology ${technology.replacedByTechnologyId}`,
+        );
+      return {
+        id: technology.runtimeId,
+        adoptionBp: technology.initialAdoptionBasisPoints,
+        peakAdoptionBp: technology.initialAdoptionBasisPoints,
+        obsolete: false,
+        ...(replacement ? { replacedBy: replacement.runtimeId } : {}),
+      };
+    }),
     trends: TREND_CONTENT.map((trend) => ({
       id: trend.runtimeId,
       adoptionBp: trend.initialAdoptionBasisPoints,

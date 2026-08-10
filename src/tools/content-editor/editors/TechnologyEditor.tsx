@@ -15,6 +15,15 @@ export function TechnologyEditor({
         value={value.id}
         onChange={(id) => onChange({ ...value, id })}
       />
+      <label>
+        Runtime ID
+        <input
+          aria-label="Runtime ID"
+          value={value.runtimeId}
+          readOnly
+          title="Runtime IDs are persisted in authoritative world state and require a save migration to change."
+        />
+      </label>
       <NumberField
         label="Emergence threshold (basis points)"
         value={value.emergenceThresholdBasisPoints}
@@ -26,6 +35,27 @@ export function TechnologyEditor({
         label="Prerequisites"
         value={value.prerequisiteIds}
         onChange={(prerequisiteIds) => onChange({ ...value, prerequisiteIds })}
+      />
+      <IdListField
+        label="Competing standards"
+        value={value.competingStandardIds}
+        onChange={(competingStandardIds) =>
+          onChange({ ...value, competingStandardIds })
+        }
+      />
+      <NumberField
+        label="Initial adoption (basis points)"
+        value={value.initialAdoptionBasisPoints}
+        onChange={(initialAdoptionBasisPoints) =>
+          onChange({ ...value, initialAdoptionBasisPoints })
+        }
+      />
+      <NumberField
+        label="Implementation cost (minor currency)"
+        value={value.implementationCostMinor}
+        onChange={(implementationCostMinor) =>
+          onChange({ ...value, implementationCostMinor })
+        }
       />
     </fieldset>
   );

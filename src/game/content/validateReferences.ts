@@ -66,23 +66,29 @@ export function validateReferences(
 ): ReferenceError[] {
   const byId = new Map(records.map((record) => [record.id, record]));
   const errors: ReferenceError[] = [];
-  const orderedKinds = new Map<string, Set<number>>();
-  for (const record of records) {
+  const sortedRecords = [...records].sort((a, b) =>
+    a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
+  );
+  for (const [index, record] of sortedRecords.entries()) {
     if (!("simulationOrder" in record)) continue;
-    const orders = orderedKinds.get(record.kind) ?? new Set<number>();
-    if (orders.has(record.simulationOrder))
+    if (
+      sortedRecords
+        .slice(0, index)
+        .some(
+          (previous) =>
+            previous.kind === record.kind &&
+            "simulationOrder" in previous &&
+            previous.simulationOrder === record.simulationOrder,
+        )
+    )
       errors.push({
         sourceId: record.id,
         targetId: String(record.simulationOrder),
         field: "simulationOrder",
         reason: "duplicate-order",
       });
-    orders.add(record.simulationOrder);
-    orderedKinds.set(record.kind, orders);
   }
-  for (const record of [...records].sort((a, b) =>
-    a.id < b.id ? -1 : a.id > b.id ? 1 : 0,
-  ))
+  for (const record of sortedRecords)
     for (const [field, targets, kinds] of fields(record))
       for (const targetId of targets) {
         const target = byId.get(targetId);
@@ -102,7 +108,7 @@ export function validateReferences(
           });
       }
 
-  const technologies = records.filter(
+  const technologies = sortedRecords.filter(
     (record): record is Extract<ContentEntry, { kind: "technology" }> =>
       record.kind === "technology",
   );

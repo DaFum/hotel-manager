@@ -16,7 +16,7 @@ export const RecipeSchema = z.object({
       }),
     )
     .min(1),
-  ingredientCostMinor: MinorCurrencySchema.nonnegative(),
+  ingredientCostMinor: MinorCurrencySchema.nonnegative().default(0),
   prepMinutes: MinutesSchema,
   priceMinor: MinorCurrencySchema.nonnegative(),
 });

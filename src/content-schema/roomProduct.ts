@@ -11,7 +11,6 @@ export const RoomProductSchema = z.object({
   id: StableIdSchema,
   kind: z.literal("roomProduct"),
   simulationOrder: z.number().int().nonnegative(),
-  name: z.string().min(1),
   nameKey: StableIdSchema,
   category: z.string().min(1),
   areaSquareMeters: SquareMetersSchema,

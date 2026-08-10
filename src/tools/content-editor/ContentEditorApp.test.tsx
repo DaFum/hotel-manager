@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ContentEditorApp } from "./ContentEditorApp";
+import { ContentEditorApp, nextDraftFacilityId } from "./ContentEditorApp";
 
 describe("ContentEditorApp", () => {
   it("lets an author edit every schema-backed parameter as validated JSON", () => {
@@ -16,5 +16,15 @@ describe("ContentEditorApp", () => {
       (screen.getByRole("button", { name: "Export pack" }) as HTMLButtonElement)
         .disabled,
     ).toBe(true);
+  });
+
+  it("fills the first gap in draft facility ids", () => {
+    expect(
+      nextDraftFacilityId({
+        "facility.draft-1": { id: "facility.draft-1" },
+        "facility.draft-3": { id: "facility.draft-3" },
+        "facility.other": { id: "facility.other" },
+      }),
+    ).toBe("facility.draft-2");
   });
 });

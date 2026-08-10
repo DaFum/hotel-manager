@@ -53,7 +53,7 @@ describe("the narrative in a running game", () => {
     const result = submit(s, {
       type: "RESOLVE_NARRATIVE_EVENT",
       eventId: raised.id,
-      choiceId: "compensate",
+      choiceId: "host",
     });
 
     expect(result.status).toBe("accepted");
@@ -63,7 +63,7 @@ describe("the narrative in a running game", () => {
     );
     expect(s.state.narrative.activeEvents).toEqual([]);
     expect(s.state.narrative.chronicle.at(-1)?.textKey).toBe(
-      "chronicle.narrative.press-profile.compensate",
+      "chronicle.narrative.press-profile.host",
     );
     // A story that has been answered cannot be answered again.
     expect(

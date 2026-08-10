@@ -9,7 +9,6 @@ export const BrandSchema = z.object({
   id: StableIdSchema,
   kind: z.literal("brand"),
   simulationOrder: z.number().int().nonnegative(),
-  name: z.string().min(1),
   nameKey: StableIdSchema,
   minimumRoomQualityBasisPoints: BasisPointsSchema,
   minimumGuestSatisfactionBasisPoints: BasisPointsSchema,

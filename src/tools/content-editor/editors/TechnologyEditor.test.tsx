@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { TechnologyEditor } from "./TechnologyEditor";
 
 describe("TechnologyEditor", () => {
-  it("edits emergence threshold in explicit basis points", () => {
+  it("edits every technology balancing parameter", () => {
     const onChange = vi.fn();
     const value = {
       id: "tech.wifi",
@@ -25,5 +25,30 @@ describe("TechnologyEditor", () => {
       ...value,
       emergenceThresholdBasisPoints: 6500,
     });
+    fireEvent.change(screen.getByLabelText("Competing standards"), {
+      target: { value: "tech.bluetooth, tech.wifi" },
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...value,
+      competingStandardIds: ["tech.bluetooth", "tech.wifi"],
+    });
+    fireEvent.change(screen.getByLabelText(/Initial adoption/), {
+      target: { value: "250" },
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...value,
+      initialAdoptionBasisPoints: 250,
+    });
+    fireEvent.change(screen.getByLabelText(/Implementation cost/), {
+      target: { value: "120000" },
+    });
+    expect(onChange).toHaveBeenCalledWith({
+      ...value,
+      implementationCostMinor: 120_000,
+    });
+    expect(screen.getByLabelText("Runtime ID")).toHaveProperty(
+      "readOnly",
+      true,
+    );
   });
 });

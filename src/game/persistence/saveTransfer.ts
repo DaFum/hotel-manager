@@ -31,12 +31,12 @@ export interface SaveTransferFile {
 
 type UnsignedTransfer = Omit<SaveTransferFile, "checksum">;
 
-const CONTENT_REFERENCE_FIELDS = new Set([
-  "brandId",
-  "definitionId",
-  "moduleId",
-  "segmentId",
-]);
+const CONTENT_REFERENCE_FIELDS = {
+  brandId: "brand",
+  definitionId: "event",
+  moduleId: "roomProduct",
+  segmentId: "guestSegment",
+} as const;
 
 /** References copied into authoritative state must still exist in this build. */
 export function validateSaveContentReferences(state: unknown): string[] {
@@ -48,13 +48,23 @@ export function validateSaveContentReferences(state: unknown): string[] {
       return;
     }
     for (const [field, child] of Object.entries(value)) {
-      if (
-        CONTENT_REFERENCE_FIELDS.has(field) &&
-        typeof child === "string" &&
-        !CORE_CONTENT_REGISTRY.has(child)
-      )
-        missing.add(child);
-      else visit(child);
+      if (field in CONTENT_REFERENCE_FIELDS) {
+        const expectedKind =
+          CONTENT_REFERENCE_FIELDS[
+            field as keyof typeof CONTENT_REFERENCE_FIELDS
+          ];
+        if (typeof child !== "string" || child.length === 0) {
+          missing.add(field);
+          continue;
+        }
+        try {
+          CORE_CONTENT_REGISTRY.getByKind(child, expectedKind);
+        } catch {
+          missing.add(child);
+        }
+        continue;
+      }
+      visit(child);
     }
   };
   visit(state);
@@ -134,14 +144,18 @@ export async function parseSaveFile(bytes: Uint8Array): Promise<SaveEnvelope> {
     file.protocolVersion !== file.payload.protocolVersion
   )
     throw new Error("save version headers disagree with payload");
-  for (const required of file.requiredContentPacks)
-    if (
-      required.packId !== CORE_CONTENT_PACK.packId ||
-      required.contentVersion !== CORE_CONTENT_PACK.contentVersion
-    )
-      throw new Error(
-        `required content pack is unavailable: ${required.packId}@${required.contentVersion}`,
-      );
+  const required = file.requiredContentPacks[0];
+  if (
+    file.requiredContentPacks.length !== 1 ||
+    !required ||
+    typeof required.packId !== "string" ||
+    typeof required.contentVersion !== "string" ||
+    required.packId !== CORE_CONTENT_PACK.packId ||
+    required.contentVersion !== CORE_CONTENT_PACK.contentVersion
+  )
+    throw new Error(
+      `required content pack is unavailable: ${required?.packId ?? "missing"}@${required?.contentVersion ?? "missing"}`,
+    );
   if (
     file.payload.saveVersion > SAVE_VERSION ||
     file.payload.protocolVersion !== PROTOCOL_VERSION

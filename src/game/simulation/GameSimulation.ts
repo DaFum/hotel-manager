@@ -238,6 +238,13 @@ import {
 } from "../company/companyCommands";
 import { runCompanyMonth, syncTreasury } from "../company/companyMonth";
 import {
+  adjustedForecastQuality,
+  assistedCostMinor,
+  bufferedCrisisRiskBp,
+  toleratedSatisfactionDelta,
+} from "../campaign/difficultyEffects";
+import {
+  accountClass,
   capitaliseAsset,
   createStatements,
   depreciationMinor,
@@ -869,19 +876,26 @@ export class GameSimulation implements CommandExecutor {
       case "BUY_MARKET_RESEARCH": {
         const verdict = this.validateCommand(command);
         if (!verdict.ok) throw new Error(verdict.reason);
-        this.spend(REPORT_COST_MINOR, "marketResearch", "city market report");
+        const reportCostMinor = assistedCostMinor(
+          REPORT_COST_MINOR,
+          s.narrative.campaign.inputs,
+        );
+        this.spend(reportCostMinor, "marketResearch", "city market report");
         s.cityMarket.informationQuality = qualityAfterReport(
           s.cityMarket.informationQuality,
         );
         s.cityMarket.forecast = forecastBand(
           totalRoomNights(s.cityMarket.demand),
-          s.cityMarket.informationQuality,
+          adjustedForecastQuality(
+            s.cityMarket.informationQuality,
+            s.narrative.campaign.inputs,
+          ),
         );
         this.emit(
           {
             type: "MARKET_RESEARCH_PURCHASED",
             informationQuality: s.cityMarket.informationQuality,
-            costMinor: REPORT_COST_MINOR,
+            costMinor: reportCostMinor,
           },
           [s.hotel.id],
         );
@@ -1986,7 +2000,16 @@ export class GameSimulation implements CommandExecutor {
   /** Moves goodwill and records why, so the number is always explainable. */
   private moveSatisfaction(delta: number, cause: string): void {
     const s = this.state;
-    const score = Math.max(0, Math.min(100, s.guestSatisfaction.score + delta));
+    // How hard a failure lands is what the guests are like, and that is a
+    // disclosed difficulty input. Goodwill earned is never scaled.
+    const applied = toleratedSatisfactionDelta(
+      delta,
+      s.narrative.campaign.inputs,
+    );
+    const score = Math.max(
+      0,
+      Math.min(100, s.guestSatisfaction.score + applied),
+    );
     if (score === s.guestSatisfaction.score) return;
     s.guestSatisfaction = {
       score,
@@ -2433,9 +2456,13 @@ export class GameSimulation implements CommandExecutor {
         dateKey: s.calendar.dateKey,
         economy: this.streams.economy,
         ai: this.streams.AI,
+        difficulty: s.narrative.campaign.inputs,
       },
     );
-    s.world = new WorldSimulation(this.streams).stepMonth(s.world);
+    s.world = new WorldSimulation(
+      this.streams,
+      s.narrative.campaign.inputs.crisisBufferBasisPoints,
+    ).stepMonth(s.world);
     s.technologyProjects = s.technologyProjects.map(advanceTechnologyProject);
     for (const project of s.technologyProjects)
       if (
@@ -2961,17 +2988,13 @@ export class GameSimulation implements CommandExecutor {
       soldRoomNights: m.soldRoomNights,
       availableRoomNights: m.availableRoomNights,
     });
-    // The flagship published its result from the month accumulator before the
-    // corporate postings landed, so it is restated from the finished report.
-    const flagship = s.company.hotelResults[s.hotel.id];
-    if (flagship)
-      s.company.hotelResults[s.hotel.id] = {
-        ...flagship,
-        roomRevenueMinor: s.lastMonthlyClose.roomRevenueMinor,
-        otherRevenueMinor: s.lastMonthlyClose.otherRevenueMinor,
-        operatingExpenseMinor: s.lastMonthlyClose.operatingExpenseMinor,
-        grossOperatingProfitMinor: s.lastMonthlyClose.operatingProfitMinor,
-      };
+    // The flagship's own result is what `publishFlagshipResult` already read
+    // off the month accumulator, and it is deliberately not restated from this
+    // report. The report is the group's: by the time it is drawn up it also
+    // carries every managed house's trading, the brand programmes, the
+    // ownership costs and headquarters. Copying it onto Frankfurt would charge
+    // one house for the whole company, and every escalation, valuation and
+    // portfolio table that reads `hotelResults` would inherit the error.
     // The period that just closed, not the day the close is being posted on:
     // December's close happens on 1 January and belongs to December's year.
     const closedYear = Number(periodKey.slice(0, 4));
@@ -3222,12 +3245,16 @@ export class GameSimulation implements CommandExecutor {
     const paid = Math.min(amountMinor, s.finance.cashMinor);
     const unpaid = amountMinor - paid;
     s.finance.cashMinor -= paid;
-    // CapEx buys an asset; it is cash out but not an operating expense. The
-    // expense is recognised in full even when cash cannot cover it.
-    if (account !== "capex")
+    // What the account is decides this, not what it is called: capex buys an
+    // asset and an investment buys a stake, and neither is a cost of running
+    // the hotel this month. The expense is recognised in full even when cash
+    // cannot cover it.
+    const cls = accountClass(account);
+    if (cls === "operating" || cls === "financing")
       s.finance.month.operatingExpenseMinor += amountMinor;
     // Capital spend buys something: the balance sheet has to know it exists.
-    else s.statements = capitaliseAsset(s.statements, amountMinor);
+    if (account === "capex")
+      s.statements = capitaliseAsset(s.statements, amountMinor);
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

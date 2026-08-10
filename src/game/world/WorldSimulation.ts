@@ -3,6 +3,7 @@ import { advanceLifecycle } from "../technology/lifecycle";
 import { advanceCommonCurrency } from "../currency/paths";
 import { advanceMacro, type MacroState } from "./macro";
 import { crisisRiskBp } from "./crises";
+import { bufferedCrisisRiskBp } from "../campaign/difficultyEffects";
 import { maybeCreateShock, type WorldShock } from "./shocks";
 import { generateWeather, type WeatherOutcome } from "./climate";
 import { canEmerge } from "../technology/graph";
@@ -92,7 +93,16 @@ export function createWorldState(): WorldState {
   };
 }
 export class WorldSimulation {
-  constructor(private readonly streams: RngStreams) {}
+  /**
+   * `crisisBufferBasisPoints` from the campaign, defaulting to neutral so the
+   * world can still be stepped on its own in a test or a scenario. It is the
+   * company's resilience, so it lowers how exposed the same balance sheet is
+   * rather than changing whether the world has crises at all.
+   */
+  constructor(
+    private readonly streams: RngStreams,
+    private readonly crisisBufferBp = 10_000,
+  ) {}
   stepMonth(state: WorldState): WorldState {
     const next = structuredClone(state);
     next.monthsAdvanced++;
@@ -163,10 +173,13 @@ export class WorldSimulation {
           ),
       ),
     }));
-    const risk = crisisRiskBp(
-      Math.max(0, next.macro.interestBp * 4),
-      3000,
-      Math.max(0, next.macro.interestBp * 3),
+    const risk = bufferedCrisisRiskBp(
+      crisisRiskBp(
+        Math.max(0, next.macro.interestBp * 4),
+        3000,
+        Math.max(0, next.macro.interestBp * 3),
+      ),
+      { crisisBufferBasisPoints: this.crisisBufferBp },
     );
     const shock = maybeCreateShock(
       next.yearsAdvanced,

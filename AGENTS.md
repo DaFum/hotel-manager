@@ -104,19 +104,20 @@ are implemented.
 Fresh verification of the Plan 06 gate on 2026-08-09 produced these exact
 results:
 
-- `npm run test:run` — passed (134 files, 798 tests).
+- `npm run test:run` — passed (136 files, 813 tests).
 - `npm run typecheck` — passed.
 - `npm run lint` — passed.
 - `npm run build` — passed.
 - `npm run test:e2e` — passed (22 tests).
-- `npm run benchmark` — passed (a simulated year in 3.9s against a 30s budget).
-- `scripts/replay-plans-01-03.ts` — passed with hash `c84d4e4c`.
+- `npm run benchmark` — passed (a simulated year in 5.9s against a 30s budget).
+- `scripts/replay-plans-01-03.ts` — passed with hash `da457f73`.
 - `scripts/verify-plans-01-03-long-run.ts` — passed.
 
-The replay hash moved from `4c76b90b` because the utility standing charge is
-now posted once at the monthly close instead of on every daily meter posting;
-the corpus was re-recorded with `scripts/record-replay-corpus.ts` rather than
-edited.
+The replay hash moved from `4c76b90b` to `c84d4e4c` when the utility standing
+charge became a monthly posting instead of a daily one, and to `da457f73` when
+the difficulty levers were wired up — the narrative month now takes a second
+draw for its frequency gate. Both times the corpus was re-recorded with
+`scripts/record-replay-corpus.ts` rather than edited.
 
 Plan 07 (content and authoring pipeline) is next.
 
@@ -125,6 +126,30 @@ stated rather than implied. Of the eight MASTER 4.5 recovery measures, this
 build implements three — `refinance`, `sell-hotel` and `staff-reduction` — and
 refuses the other five at the command boundary. Sandbox options are configured,
 validated and persisted, but nothing in the UI edits them.
+
+### Where a difficulty lands
+
+`DifficultyInputs` names nine levers and every one of them is read. A preset
+value nothing consumes is a promise the game does not keep, so if a lever is
+added it has to be wired to the system it names in the same change.
+
+| Lever                             | Where it applies                                          |
+| --------------------------------- | --------------------------------------------------------- |
+| `startingCapitalBasisPoints`      | `adjustedStartingCapitalMinor`, posted as opening capital |
+| `creditSpreadBasisPoints`         | the opening loan's rate                                   |
+| `guestToleranceBasisPoints`       | `moveSatisfaction`; penalties only, never goodwill        |
+| `forecastAccuracyBasisPoints`     | the quality a `forecastBand` is drawn at                  |
+| `laborScarcityBasisPoints`        | the city's wage pressure, for every house in it           |
+| `crisisBufferBasisPoints`         | `WorldSimulation`'s crisis risk                           |
+| `competitorAggressionBasisPoints` | how far under the market reads as a price war             |
+| `eventFrequencyBasisPoints`       | the narrative month's frequency gate                      |
+| `assistanceBasisPoints`           | what advice and market research cost                      |
+
+All nine are disclosed inputs on a world. None of them is a hidden advantage
+for a competitor: a harder game is a harder city, never an opponent that
+cheats. Everything except the two financial levers lives in
+`src/game/campaign/difficultyEffects.ts`, so each one can be traced from the
+preset to the system it pulls.
 
 ### Plan 06: the campaign above the company
 

@@ -90,14 +90,22 @@ export function assessCareerOutcome(input: CareerFacts): CareerOutcomeState {
     // taking the choice sets `continueEndless`.
     careerMilestone2026: input.year >= 2026,
     continueEndless,
-    ended: distress === "terminal" && !continueEndless,
+    // Endless play answers the 2026 review and nothing else. A company with no
+    // measure left is closed whether or not the player asked to keep going:
+    // letting the flag suppress this leaves a company trading with no recovery
+    // to take and no restart offered, which is not a game still in progress.
+    ended: distress === "terminal",
   };
 }
 
+/**
+ * Takes the 2026 review's offer. It records the decision and deliberately does
+ * not clear `ended`: insolvency is not something the player can decline.
+ */
 export function chooseEndlessContinuation(
   state: CareerOutcomeState,
 ): CareerOutcomeState {
-  return { ...state, continueEndless: true, ended: false };
+  return { ...state, continueEndless: true };
 }
 
 export function restartCareer(): { action: "restart"; dateKey: "1991-01-01" } {

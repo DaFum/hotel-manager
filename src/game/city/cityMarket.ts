@@ -48,6 +48,8 @@ import {
   MAX_MONTHLY_MOVE_BP,
 } from "../property/market";
 import { vacancies, wagePressureBp } from "../labor/market";
+import type { DifficultyInputs } from "../campaign/campaignConfig";
+import { scarcityAdjustedPressureBp } from "../campaign/difficultyEffects";
 import {
   applyRouteChange,
   connectivityIndex,
@@ -309,6 +311,13 @@ export function advanceCityMonth(
     dateKey: string;
     economy: RollSource;
     ai: RollSource;
+    /**
+     * The campaign's labour-scarcity lever. Defaulted to neutral so the city
+     * can still be advanced on its own in a test, and applied to every house
+     * in the city rather than only to the player's: a scarce market bids the
+     * wage everybody pays.
+     */
+    difficulty?: Pick<DifficultyInputs, "laborScarcityBasisPoints">;
   },
 ): CompetitorRecord[] {
   const nightsInMonth = daysInMonth(input.endedMonthKey);
@@ -500,7 +509,10 @@ export function advanceCityMonth(
   market.feedbackPipeline = matured.pipeline;
   market.eventUpliftBp = matured.applied;
 
-  market.wagePressureBp = pressureForRooms(survivorRoomTotal, market.actors);
+  market.wagePressureBp = scarcityAdjustedPressureBp(
+    pressureForRooms(survivorRoomTotal, market.actors),
+    input.difficulty ?? { laborScarcityBasisPoints: 10_000 },
+  );
   market.demand = demandFor(
     input.dateKey,
     market.transport,

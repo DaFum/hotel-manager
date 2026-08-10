@@ -1,4 +1,5 @@
 import type { GameState } from "../simulation/initialState";
+import { assistedCostMinor } from "../campaign/difficultyEffects";
 import type { GameCommand } from "../commands/commandEnvelope";
 import type { DomainEventPayload } from "../domain/events";
 import { addDays } from "../domain/calendar";
@@ -514,14 +515,21 @@ export function applyCompanyCommand(
         areas: command.areas,
         findings: target.hiddenFindings,
       });
-      ctx.spend(report.costMinor, "advisory", `diligence on ${target.name}`);
+      // What the advisers charge is a disclosed difficulty input: an easier
+      // game buys the same advice cheaper. The report itself is unchanged —
+      // assistance is a discount on help, not better findings.
+      const feeMinor = assistedCostMinor(
+        report.costMinor,
+        state.narrative.campaign.inputs,
+      );
+      ctx.spend(feeMinor, "advisory", `diligence on ${target.name}`);
       c.dueDiligence = { ...c.dueDiligence, [command.targetId]: report };
       ctx.emit(
         {
           type: "DUE_DILIGENCE_COMPLETED",
           targetId: command.targetId,
           areas: report.areas,
-          costMinor: report.costMinor,
+          costMinor: feeMinor,
         },
         [command.targetId],
       );

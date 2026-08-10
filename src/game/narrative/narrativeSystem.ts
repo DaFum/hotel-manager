@@ -18,6 +18,10 @@ import { eligiblePromotions, promote } from "../people/careerProgression";
 import { compareIds } from "../domain/ids";
 import { careerFacts } from "../campaign/recovery";
 import { assessCareerOutcome } from "../campaign/careerOutcome";
+import {
+  aggressionAdjustedUndercutBp,
+  firesNarrativeEvent,
+} from "../campaign/difficultyEffects";
 
 export interface NarrativeContext {
   emit(payload: DomainEventPayload, entities: readonly string[]): void;
@@ -74,10 +78,19 @@ export function runNarrativeMonth(
     n.lastFiredByDefinition,
     state.calendar.dateKey,
   ).filter((d) => !n.activeEvents.some((e) => e.definitionId === d.id));
-  // The draw is taken whether or not anything is eligible, so the stream
-  // advances identically in every replay of the same world.
+  // Both draws are taken whether or not anything is eligible and whatever the
+  // difficulty is, so the stream advances identically in every replay of the
+  // same world. The frequency draw is its own: sharing one number with the
+  // selection would let the difficulty bias which story gets told, rather than
+  // only how often one is.
   const draw = rolls.nextUint32() % 10_000;
-  const chosen = selectNarrativeEvent(eligible, draw);
+  const frequencyDraw = rolls.nextUint32() % 10_000;
+  const chosen = firesNarrativeEvent(
+    frequencyDraw,
+    state.narrative.campaign.inputs,
+  )
+    ? selectNarrativeEvent(eligible, draw)
+    : null;
   if (!chosen) return;
   const id = `narrative.${state.calendar.dateKey}.${chosen.id}`;
   n.activeEvents = [
@@ -271,13 +284,25 @@ function refreshPrestige(state: GameState): void {
  * wide margin is a price war whether or not it was meant as one, and it is
  * remembered.
  */
+/**
+ * The standard game's reading of a price war: a rate at 85% of the market or
+ * below. Competitor aggression moves this line, it does not replace it.
+ */
+const RIVAL_UNDERCUT_THRESHOLD_BP = 8500;
+
 function refreshRivals(state: GameState): void {
   const operating = state.competitors.filter((c) => c.status !== "exit");
   if (operating.length === 0 || state.metrics.adrMinor <= 0) return;
   const marketRate = Math.trunc(
     operating.reduce((sum, c) => sum + c.rateMinor, 0) / operating.length,
   );
-  if (state.metrics.adrMinor >= Math.trunc((marketRate * 8500) / 10_000))
+  // How far under the market counts as undercutting is what the competitors
+  // are like, and that is a disclosed difficulty input.
+  const undercutBp = aggressionAdjustedUndercutBp(
+    RIVAL_UNDERCUT_THRESHOLD_BP,
+    state.narrative.campaign.inputs,
+  );
+  if (state.metrics.adrMinor >= Math.trunc((marketRate * undercutBp) / 10_000))
     return;
   const year = Number(state.calendar.dateKey.slice(0, 4));
   state.narrative.rivals = state.narrative.rivals.map((rival) =>

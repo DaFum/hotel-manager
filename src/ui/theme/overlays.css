@@ -1,0 +1,91 @@
+/*
+ * Overlays — the things that arrive.
+ *
+ * A modal in this game is a document that has been put in front of the player:
+ * the monthly close is a printed statement, an outcome is a notice. They are
+ * treated as paper laid on the desk, not as floating cards.
+ */
+
+.hm-root dialog {
+  max-width: min(34rem, 92vw);
+  padding: var(--hm-space-6);
+  border: 1px solid var(--hm-rule-strong);
+  border-top: var(--hm-rail) solid var(--hm-signal);
+  border-radius: var(--hm-radius);
+  background: linear-gradient(
+    180deg,
+    var(--hm-surface-raised),
+    var(--hm-surface) 60%
+  );
+  color: var(--hm-ink);
+  box-shadow: var(--hm-shadow-lift);
+}
+
+.hm-root dialog h2 {
+  margin-bottom: var(--hm-space-5);
+  padding-bottom: var(--hm-space-2);
+  border-bottom: 1px solid var(--hm-rule);
+}
+
+.hm-root dialog dd {
+  font-size: var(--hm-text-xl);
+}
+
+.hm-root dialog button {
+  margin-top: var(--hm-space-5);
+}
+
+/* The desk goes dark around the document that is being read. */
+.hm-root dialog::backdrop {
+  background: rgb(4 5 6 / 72%);
+  backdrop-filter: blur(2px);
+}
+
+/*
+ * The milestone toast. It announces once and leaves, so it is anchored out of
+ * the reading column, bottom right, where a stamp would land on a page.
+ */
+.hm-root aside[role="status"] {
+  position: fixed;
+  right: var(--hm-space-5);
+  bottom: var(--hm-space-5);
+  z-index: var(--hm-z-overlay);
+  max-width: min(24rem, calc(100vw - 2 * var(--hm-space-5)));
+  padding: var(--hm-space-4);
+  border: 1px solid var(--hm-signal-deep);
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  border-radius: var(--hm-radius);
+  background: linear-gradient(
+    180deg,
+    var(--hm-surface-raised),
+    var(--hm-ground)
+  );
+  box-shadow: var(--hm-shadow-lift);
+  animation: hm-toast var(--hm-duration-slow) var(--hm-ease-out) both;
+}
+
+.hm-root aside[role="status"] strong {
+  display: block;
+  margin-bottom: var(--hm-space-1);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-signal);
+}
+
+.hm-root aside[role="status"] p {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-ink-dim);
+}
+
+.hm-root aside[role="status"] button {
+  margin-top: var(--hm-space-3);
+}
+
+@keyframes hm-toast {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+}

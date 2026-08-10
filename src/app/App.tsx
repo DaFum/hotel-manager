@@ -7,6 +7,7 @@ import { ContextHelp } from "../ui/help/ContextHelp";
 import { AudioEngine } from "../audio/audioEngine";
 import { translateGame } from "../i18n";
 import "../ui/accessibility/accessibility.css";
+import "../ui/theme/theme.css";
 import {
   shouldPauseForAlert,
   type NotificationRecord,
@@ -154,7 +155,10 @@ export function App() {
   // hotel frozen mid-day. Say so, and offer the newest trustworthy save.
   if (game.workerFailure)
     return (
-      <main aria-label={translateGame(preferences.locale, "app.main")}>
+      <main
+        className="hm-root hm-boot"
+        aria-label={translateGame(preferences.locale, "app.main")}
+      >
         <WorkerRecoveryPanel
           message={game.workerFailure}
           onRecover={() => {
@@ -169,7 +173,10 @@ export function App() {
 
   if (!s)
     return (
-      <main aria-label={translateGame(preferences.locale, "app.main")}>
+      <main
+        className="hm-root hm-boot"
+        aria-label={translateGame(preferences.locale, "app.main")}
+      >
         <h1>Hotel Manager</h1>
         <p>Starting {CITY.name} 1991…</p>
       </main>
@@ -196,7 +203,7 @@ export function App() {
   return (
     <div
       lang={preferences.locale.slice(0, 2)}
-      className={preferences.accessibility.highContrast ? "high-contrast" : ""}
+      className={`hm-root${preferences.accessibility.highContrast ? " high-contrast" : ""}`}
       style={{ fontSize: `${preferences.accessibility.textScale}rem` }}
       data-reduced-motion={preferences.accessibility.reducedMotion}
     >
@@ -210,19 +217,33 @@ export function App() {
         }}
       >
         <main
+          className="hm-main"
           id="management-content"
           aria-label={translateGame(preferences.locale, "app.main")}
         >
           <h1>
             {s.hotel.name}, {CITY.name} 1991
           </h1>
-          <p role="status" aria-label="Simulation status" aria-live="polite">
-            {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
-          </p>
-          <p aria-label="Command status" aria-live="polite">
-            Command: {game.commandStatus}
-          </p>
-          <p aria-label="Saves committed">Saves committed: {game.savedCount}</p>
+          {/* The telemetry line: three live regions the player can consult but
+              is never interrupted by, set as one quiet status strip. */}
+          <div className="hm-telemetry">
+            <p
+              className="hm-telemetry__status"
+              role="status"
+              aria-label="Simulation status"
+              aria-live="polite"
+            >
+              {game.errors.length > 0
+                ? game.errors[game.errors.length - 1]
+                : ""}
+            </p>
+            <p aria-label="Command status" aria-live="polite">
+              Command: {game.commandStatus}
+            </p>
+            <p aria-label="Saves committed">
+              Saves committed: {game.savedCount}
+            </p>
+          </div>
           <TopBar
             city={CITY.name}
             dateKey={s.calendar.dateKey}

@@ -1,0 +1,202 @@
+/*
+ * Base layer — the ground the whole operation stands on.
+ *
+ * Nothing here is a component. This file establishes the document surface, the
+ * typographic defaults every panel inherits, and the two textures that keep the
+ * interface from ever being a flat fill: a blueprint hairline grid in the
+ * concrete, and a film of grain over everything.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--hm-ink);
+  font-family: var(--hm-font-body);
+  font-size: var(--hm-text-base);
+  line-height: 1.55;
+  background-color: var(--hm-ground);
+
+  /* Concrete lit from the upper left, over a surveyor's grid. Two gradients,
+     no image request, and it survives any viewport. */
+  background-image:
+    radial-gradient(
+      120ch 80ch at 12% -10%,
+      rgb(232 163 61 / 7%),
+      transparent 65%
+    ),
+    radial-gradient(
+      90ch 70ch at 92% 8%,
+      rgb(109 157 197 / 6%),
+      transparent 60%
+    ),
+    linear-gradient(var(--hm-rule-faint) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hm-rule-faint) 1px, transparent 1px);
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0;
+  background-size:
+    auto,
+    auto,
+    64px 64px,
+    64px 64px;
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.hm-root {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/*
+ * Grain. A single inline turbulence tile, fixed to the viewport, so the surface
+ * has the tooth of printed stock instead of the sheen of a screen fill. It is
+ * decorative and inert: it never takes a pointer or a screen reader's notice.
+ */
+.hm-root::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: var(--hm-z-grain);
+  pointer-events: none;
+  opacity: 0.28;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+/* Texture is atmosphere, and atmosphere is the first thing to go when a player
+   has asked for maximum legibility. */
+.hm-root.high-contrast::after {
+  display: none;
+}
+
+body:has(.hm-root.high-contrast) {
+  background-image: none;
+}
+
+/* --- Typography --------------------------------------------------------- */
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--hm-font-display);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: var(--hm-tracking-display);
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.hm-root h1 {
+  font-size: var(--hm-text-display);
+  color: var(--hm-ink);
+}
+
+.hm-root h2 {
+  font-size: var(--hm-text-xl);
+  color: var(--hm-ink);
+}
+
+.hm-root h3 {
+  font-size: var(--hm-text-base);
+  font-family: var(--hm-font-body);
+  font-weight: 600;
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-ink-dim);
+}
+
+.hm-root p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.hm-root strong {
+  font-weight: 600;
+  color: var(--hm-ink);
+}
+
+/* Figures are the subject of this game: one width per digit, everywhere, so a
+   column of Deutschmark never shifts under the eye as the simulation ticks. */
+.hm-root :is(dd, td, th, time, output, [data-testid$="-value"], [data-minor]) {
+  font-family: var(--hm-font-data);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* --- Links and focus ---------------------------------------------------- */
+
+.hm-root a {
+  color: var(--hm-signal);
+  text-decoration-color: var(--hm-signal-deep);
+  text-underline-offset: 0.25em;
+}
+
+.hm-root a:hover {
+  color: var(--hm-signal-bright);
+  text-decoration-color: currentcolor;
+}
+
+/*
+ * One focus treatment for the entire interface. It is deliberately loud: this
+ * is a keyboard-operable management surface, and losing the caret in a dense
+ * table is the fastest way to make a player give up on it.
+ */
+.hm-root :focus-visible {
+  outline: 2px solid var(--hm-signal-bright);
+  outline-offset: 2px;
+  border-radius: var(--hm-radius);
+}
+
+.hm-root :focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* The skip link: invisible until it is the thing that matters. */
+.hm-root a[href="#management-content"] {
+  position: absolute;
+  top: var(--hm-space-2);
+  left: var(--hm-space-2);
+  z-index: var(--hm-z-overlay);
+  padding: var(--hm-space-2) var(--hm-space-4);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--hm-tracking-label);
+  text-decoration: none;
+  color: var(--hm-ground);
+  background: var(--hm-signal);
+  transform: translateY(-200%);
+  transition: transform var(--hm-duration) var(--hm-ease-out);
+}
+
+.hm-root a[href="#management-content"]:focus {
+  transform: translateY(0);
+}
+
+/* --- Selection and scrollbars ------------------------------------------- */
+
+.hm-root ::selection {
+  color: var(--hm-ground);
+  background: var(--hm-signal);
+}
+
+.hm-root * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--hm-rule-strong) transparent;
+}

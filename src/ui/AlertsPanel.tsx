@@ -17,8 +17,10 @@ export function AlertsPanel(props: {
   return (
     <section aria-label="Alerts">
       <h2>Alerts</h2>
+      {/* The severity drives each record's rail; the word beside it says the
+          same thing, so the meaning never rests on colour alone. */}
       {props.alerts.map((a) => (
-        <article key={a.id}>
+        <article key={a.id} data-severity={a.severity}>
           <strong>{a.title}</strong>
           <span>{a.severity}</span>
           <p>{causeText(a.cause)}</p>

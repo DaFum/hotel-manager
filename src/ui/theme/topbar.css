@@ -1,0 +1,124 @@
+/*
+ * The operations strip.
+ *
+ * Purpose: the four things a manager checks without thinking — where and when
+ *   we are, what is in the bank, how fast time is running, and whether the run
+ *   is safe on disk.
+ * Tone: the status line of a dot-matrix back-office terminal, bolted across the
+ *   top of the desk.
+ * Constraints: sticky at any scroll depth, readable at every text scale, and it
+ *   must not swallow the page on a narrow viewport.
+ * Differentiator: the cash figure holds one fixed column of its own, so the
+ *   eye returns to the same place on the screen every time it looks up, no
+ *   matter how the number's width changes as the company grows.
+ */
+
+.hm-root .hm-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--hm-z-chrome);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--hm-space-3) var(--hm-space-5);
+  padding: var(--hm-space-3) var(--hm-space-4);
+  border: 1px solid var(--hm-rule-strong);
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
+
+  /* The perforated ground of continuous-feed paper. */
+  background-color: var(--hm-ground-deep);
+  background-image: radial-gradient(var(--hm-rule) 1px, transparent 1px);
+  background-size: 6px 6px;
+  box-shadow: var(--hm-shadow-lift);
+}
+
+.hm-root .hm-topbar__place {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hm-space-1) var(--hm-space-3);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-sm);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hm-ink-dim);
+}
+
+.hm-root .hm-topbar__clock {
+  padding: 0 var(--hm-space-2);
+  border: 1px solid var(--hm-rule);
+  color: var(--hm-signal);
+}
+
+/* The money column. */
+.hm-root .hm-topbar__cash {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: var(--hm-space-2);
+  min-width: 14ch;
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-ink-faint);
+}
+
+.hm-root .hm-topbar__figure {
+  font-size: var(--hm-text-lg);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  color: var(--hm-signal-bright);
+}
+
+/* Time control reads as one segmented switch, not four loose buttons. */
+.hm-root .hm-topbar__speed {
+  display: flex;
+}
+
+.hm-root .hm-topbar__speed button {
+  border-radius: 0;
+  padding: var(--hm-space-1) var(--hm-space-3);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+}
+
+.hm-root .hm-topbar__speed button + button {
+  border-left-width: 0;
+}
+
+.hm-root .hm-topbar__speed button:first-child {
+  border-radius: var(--hm-radius) 0 0 var(--hm-radius);
+}
+
+.hm-root .hm-topbar__speed button:last-child {
+  border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
+}
+
+/* A pressed speed keeps a visible edge against its neighbours. */
+.hm-root .hm-topbar__speed button[aria-pressed="true"] + button {
+  border-left-width: 1px;
+}
+
+.hm-root .hm-topbar__io {
+  display: flex;
+  gap: var(--hm-space-2);
+}
+
+@media (width <= 60rem) {
+  .hm-root .hm-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .hm-root .hm-topbar__speed,
+  .hm-root .hm-topbar__io {
+    grid-column: 1 / -1;
+  }
+
+  .hm-root .hm-topbar__speed {
+    justify-content: flex-start;
+  }
+}

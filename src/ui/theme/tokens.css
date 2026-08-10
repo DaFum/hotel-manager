@@ -1,0 +1,142 @@
+/*
+ * Design tokens — "Bankenviertel 1991" (AGENTS §13)
+ *
+ * Purpose: give every management surface one vocabulary of colour, type,
+ *   spacing and motion, so the operations desk and the isometric hotel read as
+ *   two views of the same reality rather than two products.
+ * Tone: tactile early-nineties Frankfurt business character — poured concrete,
+ *   ledger hairlines, dot-matrix figures, a single Deutschmark-amber signal.
+ * Constraints: dark ground at AA contrast, high-contrast mode must be able to
+ *   override every one of these, figures must stay tabular at any text scale.
+ * Differentiator: the Leitplanke — the signal rail on the left edge of a panel,
+ *   the way an operations binder carries its status on its spine.
+ *
+ * Semantic tokens only. Components never reach for a raw hex value.
+ *
+ * Declared on :root so the document ground inherits them, and re-declared by
+ * .hm-root.high-contrast below, whose higher specificity lets the
+ * accessibility preference override the whole vocabulary in one place.
+ */
+
+:root {
+  /* --- Ground: poured concrete, lit from above ------------------------- */
+  --hm-ground: #0b0d0f;
+  --hm-ground-deep: #070809;
+  --hm-surface: #14181c;
+  --hm-surface-raised: #1b2127;
+  --hm-surface-sunken: #0e1114;
+
+  /* --- Rules: the hairlines of a ledger -------------------------------- */
+  --hm-rule: #262e35;
+  --hm-rule-strong: #38434d;
+  --hm-rule-faint: #1b2126;
+
+  /* --- Paper: bone, never a clinical white ----------------------------- */
+  --hm-ink: #e9e5db;
+  --hm-ink-dim: #a3a79f;
+  --hm-ink-faint: #767b78;
+
+  /* --- The single signal: a Deutschmark note under desk light ---------- */
+  --hm-signal: #e8a33d;
+  --hm-signal-bright: #ffc061;
+  --hm-signal-deep: #8a5c14;
+  --hm-signal-wash: rgb(232 163 61 / 12%);
+
+  /* --- Cold counter-accent, used sparingly for market and world -------- */
+  --hm-steel: #6d9dc5;
+  --hm-steel-wash: rgb(109 157 197 / 12%);
+
+  /* --- Operational status. Never carried by hue alone. ----------------- */
+  --hm-gain: #5cc98f;
+  --hm-gain-wash: rgb(92 201 143 / 12%);
+  --hm-loss: #e2543c;
+  --hm-loss-wash: rgb(226 84 60 / 14%);
+  --hm-warn: #e8b53a;
+  --hm-warn-wash: rgb(232 181 58 / 12%);
+  --hm-idle: #767b78;
+
+  /* --- Type: Anton poster grotesque over IBM Plex ---------------------- */
+  --hm-font-display:
+    "Anton", "Haettenschweiler", "Oswald", "Arial Narrow", sans-serif;
+  --hm-font-body:
+    "IBM Plex Sans", "Frutiger", "Segoe UI", "Helvetica Neue", sans-serif;
+  --hm-font-data:
+    "IBM Plex Mono", "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+
+  /* A minor-third scale, anchored on the inherited root size so the
+     accessibility text-scale preference keeps scaling everything. */
+  --hm-text-xs: 0.72rem;
+  --hm-text-sm: 0.84rem;
+  --hm-text-base: 1rem;
+  --hm-text-lg: 1.2rem;
+  --hm-text-xl: 1.55rem;
+  --hm-text-2xl: 2.1rem;
+  --hm-text-display: clamp(2.2rem, 1.4rem + 2.6vw, 3.6rem);
+
+  --hm-tracking-display: 0.01em;
+  --hm-tracking-label: 0.16em;
+
+  /* --- Spacing: a 4px operational grid --------------------------------- */
+  --hm-space-1: 0.25rem;
+  --hm-space-2: 0.5rem;
+  --hm-space-3: 0.75rem;
+  --hm-space-4: 1rem;
+  --hm-space-5: 1.5rem;
+  --hm-space-6: 2rem;
+  --hm-space-7: 3rem;
+
+  /* --- Edges: cut, not rounded. This building is concrete. ------------- */
+  --hm-radius: 2px;
+  --hm-rail: 3px;
+
+  /* --- Depth ----------------------------------------------------------- */
+  --hm-shadow-panel:
+    0 1px 0 rgb(255 255 255 / 4%) inset, 0 12px 28px -18px rgb(0 0 0 / 90%);
+  --hm-shadow-lift: 0 18px 44px -22px rgb(0 0 0 / 95%);
+  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
+
+  /* --- Motion: brisk, mechanical, never bouncy ------------------------- */
+  --hm-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --hm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --hm-duration-fast: 120ms;
+  --hm-duration: 220ms;
+  --hm-duration-slow: 420ms;
+
+  --hm-z-canvas: 0;
+  --hm-z-chrome: 20;
+  --hm-z-overlay: 40;
+  --hm-z-grain: 60;
+}
+
+/*
+ * High contrast is a promise, not a filter: it must win over every decorative
+ * token above. The accessibility layer sets pure black and white; here the
+ * semantic accents follow it into an unambiguous, texture-free palette.
+ */
+.hm-root.high-contrast {
+  --hm-ground: #000;
+  --hm-ground-deep: #000;
+  --hm-surface: #000;
+  --hm-surface-raised: #000;
+  --hm-surface-sunken: #000;
+  --hm-rule: #fff;
+  --hm-rule-strong: #fff;
+  --hm-rule-faint: #fff;
+  --hm-ink: #fff;
+  --hm-ink-dim: #fff;
+  --hm-ink-faint: #fff;
+  --hm-signal: #ff0;
+  --hm-signal-bright: #ff0;
+  --hm-signal-wash: transparent;
+  --hm-steel: #0ff;
+  --hm-steel-wash: transparent;
+  --hm-gain: #0f0;
+  --hm-gain-wash: transparent;
+  --hm-loss: #f66;
+  --hm-loss-wash: transparent;
+  --hm-warn: #ff0;
+  --hm-warn-wash: transparent;
+  --hm-idle: #fff;
+  --hm-shadow-panel: none;
+  --hm-shadow-lift: none;
+}

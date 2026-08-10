@@ -19,14 +19,16 @@ export function SemanticHotelTree({
   return (
     <section aria-label={translateGame(locale, "hotel.status")}>
       <h2>{translateGame(locale, "hotel.status")}</h2>
-      <ul>
+      <ul className="hm-register">
         {rooms.map((room) => {
           const label =
             room.label ??
             `${room.id} ${room.category ?? translateGame(locale, "room.fallback")}`;
           const state = translateGame(locale, `room.states.${room.state}`);
           return (
-            <li key={room.id}>
+            // The state marker lets the eye find the dirty and the out-of-order
+            // rooms; the state is written out in words on the same line.
+            <li key={room.id} data-room-state={room.state}>
               <span>
                 {label}: {state}
                 {room.cleanliness === undefined

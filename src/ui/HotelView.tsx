@@ -82,7 +82,7 @@ export function HotelView(props: {
 
   return (
     <section aria-label="Hotel view">
-      <div ref={host} data-testid="hotel-canvas" />
+      <div className="hm-canvas" ref={host} data-testid="hotel-canvas" />
       <SemanticHotelTree
         locale={props.locale}
         rooms={props.rooms}

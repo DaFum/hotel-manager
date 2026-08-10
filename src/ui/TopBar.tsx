@@ -21,22 +21,35 @@ export function TopBar(props: {
   const minutes = String(props.minuteOfDay % 60).padStart(2, "0");
   const locale = props.locale ?? "de-DE";
   return (
-    <section aria-label={translateGame(locale, "topbar.status")}>
-      <p>
-        {props.city} ·{" "}
+    <section
+      className="hm-topbar"
+      aria-label={translateGame(locale, "topbar.status")}
+    >
+      <p className="hm-topbar__place">
+        {props.city}{" "}
         <time dateTime={props.dateKey}>
           {formatGameDate(props.dateKey, locale)}
           <span className="sr-only"> ({props.dateKey})</span>
         </time>{" "}
-        {hours}:{minutes} ·{" "}
+        <span className="hm-topbar__clock">
+          {hours}:{minutes}
+        </span>
+      </p>
+      {/* The one figure the player's eye returns to, held in a fixed column so
+          it never moves as the simulation ticks. */}
+      <p className="hm-topbar__cash">
         <span>{translateGame(locale, "topbar.cash")}: </span>
-        <span data-testid="cash-value" data-minor={props.cashMinor}>
+        <span
+          className="hm-topbar__figure"
+          data-testid="cash-value"
+          data-minor={props.cashMinor}
+        >
           {locale === "de-DE"
             ? formatDm(props.cashMinor)
             : formatMinorCurrency(props.cashMinor, "DEM", locale)}
         </span>
       </p>
-      <nav aria-label="Speed">
+      <nav className="hm-topbar__speed" aria-label="Speed">
         {SPEEDS.map((s) => (
           <button
             key={s}
@@ -48,12 +61,14 @@ export function TopBar(props: {
           </button>
         ))}
       </nav>
-      <button type="button" onClick={props.onSave}>
-        Save
-      </button>
-      <button type="button" onClick={props.onLoad}>
-        Load
-      </button>
+      <div className="hm-topbar__io">
+        <button type="button" onClick={props.onSave}>
+          Save
+        </button>
+        <button type="button" onClick={props.onLoad}>
+          Load
+        </button>
+      </div>
     </section>
   );
 }

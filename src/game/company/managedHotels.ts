@@ -39,6 +39,25 @@ export interface ManagedHotelRecord {
  * the price the buyer paid and the money the house makes describe two
  * different hotels.
  */
+/**
+ * The occupancy a scheme was underwritten on before `DevelopmentProject` stated
+ * it. Saves written by an older build carry developments without the field —
+ * the migration forwards `developments` wholesale — so opening one has to fall
+ * back to the assumption it was actually built on rather than reading
+ * `undefined` into a basis-point check.
+ */
+export const DEFAULT_UNDERWRITING_OCCUPANCY_BP = 7000;
+
+/**
+ * What a scheme says it will run at, or the assumption it predates. A stated
+ * zero is a decision and is kept; only a missing value falls back.
+ */
+export function underwrittenOccupancyBp(development: {
+  occupancyBasisPoints?: number;
+}): number {
+  return development.occupancyBasisPoints ?? DEFAULT_UNDERWRITING_OCCUPANCY_BP;
+}
+
 /** A basis-point share of one whole: never negative, never over 100%. */
 function assertShareBp(value: number, label: string): number {
   assertBasisPoints(value, label);

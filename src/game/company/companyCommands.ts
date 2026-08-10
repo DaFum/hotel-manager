@@ -32,7 +32,11 @@ import {
   markTargetStatus,
 } from "../ma/acquisition";
 import { addHotelToPortfolio } from "./portfolio";
-import { createManagedHotel, registerManagedHotel } from "./managedHotels";
+import {
+  createManagedHotel,
+  registerManagedHotel,
+  underwrittenOccupancyBp,
+} from "./managedHotels";
 import { findDevelopment } from "./companyState";
 import {
   DEVELOPMENT_HURDLE_BP,
@@ -510,7 +514,7 @@ export function applyCompanyCommand(
           development.feasibility.baseAnnualRoomRevenueMinor /
             Math.max(1, development.rooms * 365),
         ),
-        occupancyBasisPoints: development.occupancyBasisPoints,
+        occupancyBasisPoints: underwrittenOccupancyBp(development),
         gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
         openedDateKey: state.calendar.dateKey,
       });

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   ANCILLARY_REVENUE_SHARE_BP,
+  DEFAULT_UNDERWRITING_OCCUPANCY_BP,
   adrForAnnualGopMinor,
   adrForAnnualRoomRevenueMinor,
+  underwrittenOccupancyBp,
 } from "./managedHotels";
 
 /**
@@ -110,5 +112,26 @@ describe("the rate a managed house has to achieve", () => {
         occupancyBasisPoints: 10_001,
       }),
     ).toThrow(/occupancy/);
+  });
+});
+
+describe("opening a development written by an older build", () => {
+  it("underwrites a saved scheme that predates the occupancy field", () => {
+    // `DevelopmentProject.occupancyBasisPoints` is newer than some saves, and
+    // the v4-to-v5 migration forwards `developments` wholesale. A scheme
+    // restored from such a save has no stated occupancy, and opening it must
+    // fall back to the assumption it was actually underwritten on rather than
+    // throwing on an undefined basis point.
+    const legacy = { rooms: 60 } as { rooms: number } & {
+      occupancyBasisPoints?: number;
+    };
+    expect(underwrittenOccupancyBp(legacy)).toBe(
+      DEFAULT_UNDERWRITING_OCCUPANCY_BP,
+    );
+    expect(underwrittenOccupancyBp({ occupancyBasisPoints: 7_300 })).toBe(
+      7_300,
+    );
+    // Zero is a stated assumption, not a missing one.
+    expect(underwrittenOccupancyBp({ occupancyBasisPoints: 0 })).toBe(0);
   });
 });

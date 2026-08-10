@@ -104,7 +104,7 @@ are implemented.
 Fresh verification of the Plan 06 gate on 2026-08-09 produced these exact
 results:
 
-- `npm run test:run` — passed (137 files, 818 tests).
+- `npm run test:run` — passed (137 files, 819 tests).
 - `npm run typecheck` — passed.
 - `npm run lint` — passed.
 - `npm run build` — passed.

@@ -24,7 +24,7 @@ test("plays the remediation journey and reloads from recovery", async ({
     page.getByRole("button", { name: /Recover generation 0/i }),
   ).toBeVisible();
   const checkpointStatus = await page
-    .getByRole("region", { name: "Status bar" })
+    .getByRole("region", { name: /Status bar|Statusleiste/ })
     .locator("p")
     .innerText();
   const singleRate = page
@@ -43,10 +43,12 @@ test("plays the remediation journey and reloads from recovery", async ({
   await page.getByRole("button", { name: /pause/i }).click();
 
   const before = await page
-    .getByRole("region", { name: "Status bar" })
+    .getByRole("region", { name: /Status bar|Statusleiste/ })
     .innerText();
   await page.getByRole("button", { name: /Recover generation 1/i }).click();
-  const statusBar = page.getByRole("region", { name: "Status bar" });
+  const statusBar = page.getByRole("region", {
+    name: /Status bar|Statusleiste/,
+  });
   await expect(statusBar.locator("p")).toHaveText(checkpointStatus, {
     timeout: 30_000,
   });

@@ -9,6 +9,7 @@ import {
 } from "./saveSchema";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { createInitialGameState } from "../simulation/initialState";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 // A real state: validation now checks references and numeric invariants, so a
 // stub with one field in it is no longer a save the repository will store.
@@ -20,6 +21,7 @@ const save: SaveEnvelope = {
   protocolVersion: PROTOCOL_VERSION,
   rngState: state.rngState,
   state,
+  preferences: DEFAULT_PLAYER_PREFERENCES,
 };
 
 describe("save repository", () => {

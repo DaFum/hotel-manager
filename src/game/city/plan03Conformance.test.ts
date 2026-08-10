@@ -33,6 +33,7 @@ import { applyRouteChange, connectivityIndex } from "../transport/network";
 import { migrateEnvelope, validateEnvelope } from "../persistence/saveSchema";
 import { CONTENT_VERSION, SAVE_VERSION } from "../persistence/saveVersions";
 import { PROTOCOL_VERSION } from "../domain/protocol";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -205,6 +206,7 @@ describe("plan 03 city and competitor conformance", () => {
       protocolVersion: PROTOCOL_VERSION,
       rngState: sim.state.rngState,
       state: sim.snapshot(),
+      preferences: DEFAULT_PLAYER_PREFERENCES,
     });
     expect(validateEnvelope(envelope)).toEqual([]);
     const restored = new GameSimulation(

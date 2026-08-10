@@ -15,6 +15,7 @@ import {
   validateSaveContentReferences,
 } from "./saveTransfer";
 import { IndexedDbSaveRepository } from "./indexedDbSaveRepository";
+import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 const state = createInitialGameState(9);
 const save: SaveEnvelope = {
   saveVersion: SAVE_VERSION,
@@ -22,6 +23,7 @@ const save: SaveEnvelope = {
   protocolVersion: PROTOCOL_VERSION,
   rngState: state.rngState,
   state,
+  preferences: DEFAULT_PLAYER_PREFERENCES,
 };
 
 describe("save transfer", () => {

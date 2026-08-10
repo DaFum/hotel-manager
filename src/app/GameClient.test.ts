@@ -4,6 +4,7 @@ import {
   PROTOCOL_VERSION,
   WHOLE_GAME_ENTITY_ID,
 } from "../game/domain/protocol";
+import { DEFAULT_PLAYER_PREFERENCES } from "../game/settings/playerPreferences";
 
 function fakeWorker() {
   const worker = {
@@ -24,6 +25,33 @@ const SET_RATE = {
 } as const;
 
 describe("GameClient protocol", () => {
+  it("threads active preferences through a correlated save request", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    expect(client.requestSave(DEFAULT_PLAYER_PREFERENCES)).toBe("req.1");
+    expect(worker.postMessage).toHaveBeenLastCalledWith({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_SAVE",
+      requestId: "req.1",
+      preferences: DEFAULT_PLAYER_PREFERENCES,
+    });
+  });
+  it("correlates pause and resume control requests", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    expect(client.pause()).toBe("req.1");
+    expect(worker.postMessage).toHaveBeenLastCalledWith({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "PAUSE",
+      requestId: "req.1",
+    });
+    expect(client.resume()).toBe("req.2");
+    expect(worker.postMessage).toHaveBeenLastCalledWith({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "RESUME",
+      requestId: "req.2",
+    });
+  });
   it("sends versioned INIT_GAME", () => {
     const worker = fakeWorker();
     new GameClient(worker).init(42);

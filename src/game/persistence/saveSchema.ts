@@ -5,6 +5,7 @@ import { migrateV2ToV3 } from "./migrations/v2-to-v3";
 import { migrateV3ToV4 } from "./migrations/v3-to-v4";
 import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import { migrateV5ToV6 } from "./migrations/v5-to-v6";
+import { migrateV6ToV7 } from "./migrations/v6-to-v7";
 import {
   isValidAnnualProfit,
   isValidCampaign,
@@ -23,6 +24,7 @@ import {
   type SaveEnvelope,
 } from "./saveVersions";
 import { migrateContentVersion } from "./contentCompatibility";
+import { isValidPlayerPreferences } from "../settings/playerPreferences";
 
 export {
   CONTENT_VERSION,
@@ -63,6 +65,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push(
       `protocol version ${envelope.protocolVersion} is not ${PROTOCOL_VERSION}`,
     );
+  if (!isValidPlayerPreferences(envelope.preferences))
+    problems.push("the save has malformed player presentation preferences");
   if (!isCompleteRngState(envelope.rngState))
     problems.push("one or more rng streams are missing or not whole numbers");
   if (!envelope.state || typeof envelope.state !== "object")
@@ -217,6 +221,7 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     3: migrateV3ToV4,
     4: migrateV4ToV5,
     5: migrateV5ToV6,
+    6: migrateV6ToV7,
   };
   let current = envelope;
   // Early v5 builds wrote fields whose accounting and unit upgrades must be
@@ -238,5 +243,9 @@ export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
     current.contentVersion === "plan-06-v6"
   )
     current = migrateContentVersion(current);
+  // Protocol 3 changed request correlation on the wire, not authoritative
+  // save state. Saves written by the preceding protocol remain replayable.
+  if (current.protocolVersion === 2)
+    current = { ...current, protocolVersion: PROTOCOL_VERSION };
   return current;
 }

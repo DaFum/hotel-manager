@@ -18,6 +18,14 @@ const snapshot = (overrides: Partial<GameSnapshot> = {}): GameSnapshot =>
   ({ ...createInitialGameState(3), ...overrides }) as GameSnapshot;
 
 describe("worker protocol", () => {
+  it("requires correlation for pause controls", () => {
+    const request: WorkerRequest = {
+      protocolVersion: PROTOCOL_VERSION,
+      type: "PAUSE",
+      requestId: "req.pause.1",
+    };
+    expect(request.requestId).toBe("req.pause.1");
+  });
   it("uses MASTER message names and protocol version", () => {
     const request: WorkerRequest = {
       protocolVersion: PROTOCOL_VERSION,

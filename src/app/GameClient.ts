@@ -12,6 +12,7 @@ import {
   DeltaBaseMismatchError,
   applyStateDelta,
 } from "../game/domain/stateDelta";
+import type { PlayerPreferences } from "../game/settings/playerPreferences";
 
 type SnapshotListener = (snapshot: GameSnapshot) => void;
 type ErrorListener = (message: string) => void;
@@ -118,12 +119,25 @@ export class GameClient {
     this.send({ protocolVersion: PROTOCOL_VERSION, type: "SET_SPEED", speed });
   }
 
-  requestSave(): string {
+  pause(): string {
+    const requestId = `req.${++this.requestCounter}`;
+    this.send({ protocolVersion: PROTOCOL_VERSION, type: "PAUSE", requestId });
+    return requestId;
+  }
+
+  resume(): string {
+    const requestId = `req.${++this.requestCounter}`;
+    this.send({ protocolVersion: PROTOCOL_VERSION, type: "RESUME", requestId });
+    return requestId;
+  }
+
+  requestSave(preferences: PlayerPreferences): string {
     const requestId = `req.${++this.requestCounter}`;
     this.send({
       protocolVersion: PROTOCOL_VERSION,
       type: "REQUEST_SAVE",
       requestId,
+      preferences,
     });
     return requestId;
   }

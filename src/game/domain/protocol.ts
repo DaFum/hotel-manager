@@ -2,13 +2,13 @@ import type { GameCommand } from "./commands";
 import type { DomainEvent } from "./events";
 import type { GameSnapshot } from "./snapshot";
 import type { StateDelta } from "./stateDelta";
+import type { PlayerPreferences } from "../settings/playerPreferences";
 
 /**
- * Version 2 carries authoritative command identity on COMMAND, an applied
- * state version on COMMAND_ACCEPTED, a real delta on STATE_DELTA, entity
- * answers for REQUEST_DETAILS and structured errors.
+ * Version 3 adds required correlation data to PAUSE, RESUME, and REQUEST_SAVE
+ * on top of version 2's authoritative command identity and delta contract.
  */
-export const PROTOCOL_VERSION = 2 as const;
+export const PROTOCOL_VERSION = 3 as const;
 
 export type ProtocolVersion = typeof PROTOCOL_VERSION;
 
@@ -58,12 +58,13 @@ export type WorkerRequest =
       type: "SET_SPEED";
       speed: 0 | 1 | 2 | 4 | 16;
     }
-  | { protocolVersion: ProtocolVersion; type: "PAUSE" }
-  | { protocolVersion: ProtocolVersion; type: "RESUME" }
+  | { protocolVersion: ProtocolVersion; type: "PAUSE"; requestId: string }
+  | { protocolVersion: ProtocolVersion; type: "RESUME"; requestId: string }
   | {
       protocolVersion: ProtocolVersion;
       type: "REQUEST_SAVE";
       requestId: string;
+      preferences: PlayerPreferences;
     }
   | {
       protocolVersion: ProtocolVersion;

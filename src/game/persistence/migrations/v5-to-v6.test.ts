@@ -4,6 +4,7 @@ import { migrateEnvelope, validateEnvelope } from "../saveSchema";
 import type { SaveEnvelope } from "../saveVersions";
 import frozenV5 from "../fixtures/save-v5.json";
 import frozenV6 from "../fixtures/save-v6.json";
+import frozenV7 from "../fixtures/save-v7.json";
 import { createRngStreams } from "../../domain/rng";
 
 const v5 = () => structuredClone(frozenV5) as unknown as SaveEnvelope;
@@ -42,8 +43,10 @@ describe("v5 to v6", () => {
     expect(validateEnvelope(migrateEnvelope(v5()))).toEqual([]);
   });
 
-  it("loads the recorded v6 fixture as it stands and after another pass", () => {
-    const recorded = () => structuredClone(frozenV6) as unknown as SaveEnvelope;
+  it("migrates the recorded v6 fixture and loads the recorded v7 fixture", () => {
+    const legacy = () => structuredClone(frozenV6) as unknown as SaveEnvelope;
+    const recorded = () => structuredClone(frozenV7) as unknown as SaveEnvelope;
+    expect(validateEnvelope(migrateEnvelope(legacy()))).toEqual([]);
     expect(validateEnvelope(recorded())).toEqual([]);
     // Migrating a current save is a no-op that must still be valid.
     expect(validateEnvelope(migrateEnvelope(recorded()))).toEqual([]);

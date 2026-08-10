@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
 const statusBar = (page: Page) =>
-  page.getByRole("region", { name: "Status bar" });
+  page.getByRole("region", { name: /Status bar|Statusleiste/ });
 const savesCommitted = (page: Page) => page.getByLabel("Saves committed");
 
 test("operate the 1991 hotel through one monthly close and save load", async ({

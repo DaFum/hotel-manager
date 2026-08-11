@@ -217,9 +217,10 @@ describe("booking lifecycle", () => {
     ).toBe(false);
     expect(s.state.guestSatisfaction.score).toBeLessThan(satisfactionBefore);
     expect(s.state.finance.cashMinor).toBeLessThanOrEqual(cashBefore);
-    expect(
-      s.state.alerts.some((a) => a.title === "alert.complaint-unanswered.title"),
-    ).toBe(true);
+    const unresolvedAlert = s.state.alerts.find((a) => a.title === "alert.complaint-unanswered.title");
+    expect(unresolvedAlert).toBeDefined();
+    expect(unresolvedAlert?.cause).toBe("alert.complaint-unanswered.cause");
+    expect(unresolvedAlert?.causeValues?.reason).toBeDefined();
   });
 
   it("classifies no-show and late-cancellation fees as other revenue", () => {

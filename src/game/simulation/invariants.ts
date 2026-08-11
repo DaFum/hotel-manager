@@ -19,6 +19,43 @@ export function assertInvariants(state: GameState): void {
   if (!Number.isSafeInteger(state.finance.payableMinor))
     throw new Error("payables must be whole Pfennig");
 
+  if (!state.fnb || !Array.isArray(state.fnb.outlets))
+    throw new Error("game state is missing F&B operations");
+  for (const outlet of state.fnb.outlets) {
+    const counts = [
+      ["seats", outlet.seats],
+      ["reserved seats", outlet.reservedSeats],
+      ["demand", outlet.demand],
+      ["capacity", outlet.capacity],
+      ["served", outlet.served],
+      ["waitlisted", outlet.waitlisted],
+      ["service throughput", outlet.serviceThroughput],
+      ["kitchen throughput", outlet.kitchenThroughput],
+      ["stock", outlet.stockLeft],
+      ["waste", outlet.wastedCovers],
+      ["average wait", outlet.averageWaitMinutes],
+      ["service utilization", outlet.serviceUtilizationBp],
+      ["kitchen utilization", outlet.kitchenUtilizationBp],
+    ] as const;
+    for (const [label, value] of counts)
+      if (!Number.isSafeInteger(value) || value < 0)
+        throw new Error(`F&B ${outlet.id} ${label} must be non-negative`);
+    if (
+      !Number.isSafeInteger(outlet.ingredientExpenseMinor) ||
+      outlet.ingredientExpenseMinor < 0
+    )
+      throw new Error(`F&B ${outlet.id} food cost must be non-negative`);
+    if (
+      outlet.serviceUtilizationBp > 1_000_000 ||
+      outlet.kitchenUtilizationBp > 1_000_000
+    )
+      throw new Error(`F&B ${outlet.id} utilization is out of range`);
+    if (outlet.served > outlet.demand)
+      throw new Error(`F&B ${outlet.id} served exceeds demand`);
+    if (outlet.served > outlet.capacity)
+      throw new Error(`F&B ${outlet.id} served exceeds capacity`);
+  }
+
   // Cash is only ever moved through the ledger, so the two must agree.
   if (
     cash !==

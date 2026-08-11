@@ -129,6 +129,11 @@ export const de = {
       title: "Frühstücksschlange",
       cause: "{queue} Gäste konnten nicht bedient werden.",
     },
+    "fnb-wait": {
+      title: "Verzögerung im Gastronomieservice",
+      cause:
+        "{outletId}: {waitlisted} warten bei Nachfrage {demand} und Kapazität {capacity}; durchschnittliche Wartezeit {averageWaitMinutes} Minuten.",
+    },
     "room-service-late": {
       title: "Zimmerservice verspätet",
       cause:

@@ -5,6 +5,7 @@ import { migrateEarlyV5Fields, migrateV4ToV5 } from "./migrations/v4-to-v5";
 import { migrateV5ToV6 } from "./migrations/v5-to-v6";
 import { migrateV6ToV7 } from "./migrations/v6-to-v7";
 import { migrateV7ToV8 } from "./migrations/v7-to-v8";
+import { migrateV8ToV9 } from "./migrations/v8-to-v9";
 import { SAVE_VERSION, type SaveEnvelope } from "./saveVersions";
 
 export const SAVE_MIGRATIONS: Readonly<
@@ -17,6 +18,7 @@ export const SAVE_MIGRATIONS: Readonly<
   5: (save) => migrateV5ToV6(migrateEarlyV5Fields(save)),
   6: migrateV6ToV7,
   7: migrateV7ToV8,
+  8: migrateV8ToV9,
 };
 
 export function migrateToCurrent(input: unknown): SaveEnvelope {

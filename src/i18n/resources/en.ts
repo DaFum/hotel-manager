@@ -127,6 +127,11 @@ export const en = {
       title: "Breakfast queue",
       cause: "{queue} guests could not be served.",
     },
+    "fnb-wait": {
+      title: "Food and beverage service delayed",
+      cause:
+        "{outletId}: {waitlisted} waiting from demand {demand} against capacity {capacity}; average wait {averageWaitMinutes} minutes.",
+    },
     "room-service-late": {
       title: "Room service delayed",
       cause: "{minutes} minutes door to door, mostly waiting for the lift.",

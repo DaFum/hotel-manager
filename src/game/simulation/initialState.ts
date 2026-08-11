@@ -77,6 +77,7 @@ import {
   type UtilityContracts,
   type UtilityOutage,
 } from "../utilities/consumption";
+import { createFnbState, type FnbState } from "../fnb/fnbState";
 
 export interface RoomRecord {
   id: string;
@@ -199,6 +200,8 @@ export interface GameState {
   })[];
   /** Serviced areas recomputed every snapshot; never a source of truth itself. */
   facilities: FacilityRecord[];
+  /** The latest authoritative operating result for each F&B outlet. */
+  fnb: FnbState;
   utilities: UtilityState;
   renderDescriptors: {
     floorByRoomId: Record<string, number>;
@@ -367,6 +370,7 @@ export function createInitialGameState(seed: number): GameState {
     },
     loan: { ...STARTER_HOTEL.startingLoan },
     facilities: [],
+    fnb: createFnbState(),
     utilities: createUtilityState(),
     renderDescriptors: createRenderDescriptors(
       Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => ({

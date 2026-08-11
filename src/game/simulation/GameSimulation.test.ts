@@ -136,6 +136,22 @@ describe("simulation order", () => {
       }),
     ).toThrow(/cash/);
   });
+
+  it("rejects impossible F&B operating records", () => {
+    const state = createInitialGameState(42);
+    state.fnb.outlets[0].stockLeft = -1;
+    expect(() => assertInvariants(state)).toThrow(/F&B.*stock/i);
+
+    state.fnb.outlets[0].stockLeft = 0;
+    state.fnb.outlets[0].demand = 1;
+    state.fnb.outlets[0].capacity = 1;
+    state.fnb.outlets[0].served = 2;
+    expect(() => assertInvariants(state)).toThrow(/F&B.*served/i);
+
+    state.fnb.outlets[0].served = 1;
+    state.fnb.outlets[0].serviceUtilizationBp = 1_000_001;
+    expect(() => assertInvariants(state)).toThrow(/F&B.*utilization/i);
+  });
 });
 
 describe("simulated operations", () => {

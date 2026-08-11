@@ -30,5 +30,7 @@ it("moves protocol-three v7 saves to save eight and protocol four", () => {
 });
 
 it("records a loadable v8 fixture from a real game", () => {
-  expect(validateEnvelope(frozenV8 as unknown as SaveEnvelope)).toEqual([]);
+  expect(
+    validateEnvelope(migrateEnvelope(frozenV8 as unknown as SaveEnvelope)),
+  ).toEqual([]);
 });

@@ -3,6 +3,7 @@ import { assertPfennig } from "../domain/money";
 export type LedgerAccount =
   | "roomRevenue"
   | "breakfastRevenue"
+  | "foodCost"
   | "wages"
   | "supplies"
   | "maintenance"

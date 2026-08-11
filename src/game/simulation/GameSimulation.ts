@@ -52,16 +52,38 @@ import {
   resolveComplaint,
 } from "../guests/complaints";
 import { cleanRoom } from "../rooms/housekeeping";
-import { serveBreakfast } from "../fnb/breakfastService";
-import { barCovers, barRevenueMinor, BAR_OPEN_MINUTE } from "../fnb/barService";
+import {
+  BREAKFAST_CLOSE_MINUTE,
+  BREAKFAST_STAY_MINUTES,
+} from "../fnb/breakfastService";
+import {
+  barRevenueMinor,
+  BAR_CLOSE_MINUTE,
+  BAR_OPEN_MINUTE,
+  BAR_STAY_MINUTES,
+  COVERS_PER_BARKEEPER,
+} from "../fnb/barService";
 import {
   deliveryMinutes,
   lateDeliveryComplaints,
   roomServiceOrders,
   ROOM_SERVICE_OPEN_MINUTE,
 } from "../fnb/roomService";
+import { boardCommitment } from "../fnb/boardPlans";
+import { runKitchenService } from "../fnb/kitchen";
+import { seatService } from "../fnb/seating";
+import {
+  createFnbState,
+  type FnbConstraintKey,
+  type FnbOutletState,
+} from "../fnb/fnbState";
 import { externalCovers } from "../fnb/externalDemand";
-import { averageCoverMinor, menuItem } from "../content/1991/menu";
+import {
+  averageCoverMinor,
+  menuItem,
+  outletMenu,
+  type Outlet,
+} from "../content/1991/menu";
 import { linenSoiled, runLaundryDay, LINEN_SKU } from "../laundry/laundry";
 import { bookSlot } from "../wellness/reservations";
 import { fitnessCapacity } from "../wellness/fitness";
@@ -88,7 +110,11 @@ import {
   changingRoomPressureBp,
   staffAreaCapacity,
 } from "../facilities/staffAreas";
-import { facilityRow } from "../facilities/facilityBoard";
+import {
+  facilityRow,
+  type FacilityConstraint,
+} from "../facilities/facilityBoard";
+import { utilizationBp } from "../facilities/capacity";
 import { classify } from "../classification/quality";
 import {
   expansionCostMinor,
@@ -349,6 +375,27 @@ const SORTED_WASTE_BP = 2500;
 
 const WATER_UNIT_MINOR = 2;
 const ENERGY_UNIT_MINOR = 3;
+/** Planned over-production available to absorb late orders during a service. */
+const FNB_PREPARATION_BUFFER_BP = 1000;
+/** Only unused preparation can become waste; this is its service allowance. */
+const FNB_WASTE_BP = 1000;
+
+function plannedFnbPreparation(demand: number, kitchenThroughput: number) {
+  return Math.min(
+    kitchenThroughput,
+    demand + Math.ceil((demand * FNB_PREPARATION_BUFFER_BP) / 10_000),
+  );
+}
+
+function averageIngredientMinor(outlet: Outlet): number {
+  const items = outletMenu(outlet);
+  return items.length === 0
+    ? 0
+    : Math.round(
+        items.reduce((sum, item) => sum + item.ingredientMinor, 0) /
+          items.length,
+      );
+}
 
 export class GameSimulation implements CommandExecutor {
   private queued: CommandEnvelope[] = [];
@@ -398,6 +445,7 @@ export class GameSimulation implements CommandExecutor {
     state.narrative ??= createNarrativeState({ career: careerFacts(state) });
     state.rngState.narrative ??= createRngStreams(state.seed).narrative.state;
     state.commercialSpaces ??= createCommercialSpaceState();
+    state.fnb ??= createFnbState();
     state.lobby ??= {
       served: 0,
       unserved: 0,
@@ -1515,31 +1563,85 @@ export class GameSimulation implements CommandExecutor {
   private runBreakfast(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== BREAKFAST_START) return;
-    const result = serveBreakfast({
-      demand: s.stays.length + this.eventBreakfastCovers(),
-      seats: STARTER_HOTEL.breakfastSeats,
-      kitchenCovers: STARTER_HOTEL.kitchenCovers,
-      stock: s.stock["breakfast-portion"] ?? 0,
-      priceMinor: STARTER_HOTEL.breakfastPriceMinor,
-      minuteOfDay: s.calendar.minuteOfDay,
-      // The recipe cost is what the portion actually cost to buy, so the
-      // reported contribution reconciles with the purchasing ledger.
-      ingredientMinor: supplierForSku("breakfast-portion").unitPriceMinor,
+    const boardCovers = boardCommitment("bed-and-breakfast", {
+      guests: s.stays.length,
+      nights: 1,
+    }).breakfast;
+    const demand = boardCovers + this.eventBreakfastCovers();
+    const seats = STARTER_HOTEL.breakfastSeats;
+    const reservedSeats = 0;
+    const seating = seatService({
+      demand,
+      seats,
+      reservedSeats,
+      walkIns: 0,
+      serviceMinutes: BREAKFAST_CLOSE_MINUTE - BREAKFAST_START,
+      averageStayMinutes: BREAKFAST_STAY_MINUTES,
+      // The seating calculation owns seats and turns only. Kitchen capacity
+      // remains a separate facility constraint below.
+      kitchenCovers: seats * 8,
+      isOpen: true,
     });
-    if (result.served === 0 && result.queue === 0) return;
-    if (result.served > 0) {
-      s.stock = consume(s.stock, "breakfast-portion", result.served);
-      this.earn(result.revenueMinor, "breakfastRevenue", "breakfast covers");
-      s.finance.month.otherRevenueMinor += result.revenueMinor;
+    const serviceThroughput =
+      this.onDuty("kitchen") * STARTER_HOTEL.kitchenCovers;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const stock = s.stock["breakfast-portion"] ?? 0;
+    const prepared = plannedFnbPreparation(demand, kitchenThroughput);
+    const constraints: FacilityConstraint[] = [
+      { label: "facility.cause.demand", value: demand },
+      { label: "facility.cause.seating", value: seating.capacity },
+      { label: "facility.cause.serviceStaff", value: serviceThroughput },
+      { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+      { label: "facility.cause.stock", value: stock },
+      { label: "facility.cause.miseEnPlace", value: prepared },
+    ];
+    const row = facilityRow({
+      id: "fnb.breakfastRoom",
+      name: "Breakfast room",
+      demand,
+      constraints,
+    });
+    const kitchen = runKitchenService({
+      boardCovers: Math.min(seating.seated, row.capacity),
+      aLaCarteCovers: 0,
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: supplierForSku("breakfast-portion").unitPriceMinor,
+      wasteBp: FNB_WASTE_BP,
+    });
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0) s.stock = consume(s.stock, "breakfast-portion", consumed);
+    if (kitchen.ingredientExpenseMinor > 0)
+      this.spend(
+        kitchen.ingredientExpenseMinor,
+        "foodCost",
+        "breakfast ingredients and waste",
+      );
+    if (kitchen.served > 0) {
+      const revenue = kitchen.served * STARTER_HOTEL.breakfastPriceMinor;
+      this.earn(revenue, "breakfastRevenue", "breakfast covers");
+      s.finance.month.otherRevenueMinor += revenue;
     }
-    if (result.queue > 0)
-      this.pushAlert({
-        id: "alert.breakfast-queue",
-        severity: "warning",
-        title: "alert.breakfast-queue.title",
-        cause: "alert.breakfast-queue.cause",
-        causeValues: { queue: result.queue },
-      });
+    this.recordFnbOutlet({
+      id: "breakfastRoom",
+      seats,
+      reservedSeats,
+      demand,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted: Math.max(0, demand - kitchen.served),
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: demand > kitchen.served ? BREAKFAST_STAY_MINUTES : 0,
+      serviceUtilizationBp: utilizationBp(demand, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(demand, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
   }
 
   private runBar(): void {
@@ -1552,16 +1654,75 @@ export class GameSimulation implements CommandExecutor {
       priceIndexBp: STARTER_HOTEL.barPriceIndexBp,
       reputationBp: STARTER_HOTEL.barReputationBp,
     });
-    const covers = barCovers({
-      seats: STARTER_HOTEL.barSeats,
-      staffed: this.onDuty("fnb"),
-      demand: houseDemand + outside,
-      minuteOfDay: s.calendar.minuteOfDay,
+    const demand = houseDemand + outside;
+    const seats = STARTER_HOTEL.barSeats;
+    const reservedSeats = 0;
+    const seating = seatService({
+      demand,
+      seats,
+      reservedSeats,
+      walkIns: 0,
+      serviceMinutes: BAR_CLOSE_MINUTE - BAR_OPEN_MINUTE,
+      averageStayMinutes: BAR_STAY_MINUTES,
+      kitchenCovers: seats * 7,
+      isOpen: true,
     });
-    if (covers <= 0) return;
-    const revenue = barRevenueMinor(covers, averageCoverMinor("bar"));
-    this.earn(revenue, "barRevenue", `${covers} bar covers`);
-    s.finance.month.otherRevenueMinor += revenue;
+    const serviceThroughput = this.onDuty("fnb") * COVERS_PER_BARKEEPER;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const stock = kitchenThroughput;
+    const prepared = plannedFnbPreparation(demand, kitchenThroughput);
+    const row = facilityRow({
+      id: "fnb.bar",
+      name: "Bar and lounge",
+      demand,
+      constraints: [
+        { label: "facility.cause.demand", value: demand },
+        { label: "facility.cause.seating", value: seating.capacity },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
+    });
+    const kitchen = runKitchenService({
+      boardCovers: 0,
+      aLaCarteCovers: Math.min(seating.seated, row.capacity),
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: averageIngredientMinor("bar"),
+      wasteBp: FNB_WASTE_BP,
+    });
+    if (kitchen.ingredientExpenseMinor > 0)
+      this.spend(
+        kitchen.ingredientExpenseMinor,
+        "foodCost",
+        "bar ingredients and waste",
+      );
+    if (kitchen.served > 0) {
+      const revenue = barRevenueMinor(kitchen.served, averageCoverMinor("bar"));
+      this.earn(revenue, "barRevenue", `${kitchen.served} bar covers`);
+      s.finance.month.otherRevenueMinor += revenue;
+    }
+    this.recordFnbOutlet({
+      id: "bar",
+      seats,
+      reservedSeats,
+      demand,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted: Math.max(0, demand - kitchen.served),
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: demand > kitchen.served ? BAR_STAY_MINUTES : 0,
+      serviceUtilizationBp: utilizationBp(demand, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(demand, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
   }
 
   private runRoomService(): void {
@@ -1571,30 +1732,126 @@ export class GameSimulation implements CommandExecutor {
       occupiedRooms: s.stays.length,
       minuteOfDay: s.calendar.minuteOfDay,
     });
-    if (orders <= 0) return;
     const item = menuItem("menu.roomservice.club");
     const minutes = deliveryMinutes({
       kitchen: item.prepMinutes,
       elevator: elevatorWaitMinutes(s.elevatorTrips, this.workingLifts()),
       service: 6,
     });
-    s.elevatorTrips += elevatorTrips({
-      arrivals: 0,
-      departures: 0,
-      serviceRuns: orders,
+    const serviceThroughput = this.onDuty("fnb") * COVERS_PER_BARKEEPER;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const transportThroughput = serviceThroughput;
+    const elevatorThroughput =
+      this.workingLifts() * STARTER_HOTEL.kitchenCovers;
+    const stock = kitchenThroughput;
+    const prepared = plannedFnbPreparation(orders, kitchenThroughput);
+    const row = facilityRow({
+      id: "fnb.roomService",
+      name: "Room service",
+      demand: orders,
+      constraints: [
+        { label: "facility.cause.demand", value: orders },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.transport", value: transportThroughput },
+        { label: "facility.cause.elevator", value: elevatorThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
     });
-    const revenue = orders * item.priceMinor;
-    this.earn(revenue, "roomServiceRevenue", `${orders} room-service orders`);
-    s.finance.month.otherRevenueMinor += revenue;
-    const late = lateDeliveryComplaints(orders, minutes);
-    if (late > 0)
-      this.pushAlert({
-        id: "alert.room-service-late",
-        severity: "warning",
-        title: "alert.room-service-late.title",
-        cause: "alert.room-service-late.cause",
-        causeValues: { minutes },
+    const kitchen = runKitchenService({
+      boardCovers: 0,
+      aLaCarteCovers: row.capacity,
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: item.ingredientMinor,
+      wasteBp: FNB_WASTE_BP,
+    });
+    if (kitchen.ingredientExpenseMinor > 0)
+      this.spend(
+        kitchen.ingredientExpenseMinor,
+        "foodCost",
+        "room-service ingredients and waste",
+      );
+    if (kitchen.served > 0) {
+      s.elevatorTrips += elevatorTrips({
+        arrivals: 0,
+        departures: 0,
+        serviceRuns: kitchen.served,
       });
+      const revenue = kitchen.served * item.priceMinor;
+      this.earn(
+        revenue,
+        "roomServiceRevenue",
+        `${kitchen.served} room-service orders`,
+      );
+      s.finance.month.otherRevenueMinor += revenue;
+    }
+    const waitlisted = Math.max(0, orders - kitchen.served);
+    const late = lateDeliveryComplaints(kitchen.served, minutes);
+    this.recordFnbOutlet({
+      id: "roomService",
+      seats: 0,
+      reservedSeats: 0,
+      demand: orders,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted,
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: orders > 0 ? minutes : 0,
+      serviceUtilizationBp: utilizationBp(orders, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(orders, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
+    if (late === 0 && waitlisted === 0)
+      this.clearAlerts(["alert.room-service-late"]);
+  }
+
+  private recordFnbOutlet(next: FnbOutletState): void {
+    const index = this.state.fnb.outlets.findIndex(
+      (outlet) => outlet.id === next.id,
+    );
+    if (index < 0) throw new Error(`unknown F&B outlet ${next.id}`);
+    const previousCause = this.state.fnb.outlets[index].cause;
+    this.state.fnb.outlets[index] = next;
+    if (previousCause !== next.cause)
+      this.emit(
+        {
+          type: "FACILITY_CONSTRAINT_CHANGED",
+          facilityId: `fnb.${next.id}`,
+          cause: next.cause,
+        },
+        [`fnb.${next.id}`],
+      );
+
+    const delayed =
+      next.waitlisted > 0 ||
+      (next.id === "roomService" &&
+        lateDeliveryComplaints(next.served, next.averageWaitMinutes) > 0);
+    if (delayed)
+      this.pushAlert({
+        id: "alert.fnb-wait",
+        severity: "warning",
+        title: "alert.fnb-wait.title",
+        cause: "alert.fnb-wait.cause",
+        causeValues: {
+          outletId: next.id,
+          demand: next.demand,
+          capacity: next.capacity,
+          waitlisted: next.waitlisted,
+          averageWaitMinutes: next.averageWaitMinutes,
+        },
+      });
+    else this.clearAlerts(["alert.fnb-wait"]);
+
+    if (next.id === "breakfastRoom")
+      this.clearAlerts(["alert.breakfast-queue"]);
   }
 
   private runWellness(): void {

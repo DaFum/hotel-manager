@@ -29,7 +29,7 @@ describe("content compatibility", () => {
 
   it("migrates the recorded Plan 06 save without changing its campaign", () => {
     const legacy = structuredClone(legacyV6) as unknown as SaveEnvelope;
-    expect(validateEnvelope(legacy)).toContain("save version 6 is not 8");
+    expect(validateEnvelope(legacy)).toContain("save version 6 is not 9");
     const before = legacy.state as GameState;
     const migrated = migrateEnvelope(legacy);
     const after = migrated.state as GameState;

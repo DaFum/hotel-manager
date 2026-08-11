@@ -29,6 +29,7 @@ import { FinanceDashboard } from "../ui/FinanceDashboard";
 import { BuildPanel } from "../ui/BuildPanel";
 import { AlertsPanel } from "../ui/AlertsPanel";
 import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
+import { FnbDashboard } from "../ui/fnb/FnbDashboard";
 import { CommercialSpacesPanel } from "../ui/facilities/CommercialSpacesPanel";
 import { ClassificationPanel } from "../ui/facilities/ClassificationPanel";
 import { STAFF_ROLES } from "../game/domain/staffRoles";
@@ -256,6 +257,7 @@ export function App() {
     hotel: (
       <>
         <FacilitiesDashboard rows={s.facilities} />
+        <FnbDashboard fnb={s.fnb} />
         <CommercialSpacesPanel
           spaces={s.commercialSpaces.spaces.map((space) => ({
             id: space.id,

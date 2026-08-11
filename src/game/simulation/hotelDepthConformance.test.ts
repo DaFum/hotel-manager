@@ -51,7 +51,7 @@ describe("Plan 02 operating-depth conformance", () => {
       substituted: 2,
       stockLeft: 2,
       ingredientExpenseMinor: 5000,
-      cause: "mise-en-place",
+      cause: "facility.cause.miseEnPlace",
     });
   });
 
@@ -127,7 +127,7 @@ describe("Plan 02 operating-depth conformance", () => {
         transport: 9,
         elevator: 4,
       }),
-    ).toEqual({ served: 4, cause: "lift capacity" });
+    ).toEqual({ served: 4, cause: "facility.cause.elevator" });
   });
 
   it("limits wellness by specialists, utilities and maintenance state", () => {

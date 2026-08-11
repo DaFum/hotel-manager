@@ -21,6 +21,7 @@ import {
 } from "./saveVersions";
 import { migrateContentVersion } from "./contentCompatibility";
 import { isValidPlayerPreferences } from "../settings/playerPreferences";
+import { isFnbState } from "../fnb/fnbState";
 
 export {
   CONTENT_VERSION,
@@ -109,6 +110,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  if (!isFnbState(state.fnb))
+    problems.push("the state has no complete Plan 08 fnb");
   const narrative = state.narrative;
   if (
     !narrative ||

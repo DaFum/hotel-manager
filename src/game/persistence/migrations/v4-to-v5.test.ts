@@ -52,7 +52,7 @@ describe("v4 to v5 migration", () => {
 
   it("stamps only its own target version, never the build's", () => {
     expect(migrateV4ToV5(v4()).saveVersion).toBe(5);
-    expect(SAVE_VERSION).toBe(8);
+    expect(SAVE_VERSION).toBe(9);
   });
 
   it("carries a v1 save through every step to the current version", () => {

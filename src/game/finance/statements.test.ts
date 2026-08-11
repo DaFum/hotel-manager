@@ -39,6 +39,7 @@ describe("financial statements", () => {
     expect(isCapitalAccount("capex")).toBe(true);
     expect(isCapitalAccount("wages")).toBe(false);
     expect(ACCOUNT_CLASSES.capex).toBe("capital");
+    expect(ACCOUNT_CLASSES.foodCost).toBe("operating");
   });
 
   it("shows the same period as cash, where the capital spend does appear", () => {

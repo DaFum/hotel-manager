@@ -109,7 +109,14 @@ send({
   shift: "morning",
   monthlyWageMinor: 300_000,
 });
+send({
+  type: "HIRE",
+  role: "fnb",
+  shift: "evening",
+  monthlyWageMinor: 300_000,
+});
 send({ type: "ORDER_SUPPLIES", sku: "cleaning-unit", quantity: 120 });
+send({ type: "ORDER_SUPPLIES", sku: "breakfast-portion", quantity: 200 });
 
 // Long enough for a month to close, so the fixture carries published results,
 // a brand audit and whatever the delegation model escalated.
@@ -131,6 +138,12 @@ const envelope: SaveEnvelope = {
 const problems = validateEnvelope(envelope);
 if (problems.length > 0)
   throw new Error(`the recorded fixture is not valid: ${problems.join("; ")}`);
+if (
+  !simulation.state.fnb.outlets.some(
+    (outlet) => outlet.demand > 0 && outlet.ingredientExpenseMinor > 0,
+  )
+)
+  throw new Error("the recorded fixture has no non-trivial F&B service");
 
 writeFileSync(
   new URL(
@@ -146,5 +159,6 @@ process.stdout.write(
     `results=${Object.keys(state.company.hotelResults).length} ` +
     `audits=${state.company.brandAudits.length} ` +
     `escalations=${state.company.escalations.length} ` +
-    `orders=${state.pendingOrders.length} staff=${state.staff.length}\n`,
+    `orders=${state.pendingOrders.length} staff=${state.staff.length} ` +
+    `fnb=${state.fnb.outlets.filter((outlet) => outlet.demand > 0).length}\n`,
 );

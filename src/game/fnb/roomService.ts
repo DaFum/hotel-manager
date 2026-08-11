@@ -1,4 +1,5 @@
 import { assertCount, assertMinutes } from "../domain/units";
+import { facilityRow } from "../facilities/facilityBoard";
 /**
  * Room service is a logistics problem, not a menu: the plate has to leave the
  * kitchen, ride the lift, and walk the corridor before it counts as served.
@@ -60,16 +61,19 @@ export function roomServiceCapacity(x: {
   elevator: number;
 }): { served: number; cause: string } {
   for (const [label, value] of Object.entries(x)) assertCount(value, label);
-  const constraints = [
-    ["kitchen capacity", x.kitchen],
-    ["service staff", x.staffed],
-    ["service transport", x.transport],
-    ["lift capacity", x.elevator],
-  ] as const;
-  let binding: readonly [string, number] = constraints[0];
-  for (const item of constraints) if (item[1] < binding[1]) binding = item;
+  const binding = facilityRow({
+    id: "fnb.roomService",
+    name: "Room service",
+    demand: x.demand,
+    constraints: [
+      { label: "facility.cause.kitchenLine", value: x.kitchen },
+      { label: "facility.cause.serviceStaff", value: x.staffed },
+      { label: "facility.cause.transport", value: x.transport },
+      { label: "facility.cause.elevator", value: x.elevator },
+    ],
+  });
   return {
-    served: Math.max(0, Math.min(x.demand, binding[1])),
-    cause: binding[0],
+    served: Math.min(x.demand, binding.capacity),
+    cause: binding.cause,
   };
 }

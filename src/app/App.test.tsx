@@ -60,6 +60,7 @@ describe("App", () => {
       mainView: ["Hotel view", "World controls"],
       hotel: [
         "Facilities",
+        "Food and beverage",
         "Commercial spaces",
         "Classification",
         "Build",

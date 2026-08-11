@@ -35,4 +35,24 @@ describe("i18n", () => {
       expect(translateGame("de-DE", key)).not.toBe(key);
     }
   });
+
+  it("localizes the shared F&B wait alert in both locales", () => {
+    const values = {
+      outletId: "breakfastRoom",
+      demand: 20,
+      capacity: 10,
+      waitlisted: 10,
+      averageWaitMinutes: 30,
+    };
+    for (const locale of ["en-GB", "de-DE"] as const) {
+      expect(translateGame(locale, "alert.fnb-wait.title")).not.toBe(
+        "alert.fnb-wait.title",
+      );
+      const cause = translateGame(locale, "alert.fnb-wait.cause", values);
+      expect(cause).not.toBe("alert.fnb-wait.cause");
+      expect(cause).toContain("breakfastRoom");
+      expect(cause).toContain("10");
+      expect(cause).toContain("30");
+    }
+  });
 });

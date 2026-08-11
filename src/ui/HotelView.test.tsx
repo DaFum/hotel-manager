@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HotelView } from "./HotelView";
 import { createCamera, zoomCamera, dragCamera } from "../render/camera";
+import { generateFloorPlan } from "../game/building/floorPlan";
 
 const rooms = [
   {
@@ -85,7 +86,14 @@ describe("hotel view", () => {
     const onSelect = vi.fn();
     // Non-default zoom to verify scaling
     const baseCamera = zoomCamera(createCamera(), 2.0);
-    render(<HotelView rooms={rooms} camera={baseCamera} onCamera={onCamera} onSelect={onSelect} />);
+    render(
+      <HotelView
+        rooms={rooms}
+        camera={baseCamera}
+        onCamera={onCamera}
+        onSelect={onSelect}
+      />,
+    );
 
     const canvas = screen.getByTestId("hotel-canvas");
 
@@ -102,7 +110,9 @@ describe("hotel view", () => {
 
     // Larger movement (above 3px threshold)
     fireEvent.pointerMove(canvas, { clientX: 105, clientY: 105, pointerId: 1 });
-    expect(onCamera).toHaveBeenCalledWith(dragCamera(baseCamera, { x: 5, y: 5 }));
+    expect(onCamera).toHaveBeenCalledWith(
+      dragCamera(baseCamera, { x: 5, y: 5 }),
+    );
 
     // Pointer up
     fireEvent.pointerUp(canvas, { pointerId: 1 });
@@ -115,7 +125,14 @@ describe("hotel view", () => {
   it("selects a room with a non-drag pointer sequence", () => {
     const onSelect = vi.fn();
     const onCamera = vi.fn();
-    render(<HotelView rooms={rooms} camera={createCamera()} onSelect={onSelect} onCamera={onCamera} />);
+    render(
+      <HotelView
+        rooms={rooms}
+        camera={createCamera()}
+        onSelect={onSelect}
+        onCamera={onCamera}
+      />,
+    );
     const canvas = screen.getByTestId("hotel-canvas");
 
     fireEvent.pointerDown(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
@@ -130,5 +147,222 @@ describe("hotel view", () => {
     );
 
     expect(onSelect).toHaveBeenCalledWith("room.101");
+  });
+
+  it("shows the guest identity and differentiated renovation phase in the inspector", () => {
+    render(
+      <HotelView
+        rooms={[{ ...rooms[0], state: "Occupied" }]}
+        disableRenderer
+        locale="en-GB"
+        occupantByRoomId={{
+          "room.101": {
+            guestId: "guest.returning.1",
+            bookingId: "booking.private.42",
+            rateMinor: 12_000,
+            departureDateKey: "1991-01-03",
+          },
+        }}
+        renovationPhaseByRoomId={{ "room.101": "planning" }}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single occupied/i }),
+    );
+
+    expect(screen.getAllByText("Guest G-RETURNING-1").length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.queryByText("booking.private.42")).toBeNull();
+    expect(screen.getAllByText("Planning").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("serviceable").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Planning phase").length).toBeGreaterThan(0);
+  });
+
+  it("does not invent a guest identity from a stay booking id", () => {
+    render(
+      <HotelView
+        rooms={[{ ...rooms[0], state: "Occupied" }]}
+        disableRenderer
+        locale="en-GB"
+        stays={[
+          {
+            roomId: "room.101",
+            bookingId: "booking.private.42",
+            rateMinor: 12_000,
+            departureDateKey: "1991-01-03",
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single occupied/i }),
+    );
+    const detail = screen.getByRole("region", { name: "Room detail" });
+    expect(detail.textContent).toContain("Occupied");
+    expect(detail.textContent).toContain("120.00");
+    expect(detail.textContent).not.toContain("G-BOOKING-PRIVATE-42");
+  });
+
+  it("exposes placed areas and stable navigation ids beside the canvas", () => {
+    const floorPlan = generateFloorPlan(rooms);
+    render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        closedNavigationIds={["navigation.floor.1.corridor"]}
+        locale="de-DE"
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Gebäudestruktur"));
+    expect(
+      screen.getByText(/facility\.kitchen: Servicebereich, Etage 0/i),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        /navigation\.floor\.1\.corridor: Flur, Etage 1, geschlossen/i,
+      ),
+    ).toBeTruthy();
+  });
+
+  it("moves semantic focus to focused facilities and navigation nodes", () => {
+    const floorPlan = generateFloorPlan(rooms);
+    const { container, rerender } = render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        focusedEntityId="facility.reception"
+      />,
+    );
+    const reception = container.querySelector<HTMLElement>(
+      '[data-entity-id="facility.reception"]',
+    )!;
+    expect(document.activeElement).toBe(reception);
+
+    rerender(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        focusedEntityId="navigation.floor.1.corridor"
+      />,
+    );
+    expect(document.activeElement).toBe(
+      container.querySelector('[data-entity-id="navigation.floor.1.corridor"]'),
+    );
+  });
+
+  it("offers the same follow action and person detail in the semantic view", () => {
+    const onSelectAgent = vi.fn();
+    render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        agents={[
+          {
+            id: "agent.booking.berger",
+            kind: "guest",
+            guestId: "guest.berger",
+            locationId: "facility.breakfast_room",
+            status: "breakfast",
+            routeIds: ["room.101", "facility.breakfast_room"],
+          },
+        ]}
+        onSelectAgent={onSelectAgent}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /follow guest g-berger/i }),
+    );
+    expect(onSelectAgent).toHaveBeenCalledWith("agent.booking.berger");
+    expect(
+      screen.getByRole("region", { name: /person detail/i }).textContent,
+    ).toContain("Guest G-BERGER");
+    expect(
+      screen.getByRole("region", { name: /person detail/i }).textContent,
+    ).toContain("Breakfast");
+    expect(
+      screen.getByRole("region", { name: /person detail/i }).textContent,
+    ).toContain("room.101 → facility.breakfast_room");
+  });
+
+  it("reads physical operating situations and fault reasons without colour", () => {
+    render(
+      <HotelView
+        rooms={[{ ...rooms[0], state: "OutOfOrder" }]}
+        disableRenderer
+        situations={{
+          reception: {
+            desks: [
+              {
+                id: "facility.reception.desk.1",
+                staffed: true,
+                staffId: "staff.reception.1",
+              },
+              { id: "facility.reception.desk.2", staffed: false },
+            ],
+            queueGuestIds: ["guest.waiting"],
+          },
+          housekeeping: {
+            dirtyRoomIdsByFloor: { "1": ["room.102"] },
+            round: {
+              agentId: "staff.housekeeping.1",
+              locationId: "navigation.floor.1.corridor",
+              targetRoomId: "room.102",
+              routeIds: ["facility.housekeeping", "room.102"],
+              waitingGuestId: "guest.waiting",
+            },
+          },
+          roomFaultReasonByRoomId: {
+            "room.101": "room.fault.boiler-failed",
+          },
+          overloads: [
+            {
+              facilityId: "facility.bar",
+              cause: "staffed throughput",
+              excess: 4,
+              queueEntityIds: ["queue.facility.bar.1"],
+            },
+          ],
+          fnb: {
+            outlets: [
+              {
+                id: "fnb.restaurant",
+                areaId: "facility.restaurant",
+                tables: [
+                  { id: "fnb.restaurant.table.1", seats: 4, occupiedSeats: 4 },
+                  { id: "fnb.restaurant.table.2", seats: 4, occupiedSeats: 0 },
+                ],
+                queueEntityIds: ["queue.fnb.restaurant.1"],
+                turnedAwayCount: 6,
+                averageWaitMinutes: 30,
+                cause: "facility.cause.kitchenLine",
+              },
+            ],
+            kitchen: {
+              stations: [{ id: "facility.kitchen.station.1", active: true }],
+              overloaded: true,
+              cause: "facility.cause.kitchenLine",
+            },
+          },
+        }}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single out of order/i }),
+    );
+    expect(screen.getAllByText("Boiler failure").length).toBeGreaterThan(0);
+    expect(screen.getByText(/desk 2: unmanned/i)).toBeTruthy();
+    expect(screen.getByText(/room\.102.*guest g-waiting/i)).toBeTruthy();
+    expect(
+      screen.getByText(/1 free table.*1 waiting.*kitchen line.*6 turned away/i),
+    ).toBeTruthy();
   });
 });

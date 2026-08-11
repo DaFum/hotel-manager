@@ -12,11 +12,22 @@ export interface CameraState extends Point {
   floor: number;
   cutaway: boolean;
   focusedId: string | null;
+  showServiceAreas: boolean;
+  followedAgentId: string | null;
 }
 export const MIN_ZOOM = 0.5;
 export const MAX_ZOOM = 2.5;
 export function createCamera(): CameraState {
-  return { x: 0, y: 0, zoom: 1, floor: 0, cutaway: false, focusedId: null };
+  return {
+    x: 0,
+    y: 0,
+    zoom: 1,
+    floor: 0,
+    cutaway: false,
+    focusedId: null,
+    showServiceAreas: false,
+    followedAgentId: null,
+  };
 }
 export function panCamera(camera: CameraState, by: Point): CameraState {
   return { ...camera, x: camera.x + by.x, y: camera.y + by.y };
@@ -28,6 +39,22 @@ export function focusCamera(
   camera: CameraState,
   target: FocusTarget,
 ): CameraState {
+  return {
+    ...camera,
+    x: target.x,
+    y: target.y,
+    floor: target.floor,
+    focusedId: target.id,
+    followedAgentId: target.kind === "person" ? target.id : null,
+  };
+}
+
+/** Re-centres an existing follow target without changing what is followed. */
+export function followCamera(
+  camera: CameraState,
+  target: Point & { id: string; floor: number },
+): CameraState {
+  if (camera.followedAgentId !== target.id) return camera;
   return {
     ...camera,
     x: target.x,
@@ -73,6 +100,19 @@ export function selectFloor(
 }
 export function visibleFloor(floor: number, camera: CameraState): boolean {
   return camera.cutaway ? floor <= camera.floor : true;
+}
+export function serviceAreasVisible(camera: CameraState): boolean {
+  return camera.showServiceAreas;
+}
+export function toggleServiceAreas(camera: CameraState): CameraState {
+  return { ...camera, showServiceAreas: !camera.showServiceAreas };
+}
+export function serviceAreaEmphasis(
+  kind: "guest" | "public" | "service",
+  camera: CameraState,
+): "normal" | "deemphasized" | "highlighted" {
+  if (!serviceAreasVisible(camera)) return "normal";
+  return kind === "service" ? "highlighted" : "deemphasized";
 }
 export function lightingFor(minuteOfDay: number): "day" | "evening" | "night" {
   return minuteOfDay >= 420 && minuteOfDay < 1080

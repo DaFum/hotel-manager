@@ -138,6 +138,9 @@ test("gives the isometric world a keyboard and screen-reader path", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await page
+    .getByRole("combobox", { name: /Language|Sprache/ })
+    .selectOption("en-GB");
   const world = page.getByRole("region", { name: "World controls" });
   await expect(world).toBeVisible();
 

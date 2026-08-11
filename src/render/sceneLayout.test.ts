@@ -6,12 +6,15 @@ import {
   buildingCentre,
   FLOOR_HEIGHT,
   placeAgents,
+  placeAgentsFromEntities,
   placeRooms,
+  placeRoomsFromGeometry,
   roomConcern,
   stageTransform,
   visiblePlacements,
   type LayoutRoom,
 } from "./sceneLayout";
+import * as sceneLayout from "./sceneLayout";
 
 const ROOMS: LayoutRoom[] = [
   { id: "room.101", category: "single", state: "VacantClean", cleanliness: 90 },
@@ -28,6 +31,24 @@ const FLOORS = {
 };
 
 describe("the hotel as a building", () => {
+  it("keeps camera focus and selection as two distinct marks", () => {
+    const markerKindsForEntity = (
+      sceneLayout as typeof sceneLayout & {
+        markerKindsForEntity?: (
+          entityId: string,
+          selectedId: string | null,
+          focusedId: string | null,
+        ) => string[];
+      }
+    ).markerKindsForEntity;
+
+    expect(markerKindsForEntity).toBeTypeOf("function");
+    expect(markerKindsForEntity?.("room.101", "room.101", "room.101")).toEqual([
+      "selection",
+      "focus",
+    ]);
+  });
+
   it("stacks rooms onto the floor the simulation put them on", () => {
     const placed = placeRooms(ROOMS, FLOORS, 2);
 
@@ -42,6 +63,27 @@ describe("the hotel as a building", () => {
     // rather than continuing its row.
     expect(placed[2].gridX).toBe(0);
     expect(placed[0].y - placed[2].y).toBe(FLOOR_HEIGHT);
+  });
+
+  it("projects rooms from authoritative geometry instead of their array index", () => {
+    const placed = placeRoomsFromGeometry(ROOMS, {
+      "room.101": { floor: 3, gridX: 8, gridY: 1 },
+      "room.102": { floor: 1, gridX: 2, gridY: 4 },
+      "room.201": { floor: 2, gridX: 7, gridY: 0 },
+      "room.202": { floor: 1, gridX: 0, gridY: 4 },
+    });
+
+    expect(placed.find((room) => room.id === "room.101")).toMatchObject({
+      floor: 3,
+      gridX: 8,
+      gridY: 1,
+    });
+    expect(placed.map((room) => room.id)).toEqual([
+      "room.202",
+      "room.102",
+      "room.201",
+      "room.101",
+    ]);
   });
 
   it("puts a room with no declared floor on the ground rather than dropping it", () => {
@@ -149,6 +191,42 @@ describe("the hotel as a building", () => {
 
     expect(placeAgents(agents, placed, { x: 0, y: 0 })).toEqual(
       placeAgents(agents, placed, { x: 0, y: 0 }),
+    );
+  });
+
+  it("places areas and navigation queues without a room fallback", () => {
+    const fixture = [
+      {
+        id: "guest.1",
+        kind: "guest",
+        locationId: "navigation.reception.queue",
+        queuedFor: "facility.reception",
+      },
+      {
+        id: "staff.1",
+        kind: "staff",
+        locationId: "facility.housekeeping",
+      },
+      { id: "guest.out", kind: "guest", locationId: "outside.hotel" },
+    ] as const;
+    const positions = {
+      "navigation.reception.queue": { floor: 0, gridX: 1, gridY: 2 },
+      "facility.housekeeping": { floor: 0, gridX: 6, gridY: 3 },
+    };
+    const placed = placeAgentsFromEntities(fixture, positions);
+
+    expect(placed.map(({ id, queued }) => ({ id, queued }))).toEqual([
+      { id: "guest.1", queued: true },
+      { id: "staff.1", queued: false },
+    ]);
+    expect(
+      Object.fromEntries(
+        placeAgentsFromEntities([...fixture].reverse(), positions).map(
+          (placement) => [placement.id, placement],
+        ),
+      ),
+    ).toEqual(
+      Object.fromEntries(placed.map((placement) => [placement.id, placement])),
     );
   });
 });

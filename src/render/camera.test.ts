@@ -8,9 +8,13 @@ import {
   WHEEL_ZOOM_STEP,
   wheelZoom,
   focusCamera,
+  followCamera,
   lightingFor,
   panCamera,
   selectFloor,
+  serviceAreasVisible,
+  serviceAreaEmphasis,
+  toggleServiceAreas,
   visibleFloor,
   zoomCamera,
 } from "./camera";
@@ -28,19 +32,47 @@ describe("isometric camera", () => {
       }),
     ).toMatchObject({ x: 8, y: 9, floor: 2, focusedId: "room.201" });
   });
+  it("follows a moving person until another entity takes focus", () => {
+    const followed = focusCamera(createCamera(), {
+      id: "guest.berger",
+      kind: "person",
+      x: 8,
+      y: 9,
+      floor: 1,
+    });
+    expect(followed.followedAgentId).toBe("guest.berger");
+    expect(
+      followCamera(followed, {
+        id: "guest.berger",
+        x: 40,
+        y: 12,
+        floor: 0,
+      }),
+    ).toMatchObject({ x: 40, y: 12, floor: 0, focusedId: "guest.berger" });
+    expect(
+      focusCamera(followed, {
+        id: "room.101",
+        kind: "room",
+        x: 0,
+        y: 0,
+        floor: 1,
+      }).followedAgentId,
+    ).toBeNull();
+  });
   it("selects a floor and cuts away the ones above it", () => {
     const camera = selectFloor(createCamera(), 2);
     expect(visibleFloor(2, camera)).toBe(true);
     expect(visibleFloor(3, camera)).toBe(false);
-    expect(
-      focusCamera(camera, {
-        id: "facility.spa",
-        kind: "facility",
-        x: 0,
-        y: 0,
-        floor: 2,
-      }).focusedId,
-    ).toBe("facility.spa");
+    const focused = focusCamera(camera, {
+      id: "facility.spa",
+      kind: "facility",
+      x: 0,
+      y: 0,
+      floor: 3,
+    });
+    expect(focused.focusedId).toBe("facility.spa");
+    expect(focused.floor).toBe(3);
+    expect(visibleFloor(3, focused)).toBe(true);
   });
   it("drives lighting from time of day and detail from zoom", () => {
     expect([lightingFor(60), lightingFor(720), lightingFor(1140)]).toEqual([
@@ -53,6 +85,15 @@ describe("isometric camera", () => {
       "rooms",
       "people",
     ]);
+  });
+  it("keeps the service overlay as presentation-only camera state", () => {
+    const camera = createCamera();
+    expect(serviceAreasVisible(camera)).toBe(false);
+    const visible = toggleServiceAreas(camera);
+    expect(serviceAreasVisible(visible)).toBe(true);
+    expect(serviceAreaEmphasis("service", visible)).toBe("highlighted");
+    expect(serviceAreaEmphasis("guest", visible)).toBe("deemphasized");
+    expect(toggleServiceAreas(visible).showServiceAreas).toBe(false);
   });
 });
 

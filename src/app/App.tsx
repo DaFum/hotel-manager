@@ -46,15 +46,21 @@ import {
 } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
 import { WorldControls } from "../ui/WorldControls";
-import { createCamera, focusCamera, type CameraState } from "../render/camera";
 import {
+  createCamera,
+  focusCamera,
+  followCamera,
+  type CameraState,
+} from "../render/camera";
+import {
+  focusKindForAlertTarget,
   rateByCategory,
-  renovatingRoomIds,
   roomFocusPoint,
   visualAgents,
   worldProblems,
 } from "../ui/hotelViewModel";
 import { elevatorVisual } from "../render/agentMaterialization";
+import { resolveEntityPosition } from "../render/sceneLayout";
 import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
 import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
 import { BrandDashboard } from "../ui/company/BrandDashboard";
@@ -163,6 +169,35 @@ export function App() {
     }
   }, [s, preferences.notifications, game]);
 
+  useEffect(() => {
+    const agentId = camera.followedAgentId;
+    if (!s || !agentId) return;
+    const agent = s.renderDescriptors.agents.find(
+      (candidate) => candidate.id === agentId,
+    );
+    if (!agent) return;
+    const position = resolveEntityPosition(
+      s.renderDescriptors.positionByEntityId,
+      agent.locationId,
+    );
+    if (!position) return;
+    setCamera((current) => {
+      if (
+        current.followedAgentId !== agentId ||
+        (current.x === position.x &&
+          current.y === position.y &&
+          current.floor === position.floor)
+      )
+        return current;
+      return followCamera(current, {
+        id: agentId,
+        x: position.x,
+        y: position.y,
+        floor: position.floor,
+      });
+    });
+  }, [s, camera.followedAgentId]);
+
   // The worker is the game: once it has stopped, the surface behind it is a
   // hotel frozen mid-day. Say so, and offer the newest trustworthy save.
   if (game.workerFailure)
@@ -221,6 +256,26 @@ export function App() {
     />
   );
 
+  const openNotificationTarget = (entityId: string, alertId: string) => {
+    setOpenAlert(alertId);
+    const alert = s.alerts.find((candidate) => candidate.id === alertId);
+    const target = alert?.target;
+    const position = resolveEntityPosition(
+      s.renderDescriptors.positionByEntityId,
+      entityId,
+    );
+    if (!target || !position) return;
+    setCamera((current) =>
+      focusCamera(current, {
+        id: entityId,
+        x: position.x,
+        y: position.y,
+        floor: position.floor,
+        kind: focusKindForAlertTarget(target.kind),
+      }),
+    );
+  };
+
   const areaContent: Record<ManagementAreaId, ReactNode> = {
     mainView: (
       <>
@@ -229,11 +284,17 @@ export function App() {
           facilities={s.facilities}
           agents={visualAgents(s, camera)}
           floorByRoomId={s.renderDescriptors.floorByRoomId}
+          positionByEntityId={s.renderDescriptors.positionByEntityId}
+          floorPlan={s.renderDescriptors.floorPlan}
+          closedNavigationIds={s.renderDescriptors.closedNavigationIds}
+          elevator={s.renderDescriptors.elevator}
+          situations={s.renderDescriptors.situations}
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
-          stays={s.stays}
+          focusedEntityId={camera.focusedId}
+          occupantByRoomId={s.renderDescriptors.occupantByRoomId}
           rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
-          renovatingRoomIds={renovatingRoomIds(s)}
+          renovationPhaseByRoomId={s.renderDescriptors.renovationPhaseByRoomId}
           // Choosing a room anywhere moves the one camera the world uses,
           // so the register and the building never look at different places.
           onSelect={(roomId) =>
@@ -245,6 +306,26 @@ export function App() {
               }),
             )
           }
+          onSelectAgent={(agentId) => {
+            const agent = s.renderDescriptors.agents.find(
+              (candidate) => candidate.id === agentId,
+            );
+            if (!agent) return;
+            const position = resolveEntityPosition(
+              s.renderDescriptors.positionByEntityId,
+              agent.locationId,
+            );
+            if (!position) return;
+            setCamera((current) =>
+              focusCamera(current, {
+                id: agentId,
+                x: position.x,
+                y: position.y,
+                floor: position.floor,
+                kind: "person",
+              }),
+            );
+          }}
           onCamera={setCamera}
           disableRenderer={rendererDisabled()}
           locale={preferences.locale}
@@ -598,23 +679,25 @@ export function App() {
           acknowledged: acknowledgedAlerts.has(alert.id),
           groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
           message: { key: alert.title, values: alert.causeValues },
-          actionTarget: {
-            label: {
-              key: "notifications.open",
-              values: {
-                title: translateGame(
-                  preferences.locale,
-                  alert.title,
-                  alert.causeValues,
-                ),
-              },
-            },
-            entityId: alert.id,
-          },
+          actionTarget: alert.target
+            ? {
+                label: {
+                  key: "notifications.open",
+                  values: {
+                    title: translateGame(
+                      preferences.locale,
+                      alert.title,
+                      alert.causeValues,
+                    ),
+                  },
+                },
+                entityId: alert.target.entityId,
+              }
+            : undefined,
         }))}
         preferences={preferences.notifications}
         pauseState={game.pauseStatus}
-        onAction={setOpenAlert}
+        onAction={openNotificationTarget}
         onAcknowledge={(id) =>
           setAcknowledgedAlerts((current) => new Set(current).add(id))
         }

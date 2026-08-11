@@ -39,7 +39,7 @@ describe("NotificationCenter", () => {
     expect(screen.getByText("Critical")).toBeTruthy();
     expect(screen.getByText("Immediate attention required")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Open Finanzen" }));
-    expect(action).toHaveBeenCalledWith("finance");
+    expect(action).toHaveBeenCalledWith("finance", "alert.cash");
     expect(screen.getByRole("status").textContent).toContain("pending");
   });
   it("localizes message, cause, and action in German", () => {
@@ -61,5 +61,20 @@ describe("NotificationCenter", () => {
     expect(
       screen.getByRole("button", { name: "Finanzen öffnen" }),
     ).toBeTruthy();
+  });
+
+  it("does not submit a surrounding form when an action is opened", () => {
+    const submit = vi.fn((event: React.FormEvent) => event.preventDefault());
+    render(
+      <form onSubmit={submit}>
+        <NotificationCenter
+          notifications={[item]}
+          preferences={DEFAULT_PLAYER_PREFERENCES.notifications}
+        />
+      </form>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Finanzen" }));
+    expect(submit).not.toHaveBeenCalled();
   });
 });

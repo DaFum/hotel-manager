@@ -18,6 +18,18 @@ import type { LedgerEntry } from "../finance/ledger";
 import type { Loan } from "../finance/loans";
 import type { Asset } from "../maintenance/maintenance";
 import type { RenovationJob } from "../building/renovations";
+import {
+  generateFloorPlan,
+  positionMapForPlan,
+  type FloorPlan,
+} from "../building/floorPlan";
+import type {
+  LiftCarDescriptor,
+  RenderAgentDescriptor,
+} from "../building/agentLocations";
+import type { OperationalSituationDescriptors } from "../building/operationalSituations";
+import { ELEVATOR_TRIP_MINUTES } from "../facilities/mobility";
+import type { Phase as RenovationPhase } from "../renovation/projects";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
 import { defaultModuleForCategory } from "../content/rooms/modules";
@@ -88,6 +100,8 @@ export interface RoomRecord {
   moduleId: string;
   /** Years since the fit-out was current; only a renovation resets it. */
   styleAgeYears: number;
+  /** Why an unavailable room is unavailable; presentation resolves the code. */
+  faultReasonCode?: string;
 }
 
 export interface StaffRecord {
@@ -142,6 +156,26 @@ export interface AlertRecord {
   title: AlertLocalizationKey;
   cause: AlertLocalizationKey;
   causeValues?: LocalizationValues;
+  /** A physical place in the hotel this alert can move the world to. */
+  target?: AlertTargetRef;
+}
+
+export interface AlertTargetRef {
+  entityId: string;
+  kind: "room" | "facility" | "navigation";
+}
+
+export interface EntityGridPosition {
+  floor: number;
+  gridX: number;
+  gridY: number;
+}
+
+export interface RoomOccupantRef {
+  guestId: string;
+  bookingId: string;
+  rateMinor: number;
+  departureDateKey: string;
 }
 
 export interface MonthAccumulator {
@@ -204,7 +238,13 @@ export interface GameState {
   fnb: FnbState;
   utilities: UtilityState;
   renderDescriptors: {
+    floorPlan: FloorPlan;
     floorByRoomId: Record<string, number>;
+    positionByEntityId: Record<string, EntityGridPosition>;
+    renovationPhaseByRoomId: Record<string, RenovationPhase>;
+    occupantByRoomId: Record<string, RoomOccupantRef>;
+    agents: RenderAgentDescriptor[];
+    situations: OperationalSituationDescriptors;
     closedNavigationIds: string[];
     elevator: {
       id: string;
@@ -212,6 +252,7 @@ export interface GameState {
       queue: number;
       travelMinutes: number;
       failed: boolean;
+      cars: LiftCarDescriptor[];
     };
   };
   savePolicy: { lastManualSlot: string | null; recoveryGeneration: number };
@@ -470,17 +511,39 @@ export function createGuestSatisfaction(): GameState["guestSatisfaction"] {
 export function createRenderDescriptors(
   rooms: readonly { id: string }[],
 ): GameState["renderDescriptors"] {
+  const floorPlan = generateFloorPlan(rooms);
+  const floorByRoomId = Object.fromEntries(
+    Object.values(floorPlan.rooms).map((room) => [room.id, room.floor]),
+  );
   return {
-    floorByRoomId: Object.fromEntries(
-      rooms.map((room, index) => [room.id, Math.floor(index / 12) + 1]),
-    ),
+    floorPlan,
+    floorByRoomId,
+    positionByEntityId: positionMapForPlan(floorPlan),
+    renovationPhaseByRoomId: {},
+    occupantByRoomId: {},
+    agents: [],
+    situations: {
+      reception: { desks: [], queueGuestIds: [] },
+      housekeeping: { dirtyRoomIdsByFloor: {} },
+      roomFaultReasonByRoomId: {},
+      overloads: [],
+      fnb: {
+        outlets: [],
+        kitchen: {
+          stations: [],
+          overloaded: false,
+          cause: "facility.cause.demand",
+        },
+      },
+    },
     closedNavigationIds: [],
     elevator: {
-      id: "asset.elevator",
-      capacity: 6,
+      id: "asset.lift",
+      capacity: STARTER_HOTEL.elevatorCars * 6,
       queue: 0,
-      travelMinutes: 2,
+      travelMinutes: ELEVATOR_TRIP_MINUTES,
       failed: false,
+      cars: [],
     },
   };
 }

@@ -17,4 +17,36 @@ describe("initial state", () => {
       "weather",
     ]);
   });
+
+  it("publishes a stable grid position for every room and focusable hotel area", () => {
+    const s = createInitialGameState(1234);
+    const repeated = createInitialGameState(1234);
+    const descriptors = s.renderDescriptors;
+    const expectedIds = new Set([
+      ...Object.keys(descriptors.floorPlan.rooms),
+      ...descriptors.floorPlan.areas.map((area) => area.id),
+      ...descriptors.floorPlan.navigationNodes.map((node) => node.id),
+      "facility.elevator",
+      "asset.lift",
+    ]);
+
+    expect(new Set(Object.keys(descriptors.positionByEntityId))).toEqual(
+      expectedIds,
+    );
+    for (const entity of [
+      ...Object.values(descriptors.floorPlan.rooms),
+      ...descriptors.floorPlan.areas,
+      ...descriptors.floorPlan.navigationNodes,
+    ])
+      expect(descriptors.positionByEntityId[entity.id]).toEqual({
+        floor: entity.floor,
+        gridX: entity.gridX,
+        gridY: entity.gridY,
+      });
+    expect(repeated.renderDescriptors.positionByEntityId).toEqual(
+      descriptors.positionByEntityId,
+    );
+    expect(s.renderDescriptors.renovationPhaseByRoomId).toEqual({});
+    expect(s.renderDescriptors.occupantByRoomId).toEqual({});
+  });
 });

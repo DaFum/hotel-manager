@@ -1,8 +1,14 @@
+import type { AgentStatus } from "../game/building/agentLocations";
+import { selectVisibleAgents } from "../game/simulation/materialization";
+
 export interface VisualAgent {
   id: string;
   kind: "guest" | "staff";
+  guestId?: string;
   locationId: string;
   queuedFor?: string;
+  status?: AgentStatus;
+  routeIds?: readonly string[];
 }
 export interface ElevatorVisualState {
   id: string;
@@ -10,6 +16,17 @@ export interface ElevatorVisualState {
   queue: number;
   travelMinutes: number;
   failed: boolean;
+  cars?: readonly {
+    id: string;
+    currentFloor: number;
+    targetFloor: number;
+    positionFloorBasisPoints: number;
+    direction: "up" | "down" | "idle";
+    moving: boolean;
+    stopped: boolean;
+    failed: boolean;
+    waitingGuestIds: readonly string[];
+  }[];
 }
 export function materializeAgents(
   agents: readonly VisualAgent[],
@@ -34,4 +51,3 @@ export function elevatorVisual(state: ElevatorVisualState) {
         state.travelMinutes,
   };
 }
-import { selectVisibleAgents } from "../game/simulation/materialization";

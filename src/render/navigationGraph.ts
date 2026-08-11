@@ -6,6 +6,13 @@ export interface NavigationNode {
   links: readonly string[];
   closed?: boolean;
 }
+export function navigationWithClosures<T extends NavigationNode>(
+  nodes: readonly T[],
+  closedIds: readonly string[],
+): (T & { closed: boolean })[] {
+  const closed = new Set(closedIds);
+  return nodes.map((node) => ({ ...node, closed: closed.has(node.id) }));
+}
 export function findPath(
   nodes: readonly NavigationNode[],
   from: string,

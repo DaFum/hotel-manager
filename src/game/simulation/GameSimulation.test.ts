@@ -5,6 +5,7 @@ import { assertInvariants } from "./invariants";
 import { createInitialGameState, type GameState } from "./initialState";
 import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
 import { reserve } from "../bookings/bookingEngine";
+import { startRenovation } from "../building/renovations";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -598,6 +599,7 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.space.title",
       cause: "alert.space.cause.atCapacity",
+      target: { entityId: "space.carpark", kind: "facility" },
       causeValues: {
         spaceId: "space.carpark",
         capacity: 18,
@@ -610,6 +612,7 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.security.spaces.title",
       cause: "alert.security.spaces.cause",
+      target: { entityId: "facility.security", kind: "facility" },
       causeValues: {
         inHouseGuests: 100,
         eventGuests: 0,
@@ -659,6 +662,10 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.long-check-in.title",
       cause: "alert.long-check-in.cause",
+      target: {
+        entityId: "navigation.reception.queue",
+        kind: "navigation",
+      },
       causeValues: { bookingId, waitedMinutes: 26 },
     });
     expect(
@@ -668,6 +675,10 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.recovery-escalated.title",
       cause: "alert.recovery-escalated.cause",
+      target: {
+        entityId: "navigation.reception.queue",
+        kind: "navigation",
+      },
       causeValues: { bookingId, expenseMinor: 100_000 },
     });
   });
@@ -694,5 +705,153 @@ describe("localized alerts", () => {
       cause: "alert.insolvent.cause",
       causeValues: { expense: "expense.operating" },
     });
+  });
+
+  it("publishes renovation phases and stable occupant references per room", () => {
+    const state = createInitialGameState(424242);
+    const room = state.hotel.rooms[0];
+    state.renovation = startRenovation("module.free", state.finance.cashMinor, {
+      affected: [room.id],
+    }).job;
+    const booking = reserve(
+      { availableRoomsOn: () => 1 },
+      {
+        id: "booking.render.1",
+        guestId: "guest.returning.1",
+        roomsRequested: 1,
+        rateMinor: 12_000,
+        willingnessMinor: 12_000,
+        channel: "directPhone",
+        partySize: 1,
+        segmentId: "segment.business",
+        category: "single",
+        arrivalDateKey: state.calendar.dateKey,
+        nights: 2,
+        terms: {
+          guaranteed: true,
+          freeCancellationDays: 1,
+          lateChargeBp: 10_000,
+        },
+        atMinutes: 0,
+      },
+    );
+    state.reservations = [booking];
+    state.stays = [
+      {
+        bookingId: booking.id,
+        roomId: room.id,
+        rateMinor: booking.rateMinor,
+        departureDateKey: "1991-01-03",
+      },
+    ];
+    room.state = "Occupied";
+
+    const sim = new GameSimulation(state);
+    sim.advanceQuantum();
+
+    expect(sim.state.renderDescriptors.renovationPhaseByRoomId[room.id]).toBe(
+      "planning",
+    );
+    expect(sim.state.renderDescriptors.occupantByRoomId[room.id]).toEqual({
+      guestId: "guest.returning.1",
+      bookingId: booking.id,
+      rateMinor: booking.rateMinor,
+      departureDateKey: "1991-01-03",
+    });
+    expect(
+      sim.state.renderDescriptors.agents.find(
+        (agent) => agent.id === "agent.booking.render.1",
+      ),
+    ).toMatchObject({
+      kind: "guest",
+      locationId: room.id,
+      status: "sleeping",
+    });
+    expect(
+      sim.state.renderDescriptors.agents.some(
+        (agent) => agent.kind === "staff",
+      ),
+    ).toBe(true);
+    expect(sim.state.renderDescriptors.elevator).toMatchObject({
+      id: "asset.lift",
+      cars: [expect.objectContaining({ id: "asset.lift.car.1" })],
+    });
+  });
+
+  it("targets the housekeeping backlog at the placed housekeeping area", () => {
+    const state = createInitialGameState(104);
+    for (const room of state.hotel.rooms.slice(0, 6)) {
+      room.state = "VacantDirty";
+      room.cleanliness = 20;
+    }
+    state.staff = state.staff.filter(
+      (member) => member.role !== "housekeeping",
+    );
+    const sim = new GameSimulation(state);
+
+    sim.advanceQuantum();
+
+    expect(
+      sim.state.alerts.find(
+        (alert) => alert.id === "alert.housekeeping-backlog",
+      ),
+    ).toMatchObject({
+      target: { entityId: "facility.housekeeping", kind: "facility" },
+    });
+  });
+
+  it("does not count a guest already at breakfast as waiting for the lift", () => {
+    const state = createInitialGameState(105);
+    const room = state.hotel.rooms[0];
+    state.calendar.minuteOfDay = 480;
+    state.elapsedMinutes = 480;
+    state.reservations = [
+      reserve(
+        { availableRoomsOn: () => 1 },
+        {
+          id: "booking.breakfast.1",
+          guestId: "guest.breakfast.1",
+          roomsRequested: 1,
+          rateMinor: 12_000,
+          willingnessMinor: 12_000,
+          channel: "directPhone",
+          partySize: 1,
+          segmentId: "segment.business",
+          category: "single",
+          arrivalDateKey: state.calendar.dateKey,
+          nights: 2,
+          terms: {
+            guaranteed: true,
+            freeCancellationDays: 1,
+            lateChargeBp: 10_000,
+          },
+          atMinutes: 0,
+        },
+      ),
+    ];
+    state.stays = [
+      {
+        bookingId: "booking.breakfast.1",
+        roomId: room.id,
+        rateMinor: 12_000,
+        departureDateKey: "1991-01-03",
+      },
+    ];
+    room.state = "Occupied";
+    const sim = new GameSimulation(state);
+
+    sim.refreshDerivedState();
+
+    expect(
+      sim.state.renderDescriptors.agents.find(
+        (agent) => agent.guestId === "guest.breakfast.1",
+      )?.locationId,
+    ).toBe("facility.breakfast_room");
+    expect(sim.state.renderDescriptors.elevator.queue).toBe(0);
+    expect(
+      sim.state.renderDescriptors.elevator.cars.every(
+        (car) => car.waitingGuestIds.length === 0,
+      ),
+    ).toBe(true);
   });
 });

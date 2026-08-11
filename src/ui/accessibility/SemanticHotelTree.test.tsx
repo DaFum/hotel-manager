@@ -42,4 +42,33 @@ describe("SemanticHotelTree", () => {
       }),
     ).toBeTruthy();
   });
+
+  it("reads the same guest, rate, condition, cleanliness and problem as the inspector", () => {
+    render(
+      <SemanticHotelTree
+        rooms={[
+          {
+            id: "room.101",
+            category: "single",
+            state: "Occupied",
+            cleanliness: 88,
+            guestLabel: "Guest G-RETURNING-1",
+            rateLabel: "120,00 DM",
+            conditionKey: "room.condition.serviceable",
+            problemKeys: ["room.problems.renovation.planning"],
+            renovationPhase: "planning",
+          },
+        ]}
+        onInspect={() => undefined}
+      />,
+    );
+
+    const room = screen.getByRole("listitem");
+    expect(room.textContent).toContain("Guest G-RETURNING-1");
+    expect(room.textContent).toContain("120,00 DM");
+    expect(room.textContent).toContain("serviceable");
+    expect(room.textContent).toContain("cleanliness 88");
+    expect(screen.getByText("Planning")).toBeTruthy();
+    expect(screen.getByText("Planning phase")).toBeTruthy();
+  });
 });

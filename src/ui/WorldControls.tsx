@@ -7,6 +7,7 @@ import {
   lightingFor,
   panCamera,
   selectFloor,
+  toggleServiceAreas,
   visibleFloor,
   zoomCamera,
   type CameraState,
@@ -15,6 +16,7 @@ import {
 
 export interface WorldProblem {
   id: string;
+  entityId: string;
   title: string;
   cause: string;
   causeValues?: Record<string, string | number>;
@@ -41,7 +43,19 @@ export function WorldControls(props: {
   floors: readonly number[];
   minuteOfDay: number;
   problems: readonly WorldProblem[];
-  elevator: { queue: number; waitMinutes: number; cause: string };
+  elevator: {
+    queue: number;
+    waitMinutes: number;
+    cause: string;
+    cars?: readonly {
+      id: string;
+      currentFloor: number;
+      targetFloor: number;
+      direction: "up" | "down" | "idle";
+      failed: boolean;
+      waitingGuestIds: readonly string[];
+    }[];
+  };
   onCamera: (camera: CameraState) => void;
   locale?: GameLocale;
 }) {
@@ -49,6 +63,16 @@ export function WorldControls(props: {
   const light = lightingFor(props.minuteOfDay);
   const detail = detailFor(camera.zoom);
   const locale = props.locale ?? "en-GB";
+  const elevatorCauseKey: string | undefined = (
+    {
+      "out of service": "world.elevatorCause.unavailable",
+      "queue exceeds car capacity": "world.elevatorCause.overloaded",
+      available: "world.elevatorCause.available",
+    } as Readonly<Record<string, string>>
+  )[props.elevator.cause];
+  const elevatorCause = elevatorCauseKey
+    ? translateGame(locale, elevatorCauseKey)
+    : props.elevator.cause;
 
   return (
     <section aria-label="World controls">
@@ -123,11 +147,54 @@ export function WorldControls(props: {
         {camera.cutaway ? "Show whole building" : "Cut away above this floor"}
       </button>
 
-      <h3>Lifts</h3>
-      <p role="status" aria-label="Elevator state">
-        {props.elevator.queue} waiting, {props.elevator.waitMinutes} minutes,{" "}
-        {props.elevator.cause}
+      <h3>{translateGame(locale, "world.layers")}</h3>
+      <button
+        type="button"
+        aria-label={translateGame(
+          locale,
+          camera.showServiceAreas
+            ? "world.hideServiceAreas"
+            : "world.showServiceAreas",
+        )}
+        aria-pressed={camera.showServiceAreas}
+        onClick={() => props.onCamera(toggleServiceAreas(camera))}
+      >
+        {translateGame(
+          locale,
+          camera.showServiceAreas
+            ? "world.hideServiceAreas"
+            : "world.showServiceAreas",
+        )}
+      </button>
+
+      <h3>{translateGame(locale, "world.lifts")}</h3>
+      <p
+        role="status"
+        aria-label={translateGame(locale, "world.elevatorState")}
+      >
+        {translateGame(locale, "world.elevatorSummary", {
+          queue: props.elevator.queue,
+          minutes: props.elevator.waitMinutes,
+          cause: elevatorCause,
+        })}
       </p>
+      {(props.elevator.cars?.length ?? 0) > 0 ? (
+        <ul>
+          {props.elevator.cars?.map((car) => (
+            <li key={car.id} data-entity-id={car.id}>
+              {translateGame(locale, "world.liftCar", {
+                id: car.id,
+                floor: car.currentFloor,
+                direction: `world.direction.${car.direction}`,
+                status: car.failed
+                  ? "world.carStatus.failed"
+                  : "world.carStatus.ready",
+                waiting: car.waitingGuestIds.length,
+              })}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <h3>Problems</h3>
       {props.problems.length === 0 ? (
@@ -152,12 +219,12 @@ export function WorldControls(props: {
                 })}
                 // Where the camera is, not a toggle the player switched on.
                 aria-current={
-                  camera.focusedId === problem.id ? true : undefined
+                  camera.focusedId === problem.entityId ? true : undefined
                 }
                 onClick={() =>
                   props.onCamera(
                     focusCamera(camera, {
-                      id: problem.id,
+                      id: problem.entityId,
                       x: problem.x,
                       y: problem.y,
                       floor: problem.floor,

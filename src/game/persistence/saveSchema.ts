@@ -49,6 +49,16 @@ function isValidAlert(value: unknown): boolean {
     !alert.cause.startsWith("alert.")
   )
     return false;
+  if (alert.target !== undefined) {
+    if (!alert.target || typeof alert.target !== "object") return false;
+    const target = alert.target as Record<string, unknown>;
+    if (
+      typeof target.entityId !== "string" ||
+      !target.entityId ||
+      !["room", "facility", "navigation"].includes(String(target.kind))
+    )
+      return false;
+  }
   if (alert.causeValues === undefined) return true;
   if (
     !alert.causeValues ||
@@ -128,6 +138,21 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
   if (!isFnbState(state.fnb)) problems.push("the state has no complete fnb");
+  if (
+    !state.renderDescriptors ||
+    typeof state.renderDescriptors !== "object" ||
+    !state.renderDescriptors.floorPlan ||
+    typeof state.renderDescriptors.floorPlan !== "object" ||
+    !state.renderDescriptors.floorPlan.rooms ||
+    typeof state.renderDescriptors.floorPlan.rooms !== "object" ||
+    !state.renderDescriptors.floorByRoomId ||
+    typeof state.renderDescriptors.floorByRoomId !== "object" ||
+    !state.renderDescriptors.positionByEntityId ||
+    typeof state.renderDescriptors.positionByEntityId !== "object" ||
+    !Array.isArray(state.renderDescriptors.agents) ||
+    !state.renderDescriptors.elevator
+  )
+    problems.push("the state has no complete render descriptors");
   if (!Array.isArray(state.alerts) || !state.alerts.every(isValidAlert))
     problems.push("the state has malformed alerts");
   const narrative = state.narrative;

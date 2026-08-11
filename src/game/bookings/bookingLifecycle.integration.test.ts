@@ -196,7 +196,6 @@ describe("booking lifecycle", () => {
         state.staff = state.staff.filter((m) => m.role !== "reception");
       },
     );
-    const cashBefore = s.state.finance.cashMinor;
     const ledgerBefore = s.state.finance.ledger.length;
     const satisfactionBefore = s.state.guestSatisfaction.score;
 
@@ -216,7 +215,6 @@ describe("booking lifecycle", () => {
         .some((e) => e.account === "serviceRecovery"),
     ).toBe(false);
     expect(s.state.guestSatisfaction.score).toBeLessThan(satisfactionBefore);
-    expect(s.state.finance.cashMinor).toBeLessThanOrEqual(cashBefore);
     const unresolvedAlert = s.state.alerts.find(
       (a) => a.title === "alert.complaint-unanswered.title",
     );

@@ -32,6 +32,7 @@ export type AccountClass =
 export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   roomRevenue: "revenue",
   breakfastRevenue: "revenue",
+  restaurantRevenue: "revenue",
   barRevenue: "revenue",
   roomServiceRevenue: "revenue",
   wellnessRevenue: "revenue",

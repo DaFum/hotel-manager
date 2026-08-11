@@ -10,7 +10,15 @@ export function formatDm(minor: number, locale: GameLocale = "de-DE"): string {
   return `${sign}${Math.floor(abs / 100)},${String(abs % 100).padStart(2, "0")} DM`;
 }
 
-export function formatBasisPoints(bp: number, locale: GameLocale = "de-DE"): string {
-  if (locale !== "de-DE") return new Intl.NumberFormat(locale, { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(bp / 10000);
+export function formatBasisPoints(
+  bp: number,
+  locale: GameLocale = "de-DE",
+): string {
+  if (locale !== "de-DE")
+    return new Intl.NumberFormat(locale, {
+      style: "percent",
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(bp / 10000);
   return `${(bp / 100).toFixed(1)}%`;
 }

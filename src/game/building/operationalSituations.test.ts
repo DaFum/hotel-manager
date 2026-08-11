@@ -97,6 +97,27 @@ describe("physical operational situations", () => {
     );
   });
 
+  it("evaluates stock constraints as a kitchen cause", () => {
+    const state = {
+      ...base,
+      fnb: {
+        outlets: [
+          {
+            id: "restaurant" as const,
+            seats: 20,
+            served: 8,
+            waitlisted: 2,
+            averageWaitMinutes: 30,
+            kitchenUtilizationBp: 14_000,
+            cause: "facility.cause.stock" as const,
+          },
+        ],
+      },
+    };
+    const described = describeOperationalSituations(state);
+    expect(described.fnb.kitchen.cause).toBe("facility.cause.stock");
+  });
+
   it("keeps free tables visible beside a kitchen-limited waitlist", () => {
     const described = describeOperationalSituations(base);
     const restaurant = described.fnb.outlets.find(

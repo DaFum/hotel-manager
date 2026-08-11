@@ -679,21 +679,26 @@ export function App() {
           acknowledged: acknowledgedAlerts.has(alert.id),
           groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
           message: { key: alert.title, values: alert.causeValues },
-          actionTarget: alert.target
-            ? {
-                label: {
-                  key: "notifications.open",
-                  values: {
-                    title: translateGame(
-                      preferences.locale,
-                      alert.title,
-                      alert.causeValues,
-                    ),
+          actionTarget:
+            alert.target &&
+            resolveEntityPosition(
+              s.renderDescriptors.positionByEntityId,
+              alert.target.entityId,
+            )
+              ? {
+                  label: {
+                    key: "notifications.open",
+                    values: {
+                      title: translateGame(
+                        preferences.locale,
+                        alert.title,
+                        alert.causeValues,
+                      ),
+                    },
                   },
-                },
-                entityId: alert.target.entityId,
-              }
-            : undefined,
+                  entityId: alert.target.entityId,
+                }
+              : undefined,
         }))}
         preferences={preferences.notifications}
         pauseState={game.pauseStatus}

@@ -405,7 +405,7 @@ export function HotelView(props: {
       <h3>Service areas</h3>
       <ul>
         {(props.facilities ?? []).map((facility) => (
-          <li key={facility.id}>
+          <li key={facility.id} data-entity-id={facility.id} tabIndex={-1}>
             <button
               type="button"
               aria-label={`${facility.name}, ${facility.demand} demand, ${facility.capacity} capacity, limited by ${facility.cause}`}

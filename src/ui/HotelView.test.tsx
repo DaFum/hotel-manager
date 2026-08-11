@@ -201,4 +201,35 @@ describe("hotel view", () => {
       ),
     ).toBeTruthy();
   });
+
+  it("offers the same follow action and person detail in the semantic view", () => {
+    const onSelectAgent = vi.fn();
+    render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        agents={[
+          {
+            id: "guest.berger",
+            kind: "guest",
+            locationId: "facility.breakfast_room",
+            status: "breakfast",
+            routeIds: ["room.101", "facility.breakfast_room"],
+          },
+        ]}
+        onSelectAgent={onSelectAgent}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /follow guest g-berger/i }),
+    );
+    expect(onSelectAgent).toHaveBeenCalledWith("guest.berger");
+    expect(
+      screen.getByRole("region", { name: /person detail/i }).textContent,
+    ).toContain("Breakfast");
+    expect(
+      screen.getByRole("region", { name: /person detail/i }).textContent,
+    ).toContain("room.101 → facility.breakfast_room");
+  });
 });

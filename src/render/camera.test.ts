@@ -8,6 +8,7 @@ import {
   WHEEL_ZOOM_STEP,
   wheelZoom,
   focusCamera,
+  followCamera,
   lightingFor,
   panCamera,
   selectFloor,
@@ -30,6 +31,33 @@ describe("isometric camera", () => {
         floor: 2,
       }),
     ).toMatchObject({ x: 8, y: 9, floor: 2, focusedId: "room.201" });
+  });
+  it("follows a moving person until another entity takes focus", () => {
+    const followed = focusCamera(createCamera(), {
+      id: "guest.berger",
+      kind: "person",
+      x: 8,
+      y: 9,
+      floor: 1,
+    });
+    expect(followed.followedAgentId).toBe("guest.berger");
+    expect(
+      followCamera(followed, {
+        id: "guest.berger",
+        x: 40,
+        y: 12,
+        floor: 0,
+      }),
+    ).toMatchObject({ x: 40, y: 12, floor: 0, focusedId: "guest.berger" });
+    expect(
+      focusCamera(followed, {
+        id: "room.101",
+        kind: "room",
+        x: 0,
+        y: 0,
+        floor: 1,
+      }).followedAgentId,
+    ).toBeNull();
   });
   it("selects a floor and cuts away the ones above it", () => {
     const camera = selectFloor(createCamera(), 2);

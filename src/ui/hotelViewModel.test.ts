@@ -16,34 +16,50 @@ function snapshot(): GameSnapshot {
 }
 
 describe("the isometric hotel read off the snapshot", () => {
-  it("puts a checked-in guest in the room they were given", () => {
+  it("uses the worker location and stable guest identity without inference", () => {
     const s = snapshot();
-    s.stays = [
+    s.renderDescriptors.agents = [
       {
-        bookingId: "b.1",
-        roomId: s.hotel.rooms[0].id,
-        rateMinor: 12000,
-        departureDateKey: "1991-01-03",
+        id: "guest.berger",
+        kind: "guest",
+        locationId: "facility.breakfast_room",
+        status: "breakfast",
+        routeIds: [s.hotel.rooms[0].id, "facility.breakfast_room"],
       },
     ];
 
-    expect(visualAgents(s)).toEqual([
-      { id: "guest.b.1", kind: "guest", locationId: s.hotel.rooms[0].id },
-    ]);
+    expect(visualAgents(s)).toEqual(s.renderDescriptors.agents);
   });
 
   it("stands a party still waiting at the desk in the queue, not in a room", () => {
     const s = snapshot();
-    s.receptionQueue = [{ bookingId: "b.2", waitedMinutes: 12 }];
+    s.renderDescriptors.agents = [
+      {
+        id: "guest.2",
+        kind: "guest",
+        locationId: "navigation.reception.queue",
+        queuedFor: "facility.reception",
+        status: "waiting-check-in",
+        routeIds: ["navigation.lobby", "navigation.reception.queue"],
+      },
+    ];
 
     const [waiting] = visualAgents(s);
-    expect(waiting.queuedFor).toBe("reception");
-    expect(waiting.locationId).toBe("lobby");
+    expect(waiting.queuedFor).toBe("facility.reception");
+    expect(waiting.locationId).toBe("navigation.reception.queue");
   });
 
   it("stops drawing people when the camera is too far out to see them", () => {
     const s = snapshot();
-    s.receptionQueue = [{ bookingId: "b.3", waitedMinutes: 4 }];
+    s.renderDescriptors.agents = [
+      {
+        id: "guest.3",
+        kind: "guest",
+        locationId: "navigation.reception.queue",
+        status: "waiting-check-in",
+        routeIds: [],
+      },
+    ];
 
     expect(visualAgents(s, zoomCamera(createCamera(), 2.5))).toHaveLength(1);
     expect(visualAgents(s, zoomCamera(createCamera(), 0.5))).toEqual([]);

@@ -136,6 +136,10 @@ import {
   startRenovation,
 } from "../building/renovations";
 import { generateFloorPlan, positionMapForPlan } from "../building/floorPlan";
+import {
+  describeAgentLocations,
+  describeLiftCars,
+} from "../building/agentLocations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { compareIds } from "../domain/ids";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
@@ -2670,6 +2674,43 @@ export class GameSimulation implements CommandExecutor {
 
     s.renderDescriptors.renovationPhaseByRoomId = renovationPhaseByRoomId;
     s.renderDescriptors.occupantByRoomId = occupantByRoomId;
+    s.renderDescriptors.agents = describeAgentLocations({
+      minuteOfDay: s.calendar.minuteOfDay,
+      elapsedMinutes: s.elapsedMinutes,
+      reservations: s.reservations,
+      stays: s.stays,
+      receptionQueue: s.receptionQueue,
+      staff: s.staff,
+      floorByRoomId: s.renderDescriptors.floorByRoomId,
+    });
+    const lift = s.assets.find((asset) => asset.id === "asset.lift");
+    const waitingGuestIds = s.renderDescriptors.agents
+      .filter(
+        (agent) =>
+          agent.kind === "guest" &&
+          agent.routeIds.some((id) => id.endsWith(".elevator")),
+      )
+      .map((agent) => agent.id);
+    const failed = lift?.status !== "operational";
+    s.renderDescriptors.elevator = {
+      id: "asset.lift",
+      capacity: STARTER_HOTEL.elevatorCars * 6,
+      queue: waitingGuestIds.length,
+      travelMinutes: 2,
+      failed,
+      cars: describeLiftCars({
+        liftId: "asset.lift",
+        cars: STARTER_HOTEL.elevatorCars,
+        topFloor: Math.max(
+          0,
+          ...Object.values(s.renderDescriptors.floorByRoomId),
+        ),
+        elapsedMinutes: s.elapsedMinutes,
+        trips: s.elevatorTrips,
+        failed,
+        waitingGuestIds,
+      }),
+    };
   }
 
   // --- city market -------------------------------------------------------

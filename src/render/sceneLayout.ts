@@ -295,6 +295,34 @@ export function placeAgents(
   });
 }
 
+/** Projects agents from any authoritative room, area, or navigation position. */
+export function placeAgentsFromEntities(
+  agents: readonly VisualAgent[],
+  positionByEntityId: Readonly<
+    Record<string, { floor: number; gridX: number; gridY: number }>
+  >,
+): AgentPlacement[] {
+  const perLocation = new Map<string, number>();
+  return agents.flatMap((agent): AgentPlacement[] => {
+    const location = resolveEntityPosition(
+      positionByEntityId,
+      agent.locationId,
+    );
+    if (!location) return [];
+    const index = perLocation.get(agent.locationId) ?? 0;
+    perLocation.set(agent.locationId, index + 1);
+    return [
+      {
+        id: agent.id,
+        kind: agent.kind,
+        x: location.x + (index - 1) * QUEUE_STEP,
+        y: location.y - AGENT_LIFT,
+        queued: agent.queuedFor !== undefined,
+      },
+    ];
+  });
+}
+
 /**
  * Rooms by floor, ground up. Without a floor map the house is one list, which
  * is what a hotel with no declared storeys actually is.

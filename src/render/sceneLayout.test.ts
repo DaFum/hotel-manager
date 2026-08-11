@@ -6,6 +6,7 @@ import {
   buildingCentre,
   FLOOR_HEIGHT,
   placeAgents,
+  placeAgentsFromEntities,
   placeRooms,
   placeRoomsFromGeometry,
   roomConcern,
@@ -191,6 +192,34 @@ describe("the hotel as a building", () => {
     expect(placeAgents(agents, placed, { x: 0, y: 0 })).toEqual(
       placeAgents(agents, placed, { x: 0, y: 0 }),
     );
+  });
+
+  it("places areas and navigation queues without a room fallback", () => {
+    expect(
+      placeAgentsFromEntities(
+        [
+          {
+            id: "guest.1",
+            kind: "guest",
+            locationId: "navigation.reception.queue",
+            queuedFor: "facility.reception",
+          },
+          {
+            id: "staff.1",
+            kind: "staff",
+            locationId: "facility.housekeeping",
+          },
+          { id: "guest.out", kind: "guest", locationId: "outside.hotel" },
+        ],
+        {
+          "navigation.reception.queue": { floor: 0, gridX: 1, gridY: 2 },
+          "facility.housekeeping": { floor: 0, gridX: 6, gridY: 3 },
+        },
+      ).map(({ id, queued }) => ({ id, queued })),
+    ).toEqual([
+      { id: "guest.1", queued: true },
+      { id: "staff.1", queued: false },
+    ]);
   });
 });
 

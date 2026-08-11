@@ -3,6 +3,8 @@ export interface VisualAgent {
   kind: "guest" | "staff";
   locationId: string;
   queuedFor?: string;
+  status?: string;
+  routeIds?: readonly string[];
 }
 export interface ElevatorVisualState {
   id: string;
@@ -10,6 +12,17 @@ export interface ElevatorVisualState {
   queue: number;
   travelMinutes: number;
   failed: boolean;
+  cars?: readonly {
+    id: string;
+    currentFloor: number;
+    targetFloor: number;
+    positionFloorBasisPoints: number;
+    direction: "up" | "down" | "idle";
+    moving: boolean;
+    stopped: boolean;
+    failed: boolean;
+    waitingGuestIds: readonly string[];
+  }[];
 }
 export function materializeAgents(
   agents: readonly VisualAgent[],

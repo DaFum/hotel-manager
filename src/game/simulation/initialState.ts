@@ -23,6 +23,10 @@ import {
   positionMapForPlan,
   type FloorPlan,
 } from "../building/floorPlan";
+import type {
+  LiftCarDescriptor,
+  RenderAgentDescriptor,
+} from "../building/agentLocations";
 import type { Phase as RenovationPhase } from "../renovation/projects";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
@@ -235,6 +239,7 @@ export interface GameState {
     positionByEntityId: Record<string, EntityGridPosition>;
     renovationPhaseByRoomId: Record<string, RenovationPhase>;
     occupantByRoomId: Record<string, RoomOccupantRef>;
+    agents: RenderAgentDescriptor[];
     closedNavigationIds: string[];
     elevator: {
       id: string;
@@ -242,6 +247,7 @@ export interface GameState {
       queue: number;
       travelMinutes: number;
       failed: boolean;
+      cars: LiftCarDescriptor[];
     };
   };
   savePolicy: { lastManualSlot: string | null; recoveryGeneration: number };
@@ -510,13 +516,15 @@ export function createRenderDescriptors(
     positionByEntityId: positionMapForPlan(floorPlan),
     renovationPhaseByRoomId: {},
     occupantByRoomId: {},
+    agents: [],
     closedNavigationIds: [],
     elevator: {
-      id: "asset.elevator",
+      id: "asset.lift",
       capacity: 6,
       queue: 0,
       travelMinutes: 2,
       failed: false,
+      cars: [],
     },
   };
 }

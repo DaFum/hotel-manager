@@ -4,12 +4,14 @@ import { roomConcern } from "../render/sceneLayout";
 import { formatDm } from "./money";
 import { dragCamera, wheelZoom, type CameraState } from "../render/camera";
 import type { VisualAgent } from "../render/agentMaterialization";
+import type { ElevatorVisualState } from "../render/agentMaterialization";
 import { translateGame, type GameLocale } from "../i18n";
 import type { RoomOccupantRef } from "../game/simulation/initialState";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
 import type { FloorPlan } from "../game/building/floorPlan";
 import {
   guestIdentityCode,
+  agentStatusKey,
   renovationPhaseKey,
   roomConditionKey,
 } from "./localization";
@@ -51,6 +53,7 @@ interface SceneModel {
   >;
   floorPlan?: FloorPlan;
   closedNavigationIds?: readonly string[];
+  elevator?: ElevatorVisualState;
   renovationPhaseByRoomId: Readonly<Record<string, RenovationPhase>>;
   camera?: CameraState;
   selectedId: string | null;
@@ -60,6 +63,7 @@ interface SceneModel {
 interface PixiScene {
   render: (model: SceneModel) => void;
   onRoomSelected: (handler: (roomId: string) => void) => void;
+  onAgentSelected: (handler: (agentId: string) => void) => void;
   destroy: () => void;
 }
 
@@ -120,6 +124,7 @@ export function HotelView(props: {
   >;
   floorPlan?: FloorPlan;
   closedNavigationIds?: readonly string[];
+  elevator?: ElevatorVisualState;
   camera?: CameraState;
   minuteOfDay?: number;
   stays?: readonly HotelViewStay[];
@@ -130,6 +135,7 @@ export function HotelView(props: {
   occupantByRoomId?: Readonly<Record<string, RoomOccupantRef>>;
   onSelect?: (roomId: string) => void;
   onSelectFacility?: (facilityId: string) => void;
+  onSelectAgent?: (agentId: string) => void;
   /** Moving the view; the world controls move the very same camera. */
   onCamera?: (camera: CameraState) => void;
   /** Entity the camera just reached; rooms receive equivalent DOM focus. */
@@ -140,6 +146,7 @@ export function HotelView(props: {
   const host = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
   const scene = useRef<PixiScene | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
@@ -147,6 +154,7 @@ export function HotelView(props: {
   // The scene is attached once and keeps the handler it was given, so the
   // callback is held in a ref rather than baked into that one attachment.
   const selectRoom = useRef<(roomId: string) => void>(() => {});
+  const selectAgent = useRef<(agentId: string) => void>(() => {});
 
   // Attach once. The worker republishes a snapshot ten times a second, so
   // rebuilding the WebGL context per update would thrash the renderer.
@@ -166,6 +174,10 @@ export function HotelView(props: {
         created.onRoomSelected((roomId) => {
           setSelected(roomId);
           selectRoom.current(roomId);
+        });
+        created.onAgentSelected((agentId) => {
+          setSelectedAgent(agentId);
+          selectAgent.current(agentId);
         });
         scene.current = created;
         setSceneReady(true);
@@ -191,6 +203,7 @@ export function HotelView(props: {
       positionByEntityId: props.positionByEntityId,
       floorPlan: props.floorPlan,
       closedNavigationIds: props.closedNavigationIds,
+      elevator: props.elevator,
       renovationPhaseByRoomId: props.renovationPhaseByRoomId ?? {},
       camera: props.camera,
       selectedId: selected,
@@ -204,6 +217,7 @@ export function HotelView(props: {
     props.positionByEntityId,
     props.floorPlan,
     props.closedNavigationIds,
+    props.elevator,
     props.renovationPhaseByRoomId,
     props.camera,
     props.minuteOfDay,
@@ -219,6 +233,7 @@ export function HotelView(props: {
   const moveCamera = useRef<(camera: CameraState) => void>(() => {});
   useLayoutEffect(() => {
     selectRoom.current = (roomId: string) => props.onSelect?.(roomId);
+    selectAgent.current = (agentId: string) => props.onSelectAgent?.(agentId);
     cameraRef.current = props.camera;
     moveCamera.current = (camera: CameraState) => props.onCamera?.(camera);
   });
@@ -241,6 +256,9 @@ export function HotelView(props: {
   const detail = props.rooms.find((r) => r.id === selected);
   const facilityDetail = (props.facilities ?? []).find(
     (facility) => facility.id === selectedFacility,
+  );
+  const agentDetail = (props.agents ?? []).find(
+    (agent) => agent.id === selectedAgent,
   );
   const stay = detail
     ? (props.stays ?? []).find((s) => s.roomId === detail.id)
@@ -378,6 +396,66 @@ export function HotelView(props: {
           {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
           {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
         </p>
+      ) : null}
+      <section aria-label={translateGame(locale, "agent.people")}>
+        <h3>{translateGame(locale, "agent.people")}</h3>
+        <ul>
+          {(props.agents ?? []).map((agent) => {
+            const label =
+              agent.kind === "guest"
+                ? translateGame(locale, "room.guestLabel", {
+                    code: guestIdentityCode(agent.id),
+                  })
+                : agent.id;
+            return (
+              <li key={agent.id} data-entity-id={agent.id}>
+                <button
+                  type="button"
+                  aria-current={
+                    props.camera?.followedAgentId === agent.id
+                      ? true
+                      : undefined
+                  }
+                  aria-label={`${translateGame(locale, "agent.follow")} ${label}`}
+                  onClick={() => {
+                    setSelectedAgent(agent.id);
+                    props.onSelectAgent?.(agent.id);
+                  }}
+                >
+                  {translateGame(locale, "agent.follow")} {label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+      {agentDetail ? (
+        <section aria-label={translateGame(locale, "agent.detail")}>
+          <h3>{translateGame(locale, "agent.detail")}</h3>
+          <dl>
+            <dt>{translateGame(locale, "agent.identity")}</dt>
+            <dd>
+              {agentDetail.kind === "guest"
+                ? translateGame(locale, "room.guestLabel", {
+                    code: guestIdentityCode(agentDetail.id),
+                  })
+                : agentDetail.id}
+            </dd>
+            <dt>{translateGame(locale, "agent.statusLabel")}</dt>
+            <dd>
+              {translateGame(
+                locale,
+                agentStatusKey(agentDetail.status ?? "working"),
+              )}
+            </dd>
+            <dt>{translateGame(locale, "agent.position")}</dt>
+            <dd>{agentDetail.locationId}</dd>
+            <dt>{translateGame(locale, "agent.route")}</dt>
+            <dd>
+              {(agentDetail.routeIds ?? [agentDetail.locationId]).join(" → ")}
+            </dd>
+          </dl>
+        </section>
       ) : null}
       {detail ? (
         <section aria-label="Room detail">

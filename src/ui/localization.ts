@@ -142,6 +142,10 @@ export function roomConditionKey(state: string): string {
     : "room.condition.serviceable";
 }
 
+export function agentStatusKey(status: string): string {
+  return `agent.status.${status}`;
+}
+
 export type LocalizationKey = keyof typeof ENGLISH_TEXT;
 
 /** Presentation-edge lookup until Plan 08 supplies locale-selected catalogs. */

@@ -16,6 +16,7 @@ import {
   FLOOR_HEIGHT,
   markerKindsForEntity,
   placeAgents,
+  placeAgentsFromEntities,
   placeRooms,
   placeRoomsFromGeometry,
   roomConcern,
@@ -25,6 +26,7 @@ import {
 } from "./sceneLayout";
 import { TILE_HEIGHT, TILE_WIDTH } from "./tileMetrics";
 import type { VisualAgent } from "./agentMaterialization";
+import type { ElevatorVisualState } from "./agentMaterialization";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
 import type { FloorPlan } from "../game/building/floorPlan";
 import { isoProject } from "./isoProjection";
@@ -61,6 +63,7 @@ export interface SceneModel {
   >;
   floorPlan?: FloorPlan;
   closedNavigationIds?: readonly string[];
+  elevator?: ElevatorVisualState;
   camera?: CameraState;
   selectedId?: string | null;
   minuteOfDay?: number;
@@ -109,12 +112,14 @@ export class PixiHotelScene {
   private app = new Application();
   private world = new Container();
   private architecture = new Container();
+  private lifts = new Container();
   private areaTiles = new Container();
   private tiles = new Container();
   private marks = new Container();
   private people = new Container();
   private facilities = new FacilityLayer();
   private onSelectRoom: ((roomId: string) => void) | null = null;
+  private onSelectAgent: ((agentId: string) => void) | null = null;
   /** The last thing drawn, so a resize can be re-framed without a snapshot. */
   private lastModel: SceneModel | null = null;
   /** Which room the pointer is over, kept here so hover costs no re-render. */
@@ -125,6 +130,7 @@ export class PixiHotelScene {
     canvasHost.appendChild(this.app.canvas);
     this.world.addChild(
       this.architecture,
+      this.lifts,
       this.areaTiles,
       this.tiles,
       this.marks,
@@ -149,6 +155,10 @@ export class PixiHotelScene {
     this.onSelectRoom = handler;
   }
 
+  onAgentSelected(handler: (agentId: string) => void): void {
+    this.onSelectAgent = handler;
+  }
+
   render(
     roomsOrModel: readonly SceneRoom[] | SceneModel,
     facilities: readonly FacilityTile[] = [],
@@ -162,8 +172,39 @@ export class PixiHotelScene {
     this.facilities.render(model.facilities ?? []);
     this.drawBuilding(model);
     this.drawArchitecture(model);
+    this.drawLiftCars(model);
     this.drawPeople(model);
     this.applyCamera(model);
+  }
+
+  private drawLiftCars(model: SceneModel): void {
+    for (const child of this.lifts.removeChildren()) child.destroy();
+    for (const car of model.elevator?.cars ?? []) {
+      const floorPosition = car.positionFloorBasisPoints / 10000;
+      if (model.camera && !visibleFloor(Math.ceil(floorPosition), model.camera))
+        continue;
+      const point = isoProject(6, 2, TILE_WIDTH, TILE_HEIGHT);
+      const colour = car.failed ? 0xe2543c : car.moving ? 0xe8a33d : 0x6d9dc5;
+      const graphic = new Graphics()
+        .rect(point.x - 5, point.y - floorPosition * FLOOR_HEIGHT - 4, 10, 8)
+        .fill({ color: colour, alpha: 0.92 })
+        .stroke({ width: 1, color: 0xe9e5db });
+      graphic.label = car.id;
+      this.lifts.addChild(graphic);
+
+      if (car.failed)
+        car.waitingGuestIds.slice(0, 6).forEach((guestId, index) => {
+          const waiting = new Graphics()
+            .circle(
+              point.x + 10 + index * (AGENT_RADIUS * 2 + 2),
+              point.y - car.currentFloor * FLOOR_HEIGHT,
+              AGENT_RADIUS,
+            )
+            .fill(AGENT_COLOURS.guest);
+          waiting.label = `${car.id}.waiting.${guestId}`;
+          this.lifts.addChild(waiting);
+        });
+    }
   }
 
   private projectGrid(floor: number, gridX: number, gridY: number) {
@@ -520,14 +561,20 @@ export class PixiHotelScene {
 
     // The desk is the origin of the ground floor: where an arriving guest
     // stands when they are waiting rather than anywhere in particular.
-    for (const agent of placeAgents(model.agents, this.placements(model), {
-      x: 0,
-      y: TILE_HEIGHT,
-    })) {
+    const placed = model.positionByEntityId
+      ? placeAgentsFromEntities(model.agents, model.positionByEntityId)
+      : placeAgents(model.agents, this.placements(model), {
+          x: 0,
+          y: TILE_HEIGHT,
+        });
+    for (const agent of placed) {
       const mark = new Graphics()
         .circle(agent.x, agent.y, AGENT_RADIUS)
         .fill(AGENT_COLOURS[agent.kind]);
       mark.label = agent.id;
+      mark.eventMode = "static";
+      mark.cursor = "pointer";
+      mark.on("pointertap", () => this.onSelectAgent?.(agent.id));
       this.people.addChild(mark);
     }
   }

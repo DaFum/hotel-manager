@@ -372,6 +372,6 @@ export function positionMapForPlan(
         gridY: node.gridY,
       };
   positions["facility.elevator"] = { floor: 0, gridX: 6, gridY: 2 };
-  positions["asset.elevator"] = { floor: 0, gridX: 6, gridY: 2 };
+  positions["asset.lift"] = { floor: 0, gridX: 6, gridY: 2 };
   return positions;
 }

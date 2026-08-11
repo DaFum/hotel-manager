@@ -43,7 +43,19 @@ export function WorldControls(props: {
   floors: readonly number[];
   minuteOfDay: number;
   problems: readonly WorldProblem[];
-  elevator: { queue: number; waitMinutes: number; cause: string };
+  elevator: {
+    queue: number;
+    waitMinutes: number;
+    cause: string;
+    cars?: readonly {
+      id: string;
+      currentFloor: number;
+      targetFloor: number;
+      direction: "up" | "down" | "idle";
+      failed: boolean;
+      waitingGuestIds: readonly string[];
+    }[];
+  };
   onCamera: (camera: CameraState) => void;
   locale?: GameLocale;
 }) {
@@ -140,6 +152,19 @@ export function WorldControls(props: {
         {props.elevator.queue} waiting, {props.elevator.waitMinutes} minutes,{" "}
         {props.elevator.cause}
       </p>
+      {(props.elevator.cars?.length ?? 0) > 0 ? (
+        <ul>
+          {props.elevator.cars?.map((car) => (
+            <li key={car.id} data-entity-id={car.id}>
+              {car.id}: floor {car.currentFloor}, {car.direction}
+              {car.failed ? ", failed" : ""}
+              {car.waitingGuestIds.length
+                ? `, ${car.waitingGuestIds.length} waiting`
+                : ""}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <h3>Problems</h3>
       {props.problems.length === 0 ? (

@@ -13,6 +13,7 @@ export interface CameraState extends Point {
   cutaway: boolean;
   focusedId: string | null;
   showServiceAreas: boolean;
+  followedAgentId: string | null;
 }
 export const MIN_ZOOM = 0.5;
 export const MAX_ZOOM = 2.5;
@@ -25,6 +26,7 @@ export function createCamera(): CameraState {
     cutaway: false,
     focusedId: null,
     showServiceAreas: false,
+    followedAgentId: null,
   };
 }
 export function panCamera(camera: CameraState, by: Point): CameraState {
@@ -37,6 +39,22 @@ export function focusCamera(
   camera: CameraState,
   target: FocusTarget,
 ): CameraState {
+  return {
+    ...camera,
+    x: target.x,
+    y: target.y,
+    floor: target.floor,
+    focusedId: target.id,
+    followedAgentId: target.kind === "person" ? target.id : null,
+  };
+}
+
+/** Re-centres an existing follow target without changing what is followed. */
+export function followCamera(
+  camera: CameraState,
+  target: Point & { id: string; floor: number },
+): CameraState {
+  if (camera.followedAgentId !== target.id) return camera;
   return {
     ...camera,
     x: target.x,

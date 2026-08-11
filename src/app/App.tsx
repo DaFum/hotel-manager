@@ -46,7 +46,12 @@ import {
 } from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
 import { WorldControls } from "../ui/WorldControls";
-import { createCamera, focusCamera, type CameraState } from "../render/camera";
+import {
+  createCamera,
+  focusCamera,
+  followCamera,
+  type CameraState,
+} from "../render/camera";
 import {
   rateByCategory,
   roomFocusPoint,
@@ -163,6 +168,35 @@ export function App() {
     }
   }, [s, preferences.notifications, game]);
 
+  useEffect(() => {
+    const agentId = camera.followedAgentId;
+    if (!s || !agentId) return;
+    const agent = s.renderDescriptors.agents.find(
+      (candidate) => candidate.id === agentId,
+    );
+    if (!agent) return;
+    const position = resolveEntityPosition(
+      s.renderDescriptors.positionByEntityId,
+      agent.locationId,
+    );
+    if (!position) return;
+    setCamera((current) => {
+      if (
+        current.followedAgentId !== agentId ||
+        (current.x === position.x &&
+          current.y === position.y &&
+          current.floor === position.floor)
+      )
+        return current;
+      return followCamera(current, {
+        id: agentId,
+        x: position.x,
+        y: position.y,
+        floor: position.floor,
+      });
+    });
+  }, [s, camera.followedAgentId]);
+
   // The worker is the game: once it has stopped, the surface behind it is a
   // hotel frozen mid-day. Say so, and offer the newest trustworthy save.
   if (game.workerFailure)
@@ -252,6 +286,7 @@ export function App() {
           positionByEntityId={s.renderDescriptors.positionByEntityId}
           floorPlan={s.renderDescriptors.floorPlan}
           closedNavigationIds={s.renderDescriptors.closedNavigationIds}
+          elevator={s.renderDescriptors.elevator}
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
           focusedEntityId={camera.focusedId}
@@ -269,6 +304,26 @@ export function App() {
               }),
             )
           }
+          onSelectAgent={(agentId) => {
+            const agent = s.renderDescriptors.agents.find(
+              (candidate) => candidate.id === agentId,
+            );
+            if (!agent) return;
+            const position = resolveEntityPosition(
+              s.renderDescriptors.positionByEntityId,
+              agent.locationId,
+            );
+            if (!position) return;
+            setCamera((current) =>
+              focusCamera(current, {
+                id: agentId,
+                x: position.x,
+                y: position.y,
+                floor: position.floor,
+                kind: "person",
+              }),
+            );
+          }}
           onCamera={setCamera}
           disableRenderer={rendererDisabled()}
           locale={preferences.locale}

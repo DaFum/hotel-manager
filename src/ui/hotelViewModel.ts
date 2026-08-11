@@ -17,13 +17,8 @@ import type { GameSnapshot } from "../game/domain/snapshot";
  */
 
 /**
- * Who is in the building. Guests come from the stays the house has checked in
- * and from the parties still waiting at the desk; both are facts the snapshot
- * already holds.
- *
- * Staff are deliberately absent: the simulation rosters them by role and shift
- * but never says where any of them is standing, and a housekeeper drawn in an
- * invented corridor would be a claim the game cannot back.
+ * Who is in the building. Locations, routes, and activity come directly from
+ * worker descriptors; React never infers where a person ought to be.
  */
 export function visualAgents(
   snapshot: GameSnapshot,
@@ -32,21 +27,12 @@ export function visualAgents(
   // Far enough out, the building is read as rooms and loads, not as people.
   if (camera && detailFor(camera.zoom) !== "people") return [];
 
-  const inRooms: VisualAgent[] = snapshot.stays.map((stay) => ({
-    id: `guest.${stay.bookingId}`,
-    kind: "guest",
-    locationId: stay.roomId,
-  }));
-  const waiting: VisualAgent[] = snapshot.receptionQueue.map((entry) => ({
-    id: `guest.${entry.bookingId}`,
-    kind: "guest",
-    locationId: "lobby",
-    queuedFor: "reception",
-  }));
-
   // The house's own budget, not a second number invented beside it: the
   // simulation already declares how many agents may be drawn at once.
-  return materializeAgents([...waiting, ...inRooms], VISIBLE_AGENT_BUDGET);
+  return materializeAgents(
+    snapshot.renderDescriptors.agents,
+    VISIBLE_AGENT_BUDGET,
+  );
 }
 
 /** Tonight's asking price per room category, in minor units. */

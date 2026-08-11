@@ -758,6 +758,24 @@ describe("localized alerts", () => {
       rateMinor: booking.rateMinor,
       departureDateKey: "1991-01-03",
     });
+    expect(
+      sim.state.renderDescriptors.agents.find(
+        (agent) => agent.id === "guest.returning.1",
+      ),
+    ).toMatchObject({
+      kind: "guest",
+      locationId: room.id,
+      status: "sleeping",
+    });
+    expect(
+      sim.state.renderDescriptors.agents.some(
+        (agent) => agent.kind === "staff",
+      ),
+    ).toBe(true);
+    expect(sim.state.renderDescriptors.elevator).toMatchObject({
+      id: "asset.lift",
+      cars: [expect.objectContaining({ id: "asset.lift.car.1" })],
+    });
   });
 
   it("targets the housekeeping backlog at the placed housekeeping area", () => {

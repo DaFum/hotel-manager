@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { createCamera } from "../render/camera";
 import { WorldControls } from "./WorldControls";
@@ -33,4 +33,25 @@ it("localizes a problem's camera action accessible name", () => {
       name: "Gehe zu Reinigungsrückstand: 6 Zimmer warten auf Reinigung",
     }),
   ).toBeTruthy();
+});
+
+it("offers a keyboard-accessible service-area overlay toggle", () => {
+  let next = createCamera();
+  render(
+    <WorldControls
+      camera={next}
+      floors={[0]}
+      minuteOfDay={600}
+      elevator={{ queue: 0, waitMinutes: 0, cause: "clear" }}
+      problems={[]}
+      onCamera={(camera) => {
+        next = camera;
+      }}
+    />,
+  );
+
+  const toggle = screen.getByRole("button", { name: /service areas/i });
+  expect(toggle.getAttribute("aria-pressed")).toBe("false");
+  fireEvent.click(toggle);
+  expect(next.showServiceAreas).toBe(true);
 });

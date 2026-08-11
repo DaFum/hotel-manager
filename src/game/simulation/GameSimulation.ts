@@ -135,6 +135,7 @@ import {
   renovationBlockedRooms,
   startRenovation,
 } from "../building/renovations";
+import { generateFloorPlan, positionMapForPlan } from "../building/floorPlan";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { compareIds } from "../domain/ids";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
@@ -2638,6 +2639,12 @@ export class GameSimulation implements CommandExecutor {
   /** Joins authoritative entities into stable, renderer-ready references. */
   private refreshRenderDescriptors(): void {
     const s = this.state;
+    const floorPlan = generateFloorPlan(s.hotel.rooms);
+    s.renderDescriptors.floorPlan = floorPlan;
+    s.renderDescriptors.floorByRoomId = Object.fromEntries(
+      Object.values(floorPlan.rooms).map((room) => [room.id, room.floor]),
+    );
+    s.renderDescriptors.positionByEntityId = positionMapForPlan(floorPlan);
     const renovationPhaseByRoomId: GameState["renderDescriptors"]["renovationPhaseByRoomId"] =
       {};
     if (s.renovation)

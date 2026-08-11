@@ -7,6 +7,7 @@ import {
   FLOOR_HEIGHT,
   placeAgents,
   placeRooms,
+  placeRoomsFromGeometry,
   roomConcern,
   stageTransform,
   visiblePlacements,
@@ -41,9 +42,10 @@ describe("the hotel as a building", () => {
     ).markerKindsForEntity;
 
     expect(markerKindsForEntity).toBeTypeOf("function");
-    expect(markerKindsForEntity?.("room.101", "room.101", "room.101")).toEqual(
-      ["selection", "focus"],
-    );
+    expect(markerKindsForEntity?.("room.101", "room.101", "room.101")).toEqual([
+      "selection",
+      "focus",
+    ]);
   });
 
   it("stacks rooms onto the floor the simulation put them on", () => {
@@ -60,6 +62,27 @@ describe("the hotel as a building", () => {
     // rather than continuing its row.
     expect(placed[2].gridX).toBe(0);
     expect(placed[0].y - placed[2].y).toBe(FLOOR_HEIGHT);
+  });
+
+  it("projects rooms from authoritative geometry instead of their array index", () => {
+    const placed = placeRoomsFromGeometry(ROOMS, {
+      "room.101": { floor: 3, gridX: 8, gridY: 1 },
+      "room.102": { floor: 1, gridX: 2, gridY: 4 },
+      "room.201": { floor: 2, gridX: 7, gridY: 0 },
+      "room.202": { floor: 1, gridX: 0, gridY: 4 },
+    });
+
+    expect(placed.find((room) => room.id === "room.101")).toMatchObject({
+      floor: 3,
+      gridX: 8,
+      gridY: 1,
+    });
+    expect(placed.map((room) => room.id)).toEqual([
+      "room.202",
+      "room.102",
+      "room.201",
+      "room.101",
+    ]);
   });
 
   it("puts a room with no declared floor on the ground rather than dropping it", () => {

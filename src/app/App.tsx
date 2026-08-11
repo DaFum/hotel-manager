@@ -249,6 +249,9 @@ export function App() {
           facilities={s.facilities}
           agents={visualAgents(s, camera)}
           floorByRoomId={s.renderDescriptors.floorByRoomId}
+          positionByEntityId={s.renderDescriptors.positionByEntityId}
+          floorPlan={s.renderDescriptors.floorPlan}
+          closedNavigationIds={s.renderDescriptors.closedNavigationIds}
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
           focusedEntityId={camera.focusedId}

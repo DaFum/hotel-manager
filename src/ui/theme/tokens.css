@@ -66,12 +66,10 @@
   --hm-idle: #8a8f8b;
 
   /* --- Type: Anton poster grotesque over IBM Plex ---------------------- */
-  --hm-font-display:
-    "Anton", "Haettenschweiler", "Oswald", "Arial Narrow", sans-serif;
+  --hm-font-display: "Anton", "Haettenschweiler", "Oswald", "Impact", fantasy;
   --hm-font-body:
-    "IBM Plex Sans", "Frutiger", "Segoe UI", "Helvetica Neue", sans-serif;
-  --hm-font-data:
-    "IBM Plex Mono", "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+    "IBM Plex Sans", "Frutiger", "Gill Sans Nova", "Avenir Next", sans-serif;
+  --hm-font-data: "IBM Plex Mono", "Courier Prime", "Nimbus Mono PS", monospace;
 
   /* A minor-third scale, anchored on the inherited root size so the
      accessibility text-scale preference keeps scaling everything. */

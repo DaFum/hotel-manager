@@ -7,6 +7,7 @@ import type { VisualAgent } from "../render/agentMaterialization";
 import { translateGame, type GameLocale } from "../i18n";
 import type { RoomOccupantRef } from "../game/simulation/initialState";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
+import type { FloorPlan } from "../game/building/floorPlan";
 import {
   guestIdentityCode,
   renovationPhaseKey,
@@ -45,6 +46,11 @@ interface SceneModel {
   facilities: readonly HotelViewFacility[];
   agents: readonly VisualAgent[];
   floorByRoomId: Readonly<Record<string, number>>;
+  positionByEntityId?: Readonly<
+    Record<string, { floor: number; gridX: number; gridY: number }>
+  >;
+  floorPlan?: FloorPlan;
+  closedNavigationIds?: readonly string[];
   renovationPhaseByRoomId: Readonly<Record<string, RenovationPhase>>;
   camera?: CameraState;
   selectedId: string | null;
@@ -109,6 +115,11 @@ export function HotelView(props: {
   facilities?: readonly HotelViewFacility[];
   agents?: readonly VisualAgent[];
   floorByRoomId?: Readonly<Record<string, number>>;
+  positionByEntityId?: Readonly<
+    Record<string, { floor: number; gridX: number; gridY: number }>
+  >;
+  floorPlan?: FloorPlan;
+  closedNavigationIds?: readonly string[];
   camera?: CameraState;
   minuteOfDay?: number;
   stays?: readonly HotelViewStay[];
@@ -177,6 +188,9 @@ export function HotelView(props: {
       facilities: props.facilities ?? [],
       agents: props.agents ?? [],
       floorByRoomId: props.floorByRoomId ?? {},
+      positionByEntityId: props.positionByEntityId,
+      floorPlan: props.floorPlan,
+      closedNavigationIds: props.closedNavigationIds,
       renovationPhaseByRoomId: props.renovationPhaseByRoomId ?? {},
       camera: props.camera,
       selectedId: selected,
@@ -187,6 +201,9 @@ export function HotelView(props: {
     props.facilities,
     props.agents,
     props.floorByRoomId,
+    props.positionByEntityId,
+    props.floorPlan,
+    props.closedNavigationIds,
     props.renovationPhaseByRoomId,
     props.camera,
     props.minuteOfDay,
@@ -315,6 +332,30 @@ export function HotelView(props: {
           props.onSelect?.(roomId);
         }}
       />
+      {props.floorPlan ? (
+        <details>
+          <summary>Building structure</summary>
+          <h3>Placed areas</h3>
+          <ul>
+            {props.floorPlan.areas.map((area) => (
+              <li key={area.id} data-entity-id={area.id}>
+                {area.id}: {area.kind}, floor {area.floor}
+              </li>
+            ))}
+          </ul>
+          <h3>Navigation</h3>
+          <ul>
+            {props.floorPlan.navigationNodes.map((node) => (
+              <li key={node.id} data-entity-id={node.id}>
+                {node.id}: {node.kind}, floor {node.floor}
+                {(props.closedNavigationIds ?? []).includes(node.id)
+                  ? ", closed"
+                  : ""}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
       <h3>Service areas</h3>
       <ul>
         {(props.facilities ?? []).map((facility) => (

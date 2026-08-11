@@ -1,12 +1,23 @@
 import { Application, Container, Graphics } from "pixi.js";
-import { FacilityLayer, type FacilityTile } from "./facilities/FacilityLayer";
-import { lightingFor, type CameraState } from "./camera";
+import {
+  FacilityLayer,
+  LOAD_COLOURS,
+  loadBand,
+  type FacilityTile,
+} from "./facilities/FacilityLayer";
+import {
+  lightingFor,
+  serviceAreaEmphasis,
+  visibleFloor,
+  type CameraState,
+} from "./camera";
 import {
   buildingCentre,
   FLOOR_HEIGHT,
   markerKindsForEntity,
   placeAgents,
   placeRooms,
+  placeRoomsFromGeometry,
   roomConcern,
   stageTransform,
   visiblePlacements,
@@ -15,6 +26,7 @@ import {
 import { TILE_HEIGHT, TILE_WIDTH } from "./tileMetrics";
 import type { VisualAgent } from "./agentMaterialization";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
+import type { FloorPlan } from "../game/building/floorPlan";
 import { isoProject } from "./isoProjection";
 import {
   aggregateRoomState,
@@ -22,6 +34,7 @@ import {
   roomLighting,
   roomLodFor,
 } from "./roomVisuals";
+import { navigationWithClosures } from "./navigationGraph";
 
 export { TILE_HEIGHT, TILE_WIDTH } from "./tileMetrics";
 
@@ -43,6 +56,11 @@ export interface SceneModel {
   agents?: readonly VisualAgent[];
   renovationPhaseByRoomId?: Readonly<Record<string, RenovationPhase>>;
   floorByRoomId?: Readonly<Record<string, number>>;
+  positionByEntityId?: Readonly<
+    Record<string, { floor: number; gridX: number; gridY: number }>
+  >;
+  floorPlan?: FloorPlan;
+  closedNavigationIds?: readonly string[];
   camera?: CameraState;
   selectedId?: string | null;
   minuteOfDay?: number;
@@ -90,6 +108,8 @@ const AGENT_RADIUS = 3;
 export class PixiHotelScene {
   private app = new Application();
   private world = new Container();
+  private architecture = new Container();
+  private areaTiles = new Container();
   private tiles = new Container();
   private marks = new Container();
   private people = new Container();
@@ -103,7 +123,13 @@ export class PixiHotelScene {
   async attach(canvasHost: HTMLElement): Promise<void> {
     await this.app.init({ background: 0x0e1114, resizeTo: canvasHost });
     canvasHost.appendChild(this.app.canvas);
-    this.world.addChild(this.tiles, this.marks, this.people);
+    this.world.addChild(
+      this.architecture,
+      this.areaTiles,
+      this.tiles,
+      this.marks,
+      this.people,
+    );
     this.app.stage.addChild(this.world);
     // The facility strip is a heads-up read on the building, so it stays
     // pinned to the corner of the view rather than travelling with the world.
@@ -135,8 +161,178 @@ export class PixiHotelScene {
     this.lastModel = model;
     this.facilities.render(model.facilities ?? []);
     this.drawBuilding(model);
+    this.drawArchitecture(model);
     this.drawPeople(model);
     this.applyCamera(model);
+  }
+
+  private projectGrid(floor: number, gridX: number, gridY: number) {
+    const point = isoProject(gridX, gridY, TILE_WIDTH, TILE_HEIGHT);
+    return { x: point.x, y: point.y - floor * FLOOR_HEIGHT };
+  }
+
+  /** Draws the shell and circulation before rooms are placed into it. */
+  private drawArchitecture(model: SceneModel): void {
+    for (const child of this.architecture.removeChildren()) child.destroy();
+    for (const child of this.areaTiles.removeChildren()) child.destroy();
+    const plan = model.floorPlan;
+    if (!plan) return;
+    const camera = model.camera;
+    const floorVisible = (floor: number) =>
+      camera ? visibleFloor(floor, camera) : true;
+    const navigation = navigationWithClosures(
+      plan.navigationNodes,
+      model.closedNavigationIds ?? [],
+    );
+    const closed = new Set(
+      navigation.filter((node) => node.closed).map((node) => node.id),
+    );
+
+    for (const slab of plan.floorSlabs.filter((item) =>
+      floorVisible(item.floor),
+    )) {
+      const corners = [
+        this.projectGrid(slab.floor, slab.minGridX, slab.minGridY),
+        this.projectGrid(slab.floor, slab.maxGridX, slab.minGridY),
+        this.projectGrid(slab.floor, slab.maxGridX, slab.maxGridY),
+        this.projectGrid(slab.floor, slab.minGridX, slab.maxGridY),
+      ];
+      const graphic = new Graphics()
+        .moveTo(corners[0].x, corners[0].y)
+        .lineTo(corners[1].x, corners[1].y)
+        .lineTo(corners[2].x, corners[2].y)
+        .lineTo(corners[3].x, corners[3].y)
+        .closePath()
+        .fill({ color: 0x11161b, alpha: 0.9 })
+        .stroke({ width: 1, color: 0x38434d });
+      graphic.label = `floor.${slab.floor}.slab`;
+      this.architecture.addChild(graphic);
+    }
+
+    for (const wall of plan.exteriorWalls.filter((item) =>
+      floorVisible(item.floor),
+    )) {
+      const from = this.projectGrid(
+        wall.floor,
+        wall.from.gridX,
+        wall.from.gridY,
+      );
+      const to = this.projectGrid(wall.floor, wall.to.gridX, wall.to.gridY);
+      const graphic = new Graphics()
+        .moveTo(from.x, from.y)
+        .lineTo(to.x, to.y)
+        .stroke({ width: 2, color: 0x8a8f8b });
+      graphic.label = wall.id;
+      this.architecture.addChild(graphic);
+    }
+
+    for (const corridor of plan.corridorSpines.filter((item) =>
+      floorVisible(item.floor),
+    )) {
+      const from = this.projectGrid(
+        corridor.floor,
+        corridor.from.gridX,
+        corridor.from.gridY,
+      );
+      const to = this.projectGrid(
+        corridor.floor,
+        corridor.to.gridX,
+        corridor.to.gridY,
+      );
+      const isClosed = closed.has(corridor.id);
+      const emphasis = camera
+        ? serviceAreaEmphasis(corridor.service ? "service" : "guest", camera)
+        : "normal";
+      const graphic = new Graphics()
+        .moveTo(from.x, from.y)
+        .lineTo(to.x, to.y)
+        .stroke({
+          width: emphasis === "highlighted" ? 8 : 5,
+          color: isClosed ? 0xe2543c : 0x6d9dc5,
+          alpha: emphasis === "deemphasized" ? 0.25 : 0.75,
+        });
+      graphic.label = isClosed ? `${corridor.id}.closed` : corridor.id;
+      this.architecture.addChild(graphic);
+    }
+
+    const facilityById = new Map(
+      (model.facilities ?? []).map((facility) => [facility.id, facility]),
+    );
+    for (const area of plan.areas.filter((item) => floorVisible(item.floor))) {
+      const corners = [
+        this.projectGrid(area.floor, area.gridX, area.gridY),
+        this.projectGrid(area.floor, area.gridX + area.width, area.gridY),
+        this.projectGrid(
+          area.floor,
+          area.gridX + area.width,
+          area.gridY + area.depth,
+        ),
+        this.projectGrid(area.floor, area.gridX, area.gridY + area.depth),
+      ];
+      const emphasis = camera
+        ? serviceAreaEmphasis(area.kind, camera)
+        : "normal";
+      const load = facilityById.get(area.id);
+      const loadColour = load
+        ? LOAD_COLOURS[loadBand(load.demand, load.capacity)]
+        : area.kind === "service"
+          ? 0x6d9dc5
+          : 0xe9e5db;
+      const graphic = new Graphics()
+        .moveTo(corners[0].x, corners[0].y)
+        .lineTo(corners[1].x, corners[1].y)
+        .lineTo(corners[2].x, corners[2].y)
+        .lineTo(corners[3].x, corners[3].y)
+        .closePath()
+        .fill({
+          color: loadColour,
+          alpha:
+            emphasis === "highlighted"
+              ? 0.65
+              : emphasis === "deemphasized"
+                ? 0.08
+                : 0.28,
+        })
+        .stroke({
+          width: emphasis === "highlighted" ? 2 : 1,
+          color: loadColour,
+        });
+      graphic.label = area.id;
+      this.areaTiles.addChild(graphic);
+    }
+
+    for (const core of plan.cores.filter((item) => floorVisible(item.floor))) {
+      const point = this.projectGrid(core.floor, core.gridX, core.gridY);
+      const emphasized = camera?.showServiceAreas === true;
+      const graphic = new Graphics();
+      if (core.kind === "elevator")
+        graphic
+          .rect(point.x - 7, point.y - 5, 14, 10)
+          .fill({ color: 0x0e1114, alpha: 0.9 })
+          .stroke({ width: emphasized ? 3 : 2, color: 0x6d9dc5 });
+      else
+        for (let step = 0; step < 3; step++)
+          graphic
+            .moveTo(point.x - 7 + step * 3, point.y + 5 - step * 3)
+            .lineTo(point.x + 2 + step * 3, point.y + 5 - step * 3)
+            .stroke({ width: 1, color: 0xe9e5db });
+      graphic.label = core.id;
+      graphic.alpha = emphasized ? 1 : 0.78;
+      this.architecture.addChild(graphic);
+    }
+
+    for (const node of navigation.filter((item) => item.closed)) {
+      if (!floorVisible(node.floor)) continue;
+      const point = this.projectGrid(node.floor, node.gridX, node.gridY);
+      const marker = new Graphics()
+        .moveTo(point.x - 5, point.y - 5)
+        .lineTo(point.x + 5, point.y + 5)
+        .moveTo(point.x + 5, point.y - 5)
+        .lineTo(point.x - 5, point.y + 5)
+        .stroke({ width: 3, color: 0xe2543c });
+      marker.label = `${node.id}.closed`;
+      this.marks.addChild(marker);
+    }
   }
 
   private drawBuilding(model: SceneModel): void {
@@ -176,6 +372,7 @@ export class PixiHotelScene {
       tile.position.set(placement.x, placement.y);
       tile.label = placement.id;
       tile.tint = lighting.tint;
+      tile.alpha = model.camera?.showServiceAreas ? 0.22 : 1;
 
       // The same stable id the semantic DOM control uses, so clicking the
       // world and clicking the room list are the same action.
@@ -336,16 +533,15 @@ export class PixiHotelScene {
   }
 
   private placements(model: SceneModel): RoomPlacement[] {
-    const placed = placeRooms(
-      model.rooms.map((room) => ({
-        id: room.id,
-        category: room.category,
-        state: room.state,
-        cleanliness: room.cleanliness ?? 100,
-      })),
-      model.floorByRoomId ?? {},
-      model.columns ?? 6,
-    );
+    const rooms = model.rooms.map((room) => ({
+      id: room.id,
+      category: room.category,
+      state: room.state,
+      cleanliness: room.cleanliness ?? 100,
+    }));
+    const placed = model.positionByEntityId
+      ? placeRoomsFromGeometry(rooms, model.positionByEntityId)
+      : placeRooms(rooms, model.floorByRoomId ?? {}, model.columns ?? 6);
     return model.camera ? visiblePlacements(placed, model.camera) : placed;
   }
 

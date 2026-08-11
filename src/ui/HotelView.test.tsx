@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HotelView } from "./HotelView";
 import { createCamera, zoomCamera, dragCamera } from "../render/camera";
+import { generateFloorPlan } from "../game/building/floorPlan";
 
 const rooms = [
   {
@@ -177,5 +178,27 @@ describe("hotel view", () => {
     expect(screen.getAllByText("Planning").length).toBeGreaterThan(0);
     expect(screen.getAllByText("serviceable").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Planning phase").length).toBeGreaterThan(0);
+  });
+
+  it("exposes placed areas and stable navigation ids beside the canvas", () => {
+    const floorPlan = generateFloorPlan(rooms);
+    render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        closedNavigationIds={["navigation.floor.1.corridor"]}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Building structure"));
+    expect(
+      screen.getByText(/facility\.kitchen: service, floor 0/i),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        /navigation\.floor\.1\.corridor: corridor, floor 1, closed/i,
+      ),
+    ).toBeTruthy();
   });
 });

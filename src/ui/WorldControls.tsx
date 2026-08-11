@@ -7,6 +7,7 @@ import {
   lightingFor,
   panCamera,
   selectFloor,
+  toggleServiceAreas,
   visibleFloor,
   zoomCamera,
   type CameraState,
@@ -122,6 +123,16 @@ export function WorldControls(props: {
         }
       >
         {camera.cutaway ? "Show whole building" : "Cut away above this floor"}
+      </button>
+
+      <h3>Layers</h3>
+      <button
+        type="button"
+        aria-label="Show service areas"
+        aria-pressed={camera.showServiceAreas}
+        onClick={() => props.onCamera(toggleServiceAreas(camera))}
+      >
+        {camera.showServiceAreas ? "Hide" : "Show"} service areas
       </button>
 
       <h3>Lifts</h3>

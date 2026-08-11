@@ -24,7 +24,7 @@
 
 **Palette:** Reuse the established Bankenviertel tokens rather than introduce a second visual system: concrete `#0e1114`, ledger rule `#38434d`, bone paper `#e9e5db`, Deutschmark amber `#e8a33d`, lift steel `#6d9dc5`, operational green `#5cc98f`, and fault red `#e2543c`. Night rooms use amber as actual window light, not a generic warm overlay; unlit rooms recede into concrete/steel.
 
-**Type:** Keep Anton/Arial Narrow for restrained floor and area plates, IBM Plex Sans/Segoe UI for instructions, and IBM Plex Mono/Consolas for room numbers, queue counts, routes, and lift positions. The canvas itself uses symbols and geometry; exact labels remain in the DOM so zoom never makes text illegible.
+**Type:** Keep Anton for restrained floor and area plates, IBM Plex Sans for instructions, and IBM Plex Mono for room numbers, queue counts, routes, and lift positions. Their non-generic fallbacks remain display, humanist, and typewriter faces respectively. The canvas itself uses symbols and geometry; exact labels remain in the DOM so zoom never makes text illegible.
 
 **Layout:** The hotel is an architectural section, not a tile field. Guest rooms form two wings around a ruled corridor spine; service areas read as a connected back-of-house band on the ground floor; lift and stair cores pin every floor vertically.
 

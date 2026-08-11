@@ -11,6 +11,9 @@ import {
   lightingFor,
   panCamera,
   selectFloor,
+  serviceAreasVisible,
+  serviceAreaEmphasis,
+  toggleServiceAreas,
   visibleFloor,
   zoomCamera,
 } from "./camera";
@@ -33,12 +36,12 @@ describe("isometric camera", () => {
     expect(visibleFloor(2, camera)).toBe(true);
     expect(visibleFloor(3, camera)).toBe(false);
     const focused = focusCamera(camera, {
-        id: "facility.spa",
-        kind: "facility",
-        x: 0,
-        y: 0,
-        floor: 3,
-      });
+      id: "facility.spa",
+      kind: "facility",
+      x: 0,
+      y: 0,
+      floor: 3,
+    });
     expect(focused.focusedId).toBe("facility.spa");
     expect(focused.floor).toBe(3);
     expect(visibleFloor(3, focused)).toBe(true);
@@ -54,6 +57,15 @@ describe("isometric camera", () => {
       "rooms",
       "people",
     ]);
+  });
+  it("keeps the service overlay as presentation-only camera state", () => {
+    const camera = createCamera();
+    expect(serviceAreasVisible(camera)).toBe(false);
+    const visible = toggleServiceAreas(camera);
+    expect(serviceAreasVisible(visible)).toBe(true);
+    expect(serviceAreaEmphasis("service", visible)).toBe("highlighted");
+    expect(serviceAreaEmphasis("guest", visible)).toBe("deemphasized");
+    expect(toggleServiceAreas(visible).showServiceAreas).toBe(false);
   });
 });
 

@@ -1,5 +1,9 @@
 import { expect, it } from "vitest";
-import { findPath, type NavigationNode } from "./navigationGraph";
+import {
+  findPath,
+  navigationWithClosures,
+  type NavigationNode,
+} from "./navigationGraph";
 it("routes through doors, corridors, stairs and lifts around closures", () => {
   const graph: NavigationNode[] = [
     { id: "room", kind: "room", links: ["door"] },
@@ -32,4 +36,17 @@ it("skips dangling links without throwing", () => {
     { id: "finish", kind: "corridor", links: [] },
   ];
   expect(findPath(graph, "start", "finish")).toEqual(["start", "finish"]);
+});
+
+it("applies authoritative closure ids to the same stable topology", () => {
+  const nodes: NavigationNode[] = [
+    { id: "corridor.1", kind: "corridor", links: ["stairs.1"] },
+    { id: "stairs.1", kind: "stairs", links: ["corridor.1"] },
+  ];
+  const rendered = navigationWithClosures(nodes, ["corridor.1"]);
+  expect(rendered).toEqual([
+    { ...nodes[0], closed: true },
+    { ...nodes[1], closed: false },
+  ]);
+  expect(findPath(rendered, "stairs.1", "corridor.1")).toEqual([]);
 });

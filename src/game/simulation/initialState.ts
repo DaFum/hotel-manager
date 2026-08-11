@@ -18,6 +18,11 @@ import type { LedgerEntry } from "../finance/ledger";
 import type { Loan } from "../finance/loans";
 import type { Asset } from "../maintenance/maintenance";
 import type { RenovationJob } from "../building/renovations";
+import {
+  generateFloorPlan,
+  positionMapForPlan,
+  type FloorPlan,
+} from "../building/floorPlan";
 import type { Phase as RenovationPhase } from "../renovation/projects";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
@@ -225,6 +230,7 @@ export interface GameState {
   fnb: FnbState;
   utilities: UtilityState;
   renderDescriptors: {
+    floorPlan: FloorPlan;
     floorByRoomId: Record<string, number>;
     positionByEntityId: Record<string, EntityGridPosition>;
     renovationPhaseByRoomId: Record<string, RenovationPhase>;
@@ -494,12 +500,14 @@ export function createGuestSatisfaction(): GameState["guestSatisfaction"] {
 export function createRenderDescriptors(
   rooms: readonly { id: string }[],
 ): GameState["renderDescriptors"] {
+  const floorPlan = generateFloorPlan(rooms);
   const floorByRoomId = Object.fromEntries(
-    rooms.map((room, index) => [room.id, Math.floor(index / 12) + 1]),
+    Object.values(floorPlan.rooms).map((room) => [room.id, room.floor]),
   );
   return {
+    floorPlan,
     floorByRoomId,
-    positionByEntityId: createPositionByEntityId(rooms, floorByRoomId),
+    positionByEntityId: positionMapForPlan(floorPlan),
     renovationPhaseByRoomId: {},
     occupantByRoomId: {},
     closedNavigationIds: [],
@@ -511,48 +519,6 @@ export function createRenderDescriptors(
       failed: false,
     },
   };
-}
-
-const STARTER_AREA_POSITIONS: Readonly<Record<string, EntityGridPosition>> = {
-  "navigation.lobby": { floor: 0, gridX: 0, gridY: 2 },
-  "navigation.reception.queue": { floor: 0, gridX: 1, gridY: 2 },
-  "facility.breakfast_room": { floor: 0, gridX: 3, gridY: 1 },
-  "facility.bar": { floor: 0, gridX: 3, gridY: 3 },
-  "facility.kitchen": { floor: 0, gridX: 5, gridY: 1 },
-  "facility.conference": { floor: 0, gridX: 5, gridY: 3 },
-  "facility.housekeeping": { floor: 0, gridX: 7, gridY: 1 },
-  "facility.laundry": { floor: 0, gridX: 8, gridY: 1 },
-  "facility.maintenance": { floor: 0, gridX: 8, gridY: 3 },
-  "facility.elevator": { floor: 0, gridX: 6, gridY: 2 },
-  "facility.security": { floor: 0, gridX: 1, gridY: 3 },
-  "facility.staff_area": { floor: 0, gridX: 7, gridY: 3 },
-  "facility.wellness": { floor: 0, gridX: 4, gridY: 4 },
-  "facility.fitness": { floor: 0, gridX: 5, gridY: 4 },
-  "space.carpark": { floor: 0, gridX: -1, gridY: 3 },
-  "space.retail": { floor: 0, gridX: 2, gridY: 3 },
-  "space.terrace": { floor: 0, gridX: 4, gridY: 4 },
-};
-
-/** Stable provisional positions used until the full architectural plan lands. */
-export function createPositionByEntityId(
-  rooms: readonly { id: string }[],
-  floorByRoomId: Readonly<Record<string, number>>,
-): Record<string, EntityGridPosition> {
-  const indexByFloor = new Map<number, number>();
-  const positions: Record<string, EntityGridPosition> = {
-    ...STARTER_AREA_POSITIONS,
-  };
-  for (const room of rooms) {
-    const floor = floorByRoomId[room.id] ?? 0;
-    const index = indexByFloor.get(floor) ?? 0;
-    indexByFloor.set(floor, index + 1);
-    positions[room.id] = {
-      floor,
-      gridX: index % 6,
-      gridY: Math.floor(index / 6),
-    };
-  }
-  return positions;
 }
 
 export function createSavePolicyMetadata(): GameState["savePolicy"] {

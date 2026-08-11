@@ -110,8 +110,6 @@ results:
 - `npm run build` — passed.
 - `npm run test:e2e` — passed (22 tests).
 - `npm run benchmark` — passed (a simulated year in 5.9s against a 30s budget).
-- `scripts/replay-plans-01-03.ts` — passed with hash `a7f91d3b`.
-- `scripts/verify-plans-01-03-long-run.ts` — passed.
 
 The replay hash has moved four times, and each time the corpus was re-recorded
 with `scripts/record-replay-corpus.ts` rather than edited: to `c84d4e4c` when the
@@ -141,7 +139,7 @@ and visible-agent measurements; presentation materialization is capped without
 changing aggregate demand. Detail tiers retain monthly economics, fast-forward
 yields at bounded batches, and deterministic market/technology bounds use
 integer arithmetic. The versioned scenario corpus is the release authority for
-normal, fast-forward, close, facilities, portfolio, crisis, migration/load, and
+normal, fast-forward, close, facilities, portfolio, crisis, save/load, and
 50-year mature-scale workloads. `npm run benchmark:all` and
 `npm run stress:50y` must remain green before Plan 10 begins.
 
@@ -153,20 +151,17 @@ and 40 competitors. Yearly checkpoint hashes cover the whole aggregate state.
 Ledger history retains daily detail for two years, monthly account totals for
 the following three years and yearly account totals thereafter; compaction
 must preserve exact account and cash totals. Protocol 4 adds delta/save byte
-measurements to `PERF_SAMPLE`, and save version 8 explicitly migrates v7
-protocol metadata without changing authoritative state.
+measurements to `PERF_SAMPLE`; current saves must match the active protocol.
 
 Fresh Plan 09 remediation verification on 2026-08-10 passed
 `npm run test:run` (184 files, 916 tests), `npm run typecheck`, `npm run lint`,
 `npm run build`, `npm run test:e2e` (29 tests), `npm run content:validate`,
-`npm run benchmark:all`, `npm run stress:50y`, and
-`scripts/replay-plans-01-03.ts`.
+`npm run benchmark:all`, `npm run stress:50y`, and `npm run verify:replays`.
 
 Fresh Plan 08 verification on 2026-08-10 passed `npm run test:run` (168 files,
 889 tests), `npm run typecheck`, `npm run lint`, `npm run build`,
 `npm run test:e2e` (28 tests), `npm run content:validate`, `npm run benchmark`
-(a simulated year in 6.9s against a 30s budget), and
-`scripts/replay-plans-01-03.ts` with hash `49da2991`.
+(a simulated year in 6.9s against a 30s budget), and `npm run verify:replays`.
 
 Plan 07 made the schema-first content boundary executable: the core pack is
 validated with Zod at build and load time, stable IDs resolve through a
@@ -245,11 +240,6 @@ becomes a second set of economic rules. What later work must respect:
   `narrative.annualProfit` and banks the total in December; milestones read the
   banked figure and the _closed period's_ year, not the day the close is
   posted.
-- **Save version 6.** `v5-to-v6.ts` guards every narrative field individually
-  rather than spreading a malformed section through, seeds the new `narrative`
-  stream from the save's own seed, and derives the career reading from the
-  state it is carrying forward. Its fixture (`fixtures/save-v6.json`) is
-  recorded by `scripts/record-save-fixture.ts`.
 - **Four new domain events** (`MILESTONE_ACHIEVED`, `NARRATIVE_EVENT_RAISED`,
   `NARRATIVE_EVENT_RESOLVED`, `RECOVERY_MEASURE_TAKEN`) bring the declared
   total to 49; `campaignScenario()` in `eventBuffer.test.ts` drives them.
@@ -270,10 +260,6 @@ work must respect:
   hotels, developments, budgets, managers, escalations, treasury, acquisition
   targets and published hotel results. Hotels never read it; it reads the
   monthly result each hotel publishes upward.
-- **Save version 5.** `v4-to-v5.ts` owns every new persistent section and
-  normalises a partial development v5 company rather than accepting it. Its
-  fixture (`fixtures/save-v5.json`) is recorded from a real game by
-  `scripts/record-save-fixture.ts`, not written by hand.
 - **The treasury describes group cash, it does not hold it.**
   `consolidatedCashMinor(treasury) === finance.cashMinor` is an invariant
   asserted every quantum; `syncTreasury` restates headquarters' balance from
@@ -299,15 +285,13 @@ work must respect:
 
 ### Plan 03.5 progress
 
-Tasks 1-12 are implemented. The executable registry in
-`src/release/plans0103Conformance.ts` is the authority on what is proven: all 76
-acceptance rows read `verified`. The Plan 03.5 gate is green, so Plan 04 may begin after
-this work is committed on the repository's default branch.
+Tasks 1-12 are implemented. Their production behavior remains covered by the
+owning domain, integration, replay, and E2E tests; the historical plan registry
+is not runtime authority.
 
 Fresh verification on 2026-08-09 passed `npm run test:run` (69 files, 395 tests),
 `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test:e2e` (10 tests),
-`npm run benchmark`, `scripts/verify-plans-01-03-long-run.ts`, and
-`scripts/replay-plans-01-03.ts`.
+and `npm run benchmark`.
 
 What the completed tasks changed, and that later work must respect:
 
@@ -333,24 +317,20 @@ What the completed tasks changed, and that later work must respect:
   and full status history. Inventory is checked on every date of the stay. Cancellation,
   no-show and authorised service recovery are all reachable; a refused recovery posts
   nothing.
-- **Save version 4.** The v3-to-v4 migration supplies the Plan 03.5 state introduced
-  after v3. `GameSimulation`'s constructor still defensively supplies those defaults for
-  legacy in-memory states, while persisted saves migrate explicitly.
-
-Plan 02 added: room modules and commercial aging, the planning/approval/construction/
-acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
-demand), linen and laundry logistics, wellness and fitness, conference sales and
-execution load, engineering capacity with preventive maintenance, staff areas, mobility
-and security, classification and specialization, the facility board in the snapshot,
-Pixi and DOM, and the v1-to-v2 save migration.
+  Plan 02 added: room modules and commercial aging, the planning/approval/construction/
+  acceptance renovation lifecycle, full F&B (menu, seating, bar, room service, external
+  demand), linen and laundry logistics, wellness and fitness, conference sales and
+  execution load, engineering capacity with preventive maintenance, staff areas, mobility
+  and security, classification and specialization, and the facility board in the snapshot
+  and Pixi and DOM presentations.
 
 Plan 03 added: source-based city demand, the labour market and its wage floor on hiring,
 lagged property prices and build costs, transport connectivity and route changes, the
 external actors that generate travel, saturating and delayed hotel-to-city feedback,
 forecast bands with paid information quality, competitor strategies with bounded market
 knowledge, shared pricing/investment/lifecycle economics for rivals, entry, exit and
-remembered rivalries, the city and competitor dashboards, and the v2-to-v3 save
-migration. The city runs one month at a time inside the demand phase; each day's room
+remembered rivalries, and the city and competitor dashboards. The city runs one month
+at a time inside the demand phase; each day's room
 nights are split across every house, the player included, by one shared allocation.
 
 Layout as built:
@@ -370,8 +350,6 @@ src/game/narrative/     story definitions, event engine, outcomes, narrative sta
 src/game/chronicle/, src/game/milestones/, src/game/rivals/,
 src/game/people/, src/game/media/, src/game/prestige/
                         the campaign's memory: what happened, who remembers it
-src/game/persistence/migrations/  versioned save migrations (v1 -> ... -> v6);
-                        each step stamps only its own target version
 src/game/simulation/    clock, invariants, initialState, GameSimulation, simulation.worker
 src/game/persistence/   saveSchema, indexedDbSaveRepository
 src/render/      isoProjection, PixiHotelScene
@@ -695,7 +673,7 @@ Do not implement historical events by hard-coding future dates after 1991 unless
 
 ---
 
-## 10. State, saves, migrations, and recovery
+## 10. State, saves, compatibility, and recovery
 
 ### Version everything that affects compatibility
 
@@ -718,9 +696,14 @@ Maintain:
 - yearly autosaves,
 - recovery saves as introduced by the active plan.
 
-### Migrations
+### Compatibility
 
-Every persistent schema change requires an explicit migration path and tests/fixtures.
+Before the first public release, only the current save, content, and protocol versions
+are accepted. Older internal development saves are rejected and require no migration
+code or frozen fixtures.
+
+After the first public release, every persistent schema change requires an explicit
+migration path and tests/fixtures for published save versions.
 
 Never silently reinterpret an old field with a new meaning.
 
@@ -1035,9 +1018,11 @@ Same seed/state/commands must produce the same state hash and relevant logs.
 
 When changing simulation order, RNG use, or domain iteration, determinism tests are mandatory.
 
-### Save/migration tests
+### Save compatibility tests
 
-Every migration requires fixtures and a round-trip or expected-state assertion.
+Current-format save/load, import/export, recovery, and invalid-save rejection require
+tests. After the first public release, every migration additionally requires fixtures
+and a round-trip or expected-state assertion.
 
 ### E2E tests
 

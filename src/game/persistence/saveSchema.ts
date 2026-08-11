@@ -1,7 +1,5 @@
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import type { GameState } from "../simulation/initialState";
-import { migrateV3ToV4 } from "./migrations/v3-to-v4";
-import { SAVE_MIGRATIONS } from "./migrateToCurrent";
 import {
   isValidAnnualProfit,
   isValidCampaign,
@@ -13,19 +11,16 @@ import {
 } from "../narrative/narrativeSchema";
 import {
   CONTENT_VERSION,
-  MIGRATABLE_SAVE_VERSIONS,
   RNG_STREAM_NAMES,
   SAVE_VERSION,
   type RngStreamName,
   type SaveEnvelope,
 } from "./saveVersions";
-import { migrateContentVersion } from "./contentCompatibility";
 import { isValidPlayerPreferences } from "../settings/playerPreferences";
 import { isFnbState } from "../fnb/fnbState";
 
 export {
   CONTENT_VERSION,
-  MIGRATABLE_SAVE_VERSIONS,
   RNG_STREAM_NAMES,
   SAVE_VERSION,
   type RngStreamName,
@@ -41,6 +36,31 @@ export function isCompleteRngState(
   return RNG_STREAM_NAMES.every((name) => Number.isSafeInteger(state[name]));
 }
 
+function isValidAlert(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const alert = value as Record<string, unknown>;
+  if (
+    typeof alert.id !== "string" ||
+    !alert.id ||
+    !["info", "warning", "critical"].includes(String(alert.severity)) ||
+    typeof alert.title !== "string" ||
+    !alert.title.startsWith("alert.") ||
+    typeof alert.cause !== "string" ||
+    !alert.cause.startsWith("alert.")
+  )
+    return false;
+  if (alert.causeValues === undefined) return true;
+  if (
+    !alert.causeValues ||
+    typeof alert.causeValues !== "object" ||
+    Array.isArray(alert.causeValues)
+  )
+    return false;
+  return Object.values(alert.causeValues).every(
+    (entry) => typeof entry === "string" || Number.isSafeInteger(entry),
+  );
+}
+
 /**
  * Everything wrong with a stored envelope, named. A boolean is enough to
  * refuse a save but not enough to tell the player why, and "why" is the
@@ -53,10 +73,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push(
       `save version ${envelope.saveVersion} is not ${SAVE_VERSION}`,
     );
-  if (
-    envelope.contentVersion !== CONTENT_VERSION &&
-    envelope.contentVersion !== "plan-06-v6"
-  )
+  if (envelope.contentVersion !== CONTENT_VERSION)
     problems.push(`content version ${envelope.contentVersion} is foreign`);
   if (envelope.protocolVersion !== PROTOCOL_VERSION)
     problems.push(
@@ -99,7 +116,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.world.weather ||
     !state.world.commonCurrency
   )
-    problems.push("the state has no complete Plan 04 world");
+    problems.push("the state has no complete world");
   if (
     !state.revenuePolicy ||
     !Array.isArray(state.revenuePolicy.ratePlans) ||
@@ -110,8 +127,9 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
-  if (!isFnbState(state.fnb))
-    problems.push("the state has no complete Plan 08 fnb");
+  if (!isFnbState(state.fnb)) problems.push("the state has no complete fnb");
+  if (!Array.isArray(state.alerts) || !state.alerts.every(isValidAlert))
+    problems.push("the state has malformed alerts");
   const narrative = state.narrative;
   if (
     !narrative ||
@@ -129,10 +147,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !isValidCampaign(narrative.campaign) ||
     !isValidCareer(narrative.career)
   )
-    // The same validators the migration normalises against: anything that
-    // still fails here is a save the simulation would restore into arithmetic
-    // on a value that is not a number.
-    problems.push("the state has no complete Plan 06 narrative");
+    problems.push("the state has no complete narrative");
   const company = state.company;
   if (
     !company ||
@@ -150,7 +165,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
       (balance) => !Number.isSafeInteger(balance),
     )
   )
-    problems.push("the state has no complete Plan 05 company");
+    problems.push("the state has no complete company");
   else if (
     !company.portfolio.hotelLegalEntity ||
     typeof company.portfolio.hotelLegalEntity !== "object" ||
@@ -204,37 +219,4 @@ export function assertCompatible(envelope: SaveEnvelope): void {
   const problems = validateEnvelope(envelope);
   if (problems.length > 0)
     throw new Error(`incompatible save: ${problems.join("; ")}`);
-}
-
-/**
- * Brings a stored envelope forward to this build. Migration is explicit and
- * ordered: a save is never silently reinterpreted, it is rewritten.
- */
-export function migrateEnvelope(envelope: SaveEnvelope): SaveEnvelope {
-  if (!envelope) return envelope;
-  let current = envelope;
-  if (current.saveVersion === 4 && current.contentVersion === "plans-01-03-v4")
-    current = migrateV3ToV4(current);
-  while (
-    (MIGRATABLE_SAVE_VERSIONS as readonly number[]).includes(
-      current.saveVersion,
-    )
-  ) {
-    // One shared step table, so the loader and `migrateToCurrent` can never
-    // disagree about what a version means. A declared version without a step
-    // is a visible gap rather than a silent no-op.
-    const step = SAVE_MIGRATIONS[current.saveVersion];
-    if (!step) break;
-    current = step(current);
-  }
-  if (
-    current.saveVersion === SAVE_VERSION &&
-    current.contentVersion === "plan-06-v6"
-  )
-    current = migrateContentVersion(current);
-  // Protocol 3 changed request correlation on the wire, not authoritative
-  // save state. Saves written by the preceding protocol remain replayable.
-  if (current.protocolVersion === 2)
-    current = { ...current, protocolVersion: PROTOCOL_VERSION };
-  return current;
 }

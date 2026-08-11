@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { GameSimulation } from "./GameSimulation";
 import { createInitialGameState, type StayRecord } from "./initialState";
+import {
+  BAR_SERVICE_MINUTE,
+  BREAKFAST_START,
+  ROOM_SERVICE_MINUTE,
+} from "../fnb/schedule";
 
 function stays(count: number): StayRecord[] {
   return Array.from({ length: count }, (_, index) => ({
@@ -29,7 +34,21 @@ describe("authoritative F&B operations", () => {
     simulation.refreshDerivedState();
     simulation.takeDomainEvents();
 
-    runToMinute(simulation, 390);
+    runToMinute(simulation, BREAKFAST_START - 5);
+    const foodCostBefore = simulation.state.finance.ledger.filter(
+      (entry) => entry.account === "foodCost",
+    );
+    expect(foodCostBefore).toEqual([
+      {
+        day: 0,
+        account: "foodCost",
+        amountMinor: -27_000,
+        memo: "60 breakfast-portion",
+      },
+    ]);
+    const operatingExpenseBefore =
+      simulation.state.finance.month.operatingExpenseMinor;
+    simulation.advanceQuantum();
 
     expect(outlet(simulation, "breakfastRoom")).toMatchObject({
       demand: 20,
@@ -46,17 +65,13 @@ describe("authoritative F&B operations", () => {
       simulation.state.finance.ledger.filter(
         (entry) => entry.account === "foodCost",
       ),
-    ).toEqual([
-      {
-        day: 0,
-        account: "foodCost",
-        amountMinor: -4_500,
-        memo: "breakfast ingredients and waste",
-      },
-    ]);
+    ).toEqual(foodCostBefore);
+    expect(simulation.state.finance.month.operatingExpenseMinor).toBe(
+      operatingExpenseBefore,
+    );
     expect(simulation.state.alerts).toContainEqual(
       expect.objectContaining({
-        id: "alert.fnb-wait",
+        id: "alert.fnb-wait.breakfastRoom",
         cause: "alert.fnb-wait.cause",
         causeValues: expect.objectContaining({
           outletId: "breakfastRoom",
@@ -82,28 +97,39 @@ describe("authoritative F&B operations", () => {
     ]);
   });
 
-  it("populates every active outlet and clears the shared wait alert", () => {
+  it("populates every active outlet from shared stock and scopes wait alerts", () => {
     const state = createInitialGameState(37);
     state.stays = stays(20);
     state.stock["breakfast-portion"] = 10;
     const simulation = new GameSimulation(state);
 
-    runToMinute(simulation, 390);
+    runToMinute(simulation, BREAKFAST_START);
     expect(
-      simulation.state.alerts.some((alert) => alert.id === "alert.fnb-wait"),
+      simulation.state.alerts.some(
+        (alert) => alert.id === "alert.fnb-wait.breakfastRoom",
+      ),
     ).toBe(true);
 
+    runToMinute(simulation, BAR_SERVICE_MINUTE - 5);
     simulation.state.stock["breakfast-portion"] = 100;
-    runToMinute(simulation, 1_140);
-    runToMinute(simulation, 1_320);
+    simulation.advanceQuantum();
+    const stockAfterBar = simulation.state.stock["breakfast-portion"];
+    expect(stockAfterBar).toBeLessThan(100);
+    runToMinute(simulation, ROOM_SERVICE_MINUTE - 5);
+    simulation.advanceQuantum();
+    expect(simulation.state.stock["breakfast-portion"]).toBeLessThan(
+      stockAfterBar,
+    );
     for (const id of ["breakfastRoom", "bar", "roomService"])
       expect(outlet(simulation, id).demand).toBeGreaterThan(0);
 
     simulation.state.stays = stays(5);
-    runToMinute(simulation, 390);
+    runToMinute(simulation, BREAKFAST_START);
     expect(outlet(simulation, "breakfastRoom").waitlisted).toBe(0);
     expect(
-      simulation.state.alerts.some((alert) => alert.id === "alert.fnb-wait"),
+      simulation.state.alerts.some(
+        (alert) => alert.id === "alert.fnb-wait.breakfastRoom",
+      ),
     ).toBe(false);
     expect(outlet(simulation, "restaurant")).toMatchObject({
       demand: 0,
@@ -121,5 +147,23 @@ describe("authoritative F&B operations", () => {
         "roomServiceRevenue",
       ]),
     );
+  });
+
+  it("names the tightest room-service dependency as its cause", () => {
+    const state = createInitialGameState(41);
+    state.stays = stays(20);
+    state.stock["breakfast-portion"] = 200;
+    state.assets.find((asset) => asset.id === "asset.lift")!.status = "failed";
+    const simulation = new GameSimulation(state);
+
+    runToMinute(simulation, ROOM_SERVICE_MINUTE);
+
+    expect(outlet(simulation, "roomService")).toMatchObject({
+      demand: 1,
+      capacity: 0,
+      served: 0,
+      waitlisted: 1,
+      cause: "facility.cause.elevator",
+    });
   });
 });

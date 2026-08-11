@@ -7,6 +7,7 @@ import {
   holdsRoomOn,
   lateChargeMinor,
   markNoShow,
+  ReservationRefusalError,
   reserve,
   stayDates,
 } from "./bookingEngine";
@@ -101,9 +102,16 @@ describe("booking engine", () => {
   });
 
   it("rejects a rate above guest willingness to pay", () => {
-    expect(() =>
-      reserve(flat(5), request({ rateMinor: 12000, willingnessMinor: 10000 })),
-    ).toThrow(/price/);
+    try {
+      reserve(flat(5), request({ rateMinor: 12000, willingnessMinor: 10000 }));
+      throw new Error("expected a refusal");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ReservationRefusalError);
+      expect(error).toMatchObject({
+        code: "price-rejected",
+        dateKey: "1991-03-10",
+      });
+    }
   });
 
   it("never oversells the remaining inventory", () => {
@@ -118,9 +126,16 @@ describe("booking engine", () => {
     const inventory = {
       availableRoomsOn: (dateKey: string) => (dateKey === "1991-03-10" ? 3 : 0),
     };
-    expect(() => reserve(inventory, request({ nights: 2 }))).toThrow(
-      /1991-03-11/,
-    );
+    try {
+      reserve(inventory, request({ nights: 2 }));
+      throw new Error("expected a refusal");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ReservationRefusalError);
+      expect(error).toMatchObject({
+        code: "no-inventory",
+        dateKey: "1991-03-11",
+      });
+    }
     expect(reserve(inventory, request({ nights: 1 })).status).toBe("confirmed");
   });
 

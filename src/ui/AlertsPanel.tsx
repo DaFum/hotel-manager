@@ -37,9 +37,11 @@ export function AlertsPanel(props: {
             type="button"
             onClick={() => props.onOpen(a.id)}
             aria-expanded={props.openAlertId === a.id}
-            aria-label={`Open ${alertText(locale, a.title, a.causeValues)}`}
+            aria-label={translateGame(locale, "notifications.open", {
+              title: alertText(locale, a.title, a.causeValues),
+            })}
           >
-            Open
+            {translateGame(locale, "notifications.openAction")}
           </button>
           {props.openAlertId === a.id ? (
             <p aria-live="polite">

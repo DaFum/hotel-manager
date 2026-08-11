@@ -1,4 +1,4 @@
-import { addDays } from "../domain/calendar";
+import { addDays, parseDateKey } from "../domain/calendar";
 import { applyBasisPoints, assertNonNegativePfennig } from "../domain/money";
 import type {
   Booking,
@@ -16,6 +16,24 @@ export type {
   GuaranteeTerms,
   StayInventory,
 } from "./bookingTypes";
+
+export type ReservationRefusalCode = "price-rejected" | "no-inventory";
+
+export class ReservationRefusalError extends Error {
+  readonly name = "ReservationRefusalError";
+
+  constructor(
+    readonly code: ReservationRefusalCode,
+    readonly dateKey: string,
+  ) {
+    super(
+      code === "price-rejected"
+        ? "price rejected"
+        : `no inventory on ${dateKey}`,
+    );
+    parseDateKey(dateKey);
+  }
+}
 
 /** Every date a stay occupies a room. Departure day is not one of them. */
 export function stayDates(arrivalDateKey: string, nights: number): string[] {
@@ -43,7 +61,8 @@ export function reserve(
     throw new Error("invalid guest id");
   assertNonNegativePfennig(r.rateMinor, "rate");
   assertNonNegativePfennig(r.willingnessMinor, "willingness to pay");
-  if (r.rateMinor > r.willingnessMinor) throw new Error("price rejected");
+  if (r.rateMinor > r.willingnessMinor)
+    throw new ReservationRefusalError("price-rejected", r.arrivalDateKey);
   // The terms are persisted and later drive arithmetic in phases that run
   // outside a command transaction, where a throw would not be rolled back.
   // They are checked here, at the one boundary that creates a booking.
@@ -51,7 +70,7 @@ export function reserve(
 
   for (const dateKey of stayDates(r.arrivalDateKey, r.nights))
     if (r.roomsRequested > inventory.availableRoomsOn(dateKey))
-      throw new Error(`no inventory on ${dateKey}`);
+      throw new ReservationRefusalError("no-inventory", dateKey);
 
   return {
     id: r.id,

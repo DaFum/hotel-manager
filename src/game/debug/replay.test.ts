@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import corpusJson from "../../../fixtures/replay/plans-01-03.json";
+import corpusJson from "../../../fixtures/replay/vertical-slice.json";
 import { createInitialGameState } from "../simulation/initialState";
-import { migrateEnvelope } from "../persistence/saveSchema";
-import type { SaveEnvelope } from "../persistence/saveVersions";
+import { SAVE_VERSION } from "../persistence/saveVersions";
+import { PROTOCOL_VERSION } from "../domain/protocol";
 import { canonicalState, stateHash } from "./stateHash";
 import {
   assertReplay,
@@ -13,11 +13,11 @@ import {
 
 const corpus = corpusJson as unknown as ReplayCorpus;
 
-describe("Plans 01-03 replay", () => {
+describe("replay corpus", () => {
   it("records versions, envelopes, ordered events and a final hash", () => {
     expect(corpus).toMatchObject({
-      saveVersion: 4,
-      protocolVersion: 2,
+      saveVersion: SAVE_VERSION,
+      protocolVersion: PROTOCOL_VERSION,
       seed: 4242,
     });
     expect(corpus.commands.length).toBeGreaterThan(0);
@@ -90,19 +90,7 @@ describe("Plans 01-03 replay", () => {
     const first = replayCorpus(corpus);
     const second = replayCorpus(corpus);
     const split = replayCorpus(corpus, { splitAt: 1 });
-    const legacyState = createInitialGameState(corpus.seed);
-    const legacy = migrateEnvelope({
-      saveVersion: 3,
-      contentVersion: "city-market-1991-v3",
-      protocolVersion: 2,
-      rngState: legacyState.rngState,
-      state: legacyState,
-    } satisfies SaveEnvelope);
-    const migrated = replayCorpus(corpus, {
-      initialState: legacy.state as typeof legacyState,
-    });
     expect(second.hash).toBe(first.hash);
     expect(split.hash).toBe(first.hash);
-    expect(migrated.hash).toBe(first.hash);
   });
 });

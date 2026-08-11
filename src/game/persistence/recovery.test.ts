@@ -117,8 +117,8 @@ describe("save recovery", () => {
 
   it("names the stage that refused each slot", async () => {
     const slot = manualSlot("every stage");
-    // A store that fails to read, a store with nothing in it, and a store
-    // whose envelope cannot be migrated: one rejection stage each.
+    // A store that fails to read, a store with nothing in it, and an obsolete
+    // save each have a distinct, player-readable outcome.
     const unreadable: SaveStore = {
       ...memoryStore(),
       async load() {
@@ -143,24 +143,16 @@ describe("save recovery", () => {
       true,
     );
 
-    // An envelope the migration chain cannot even read its version from: the
-    // store hands it back as it found it, so the failure happens inside
-    // migration rather than in the read or in validation.
-    const unmigratable: SaveStore = {
-      ...memoryStore(),
-      async load() {
-        return Object.defineProperty({ ...envelopeAt(400) }, "saveVersion", {
-          get() {
-            throw new Error("the save version is unreadable");
-          },
-        }) as SaveEnvelope;
-      },
-    };
-    const migrationOutcome = await loadWithRecovery(unmigratable, slot);
-    if (isRecovered(migrationOutcome))
-      throw new Error("an unmigratable save was accepted");
-    expect(migrationOutcome.rejected[0].stage).toBe("migration");
-    expect(migrationOutcome.rejected[0].reason).toMatch(/save version/);
+    const obsolete = memoryStore();
+    await obsolete.save(slot, {
+      ...envelopeAt(400),
+      saveVersion: SAVE_VERSION - 1,
+    });
+    const obsoleteOutcome = await loadWithRecovery(obsolete, slot);
+    if (isRecovered(obsoleteOutcome))
+      throw new Error("an obsolete save was accepted");
+    expect(obsoleteOutcome.rejected[0].stage).toBe("validation");
+    expect(obsoleteOutcome.rejected[0].reason).toMatch(/save version/);
   });
 
   it("still reports a reason when a store rejects with no error", async () => {

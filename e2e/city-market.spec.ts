@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { openManagementArea } from "./management";
 
 test("shows the city's demand sources and the uncertainty around them", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "market");
   const city = page.getByRole("region", { name: "City market" });
   await expect(city).toBeVisible();
 
@@ -32,6 +34,7 @@ test("puts the rival houses beside this hotel on the same terms", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "market");
   const competitors = page.getByRole("region", { name: "Competitors" });
   await expect(competitors).toBeVisible();
 
@@ -46,6 +49,7 @@ test("puts the rival houses beside this hotel on the same terms", async ({
 
 test("quotes the going wage before the player offers one", async ({ page }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "staff");
   const staff = page.getByRole("region", { name: "Staff" });
   await expect(staff.getByLabel("Market wage")).toContainText(
     /The city is paying .* a month/,

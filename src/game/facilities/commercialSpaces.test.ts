@@ -188,7 +188,12 @@ describe("commercial spaces", () => {
       served: 40,
       turnedAway: 20,
       cause: "alert.space.cause.atCapacity",
-      causeValues: { spaceId: "space.shop", capacity: 40, demand: 60 },
+      causeValues: {
+        spaceId: "space.shop",
+        capacity: 40,
+        demand: 60,
+        turnedAway: 20,
+      },
     });
   });
 

@@ -213,6 +213,14 @@ export function App() {
     ]),
   );
 
+  const competitorTable = (
+    <CompetitorTable
+      rows={s.competitors}
+      playerRateMinor={singleRateMinor}
+      playerOccupancyBp={s.metrics.occupancyBasisPoints}
+    />
+  );
+
   const areaContent: Record<ManagementAreaId, ReactNode> = {
     mainView: (
       <>
@@ -257,7 +265,7 @@ export function App() {
     hotel: (
       <>
         <FacilitiesDashboard rows={s.facilities} />
-        <FnbDashboard fnb={s.fnb} />
+        <FnbDashboard fnb={s.fnb} locale={preferences.locale} />
         <CommercialSpacesPanel
           spaces={s.commercialSpaces.spaces.map((space) => ({
             id: space.id,
@@ -350,11 +358,7 @@ export function App() {
             })
           }
         />
-        <CompetitorTable
-          rows={s.competitors}
-          playerRateMinor={singleRateMinor}
-          playerOccupancyBp={s.metrics.occupancyBasisPoints}
-        />
+        {competitorTable}
       </>
     ),
     marketing: (
@@ -381,11 +385,7 @@ export function App() {
           researchCostMinor={REPORT_COST_MINOR}
           onBuyResearch={() => game.send({ type: "BUY_MARKET_RESEARCH" })}
         />
-        <CompetitorTable
-          rows={s.competitors}
-          playerRateMinor={singleRateMinor}
-          playerOccupancyBp={s.metrics.occupancyBasisPoints}
-        />
+        {competitorTable}
       </>
     ),
     company: (
@@ -492,12 +492,12 @@ export function App() {
           {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
         </p>
         <p aria-label="Command status" aria-live="polite">
-          {translateGame(preferences.locale, "app.telemetry.command" as any, {
+          {translateGame(preferences.locale, "app.telemetry.command", {
             status: game.commandStatus,
           })}
         </p>
         <p aria-label="Saves committed">
-          {translateGame(preferences.locale, "app.telemetry.saves" as any, {
+          {translateGame(preferences.locale, "app.telemetry.saves", {
             count: game.savedCount,
           })}
         </p>

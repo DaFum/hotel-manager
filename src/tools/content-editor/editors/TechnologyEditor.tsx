@@ -21,7 +21,7 @@ export function TechnologyEditor({
           aria-label="Runtime ID"
           value={value.runtimeId}
           readOnly
-          title="Runtime IDs are persisted in authoritative world state and require a save migration to change."
+          title="Runtime IDs are persisted in authoritative world state and require a save-format change."
         />
       </label>
       <NumberField

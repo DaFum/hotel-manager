@@ -1,5 +1,4 @@
 import { assertCount, assertMinutes } from "../domain/units";
-import { facilityRow } from "../facilities/facilityBoard";
 /**
  * Room service is a logistics problem, not a menu: the plate has to leave the
  * kitchen, ride the lift, and walk the corridor before it counts as served.
@@ -51,29 +50,4 @@ export function roomServiceOrders(x: {
   )
     return 0;
   return Math.floor((Math.max(0, x.occupiedRooms) * ORDER_RATE_BP) / 10000);
-}
-
-export function roomServiceCapacity(x: {
-  demand: number;
-  kitchen: number;
-  staffed: number;
-  transport: number;
-  elevator: number;
-}): { served: number; cause: string } {
-  for (const [label, value] of Object.entries(x)) assertCount(value, label);
-  const binding = facilityRow({
-    id: "fnb.roomService",
-    name: "Room service",
-    demand: x.demand,
-    constraints: [
-      { label: "facility.cause.kitchenLine", value: x.kitchen },
-      { label: "facility.cause.serviceStaff", value: x.staffed },
-      { label: "facility.cause.transport", value: x.transport },
-      { label: "facility.cause.elevator", value: x.elevator },
-    ],
-  });
-  return {
-    served: Math.min(x.demand, binding.capacity),
-    cause: binding.cause,
-  };
 }

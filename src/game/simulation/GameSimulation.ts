@@ -1,8 +1,4 @@
-import {
-  captureRngState,
-  createRngStreams,
-  restoreRngStreams,
-} from "../domain/rng";
+import { captureRngState, restoreRngStreams } from "../domain/rng";
 import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
@@ -15,6 +11,7 @@ import {
   holdsRoomOn,
   lateChargeMinor,
   markNoShow,
+  ReservationRefusalError,
   reserve,
 } from "../bookings/bookingEngine";
 import type { BookingChannel } from "../bookings/bookingTypes";
@@ -67,16 +64,16 @@ import {
   deliveryMinutes,
   lateDeliveryComplaints,
   roomServiceOrders,
-  ROOM_SERVICE_OPEN_MINUTE,
 } from "../fnb/roomService";
+import {
+  BAR_SERVICE_MINUTE,
+  BREAKFAST_START,
+  ROOM_SERVICE_MINUTE,
+} from "../fnb/schedule";
 import { boardCommitment } from "../fnb/boardPlans";
 import { runKitchenService } from "../fnb/kitchen";
 import { seatService } from "../fnb/seating";
-import {
-  createFnbState,
-  type FnbConstraintKey,
-  type FnbOutletState,
-} from "../fnb/fnbState";
+import type { FnbConstraintKey, FnbOutletState } from "../fnb/fnbState";
 import { externalCovers } from "../fnb/externalDemand";
 import {
   averageCoverMinor,
@@ -101,7 +98,7 @@ import {
   SERVICE_MINUTES,
 } from "../maintenance/maintenance";
 import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
-import { createUtilityState, meterUtilities } from "../facilities/utilities";
+import { meterUtilities } from "../facilities/utilities";
 import {
   requiredSecurityStaff,
   securityGapAlert,
@@ -155,17 +152,10 @@ import {
 } from "../commands/commandHandler";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
-import {
-  createEventJournal,
-  drainEvents,
-  emitEvent,
-} from "../domain/eventBuffer";
+import { drainEvents, emitEvent } from "../domain/eventBuffer";
 import type { DomainEvent, DomainEventPayload } from "../domain/events";
 import type { LocalizedAlertCause } from "../domain/localization";
 import {
-  createGuestSatisfaction,
-  createRenderDescriptors,
-  createSavePolicyMetadata,
   type AlertRecord,
   type EventRecord,
   type GameState,
@@ -173,7 +163,6 @@ import {
   type RoomRecord,
   type StayRecord,
 } from "./initialState";
-import { createNarrativeState } from "../narrative/narrativeState";
 import { detectMilestones } from "../milestones/milestoneEngine";
 import { appendChronicleEntry } from "../chronicle/chronicle";
 import { compactLedgerHistory } from "../history/historyCompaction";
@@ -181,11 +170,7 @@ import {
   chooseEndlessContinuation,
   type RecoveryPath,
 } from "../campaign/careerOutcome";
-import {
-  careerFacts,
-  applyRecoveryPath,
-  validateRecoveryPath,
-} from "../campaign/recovery";
+import { applyRecoveryPath, validateRecoveryPath } from "../campaign/recovery";
 import {
   createCampaignConfig,
   adjustedStartingCapitalMinor,
@@ -197,7 +182,7 @@ import {
   runNarrativeMonth,
   validateNarrativeChoice,
 } from "../narrative/narrativeSystem";
-import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
+import { WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
   advanceTechnologyProject,
@@ -207,19 +192,14 @@ import {
   availableChannels,
   netChannelRevenueMinor,
 } from "../distribution/channelEvolution";
-import { createRevenuePolicy } from "../revenue/revenuePolicy";
-import { createCompanyState } from "../company/companyState";
-import { createCommercialState } from "../commercial/commercialState";
 import {
   applyReputationEvent,
-  createReputationState,
   decayReputation,
 } from "../reputation/dimensions";
 import { earnPoints, releaseBreakageMinor } from "../commercial/loyalty";
 import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
   createContract as createEmploymentContract,
-  createWorkforceState,
   employ,
   markSick,
   fallsSick,
@@ -229,11 +209,9 @@ import {
   willResign,
   workOvertime,
 } from "../staff/employeeLifecycle";
-import { createProcurementState } from "../purchasing/contracts";
 import { createManagerAuthority } from "../management/managerAuthority";
 import {
   beginStay,
-  createGuestRelationsState,
   createParty,
   recordStayEvent,
   registerParty,
@@ -244,7 +222,6 @@ import {
   satisfactionAfterRecovery,
 } from "../guests/recoveryAuthority";
 import {
-  createCommercialSpaceState,
   isOpen as isSpaceOpen,
   monthlyContributionMinor,
   recordUse,
@@ -274,17 +251,12 @@ import {
 import {
   accountClass,
   capitaliseAsset,
-  createStatements,
   depreciationMinor,
   postDepreciation,
 } from "../finance/statements";
-import {
-  createInsuranceState,
-  totalMonthlyPremiumMinor,
-} from "../risk/insurance";
+import { totalMonthlyPremiumMinor } from "../risk/insurance";
 import {
   UTILITY_KINDS,
-  createUtilityContracts,
   readMeters,
   standingChargeMinor,
   utilityUsageMinor,
@@ -325,9 +297,6 @@ export type {
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
 const DEMAND_MINUTE = 600;
-const BREAKFAST_START = 390;
-const BAR_SERVICE_MINUTE = BAR_OPEN_MINUTE + 120;
-const ROOM_SERVICE_MINUTE = ROOM_SERVICE_OPEN_MINUTE + 30;
 const WELLNESS_OPEN_MINUTE = 600;
 const LAUNDRY_MINUTE = 480;
 /** Basis points of in-house guests who ask for a treatment on a given day. */
@@ -337,6 +306,7 @@ const BAR_TAKE_UP_BP = 6000;
 /** Basis points of days on which a conference enquiry arrives. */
 const EVENT_LEAD_CHANCE_BP = 1200;
 const MAX_ALERTS = 20;
+const FNB_SERVICE_STOCK_SKU = "breakfast-portion";
 /** How long a plant asset is written down over; a balancing constant. */
 const ASSET_USEFUL_LIFE_MONTHS = 120;
 /** Half a percent chance per day that a worn asset fails, in basis points. */
@@ -409,49 +379,6 @@ export class GameSimulation implements CommandExecutor {
   private causingCommandId: string | undefined;
 
   constructor(public state: GameState) {
-    // A save written before the command and event journals existed carries
-    // neither. Opening it at zero is the honest reading — nothing is known
-    // about decisions taken before the journal did — and it keeps a migrated
-    // old save runnable rather than crashing on its first derived section.
-    state.stateVersion ??= 0;
-    state.commandSequence ??= 0;
-    state.commandLog ??= [];
-    state.eventJournal ??= createEventJournal();
-    state.guestSatisfaction ??= createGuestSatisfaction();
-    state.handledComplaintIds ??= [];
-    state.utilities ??= createUtilityState();
-    state.utilities.pendingExpenseMinor ??= 0;
-    state.renderDescriptors ??= createRenderDescriptors(state.hotel.rooms);
-    state.savePolicy ??= createSavePolicyMetadata();
-    state.linen.floorStock ??= 0;
-    state.world ??= createWorldState();
-    state.revenuePolicy ??= createRevenuePolicy();
-    state.technologyProjects ??= [];
-    state.technologyImplementations ??= [];
-    state.company ??= createCompanyState();
-    state.statements ??= createStatements();
-    state.insurance ??= createInsuranceState();
-    state.utilityContracts ??= createUtilityContracts();
-    state.meters ??= { energy: 0, water: 0, waste: 0 };
-    state.outages ??= [];
-    state.commercial ??= createCommercialState();
-    state.reputation ??= createReputationState();
-    state.workforce ??= createWorkforceState();
-    state.procurement ??= createProcurementState();
-    state.guestRelations ??= createGuestRelationsState();
-    state.recoveries ??= [];
-    // A loaded game's career reading comes from the position it is actually
-    // in, never from an optimistic constant a fresh game would have had.
-    state.narrative ??= createNarrativeState({ career: careerFacts(state) });
-    state.rngState.narrative ??= createRngStreams(state.seed).narrative.state;
-    state.commercialSpaces ??= createCommercialSpaceState();
-    state.fnb ??= createFnbState();
-    state.lobby ??= {
-      served: 0,
-      unserved: 0,
-      cause: "lobby is coping",
-      automation: [],
-    };
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -813,7 +740,7 @@ export class GameSimulation implements CommandExecutor {
         );
         this.spend(
           s.finance.cashMinor - result.cashMinor,
-          "supplies",
+          command.sku === FNB_SERVICE_STOCK_SKU ? "foodCost" : "supplies",
           `${command.quantity} ${command.sku}`,
         );
         s.pendingOrders.push(result.order);
@@ -1585,7 +1512,7 @@ export class GameSimulation implements CommandExecutor {
     const serviceThroughput =
       this.onDuty("kitchen") * STARTER_HOTEL.kitchenCovers;
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
-    const stock = s.stock["breakfast-portion"] ?? 0;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
     const constraints: FacilityConstraint[] = [
       { label: "facility.cause.demand", value: demand },
@@ -1608,17 +1535,12 @@ export class GameSimulation implements CommandExecutor {
       stock,
       allergyCovers: 0,
       substitutionStock: 0,
-      ingredientMinor: supplierForSku("breakfast-portion").unitPriceMinor,
+      ingredientMinor: supplierForSku(FNB_SERVICE_STOCK_SKU).unitPriceMinor,
       wasteBp: FNB_WASTE_BP,
     });
     const consumed = kitchen.served + kitchen.wasted;
-    if (consumed > 0) s.stock = consume(s.stock, "breakfast-portion", consumed);
-    if (kitchen.ingredientExpenseMinor > 0)
-      this.spend(
-        kitchen.ingredientExpenseMinor,
-        "foodCost",
-        "breakfast ingredients and waste",
-      );
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
     if (kitchen.served > 0) {
       const revenue = kitchen.served * STARTER_HOTEL.breakfastPriceMinor;
       this.earn(revenue, "breakfastRevenue", "breakfast covers");
@@ -1669,7 +1591,7 @@ export class GameSimulation implements CommandExecutor {
     });
     const serviceThroughput = this.onDuty("fnb") * COVERS_PER_BARKEEPER;
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
-    const stock = kitchenThroughput;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
     const row = facilityRow({
       id: "fnb.bar",
@@ -1694,12 +1616,9 @@ export class GameSimulation implements CommandExecutor {
       ingredientMinor: averageIngredientMinor("bar"),
       wasteBp: FNB_WASTE_BP,
     });
-    if (kitchen.ingredientExpenseMinor > 0)
-      this.spend(
-        kitchen.ingredientExpenseMinor,
-        "foodCost",
-        "bar ingredients and waste",
-      );
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
     if (kitchen.served > 0) {
       const revenue = barRevenueMinor(kitchen.served, averageCoverMinor("bar"));
       this.earn(revenue, "barRevenue", `${kitchen.served} bar covers`);
@@ -1743,7 +1662,7 @@ export class GameSimulation implements CommandExecutor {
     const transportThroughput = serviceThroughput;
     const elevatorThroughput =
       this.workingLifts() * STARTER_HOTEL.kitchenCovers;
-    const stock = kitchenThroughput;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(orders, kitchenThroughput);
     const row = facilityRow({
       id: "fnb.roomService",
@@ -1769,12 +1688,9 @@ export class GameSimulation implements CommandExecutor {
       ingredientMinor: item.ingredientMinor,
       wasteBp: FNB_WASTE_BP,
     });
-    if (kitchen.ingredientExpenseMinor > 0)
-      this.spend(
-        kitchen.ingredientExpenseMinor,
-        "foodCost",
-        "room-service ingredients and waste",
-      );
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
     if (kitchen.served > 0) {
       s.elevatorTrips += elevatorTrips({
         arrivals: 0,
@@ -1790,7 +1706,6 @@ export class GameSimulation implements CommandExecutor {
       s.finance.month.otherRevenueMinor += revenue;
     }
     const waitlisted = Math.max(0, orders - kitchen.served);
-    const late = lateDeliveryComplaints(kitchen.served, minutes);
     this.recordFnbOutlet({
       id: "roomService",
       seats: 0,
@@ -1809,8 +1724,6 @@ export class GameSimulation implements CommandExecutor {
       kitchenUtilizationBp: utilizationBp(orders, kitchenThroughput),
       cause: row.cause as FnbConstraintKey,
     });
-    if (late === 0 && waitlisted === 0)
-      this.clearAlerts(["alert.room-service-late"]);
   }
 
   private recordFnbOutlet(next: FnbOutletState): void {
@@ -1834,9 +1747,10 @@ export class GameSimulation implements CommandExecutor {
       next.waitlisted > 0 ||
       (next.id === "roomService" &&
         lateDeliveryComplaints(next.served, next.averageWaitMinutes) > 0);
+    const waitAlertId = `alert.fnb-wait.${next.id}`;
     if (delayed)
       this.pushAlert({
-        id: "alert.fnb-wait",
+        id: waitAlertId,
         severity: "warning",
         title: "alert.fnb-wait.title",
         cause: "alert.fnb-wait.cause",
@@ -1848,7 +1762,7 @@ export class GameSimulation implements CommandExecutor {
           averageWaitMinutes: next.averageWaitMinutes,
         },
       });
-    else this.clearAlerts(["alert.fnb-wait"]);
+    else this.clearAlerts([waitAlertId]);
 
     if (next.id === "breakfastRoom")
       this.clearAlerts(["alert.breakfast-queue"]);
@@ -2586,19 +2500,19 @@ export class GameSimulation implements CommandExecutor {
           [reservation.id],
         );
       } catch (error) {
-        const reason = (error as Error).message;
+        if (!(error instanceof ReservationRefusalError)) throw error;
         const refusal: LocalizedAlertCause | null =
-          reason === "price rejected"
+          error.code === "price-rejected"
             ? {
                 cause: "alert.booking-refused.cause.price" as const,
                 causeValues: { bookingId },
               }
-            : reason.startsWith("no inventory on ")
+            : error.code === "no-inventory"
               ? {
                   cause: "alert.booking-refused.cause.inventory" as const,
                   causeValues: {
                     bookingId,
-                    dateKey: reason.slice("no inventory on ".length),
+                    dateKey: error.dateKey,
                   },
                 }
               : null;
@@ -3573,7 +3487,7 @@ export class GameSimulation implements CommandExecutor {
         severity: "critical",
         title: "alert.insolvent.title",
         cause: "alert.insolvent.cause",
-        causeValues: { memo },
+        causeValues: { expense: `expense.${accountClass(account)}` },
       });
     }
   }

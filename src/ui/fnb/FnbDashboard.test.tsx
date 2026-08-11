@@ -20,20 +20,20 @@ it("shows every outlet's real load, wait, waste, cost, and binding cause", () =>
     cause: "facility.cause.stock",
   };
 
-  render(<FnbDashboard fnb={fnb} />);
+  render(<FnbDashboard fnb={fnb} locale="de-DE" />);
 
   expect(screen.getAllByRole("listitem")).toHaveLength(4);
-  const breakfast = screen.getByRole("listitem", { name: "Breakfast room" });
-  expect(within(breakfast).getByText(/Seats: 36/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Covers: 10\/20/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Waitlisted: 10/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Service load: 50\.0%/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Kitchen load: 100\.0%/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Average wait: 30 minutes/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Waste: 2 covers/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Food cost: 45,00 DM/)).toBeTruthy();
-  expect(within(breakfast).getByText(/Limited by: stock/)).toBeTruthy();
+  const breakfast = screen.getByRole("listitem", { name: "Frühstücksraum" });
+  expect(within(breakfast).getByText(/Sitzplätze: 36/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Bewirtungen: 10\/20/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Warteliste: 10/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Serviceauslastung: 50\.0%/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Küchenauslastung: 100\.0%/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Wartezeit: 30 Minuten/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Abfall: 2 Bewirtungen/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Wareneinsatz: 45,00 DM/)).toBeTruthy();
+  expect(within(breakfast).getByText(/Begrenzt durch: Bestand/)).toBeTruthy();
 
-  for (const label of ["Bar", "Room service", "Restaurant"])
+  for (const label of ["Bar", "Zimmerservice", "Restaurant"])
     expect(screen.getByRole("listitem", { name: label })).toBeTruthy();
 });

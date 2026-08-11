@@ -12,7 +12,7 @@ test("save transfer exposes validated file boundaries", async ({ page }) => {
     "application/json",
   );
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByText("Saves committed: 1")).toBeVisible();
+  await expect(page.getByLabel("Saves committed")).toContainText("1");
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export save file" }).click();
   const download = await downloadPromise;

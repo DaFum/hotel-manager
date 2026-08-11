@@ -1,6 +1,8 @@
 import { expect, test } from "@playwright/test";
+import { openManagementArea } from "./management";
 test("locale switch preserves authoritative cash", async ({ page }) => {
   await page.goto("/?renderer=off");
+  await openManagementArea(page, "finance");
   const cash = page.getByTestId("cash-value");
   const before = await cash.getAttribute("data-minor");
   const language = page.getByLabel(/Language|Sprache/);

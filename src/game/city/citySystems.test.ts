@@ -30,7 +30,7 @@ import {
 } from "./feedback";
 import { MAX_MONTHLY_ACTOR_MOVE, nextActorScale } from "../actors/evolution";
 import { applyRouteChange, connectivityIndex } from "../transport/network";
-import { migrateEnvelope, validateEnvelope } from "../persistence/saveSchema";
+import { validateEnvelope } from "../persistence/saveSchema";
 import { CONTENT_VERSION, SAVE_VERSION } from "../persistence/saveVersions";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
@@ -45,7 +45,7 @@ function playDays(s: GameSimulation, days: number): void {
 /** Enough days for the city to settle two months and the rivals to act. */
 const DAYS_FOR_TWO_CITY_MONTHS = 65;
 
-describe("plan 03 city and competitor conformance", () => {
+describe("city and competitor systems", () => {
   it("resolves player and rival economics through the same primitives", () => {
     const pressureBp = 12_000;
     const landPriceMinor = 12_000_000;
@@ -200,14 +200,14 @@ describe("plan 03 city and competitor conformance", () => {
     const before = sim.state.competitors;
     expect(before.length).toBeGreaterThan(0);
 
-    const envelope = migrateEnvelope({
+    const envelope = {
       saveVersion: SAVE_VERSION,
       contentVersion: CONTENT_VERSION,
       protocolVersion: PROTOCOL_VERSION,
       rngState: sim.state.rngState,
       state: sim.snapshot(),
       preferences: DEFAULT_PLAYER_PREFERENCES,
-    });
+    };
     expect(validateEnvelope(envelope)).toEqual([]);
     const restored = new GameSimulation(
       envelope.state as ReturnType<typeof createInitialGameState>,

@@ -66,6 +66,10 @@ describe("alerts", () => {
     );
     expect(screen.getByText("Reinigungsrückstand")).toBeTruthy();
     expect(screen.getByText("6 Zimmer warten auf Reinigung")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Reinigungsrückstand öffnen" })
+        .textContent,
+    ).toBe("Öffnen");
   });
 });
 

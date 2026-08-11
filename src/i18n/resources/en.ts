@@ -1,6 +1,10 @@
 export const en = {
   app: {
     main: "Hotel management",
+    telemetry: {
+      command: "Command: {status}",
+      saves: "Saves committed: {count}",
+    },
   },
   topbar: {
     status: "Status bar",
@@ -17,6 +21,52 @@ export const en = {
     status: "Hotel status",
     inspect: "Inspect",
     serviceAreas: "Service areas",
+  },
+  world: {
+    goToProblem: "Go to {title}: {cause}",
+  },
+  fnb: {
+    title: "Food and beverage",
+    outlets: {
+      breakfastRoom: "Breakfast room",
+      bar: "Bar",
+      roomService: "Room service",
+      restaurant: "Restaurant",
+    },
+    metrics: {
+      seats: "Seats: {seats}",
+      covers: "Covers: {served}/{demand} (capacity {capacity})",
+      waitlisted: "Waitlisted: {waitlisted}",
+      serviceLoad: "Service load: {load}",
+      kitchenLoad: "Kitchen load: {load}",
+      averageWait: "Average wait: {minutes} minutes",
+      waste: "Waste: {covers} covers",
+      foodCost: "Food cost: {cost}",
+      limitedBy: "Limited by: {cause}",
+    },
+  },
+  facility: {
+    cause: {
+      closed: "closed",
+      demand: "current demand",
+      seating: "seating",
+      serviceStaff: "service staff",
+      kitchenLine: "kitchen line",
+      stock: "stock",
+      miseEnPlace: "mise-en-place",
+      transport: "service transport",
+      elevator: "lift capacity",
+    },
+  },
+  expense: {
+    revenue: "revenue correction",
+    operating: "operating expense",
+    capital: "capital expense",
+    investing: "investment expense",
+    borrowing: "borrowing expense",
+    equity: "equity transaction",
+    financing: "financing expense",
+    settlement: "liability settlement",
   },
   management: {
     skip: "Skip to management content",
@@ -76,6 +126,7 @@ export const en = {
     critical: "Immediate attention required",
     acknowledge: "Acknowledge",
     open: "Open {title}",
+    openAction: "Open",
     causes: { negativeLiquidity: "Cash less payables is negative" },
     severity: {
       info: "Info",
@@ -132,10 +183,6 @@ export const en = {
       cause:
         "{outletId}: {waitlisted} waiting from demand {demand} against capacity {capacity}; average wait {averageWaitMinutes} minutes.",
     },
-    "room-service-late": {
-      title: "Room service delayed",
-      cause: "{minutes} minutes door to door, mostly waiting for the lift.",
-    },
     "spa-unstaffed": {
       title: "Spa unstaffed",
       cause:
@@ -183,7 +230,7 @@ export const en = {
     },
     insolvent: {
       title: "Insolvent",
-      cause: "{memo} could not be paid in full.",
+      cause: "The {expense} could not be paid in full.",
     },
     space: {
       title: "{spaceId} turned guests away",

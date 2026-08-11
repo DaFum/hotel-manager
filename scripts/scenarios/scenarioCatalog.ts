@@ -7,7 +7,7 @@ export type ScenarioId =
   | "dense-facilities"
   | "portfolio"
   | "crisis"
-  | "migration-load"
+  | "save-load"
   | "mature-50y";
 export interface ScenarioDefinition {
   id: ScenarioId;
@@ -82,7 +82,7 @@ export const SCENARIO_CATALOG: readonly ScenarioDefinition[] = [
     benchmarkMonths: 2,
   },
   {
-    id: "migration-load",
+    id: "save-load",
     years: 5,
     seeds: [71, 72, 73],
     playerHotels: 10,

@@ -1,15 +1,17 @@
 import { expect, test } from "@playwright/test";
+import { openManagementArea } from "../management";
 
 test("operates the hotel while company and campaign state remain responsive", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await openManagementArea(page, "campaign");
   const campaign = page.getByRole("region", { name: "Campaign setup" });
   const chronicle = page.getByRole("region", { name: "Company chronicle" });
-  const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await expect(campaign).toContainText("Frankfurt, 1 January 1991");
   await expect(chronicle).toContainText("No milestones recorded yet");
 
+  await openManagementArea(page, "revenue");
   const singleRate = page
     .getByRole("region", { name: "Revenue" })
     .locator("dd")
@@ -19,6 +21,8 @@ test("operates the hotel while company and campaign state remain responsive", as
   await expect(page.getByLabel("Command status")).toContainText("accepted");
   // Accepted is what the worker said; the published rate is what it did.
   await expect(singleRate).not.toHaveText(rateBefore ?? "");
+  await openManagementArea(page, "company");
+  const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await page
     .getByRole("region", { name: "Brands" })
     .getByRole("button", {
@@ -39,5 +43,6 @@ test("operates the hotel while company and campaign state remain responsive", as
     "aria-pressed",
     "false",
   );
+  await openManagementArea(page, "campaign");
   await expect(chronicle).toBeVisible();
 });

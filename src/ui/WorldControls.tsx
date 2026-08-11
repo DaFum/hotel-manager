@@ -138,7 +138,18 @@ export function WorldControls(props: {
             <li key={problem.id}>
               <button
                 type="button"
-                aria-label={`Go to ${translateGame(locale, problem.title, problem.causeValues)}: ${translateGame(locale, problem.cause, problem.causeValues)}`}
+                aria-label={translateGame(locale, "world.goToProblem", {
+                  title: translateGame(
+                    locale,
+                    problem.title,
+                    problem.causeValues,
+                  ),
+                  cause: translateGame(
+                    locale,
+                    problem.cause,
+                    problem.causeValues,
+                  ),
+                })}
                 // Where the camera is, not a toggle the player switched on.
                 aria-current={
                   camera.focusedId === problem.id ? true : undefined

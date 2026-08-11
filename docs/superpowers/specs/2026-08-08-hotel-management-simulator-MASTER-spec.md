@@ -4612,7 +4612,10 @@ Save enthält verwendete Content-Versionen.
 
 ### 72.7 Migration
 
-Ältere Saves werden über explizite Migrationen geladen.
+Vor dem ersten öffentlichen Release wird ausschließlich das aktuelle Saveformat
+unterstützt; ältere interne Entwicklungsstände werden eindeutig abgelehnt. Ab dem
+ersten veröffentlichten Saveformat werden ältere öffentliche Saves über explizite
+Migrationen geladen.
 
 ### 72.8 Content-Update-Semantik
 

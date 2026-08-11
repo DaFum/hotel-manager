@@ -14,7 +14,6 @@ import { entityDetail } from "./entityDetail";
 import {
   CONTENT_VERSION,
   SAVE_VERSION,
-  migrateEnvelope,
   validateEnvelope,
   type SaveEnvelope,
 } from "../persistence/saveSchema";
@@ -32,24 +31,18 @@ const TICK_MS = 100;
 const QUANTA_PER_TICK = 12;
 
 /**
- * Brings a stored envelope forward and checks it before anything is replaced.
- * A save that cannot be trusted must fail here, with the running game intact,
- * rather than half-way through becoming the game.
+ * Checks a stored envelope before anything is replaced. A save that cannot be
+ * trusted must fail here with the running game intact.
  */
 function acceptEnvelope(
   value: unknown,
 ): { ok: true; state: GameState } | { ok: false; reason: string } {
   if (!value || typeof value !== "object")
     return { ok: false, reason: "save data is not a save envelope" };
-  let migrated: SaveEnvelope;
-  try {
-    migrated = migrateEnvelope(value as SaveEnvelope);
-  } catch (error) {
-    return { ok: false, reason: (error as Error).message };
-  }
-  const problems = validateEnvelope(migrated);
+  const envelope = value as SaveEnvelope;
+  const problems = validateEnvelope(envelope);
   if (problems.length > 0) return { ok: false, reason: problems.join("; ") };
-  return { ok: true, state: migrated.state as GameState };
+  return { ok: true, state: envelope.state as GameState };
 }
 
 /** The envelope this build writes, prepared from authoritative state. */

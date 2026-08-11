@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   AREA_ORDER,
   ManagementShell,
@@ -51,15 +51,10 @@ describe("ManagementShell", () => {
         .getAttribute("aria-selected"),
     ).toBe("true");
     expect(screen.getByRole("tabpanel", { name: "Finance" })).toBeTruthy();
-    expect(
-      screen
-        .getByTestId("mainView-content")
-        .closest('[role="tabpanel"]')
-        ?.hasAttribute("hidden"),
-    ).toBe(true);
+    expect(screen.queryByTestId("mainView-content")).toBeNull();
   });
 
-  it("mounts assigned content for every area in the fixed order", () => {
+  it("mounts only the selected area's assigned content", () => {
     const { container } = render(
       <ManagementShell
         adoption={adoption}
@@ -88,14 +83,61 @@ describe("ManagementShell", () => {
     ).toBe("#management-content");
 
     for (const [index, id] of AREA_ORDER.entries()) {
-      const panel = container.querySelector(`#management-${id}`);
-      expect(panel).not.toBeNull();
-      expect(panel?.contains(screen.getByTestId(`${id}-content`))).toBe(true);
-      expect(panel?.querySelector("h2")).toBeNull();
       expect(tabs[index]?.getAttribute("aria-controls")).toBe(
         `management-${id}`,
       );
-      expect(panel?.getAttribute("aria-label")).toBe(tabs[index]?.textContent);
     }
+
+    expect(container.querySelectorAll('[role="tabpanel"]')).toHaveLength(1);
+    expect(screen.getByTestId("mainView-content")).toBeTruthy();
+    for (const id of AREA_ORDER.slice(1))
+      expect(screen.queryByTestId(`${id}-content`)).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Campaign" }));
+    const panel = screen.getByRole("tabpanel", { name: "Campaign" });
+    expect(panel.getAttribute("id")).toBe("management-campaign");
+    expect(panel.contains(screen.getByTestId("campaign-content"))).toBe(true);
+    expect(panel.querySelector("h2")).toBeNull();
+    expect(screen.queryByTestId("mainView-content")).toBeNull();
+  });
+
+  it("does not render inactive area components on publication rerenders", () => {
+    const mainViewRender = vi.fn();
+    const hotelRender = vi.fn();
+    function Marker({ onRender }: { onRender: () => void }) {
+      onRender();
+      return <p>content</p>;
+    }
+    const createAreas = (): readonly ManagementArea[] =>
+      AREA_ORDER.map((id) => ({
+        id,
+        content:
+          id === "mainView" ? (
+            <Marker onRender={mainViewRender} />
+          ) : id === "hotel" ? (
+            <Marker onRender={hotelRender} />
+          ) : (
+            <p>{id}</p>
+          ),
+      }));
+    const { rerender } = render(
+      <ManagementShell
+        adoption={adoption}
+        areas={createAreas()}
+        title="Management"
+      />,
+    );
+
+    expect(mainViewRender).toHaveBeenCalledTimes(1);
+    expect(hotelRender).not.toHaveBeenCalled();
+    rerender(
+      <ManagementShell
+        adoption={adoption}
+        areas={createAreas()}
+        title="Management"
+      />,
+    );
+    expect(mainViewRender).toHaveBeenCalledTimes(2);
+    expect(hotelRender).not.toHaveBeenCalled();
   });
 });

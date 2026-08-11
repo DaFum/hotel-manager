@@ -43,6 +43,7 @@ export function ManagementShell({
   const labels = orderedAreas.map((area) =>
     translateGame(locale, `management.${area.id}`),
   );
+  const activeArea = orderedAreas[selected];
   return (
     <div
       className="hm-shell"
@@ -70,18 +71,17 @@ export function ManagementShell({
         />
       </nav>
       <main className="hm-main" id="management-content" aria-label={title}>
-        {orderedAreas.map((area, index) => (
+        {activeArea ? (
           <section
-            key={area.id}
+            key={activeArea.id}
             className="hm-shell__panel"
-            id={`management-${area.id}`}
+            id={`management-${activeArea.id}`}
             role="tabpanel"
-            aria-label={labels[index]}
-            hidden={selected !== index}
+            aria-label={labels[selected]}
           >
-            {area.content}
+            {activeArea.content}
           </section>
-        ))}
+        ) : null}
       </main>
     </div>
   );

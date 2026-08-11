@@ -1,7 +1,8 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_PLAYER_PREFERENCES } from "../game/settings/playerPreferences";
 import { createInitialGameState } from "../game/simulation/initialState";
+import { translateGame } from "../i18n";
 import { AREA_ORDER } from "../ui/ManagementShell";
 import { useGameStore, type GameStore } from "./gameStore";
 import { App } from "./App";
@@ -60,7 +61,7 @@ describe("App", () => {
       mainView: ["Hotel view", "World controls"],
       hotel: [
         "Facilities",
-        "Food and beverage",
+        "Speisen und Getränke",
         "Commercial spaces",
         "Classification",
         "Build",
@@ -82,13 +83,19 @@ describe("App", () => {
     };
 
     for (const id of AREA_ORDER) {
+      fireEvent.click(
+        screen.getByRole("tab", {
+          name: translateGame("de-DE", `management.${id}`),
+        }),
+      );
       const panel = container.querySelector(`#management-${id}`);
+      expect(container.querySelectorAll('[role="tabpanel"]')).toHaveLength(1);
       expect(panel).not.toBeNull();
       for (const label of expectedContent[id])
         expect(panel?.querySelector(`[aria-label="${label}"]`)).not.toBeNull();
+      expect(
+        container.querySelectorAll('[aria-label="Competitors"]'),
+      ).toHaveLength(id === "revenue" || id === "market" ? 1 : 0);
     }
-    expect(
-      container.querySelectorAll('[aria-label="Competitors"]'),
-    ).toHaveLength(2);
   });
 });

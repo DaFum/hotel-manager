@@ -1,19 +1,26 @@
 import type { FnbOutletId, FnbState } from "../../game/fnb/fnbState";
 import { utilizationBp } from "../../game/facilities/capacity";
+import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
-import { translateKey } from "../localization";
 
-const OUTLET_LABELS: Record<FnbOutletId, string> = {
-  breakfastRoom: "Breakfast room",
-  bar: "Bar",
-  roomService: "Room service",
-  restaurant: "Restaurant",
+const OUTLET_LABEL_KEYS: Record<FnbOutletId, string> = {
+  breakfastRoom: "fnb.outlets.breakfastRoom",
+  bar: "fnb.outlets.bar",
+  roomService: "fnb.outlets.roomService",
+  restaurant: "fnb.outlets.restaurant",
 };
 
-export function FnbDashboard({ fnb }: { fnb: FnbState }) {
+export function FnbDashboard({
+  fnb,
+  locale = "en-GB",
+}: {
+  fnb: FnbState;
+  locale?: GameLocale;
+}) {
+  const title = translateGame(locale, "fnb.title");
   return (
-    <section aria-label="Food and beverage">
-      <h2>Food and beverage</h2>
+    <section aria-label={title}>
+      <h2>{title}</h2>
       <ul>
         {fnb.outlets.map((outlet) => {
           const serviceLoadBp = utilizationBp(
@@ -24,21 +31,57 @@ export function FnbDashboard({ fnb }: { fnb: FnbState }) {
             outlet.demand,
             outlet.kitchenThroughput,
           );
+          const label = translateGame(locale, OUTLET_LABEL_KEYS[outlet.id]);
           return (
-            <li key={outlet.id} aria-label={OUTLET_LABELS[outlet.id]}>
-              <h3>{OUTLET_LABELS[outlet.id]}</h3>
-              <p>Seats: {outlet.seats}</p>
+            <li key={outlet.id} aria-label={label}>
+              <h3>{label}</h3>
               <p>
-                Covers: {outlet.served}/{outlet.demand} (capacity{" "}
-                {outlet.capacity})
+                {translateGame(locale, "fnb.metrics.seats", {
+                  seats: outlet.seats,
+                })}
               </p>
-              <p>Waitlisted: {outlet.waitlisted}</p>
-              <p>Service load: {formatBasisPoints(serviceLoadBp)}</p>
-              <p>Kitchen load: {formatBasisPoints(kitchenLoadBp)}</p>
-              <p>Average wait: {outlet.averageWaitMinutes} minutes</p>
-              <p>Waste: {outlet.wastedCovers} covers</p>
-              <p>Food cost: {formatDm(outlet.ingredientExpenseMinor)}</p>
-              <p>Limited by: {translateKey(outlet.cause)}</p>
+              <p>
+                {translateGame(locale, "fnb.metrics.covers", {
+                  served: outlet.served,
+                  demand: outlet.demand,
+                  capacity: outlet.capacity,
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.waitlisted", {
+                  waitlisted: outlet.waitlisted,
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.serviceLoad", {
+                  load: formatBasisPoints(serviceLoadBp, locale),
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.kitchenLoad", {
+                  load: formatBasisPoints(kitchenLoadBp, locale),
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.averageWait", {
+                  minutes: outlet.averageWaitMinutes,
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.waste", {
+                  covers: outlet.wastedCovers,
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.foodCost", {
+                  cost: formatDm(outlet.ingredientExpenseMinor, locale),
+                })}
+              </p>
+              <p>
+                {translateGame(locale, "fnb.metrics.limitedBy", {
+                  cause: translateGame(locale, outlet.cause),
+                })}
+              </p>
             </li>
           );
         })}

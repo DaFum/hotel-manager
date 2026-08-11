@@ -133,6 +133,7 @@ export function spaceThroughput(input: {
       spaceId: space.id,
       capacity: space.capacity,
       demand: input.demand,
+      turnedAway: input.demand - served,
     },
   };
 }

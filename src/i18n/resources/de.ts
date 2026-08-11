@@ -1,6 +1,10 @@
 export const de = {
   app: {
     main: "Hotelverwaltung",
+    telemetry: {
+      command: "Befehl: {status}",
+      saves: "Gespeicherte Spielstände: {count}",
+    },
   },
   topbar: {
     status: "Statusleiste",
@@ -17,6 +21,52 @@ export const de = {
     status: "Hotelstatus",
     inspect: "Prüfen",
     serviceAreas: "Servicebereiche",
+  },
+  world: {
+    goToProblem: "Gehe zu {title}: {cause}",
+  },
+  fnb: {
+    title: "Speisen und Getränke",
+    outlets: {
+      breakfastRoom: "Frühstücksraum",
+      bar: "Bar",
+      roomService: "Zimmerservice",
+      restaurant: "Restaurant",
+    },
+    metrics: {
+      seats: "Sitzplätze: {seats}",
+      covers: "Bewirtungen: {served}/{demand} (Kapazität {capacity})",
+      waitlisted: "Warteliste: {waitlisted}",
+      serviceLoad: "Serviceauslastung: {load}",
+      kitchenLoad: "Küchenauslastung: {load}",
+      averageWait: "Wartezeit: {minutes} Minuten",
+      waste: "Abfall: {covers} Bewirtungen",
+      foodCost: "Wareneinsatz: {cost}",
+      limitedBy: "Begrenzt durch: {cause}",
+    },
+  },
+  facility: {
+    cause: {
+      closed: "geschlossen",
+      demand: "aktuelle Nachfrage",
+      seating: "Sitzplätze",
+      serviceStaff: "Servicepersonal",
+      kitchenLine: "Küchenlinie",
+      stock: "Bestand",
+      miseEnPlace: "Mise en Place",
+      transport: "Servicetransport",
+      elevator: "Aufzugskapazität",
+    },
+  },
+  expense: {
+    revenue: "Erlöskorrektur",
+    operating: "Betriebsausgabe",
+    capital: "Investitionsausgabe",
+    investing: "Anlageausgabe",
+    borrowing: "Kreditaufnahme",
+    equity: "Eigenkapitaltransaktion",
+    financing: "Finanzierungsausgabe",
+    settlement: "Begleichung einer Verbindlichkeit",
   },
   management: {
     skip: "Zum Verwaltungsinhalt springen",
@@ -76,6 +126,7 @@ export const de = {
     critical: "Sofortige Aufmerksamkeit erforderlich",
     acknowledge: "Bestätigen",
     open: "{title} öffnen",
+    openAction: "Öffnen",
     causes: {
       negativeLiquidity: "Bargeld abzüglich Verbindlichkeiten ist negativ",
     },
@@ -134,11 +185,6 @@ export const de = {
       cause:
         "{outletId}: {waitlisted} warten bei Nachfrage {demand} und Kapazität {capacity}; durchschnittliche Wartezeit {averageWaitMinutes} Minuten.",
     },
-    "room-service-late": {
-      title: "Zimmerservice verspätet",
-      cause:
-        "{minutes} Minuten von der Küche bis zur Tür, vor allem wegen des Aufzugs.",
-    },
     "spa-unstaffed": {
       title: "Spa unterbesetzt",
       cause:
@@ -187,7 +233,7 @@ export const de = {
     },
     insolvent: {
       title: "Insolvent",
-      cause: "{memo} konnte nicht vollständig bezahlt werden.",
+      cause: "Die {expense} konnte nicht vollständig bezahlt werden.",
     },
     space: {
       title: "{spaceId} musste Gäste abweisen",

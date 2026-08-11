@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { seatService } from "../fnb/seating";
 import { runKitchenService } from "../fnb/kitchen";
-import { roomServiceCapacity } from "../fnb/roomService";
 import { reserveTreatment } from "../wellness/reservations";
 import {
   advanceContract,
@@ -12,7 +11,7 @@ import { prioritizeEngineering } from "../engineering/policy";
 import { createUtilityState, meterUtilities } from "../facilities/utilities";
 import { facilityRow } from "../facilities/facilityBoard";
 
-describe("Plan 02 operating-depth conformance", () => {
+describe("hotel operating depth", () => {
   it("serves only inside opening hours and waitlists beyond capacity", () => {
     const input = {
       seats: 10,
@@ -86,15 +85,6 @@ describe("Plan 02 operating-depth conformance", () => {
       }),
     ).toThrow();
     expect(() =>
-      roomServiceCapacity({
-        demand: -1,
-        kitchen: 1,
-        staffed: 1,
-        transport: 1,
-        elevator: 1,
-      }),
-    ).toThrow();
-    expect(() =>
       meterUtilities(
         createUtilityState(),
         [{ id: "bad", waterUnits: 0.5, energyUnits: 1 }],
@@ -116,18 +106,6 @@ describe("Plan 02 operating-depth conformance", () => {
         maintained: true,
       }),
     ).toThrow();
-  });
-
-  it("names the tightest room-service dependency as its cause", () => {
-    expect(
-      roomServiceCapacity({
-        demand: 20,
-        kitchen: 16,
-        staffed: 12,
-        transport: 9,
-        elevator: 4,
-      }),
-    ).toEqual({ served: 4, cause: "facility.cause.elevator" });
   });
 
   it("limits wellness by specialists, utilities and maintenance state", () => {

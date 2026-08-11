@@ -28,6 +28,7 @@ test("hotel view stays interactive during 16x simulation", async ({ page }) => {
   );
   expect(mainThreadDelayMs).toBeLessThan(250);
   await expect(status).not.toHaveText(runningClock, { timeout: 10_000 });
+  await page.getByRole("button", { name: "Pause" }).click();
   await room.click();
   await expect(
     page

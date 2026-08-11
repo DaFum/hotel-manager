@@ -151,7 +151,8 @@ export class PixiHotelScene {
     // snapshot to redraw from — so a resize has to re-frame the building
     // itself, or the house sits off to one side until time runs again.
     this.app.renderer.on("resize", () => {
-      if (this.lastModel) this.applyCamera(this.lastModel);
+      if (this.lastModel)
+        this.applyCamera(this.lastModel, this.placements(this.lastModel));
     });
   }
 
@@ -174,13 +175,14 @@ export class PixiHotelScene {
       : (roomsOrModel as SceneModel);
 
     this.lastModel = model;
+    const placements = this.placements(model);
     this.facilities.render(model.facilities ?? []);
-    this.drawBuilding(model);
+    this.drawBuilding(model, placements);
     this.drawArchitecture(model);
     this.drawLiftCars(model);
     this.drawOperationalSituations(model);
-    this.drawPeople(model);
-    this.applyCamera(model);
+    this.drawPeople(model, placements);
+    this.applyCamera(model, placements);
   }
 
   private drawOperationalSituations(model: SceneModel): void {
@@ -189,20 +191,21 @@ export class PixiHotelScene {
     const positions = model.positionByEntityId;
     if (!situations || !positions) return;
 
-    const reception = this.projectGrid(0, 0, 1);
-    situations.reception.desks.forEach((desk, index) => {
-      const x = reception.x + 8 + index * 13;
-      const y = reception.y + 4;
-      const graphic = new Graphics()
-        .rect(x, y, 10, 6)
-        .fill({ color: desk.staffed ? 0x4c9f70 : 0x555555 })
-        .stroke({
-          width: desk.staffed ? 1 : 2,
-          color: desk.staffed ? 0xe9e5db : 0xe2543c,
-        });
-      graphic.label = desk.id;
-      this.operations.addChild(graphic);
-    });
+    const reception = resolveEntityPosition(positions, "facility.reception");
+    if (reception)
+      situations.reception.desks.forEach((desk, index) => {
+        const x = reception.x + 8 + index * 13;
+        const y = reception.y + 4;
+        const graphic = new Graphics()
+          .rect(x, y, 10, 6)
+          .fill({ color: desk.staffed ? 0x4c9f70 : 0x555555 })
+          .stroke({
+            width: desk.staffed ? 1 : 2,
+            color: desk.staffed ? 0xe9e5db : 0xe2543c,
+          });
+        graphic.label = desk.id;
+        this.operations.addChild(graphic);
+      });
 
     const round = situations.housekeeping.round;
     if (round) {
@@ -289,11 +292,29 @@ export class PixiHotelScene {
 
   private drawLiftCars(model: SceneModel): void {
     for (const child of this.lifts.removeChildren()) child.destroy();
+    const liftPosition = model.positionByEntityId
+      ? resolveEntityPosition(model.positionByEntityId, "asset.lift")
+      : null;
+    const elevatorCore = model.floorPlan?.cores.find(
+      (core) => core.kind === "elevator" && core.floor === 0,
+    );
+    const point =
+      liftPosition ??
+      (elevatorCore
+        ? {
+            ...elevatorCore,
+            ...this.projectGrid(
+              elevatorCore.floor,
+              elevatorCore.gridX,
+              elevatorCore.gridY,
+            ),
+          }
+        : null);
+    if (!point) return;
     for (const car of model.elevator?.cars ?? []) {
       const floorPosition = car.positionFloorBasisPoints / 10000;
       if (model.camera && !visibleFloor(Math.ceil(floorPosition), model.camera))
         continue;
-      const point = isoProject(6, 2, TILE_WIDTH, TILE_HEIGHT);
       const colour = car.failed ? 0xe2543c : car.moving ? 0xe8a33d : 0x6d9dc5;
       const graphic = new Graphics()
         .rect(point.x - 5, point.y - floorPosition * FLOOR_HEIGHT - 4, 10, 8)
@@ -482,17 +503,28 @@ export class PixiHotelScene {
         .lineTo(point.x - 5, point.y + 5)
         .stroke({ width: 3, color: 0xe2543c });
       marker.label = `${node.id}.closed`;
-      this.marks.addChild(marker);
+      this.architecture.addChild(marker);
+    }
+
+    const focusedId = model.camera?.focusedId;
+    if (focusedId && !plan.rooms[focusedId] && model.positionByEntityId) {
+      const focused = resolveEntityPosition(
+        model.positionByEntityId,
+        focusedId,
+      );
+      if (focused && floorVisible(focused.floor)) this.markFocus(focused);
     }
   }
 
-  private drawBuilding(model: SceneModel): void {
+  private drawBuilding(
+    model: SceneModel,
+    placements: readonly RoomPlacement[],
+  ): void {
     for (const child of this.tiles.removeChildren()) child.destroy();
     for (const child of this.marks.removeChildren()) child.destroy();
 
     const tint = LIGHT_TINT[lightingFor(model.minuteOfDay ?? 720)];
     this.world.tint = tint;
-    const placements = this.placements(model);
     const lod = roomLodFor(model.camera?.zoom ?? 1);
 
     if (!lod.drawRoomTiles) {
@@ -652,7 +684,7 @@ export class PixiHotelScene {
   }
 
   /** Camera focus is a steel locator, distinct from amber room selection. */
-  private markFocus(placement: RoomPlacement): void {
+  private markFocus(placement: Pick<RoomPlacement, "id" | "x" | "y">): void {
     const outline = new Graphics()
       .moveTo(-3, TILE_HEIGHT / 2)
       .lineTo(TILE_WIDTH / 2, -3)
@@ -665,7 +697,10 @@ export class PixiHotelScene {
     this.marks.addChild(outline);
   }
 
-  private drawPeople(model: SceneModel): void {
+  private drawPeople(
+    model: SceneModel,
+    placements: readonly RoomPlacement[],
+  ): void {
     for (const child of this.people.removeChildren()) child.destroy();
     if (!model.agents?.length) return;
 
@@ -673,7 +708,7 @@ export class PixiHotelScene {
     // stands when they are waiting rather than anywhere in particular.
     const placed = model.positionByEntityId
       ? placeAgentsFromEntities(model.agents, model.positionByEntityId)
-      : placeAgents(model.agents, this.placements(model), {
+      : placeAgents(model.agents, placements, {
           x: 0,
           y: TILE_HEIGHT,
         });
@@ -702,12 +737,15 @@ export class PixiHotelScene {
     return model.camera ? visiblePlacements(placed, model.camera) : placed;
   }
 
-  private applyCamera(model: SceneModel): void {
+  private applyCamera(
+    model: SceneModel,
+    placements: readonly RoomPlacement[],
+  ): void {
     if (!model.camera) return;
     const transform = stageTransform(
       model.camera,
       { width: this.app.renderer.width, height: this.app.renderer.height },
-      buildingCentre(this.placements(model)),
+      buildingCentre(placements),
     );
     this.world.position.set(transform.x, transform.y);
     this.world.scale.set(transform.scale);

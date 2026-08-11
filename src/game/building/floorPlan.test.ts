@@ -41,6 +41,18 @@ describe("authoritative floor plan", () => {
         "facility.maintenance",
       ]),
     );
+
+    const occupiedCells = new Set<string>();
+    for (const area of plan.areas)
+      for (let gridX = area.gridX; gridX < area.gridX + area.width; gridX++)
+        for (let gridY = area.gridY; gridY < area.gridY + area.depth; gridY++) {
+          const cell = `${area.floor}:${gridX}:${gridY}`;
+          expect(
+            occupiedCells.has(cell),
+            `${cell} is claimed more than once`,
+          ).toBe(false);
+          occupiedCells.add(cell);
+        }
   });
 
   it("uses the same stable navigation ids in topology and position lookup", () => {
@@ -61,5 +73,22 @@ describe("authoritative floor plan", () => {
       floor: 0,
       gridX: 6,
     });
+  });
+
+  it("keeps lift aliases synchronized with the ground-floor elevator core", () => {
+    const plan = generateFloorPlan(rooms);
+    const core = plan.cores.find(
+      (candidate) => candidate.kind === "elevator" && candidate.floor === 0,
+    )!;
+    core.gridX = 8;
+    core.gridY = 7;
+
+    const positions = positionMapForPlan(plan);
+    expect(positions["facility.elevator"]).toEqual({
+      floor: 0,
+      gridX: 8,
+      gridY: 7,
+    });
+    expect(positions["asset.lift"]).toEqual(positions["facility.elevator"]);
   });
 });

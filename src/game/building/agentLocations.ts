@@ -14,6 +14,8 @@ export type AgentStatus =
 export interface RenderAgentDescriptor {
   id: string;
   kind: "guest" | "staff";
+  /** Stable customer identity, distinct from this rendered booking instance. */
+  guestId?: string;
   locationId: string;
   status: AgentStatus;
   routeIds: string[];
@@ -101,8 +103,9 @@ export function describeAgentLocations(
   for (const waiting of input.receptionQueue) {
     const reservation = reservationById.get(waiting.bookingId);
     agents.push({
-      id: reservation?.guestId ?? `guest.${waiting.bookingId}`,
+      id: `agent.${waiting.bookingId}`,
       kind: "guest",
+      guestId: reservation?.guestId ?? `guest.${waiting.bookingId}`,
       locationId: "navigation.reception.queue",
       queuedFor: "facility.reception",
       status: "waiting-check-in",
@@ -116,7 +119,6 @@ export function describeAgentLocations(
   for (const stay of input.stays) {
     if (waitingBookingIds.has(stay.bookingId)) continue;
     const reservation = reservationById.get(stay.bookingId);
-    const id = reservation?.guestId ?? `guest.${stay.bookingId}`;
     const activity = guestActivity(input.minuteOfDay, stay.roomId);
     const floor = input.floorByRoomId[stay.roomId] ?? 0;
     const routeIds = guestRoute(stay.roomId, floor, activity.locationId);
@@ -136,8 +138,9 @@ export function describeAgentLocations(
         ? routeIds[Math.min(routeIds.length - 1, Math.floor(inTransit / 2))]
         : activity.locationId;
     agents.push({
-      id,
+      id: `agent.${stay.bookingId}`,
       kind: "guest",
+      guestId: reservation?.guestId ?? `guest.${stay.bookingId}`,
       locationId,
       status: activity.status,
       routeIds,
@@ -145,18 +148,15 @@ export function describeAgentLocations(
   }
 
   for (const staff of input.staff) {
+    const locationId = staff.absent
+      ? "outside.hotel"
+      : (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area");
     agents.push({
       id: staff.id,
       kind: "staff",
-      locationId: staff.absent
-        ? "outside.hotel"
-        : (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area"),
+      locationId,
       status: staff.absent ? "absent" : "working",
-      routeIds: [
-        staff.absent
-          ? "outside.hotel"
-          : (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area"),
-      ],
+      routeIds: [locationId],
     });
   }
 
@@ -171,30 +171,58 @@ export function describeLiftCars(input: {
   trips: number;
   failed: boolean;
   waitingGuestIds: readonly string[];
+  heldFloorByCar?: readonly number[];
+  heldPositionFloorBasisPointsByCar?: readonly number[];
 }): LiftCarDescriptor[] {
   const topFloor = Math.max(0, Math.floor(input.topFloor));
   const cycleLegs = Math.max(1, topFloor * 2);
   return Array.from({ length: Math.max(0, input.cars) }, (_, index) => {
-    const leg =
-      Math.floor(input.elapsedMinutes / ELEVATOR_TRIP_MINUTES + index) %
-      cycleLegs;
-    const movingUp = leg < topFloor;
-    const currentFloor = movingUp ? leg : Math.max(0, topFloor * 2 - leg);
-    const targetFloor =
-      topFloor === 0 ? 0 : movingUp ? currentFloor + 1 : currentFloor - 1;
     const moving = input.trips > 0 && !input.failed && topFloor > 0;
+    const leg = moving
+      ? Math.floor(input.elapsedMinutes / ELEVATOR_TRIP_MINUTES + index) %
+        cycleLegs
+      : 0;
+    const movingUp = moving && leg < topFloor;
+    const heldFloor = Math.max(
+      0,
+      Math.min(
+        topFloor,
+        Math.floor(input.heldFloorByCar?.[index] ?? index % (topFloor + 1)),
+      ),
+    );
+    const currentFloor = moving
+      ? movingUp
+        ? leg
+        : Math.max(0, topFloor * 2 - leg)
+      : heldFloor;
+    const targetFloor = moving
+      ? movingUp
+        ? currentFloor + 1
+        : currentFloor - 1
+      : currentFloor;
     const progress = moving
       ? Math.floor(
           ((input.elapsedMinutes % ELEVATOR_TRIP_MINUTES) * 10000) /
             ELEVATOR_TRIP_MINUTES,
         )
       : 0;
+    const heldPositionFloorBasisPoints = Math.max(
+      0,
+      Math.min(
+        topFloor * 10000,
+        Math.floor(
+          input.heldPositionFloorBasisPointsByCar?.[index] ??
+            currentFloor * 10000,
+        ),
+      ),
+    );
     return {
       id: `${input.liftId}.car.${index + 1}`,
       currentFloor,
       targetFloor,
-      positionFloorBasisPoints:
-        (currentFloor + (movingUp ? progress : -progress) / 10000) * 10000,
+      positionFloorBasisPoints: moving
+        ? currentFloor * 10000 + (movingUp ? progress : -progress)
+        : heldPositionFloorBasisPoints,
       direction: moving ? (movingUp ? "up" : "down") : "idle",
       moving,
       stopped: !moving,

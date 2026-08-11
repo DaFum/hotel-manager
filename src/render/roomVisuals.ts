@@ -39,20 +39,20 @@ export function roomLodFor(zoom: number): {
   };
 }
 
-const STATE_URGENCY: Record<string, number> = {
+const STATE_PRIORITY: Record<string, number> = {
   VacantClean: 0,
-  Inspected: 0,
-  Reserved: 1,
-  Occupied: 1,
-  VacantDirty: 2,
-  Blocked: 3,
-  OutOfOrder: 4,
+  Inspected: 1,
+  Reserved: 10,
+  Occupied: 11,
+  VacantDirty: 20,
+  Blocked: 30,
+  OutOfOrder: 40,
 };
 
 export function aggregateRoomState(states: readonly string[]): string {
   return states.reduce(
     (current, state) =>
-      (STATE_URGENCY[state] ?? 1) > (STATE_URGENCY[current] ?? 1)
+      (STATE_PRIORITY[state] ?? 10) > (STATE_PRIORITY[current] ?? 10)
         ? state
         : current,
     "VacantClean",

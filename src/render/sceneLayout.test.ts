@@ -195,31 +195,39 @@ describe("the hotel as a building", () => {
   });
 
   it("places areas and navigation queues without a room fallback", () => {
-    expect(
-      placeAgentsFromEntities(
-        [
-          {
-            id: "guest.1",
-            kind: "guest",
-            locationId: "navigation.reception.queue",
-            queuedFor: "facility.reception",
-          },
-          {
-            id: "staff.1",
-            kind: "staff",
-            locationId: "facility.housekeeping",
-          },
-          { id: "guest.out", kind: "guest", locationId: "outside.hotel" },
-        ],
-        {
-          "navigation.reception.queue": { floor: 0, gridX: 1, gridY: 2 },
-          "facility.housekeeping": { floor: 0, gridX: 6, gridY: 3 },
-        },
-      ).map(({ id, queued }) => ({ id, queued })),
-    ).toEqual([
+    const fixture = [
+      {
+        id: "guest.1",
+        kind: "guest",
+        locationId: "navigation.reception.queue",
+        queuedFor: "facility.reception",
+      },
+      {
+        id: "staff.1",
+        kind: "staff",
+        locationId: "facility.housekeeping",
+      },
+      { id: "guest.out", kind: "guest", locationId: "outside.hotel" },
+    ] as const;
+    const positions = {
+      "navigation.reception.queue": { floor: 0, gridX: 1, gridY: 2 },
+      "facility.housekeeping": { floor: 0, gridX: 6, gridY: 3 },
+    };
+    const placed = placeAgentsFromEntities(fixture, positions);
+
+    expect(placed.map(({ id, queued }) => ({ id, queued }))).toEqual([
       { id: "guest.1", queued: true },
       { id: "staff.1", queued: false },
     ]);
+    expect(
+      Object.fromEntries(
+        placeAgentsFromEntities([...fixture].reverse(), positions).map(
+          (placement) => [placement.id, placement],
+        ),
+      ),
+    ).toEqual(
+      Object.fromEntries(placed.map((placement) => [placement.id, placement])),
+    );
   });
 });
 

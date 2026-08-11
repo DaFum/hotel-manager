@@ -1,3 +1,7 @@
+import type { Phase as RenovationPhase } from "../game/renovation/projects";
+
+export type { RenovationPhase };
+
 export const ENGLISH_TEXT = {
   "competitor.strategy.budget": "Budget operator",
   "competitor.strategy.luxury": "Luxury house",
@@ -114,9 +118,6 @@ export const ENGLISH_TEXT = {
   "chronicle.opportunity.paid-off": "An old stake was sold at a profit.",
   "chronicle.opportunity.written-off": "An old stake was written off.",
 } as const;
-
-export type RenovationPhase =
-  "planning" | "approval" | "construction" | "acceptance" | "complete";
 
 const RENOVATION_PHASE_KEYS: Record<RenovationPhase, string> = {
   planning: "room.renovation.planning",

@@ -21,6 +21,22 @@ export const de = {
     status: "Hotelstatus",
     inspect: "Prüfen",
     serviceAreas: "Servicebereiche",
+    buildingStructure: "Gebäudestruktur",
+    placedAreas: "Platzierte Bereiche",
+    navigation: "Navigation",
+    closed: "geschlossen",
+    areaKind: {
+      guest: "Gästebereich",
+      public: "öffentlicher Bereich",
+      service: "Servicebereich",
+    },
+    navigationKind: {
+      door: "Tür",
+      corridor: "Flur",
+      stairs: "Treppe",
+      elevator: "Aufzug",
+      room: "Zimmer",
+    },
   },
   agent: {
     people: "Personen im Hotel",
@@ -43,6 +59,20 @@ export const de = {
   },
   world: {
     goToProblem: "Gehe zu {title}: {cause}",
+    layers: "Ebenen",
+    showServiceAreas: "Servicebereiche anzeigen",
+    hideServiceAreas: "Servicebereiche ausblenden",
+    lifts: "Aufzüge",
+    elevatorState: "Aufzugstatus",
+    elevatorSummary: "{queue} Wartende, {minutes} Minuten, {cause}",
+    liftCar: "{id}: Etage {floor}, {direction}, {status}, {waiting} Wartende",
+    direction: { up: "aufwärts", down: "abwärts", idle: "wartet" },
+    carStatus: { failed: "ausgefallen", ready: "betriebsbereit" },
+    elevatorCause: {
+      unavailable: "außer Betrieb",
+      overloaded: "Warteschlange übersteigt die Aufzugskapazität",
+      available: "verfügbar",
+    },
   },
   fnb: {
     title: "Speisen und Getränke",
@@ -94,6 +124,7 @@ export const de = {
     food: "Restaurant, Küche und Bar",
     outlet:
       "{outletId}: {free} freie Tische, {waiting} warten, begrenzt durch {cause}",
+    turnedAway: "{count} abgewiesen",
     kitchen: "Küchenlinie: {status}, begrenzt durch {cause}",
     kitchenOverloaded: "überlastet",
     kitchenAvailable: "verfügbar",

@@ -3,6 +3,7 @@ import { createInitialGameState } from "../game/simulation/initialState";
 import { createCamera, zoomCamera } from "../render/camera";
 import { placeRooms } from "../render/sceneLayout";
 import {
+  focusKindForAlertTarget,
   rateByCategory,
   renovatingRoomIds,
   roomFocusPoint,
@@ -142,11 +143,22 @@ describe("the isometric hotel read off the snapshot", () => {
     expect(worldProblems(s)).toHaveLength(1);
   });
 
+  it("maps navigation alert targets to the problem focus kind", () => {
+    expect(focusKindForAlertTarget("navigation")).toBe("problem");
+    expect(focusKindForAlertTarget("facility")).toBe("facility");
+    expect(focusKindForAlertTarget("room")).toBe("room");
+  });
+
   it("never guesses a target by matching room ids inside alert text", () => {
     const s = snapshot();
     const shortRoomId = s.hotel.rooms[0].id;
     const longRoomId = shortRoomId + "0";
     s.hotel.rooms = [...s.hotel.rooms, { ...s.hotel.rooms[0], id: longRoomId }];
+    s.renderDescriptors.positionByEntityId[longRoomId] = {
+      floor: 1,
+      gridX: 0,
+      gridY: 0,
+    };
 
     s.alerts = [
       {

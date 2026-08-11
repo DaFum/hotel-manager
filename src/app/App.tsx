@@ -53,6 +53,7 @@ import {
   type CameraState,
 } from "../render/camera";
 import {
+  focusKindForAlertTarget,
   rateByCategory,
   roomFocusPoint,
   visualAgents,
@@ -258,19 +259,19 @@ export function App() {
   const openNotificationTarget = (entityId: string, alertId: string) => {
     setOpenAlert(alertId);
     const alert = s.alerts.find((candidate) => candidate.id === alertId);
+    const target = alert?.target;
     const position = resolveEntityPosition(
       s.renderDescriptors.positionByEntityId,
       entityId,
     );
-    if (!alert?.target || !position) return;
-    const targetKind = alert.target.kind;
+    if (!target || !position) return;
     setCamera((current) =>
       focusCamera(current, {
         id: entityId,
         x: position.x,
         y: position.y,
         floor: position.floor,
-        kind: targetKind === "navigation" ? "problem" : targetKind,
+        kind: focusKindForAlertTarget(target.kind),
       }),
     );
   };
@@ -288,9 +289,6 @@ export function App() {
           closedNavigationIds={s.renderDescriptors.closedNavigationIds}
           elevator={s.renderDescriptors.elevator}
           situations={s.renderDescriptors.situations}
-          roomFaultReasonByRoomId={
-            s.renderDescriptors.situations.roomFaultReasonByRoomId
-          }
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
           focusedEntityId={camera.focusedId}

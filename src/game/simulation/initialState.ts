@@ -28,6 +28,7 @@ import type {
   RenderAgentDescriptor,
 } from "../building/agentLocations";
 import type { OperationalSituationDescriptors } from "../building/operationalSituations";
+import { ELEVATOR_TRIP_MINUTES } from "../facilities/mobility";
 import type { Phase as RenovationPhase } from "../renovation/projects";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
@@ -538,9 +539,9 @@ export function createRenderDescriptors(
     closedNavigationIds: [],
     elevator: {
       id: "asset.lift",
-      capacity: 6,
+      capacity: STARTER_HOTEL.elevatorCars * 6,
       queue: 0,
-      travelMinutes: 2,
+      travelMinutes: ELEVATOR_TRIP_MINUTES,
       failed: false,
       cars: [],
     },

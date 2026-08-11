@@ -57,5 +57,7 @@ describe("room presentation", () => {
     expect(aggregateRoomState(["VacantClean", "VacantDirty"])).toBe(
       "VacantDirty",
     );
+    expect(aggregateRoomState(["Reserved", "Occupied"])).toBe("Occupied");
+    expect(aggregateRoomState(["Occupied", "Reserved"])).toBe("Occupied");
   });
 });

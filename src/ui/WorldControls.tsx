@@ -63,6 +63,16 @@ export function WorldControls(props: {
   const light = lightingFor(props.minuteOfDay);
   const detail = detailFor(camera.zoom);
   const locale = props.locale ?? "en-GB";
+  const elevatorCauseKey: string | undefined = (
+    {
+      "out of service": "world.elevatorCause.unavailable",
+      "queue exceeds car capacity": "world.elevatorCause.overloaded",
+      available: "world.elevatorCause.available",
+    } as Readonly<Record<string, string>>
+  )[props.elevator.cause];
+  const elevatorCause = elevatorCauseKey
+    ? translateGame(locale, elevatorCauseKey)
+    : props.elevator.cause;
 
   return (
     <section aria-label="World controls">
@@ -137,30 +147,50 @@ export function WorldControls(props: {
         {camera.cutaway ? "Show whole building" : "Cut away above this floor"}
       </button>
 
-      <h3>Layers</h3>
+      <h3>{translateGame(locale, "world.layers")}</h3>
       <button
         type="button"
-        aria-label="Show service areas"
+        aria-label={translateGame(
+          locale,
+          camera.showServiceAreas
+            ? "world.hideServiceAreas"
+            : "world.showServiceAreas",
+        )}
         aria-pressed={camera.showServiceAreas}
         onClick={() => props.onCamera(toggleServiceAreas(camera))}
       >
-        {camera.showServiceAreas ? "Hide" : "Show"} service areas
+        {translateGame(
+          locale,
+          camera.showServiceAreas
+            ? "world.hideServiceAreas"
+            : "world.showServiceAreas",
+        )}
       </button>
 
-      <h3>Lifts</h3>
-      <p role="status" aria-label="Elevator state">
-        {props.elevator.queue} waiting, {props.elevator.waitMinutes} minutes,{" "}
-        {props.elevator.cause}
+      <h3>{translateGame(locale, "world.lifts")}</h3>
+      <p
+        role="status"
+        aria-label={translateGame(locale, "world.elevatorState")}
+      >
+        {translateGame(locale, "world.elevatorSummary", {
+          queue: props.elevator.queue,
+          minutes: props.elevator.waitMinutes,
+          cause: elevatorCause,
+        })}
       </p>
       {(props.elevator.cars?.length ?? 0) > 0 ? (
         <ul>
           {props.elevator.cars?.map((car) => (
             <li key={car.id} data-entity-id={car.id}>
-              {car.id}: floor {car.currentFloor}, {car.direction}
-              {car.failed ? ", failed" : ""}
-              {car.waitingGuestIds.length
-                ? `, ${car.waitingGuestIds.length} waiting`
-                : ""}
+              {translateGame(locale, "world.liftCar", {
+                id: car.id,
+                floor: car.currentFloor,
+                direction: `world.direction.${car.direction}`,
+                status: car.failed
+                  ? "world.carStatus.failed"
+                  : "world.carStatus.ready",
+                waiting: car.waitingGuestIds.length,
+              })}
             </li>
           ))}
         </ul>

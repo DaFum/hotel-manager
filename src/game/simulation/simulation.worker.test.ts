@@ -420,6 +420,34 @@ describe("simulation worker", () => {
     );
   });
 
+  it("rejects a current-version save without required render descriptors", async () => {
+    const { posted, send } = await bootWorker();
+    send({ protocolVersion: PROTOCOL_VERSION, type: "INIT_GAME", seed: 5 });
+    send({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "REQUEST_SAVE",
+      preferences: DEFAULT_PLAYER_PREFERENCES,
+      requestId: "req.save.missing-render-descriptors",
+    });
+    const envelope = structuredClone(of(posted, "SAVE_DATA")[0].saveData) as {
+      state: { renderDescriptors?: unknown };
+    };
+    delete envelope.state.renderDescriptors;
+    posted.length = 0;
+
+    expect(() =>
+      send({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "LOAD_GAME",
+        saveData: envelope,
+      }),
+    ).not.toThrow();
+    expect(of(posted, "SIMULATION_ERROR")).toContainEqual(
+      expect.objectContaining({ code: "INVALID_SAVE", recoverable: true }),
+    );
+    expect(of(posted, "SNAPSHOT")).toHaveLength(0);
+  });
+
   it("refuses a message that carries a foreign protocol version", async () => {
     const { posted, send } = await bootWorker();
     send({ protocolVersion: 99, type: "INIT_GAME", seed: 5 });

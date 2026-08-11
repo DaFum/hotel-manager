@@ -68,6 +68,7 @@ describe("SemanticHotelTree", () => {
     expect(room.textContent).toContain("120,00 DM");
     expect(room.textContent).toContain("serviceable");
     expect(room.textContent).toContain("cleanliness 88");
-    expect(room.textContent).toContain("Planning phase");
+    expect(screen.getByText("Planning")).toBeTruthy();
+    expect(screen.getByText("Planning phase")).toBeTruthy();
   });
 });

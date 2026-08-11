@@ -135,7 +135,7 @@ const GROUND_AREAS: readonly Omit<PlacedArea, "floor">[] = [
     gridX: 8,
     gridY: 3,
     width: 1,
-    depth: 2,
+    depth: 1,
   },
   {
     id: "facility.staff_area",
@@ -143,7 +143,7 @@ const GROUND_AREAS: readonly Omit<PlacedArea, "floor">[] = [
     gridX: 9,
     gridY: 3,
     width: 2,
-    depth: 2,
+    depth: 1,
   },
   {
     id: "facility.security",
@@ -379,7 +379,17 @@ export function positionMapForPlan(
         gridX: node.gridX,
         gridY: node.gridY,
       };
-  positions["facility.elevator"] = { floor: 0, gridX: 6, gridY: 2 };
-  positions["asset.lift"] = { floor: 0, gridX: 6, gridY: 2 };
+  const elevatorCore = plan.cores.find(
+    (core) => core.kind === "elevator" && core.floor === 0,
+  );
+  if (elevatorCore) {
+    const position = {
+      floor: elevatorCore.floor,
+      gridX: elevatorCore.gridX,
+      gridY: elevatorCore.gridY,
+    };
+    positions["facility.elevator"] = position;
+    positions["asset.lift"] = position;
+  }
   return positions;
 }

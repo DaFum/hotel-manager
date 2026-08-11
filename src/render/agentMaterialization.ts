@@ -1,9 +1,13 @@
+import type { AgentStatus } from "../game/building/agentLocations";
+import { selectVisibleAgents } from "../game/simulation/materialization";
+
 export interface VisualAgent {
   id: string;
   kind: "guest" | "staff";
+  guestId?: string;
   locationId: string;
   queuedFor?: string;
-  status?: string;
+  status?: AgentStatus;
   routeIds?: readonly string[];
 }
 export interface ElevatorVisualState {
@@ -47,4 +51,3 @@ export function elevatorVisual(state: ElevatorVisualState) {
         state.travelMinutes,
   };
 }
-import { selectVisibleAgents } from "../game/simulation/materialization";

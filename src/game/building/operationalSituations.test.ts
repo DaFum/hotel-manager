@@ -47,6 +47,15 @@ const base = {
   fnb: {
     outlets: [
       {
+        id: "breakfastRoom" as const,
+        seats: 12,
+        served: 10,
+        waitlisted: 2,
+        averageWaitMinutes: 10,
+        kitchenUtilizationBp: 8_000,
+        cause: "facility.cause.seating" as const,
+      },
+      {
         id: "restaurant" as const,
         seats: 20,
         served: 8,
@@ -90,12 +99,15 @@ describe("physical operational situations", () => {
 
   it("keeps free tables visible beside a kitchen-limited waitlist", () => {
     const described = describeOperationalSituations(base);
-    const restaurant = described.fnb.outlets[0];
+    const restaurant = described.fnb.outlets.find(
+      (outlet) => outlet.id === "fnb.restaurant",
+    )!;
     expect(restaurant.tables.some((table) => table.occupiedSeats === 0)).toBe(
       true,
     );
     expect(restaurant.queueEntityIds).toHaveLength(6);
     expect(described.fnb.kitchen.overloaded).toBe(true);
+    expect(described.fnb.kitchen.cause).toBe("facility.cause.kitchenLine");
     expect(described.overloads[0]).toMatchObject({
       facilityId: "facility.bar",
       cause: "staffed throughput",

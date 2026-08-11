@@ -62,4 +62,19 @@ describe("NotificationCenter", () => {
       screen.getByRole("button", { name: "Finanzen öffnen" }),
     ).toBeTruthy();
   });
+
+  it("does not submit a surrounding form when an action is opened", () => {
+    const submit = vi.fn((event: React.FormEvent) => event.preventDefault());
+    render(
+      <form onSubmit={submit}>
+        <NotificationCenter
+          notifications={[item]}
+          preferences={DEFAULT_PLAYER_PREFERENCES.notifications}
+        />
+      </form>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Open Finanzen" }));
+    expect(submit).not.toHaveBeenCalled();
+  });
 });

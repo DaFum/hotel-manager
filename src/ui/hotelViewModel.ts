@@ -7,6 +7,8 @@ import { resolveEntityPosition } from "../render/sceneLayout";
 import { VISIBLE_AGENT_BUDGET } from "../game/simulation/materialization";
 import { getRate, isRoomCategory } from "../game/revenue/rates";
 import type { GameSnapshot } from "../game/domain/snapshot";
+import type { AlertTargetRef } from "../game/simulation/initialState";
+import type { FocusTarget } from "../render/camera";
 
 /**
  * The isometric hotel, read off the snapshot.
@@ -91,6 +93,13 @@ export function roomFocusPoint(
     : fallback;
 }
 
+/** One mapping shared by world markers and camera navigation. */
+export function focusKindForAlertTarget(
+  kind: AlertTargetRef["kind"],
+): Exclude<FocusTarget["kind"], "person"> {
+  return kind === "navigation" ? "problem" : kind;
+}
+
 /**
  * Alerts as places to go. Only authoritative structured targets are exposed;
  * unresolved and non-spatial alerts stay in the alert panel.
@@ -124,10 +133,7 @@ export function worldProblems(snapshot: GameSnapshot): {
         x: placement.x,
         y: placement.y,
         floor: placement.floor,
-        kind:
-          alert.target.kind === "navigation"
-            ? ("problem" as const)
-            : alert.target.kind,
+        kind: focusKindForAlertTarget(alert.target.kind),
       },
     ];
   });

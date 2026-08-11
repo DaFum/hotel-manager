@@ -21,6 +21,22 @@ export const en = {
     status: "Hotel status",
     inspect: "Inspect",
     serviceAreas: "Service areas",
+    buildingStructure: "Building structure",
+    placedAreas: "Placed areas",
+    navigation: "Navigation",
+    closed: "closed",
+    areaKind: {
+      guest: "guest area",
+      public: "public area",
+      service: "service area",
+    },
+    navigationKind: {
+      door: "door",
+      corridor: "corridor",
+      stairs: "stairs",
+      elevator: "lift",
+      room: "room",
+    },
   },
   agent: {
     people: "People in the hotel",
@@ -43,6 +59,20 @@ export const en = {
   },
   world: {
     goToProblem: "Go to {title}: {cause}",
+    layers: "Layers",
+    showServiceAreas: "Show service areas",
+    hideServiceAreas: "Hide service areas",
+    lifts: "Lifts",
+    elevatorState: "Elevator state",
+    elevatorSummary: "{queue} waiting, {minutes} minutes, {cause}",
+    liftCar: "{id}: floor {floor}, {direction}, {status}, {waiting} waiting",
+    direction: { up: "up", down: "down", idle: "waiting" },
+    carStatus: { failed: "failed", ready: "ready" },
+    elevatorCause: {
+      unavailable: "out of service",
+      overloaded: "queue exceeds car capacity",
+      available: "available",
+    },
   },
   fnb: {
     title: "Food and beverage",
@@ -94,6 +124,7 @@ export const en = {
     food: "Restaurant, kitchen and bar",
     outlet:
       "{outletId}: {free} free tables, {waiting} waiting, limited by {cause}",
+    turnedAway: "{count} turned away",
     kitchen: "Kitchen line: {status}, limited by {cause}",
     kitchenOverloaded: "overloaded",
     kitchenAvailable: "available",

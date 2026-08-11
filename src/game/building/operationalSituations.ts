@@ -223,8 +223,10 @@ export function describeOperationalSituations(
     ...input.fnb.outlets.map((outlet) => outlet.kitchenUtilizationBp),
   );
   const kitchenCause =
-    input.fnb.outlets.find((outlet) => outlet.waitlisted > 0)?.cause ??
-    "facility.cause.demand";
+    input.fnb.outlets.find(
+      (outlet) =>
+        outlet.waitlisted > 0 && outlet.cause === "facility.cause.kitchenLine",
+    )?.cause ?? "facility.cause.demand";
   const activeStations = Math.min(4, Math.ceil(kitchenUtilization / 2500));
 
   return {

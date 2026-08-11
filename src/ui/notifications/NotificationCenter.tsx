@@ -89,6 +89,7 @@ export function NotificationCenter({
               </ul>
               {item.actionTarget ? (
                 <button
+                  type="button"
                   onClick={() =>
                     onAction?.(item.actionTarget!.entityId, item.id)
                   }

@@ -303,24 +303,26 @@ export function placeAgentsFromEntities(
   >,
 ): AgentPlacement[] {
   const perLocation = new Map<string, number>();
-  return agents.flatMap((agent): AgentPlacement[] => {
-    const location = resolveEntityPosition(
-      positionByEntityId,
-      agent.locationId,
-    );
-    if (!location) return [];
-    const index = perLocation.get(agent.locationId) ?? 0;
-    perLocation.set(agent.locationId, index + 1);
-    return [
-      {
-        id: agent.id,
-        kind: agent.kind,
-        x: location.x + (index - 1) * QUEUE_STEP,
-        y: location.y - AGENT_LIFT,
-        queued: agent.queuedFor !== undefined,
-      },
-    ];
-  });
+  return [...agents]
+    .sort((a, b) => compareIds(a.id, b.id))
+    .flatMap((agent): AgentPlacement[] => {
+      const location = resolveEntityPosition(
+        positionByEntityId,
+        agent.locationId,
+      );
+      if (!location) return [];
+      const index = perLocation.get(agent.locationId) ?? 0;
+      perLocation.set(agent.locationId, index + 1);
+      return [
+        {
+          id: agent.id,
+          kind: agent.kind,
+          x: location.x + (index - 1) * QUEUE_STEP,
+          y: location.y - AGENT_LIFT,
+          queued: agent.queuedFor !== undefined,
+        },
+      ];
+    });
 }
 
 /**

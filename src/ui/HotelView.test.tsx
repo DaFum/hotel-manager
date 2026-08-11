@@ -180,6 +180,32 @@ describe("hotel view", () => {
     expect(screen.getAllByText("Planning phase").length).toBeGreaterThan(0);
   });
 
+  it("does not invent a guest identity from a stay booking id", () => {
+    render(
+      <HotelView
+        rooms={[{ ...rooms[0], state: "Occupied" }]}
+        disableRenderer
+        locale="en-GB"
+        stays={[
+          {
+            roomId: "room.101",
+            bookingId: "booking.private.42",
+            rateMinor: 12_000,
+            departureDateKey: "1991-01-03",
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single occupied/i }),
+    );
+    const detail = screen.getByRole("region", { name: "Room detail" });
+    expect(detail.textContent).toContain("Occupied");
+    expect(detail.textContent).toContain("120.00");
+    expect(detail.textContent).not.toContain("G-BOOKING-PRIVATE-42");
+  });
+
   it("exposes placed areas and stable navigation ids beside the canvas", () => {
     const floorPlan = generateFloorPlan(rooms);
     render(
@@ -188,18 +214,47 @@ describe("hotel view", () => {
         disableRenderer
         floorPlan={floorPlan}
         closedNavigationIds={["navigation.floor.1.corridor"]}
+        locale="de-DE"
       />,
     );
 
-    fireEvent.click(screen.getByText("Building structure"));
+    fireEvent.click(screen.getByText("Gebäudestruktur"));
     expect(
-      screen.getByText(/facility\.kitchen: service, floor 0/i),
+      screen.getByText(/facility\.kitchen: Servicebereich, Etage 0/i),
     ).toBeTruthy();
     expect(
       screen.getByText(
-        /navigation\.floor\.1\.corridor: corridor, floor 1, closed/i,
+        /navigation\.floor\.1\.corridor: Flur, Etage 1, geschlossen/i,
       ),
     ).toBeTruthy();
+  });
+
+  it("moves semantic focus to focused facilities and navigation nodes", () => {
+    const floorPlan = generateFloorPlan(rooms);
+    const { container, rerender } = render(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        focusedEntityId="facility.reception"
+      />,
+    );
+    const reception = container.querySelector<HTMLElement>(
+      '[data-entity-id="facility.reception"]',
+    )!;
+    expect(document.activeElement).toBe(reception);
+
+    rerender(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        focusedEntityId="navigation.floor.1.corridor"
+      />,
+    );
+    expect(document.activeElement).toBe(
+      container.querySelector('[data-entity-id="navigation.floor.1.corridor"]'),
+    );
   });
 
   it("offers the same follow action and person detail in the semantic view", () => {
@@ -210,8 +265,9 @@ describe("hotel view", () => {
         disableRenderer
         agents={[
           {
-            id: "guest.berger",
+            id: "agent.booking.berger",
             kind: "guest",
+            guestId: "guest.berger",
             locationId: "facility.breakfast_room",
             status: "breakfast",
             routeIds: ["room.101", "facility.breakfast_room"],
@@ -224,7 +280,10 @@ describe("hotel view", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /follow guest g-berger/i }),
     );
-    expect(onSelectAgent).toHaveBeenCalledWith("guest.berger");
+    expect(onSelectAgent).toHaveBeenCalledWith("agent.booking.berger");
+    expect(
+      screen.getByRole("region", { name: /person detail/i }).textContent,
+    ).toContain("Guest G-BERGER");
     expect(
       screen.getByRole("region", { name: /person detail/i }).textContent,
     ).toContain("Breakfast");
@@ -238,9 +297,6 @@ describe("hotel view", () => {
       <HotelView
         rooms={[{ ...rooms[0], state: "OutOfOrder" }]}
         disableRenderer
-        roomFaultReasonByRoomId={{
-          "room.101": "room.fault.boiler-failed",
-        }}
         situations={{
           reception: {
             desks: [
@@ -306,7 +362,7 @@ describe("hotel view", () => {
     expect(screen.getByText(/desk 2: unmanned/i)).toBeTruthy();
     expect(screen.getByText(/room\.102.*guest g-waiting/i)).toBeTruthy();
     expect(
-      screen.getByText(/1 free table.*6 waiting.*kitchen line/i),
+      screen.getByText(/1 free table.*1 waiting.*kitchen line.*6 turned away/i),
     ).toBeTruthy();
   });
 });

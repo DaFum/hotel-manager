@@ -98,7 +98,11 @@ import {
   toEngineeringAsset,
   SERVICE_MINUTES,
 } from "../maintenance/maintenance";
-import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
+import {
+  ELEVATOR_TRIP_MINUTES,
+  elevatorTrips,
+  elevatorWaitMinutes,
+} from "../facilities/mobility";
 import { meterUtilities } from "../facilities/utilities";
 import {
   requiredSecurityStaff,
@@ -2785,16 +2789,22 @@ export class GameSimulation implements CommandExecutor {
     const waitingGuestIds = s.renderDescriptors.agents
       .filter(
         (agent) =>
-          agent.kind === "guest" &&
-          agent.routeIds.some((id) => id.endsWith(".elevator")),
+          agent.kind === "guest" && agent.locationId.endsWith(".elevator"),
       )
       .map((agent) => agent.id);
     const failed = lift?.status !== "operational";
+    const heldFloorByCar = s.renderDescriptors.elevator.cars.map(
+      (car) => car.currentFloor,
+    );
+    const heldPositionFloorBasisPointsByCar =
+      s.renderDescriptors.elevator.cars.map(
+        (car) => car.positionFloorBasisPoints,
+      );
     s.renderDescriptors.elevator = {
       id: "asset.lift",
       capacity: STARTER_HOTEL.elevatorCars * 6,
       queue: waitingGuestIds.length,
-      travelMinutes: 2,
+      travelMinutes: ELEVATOR_TRIP_MINUTES,
       failed,
       cars: describeLiftCars({
         liftId: "asset.lift",
@@ -2807,6 +2817,8 @@ export class GameSimulation implements CommandExecutor {
         trips: s.elevatorTrips,
         failed,
         waitingGuestIds,
+        heldFloorByCar,
+        heldPositionFloorBasisPointsByCar,
       }),
     };
     const queuedGuestIds = s.renderDescriptors.agents

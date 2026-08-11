@@ -118,6 +118,21 @@ describe("save policy", () => {
     );
   });
 
+  it("accepts a supported structured alert target", () => {
+    const valid = structuredClone(current) as SaveEnvelope & {
+      state: typeof state;
+    };
+    valid.state.alerts.push({
+      id: "alert.valid-target",
+      severity: "warning",
+      title: "alert.room.cleaning.title",
+      cause: "alert.room.cleaning.cause",
+      target: { entityId: "room.101", kind: "room" },
+    });
+
+    expect(validateEnvelope(valid)).toEqual([]);
+  });
+
   it("reports malformed room and stay collections without throwing", () => {
     const malformed = structuredClone(current) as unknown as {
       state: { hotel: { rooms: unknown }; stays: unknown };

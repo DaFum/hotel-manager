@@ -129,7 +129,6 @@ export function HotelView(props: {
   closedNavigationIds?: readonly string[];
   elevator?: ElevatorVisualState;
   situations?: OperationalSituationDescriptors;
-  roomFaultReasonByRoomId?: Readonly<Record<string, string>>;
   camera?: CameraState;
   minuteOfDay?: number;
   stays?: readonly HotelViewStay[];
@@ -149,6 +148,7 @@ export function HotelView(props: {
   locale?: GameLocale;
 }) {
   const host = useRef<HTMLDivElement>(null);
+  const viewRoot = useRef<HTMLElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [selectedFacility, setSelectedFacility] = useState<string | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
@@ -260,6 +260,19 @@ export function HotelView(props: {
     return () => node.removeEventListener("wheel", onWheel);
   }, [props.onCamera]);
 
+  useEffect(() => {
+    if (!props.focusedEntityId) return;
+    const entity = [
+      ...(viewRoot.current?.querySelectorAll<HTMLElement>("[data-entity-id]") ??
+        []),
+    ].find((candidate) => candidate.dataset.entityId === props.focusedEntityId);
+    if (!entity) return;
+    entity.scrollIntoView?.({ block: "nearest" });
+    const button = entity.querySelector<HTMLButtonElement>("button");
+    if (button) button.focus();
+    else entity.focus();
+  }, [props.focusedEntityId]);
+
   const detail = props.rooms.find((r) => r.id === selected);
   const facilityDetail = (props.facilities ?? []).find(
     (facility) => facility.id === selectedFacility,
@@ -270,17 +283,18 @@ export function HotelView(props: {
   const stay = detail
     ? (props.stays ?? []).find((s) => s.roomId === detail.id)
     : undefined;
-  const occupant = detail
-    ? (props.occupantByRoomId?.[detail.id] ??
-      (stay
-        ? {
-            guestId: `guest.${stay.bookingId}`,
-            bookingId: stay.bookingId,
-            rateMinor: stay.rateMinor,
-            departureDateKey: stay.departureDateKey,
-          }
-        : undefined))
-    : undefined;
+  const occupant:
+    (Omit<RoomOccupantRef, "guestId"> & { guestId?: string }) | undefined =
+    detail
+      ? (props.occupantByRoomId?.[detail.id] ??
+        (stay
+          ? {
+              bookingId: stay.bookingId,
+              rateMinor: stay.rateMinor,
+              departureDateKey: stay.departureDateKey,
+            }
+          : undefined))
+      : undefined;
   const rateMinor = detail
     ? (occupant?.rateMinor ?? props.rateByCategory?.[detail.category])
     : undefined;
@@ -288,6 +302,8 @@ export function HotelView(props: {
     ? roomProblems(detail, props.renovationPhaseByRoomId)
     : [];
   const locale = props.locale ?? "en-GB";
+  const roomFaultReasonByRoomId =
+    props.situations?.roomFaultReasonByRoomId ?? {};
   const semanticRooms = props.rooms.map((room) => {
     const roomOccupant = props.occupantByRoomId?.[room.id];
     const phase = props.renovationPhaseByRoomId?.[room.id];
@@ -311,12 +327,12 @@ export function HotelView(props: {
       conditionKey: roomConditionKey(room.state),
       problemLabels: roomProblemLabels,
       renovationPhase: phase,
-      faultReasonKey: props.roomFaultReasonByRoomId?.[room.id],
+      faultReasonKey: roomFaultReasonByRoomId[room.id],
     };
   });
 
   return (
-    <section aria-label="Hotel view">
+    <section ref={viewRoot} aria-label="Hotel view">
       <div
         className="hm-canvas"
         ref={host}
@@ -360,22 +376,26 @@ export function HotelView(props: {
       />
       {props.floorPlan ? (
         <details>
-          <summary>Building structure</summary>
-          <h3>Placed areas</h3>
+          <summary>{translateGame(locale, "hotel.buildingStructure")}</summary>
+          <h3>{translateGame(locale, "hotel.placedAreas")}</h3>
           <ul>
             {props.floorPlan.areas.map((area) => (
-              <li key={area.id} data-entity-id={area.id}>
-                {area.id}: {area.kind}, floor {area.floor}
+              <li key={area.id} data-entity-id={area.id} tabIndex={-1}>
+                {area.id}:{" "}
+                {translateGame(locale, `hotel.areaKind.${area.kind}`)},{" "}
+                {translateGame(locale, "room.floor", { value: area.floor })}
               </li>
             ))}
           </ul>
-          <h3>Navigation</h3>
+          <h3>{translateGame(locale, "hotel.navigation")}</h3>
           <ul>
             {props.floorPlan.navigationNodes.map((node) => (
-              <li key={node.id} data-entity-id={node.id}>
-                {node.id}: {node.kind}, floor {node.floor}
+              <li key={node.id} data-entity-id={node.id} tabIndex={-1}>
+                {node.id}:{" "}
+                {translateGame(locale, `hotel.navigationKind.${node.kind}`)},{" "}
+                {translateGame(locale, "room.floor", { value: node.floor })}
                 {(props.closedNavigationIds ?? []).includes(node.id)
-                  ? ", closed"
+                  ? `, ${translateGame(locale, "hotel.closed")}`
                   : ""}
               </li>
             ))}
@@ -482,8 +502,11 @@ export function HotelView(props: {
                   free: outlet.tables.filter(
                     (table) => table.occupiedSeats === 0,
                   ).length,
-                  waiting: outlet.turnedAwayCount,
+                  waiting: outlet.queueEntityIds.length,
                   cause: facilityCauseKey(outlet.cause),
+                })}{" "}
+                {translateGame(locale, "operations.turnedAway", {
+                  count: outlet.turnedAwayCount,
                 })}
               </li>
             ))}
@@ -505,7 +528,7 @@ export function HotelView(props: {
             const label =
               agent.kind === "guest"
                 ? translateGame(locale, "room.guestLabel", {
-                    code: guestIdentityCode(agent.id),
+                    code: guestIdentityCode(agent.guestId ?? agent.id),
                   })
                 : agent.id;
             return (
@@ -538,7 +561,9 @@ export function HotelView(props: {
             <dd>
               {agentDetail.kind === "guest"
                 ? translateGame(locale, "room.guestLabel", {
-                    code: guestIdentityCode(agentDetail.id),
+                    code: guestIdentityCode(
+                      agentDetail.guestId ?? agentDetail.id,
+                    ),
                   })
                 : agentDetail.id}
             </dd>
@@ -581,7 +606,7 @@ export function HotelView(props: {
             <dd>{detail.category}</dd>
             <dt>{translateGame(locale, "room.detail.guest")}</dt>
             <dd>
-              {occupant
+              {occupant?.guestId
                 ? translateGame(locale, "room.guestLabel", {
                     code: guestIdentityCode(occupant.guestId),
                   })
@@ -603,14 +628,11 @@ export function HotelView(props: {
             <dd>{translateGame(locale, roomConditionKey(detail.state))}</dd>
             <dt>{translateGame(locale, "room.detail.cleanliness")}</dt>
             <dd>{detail.cleanliness}</dd>
-            {props.roomFaultReasonByRoomId?.[detail.id] ? (
+            {roomFaultReasonByRoomId[detail.id] ? (
               <>
                 <dt>{translateGame(locale, "room.detail.faultReason")}</dt>
                 <dd>
-                  {translateGame(
-                    locale,
-                    props.roomFaultReasonByRoomId[detail.id],
-                  )}
+                  {translateGame(locale, roomFaultReasonByRoomId[detail.id])}
                 </dd>
               </>
             ) : null}

@@ -1,0 +1,209 @@
+name: PR Comment Tracker
+
+on:
+  pull_request_review_comment:
+    types: [created, edited, deleted]
+  pull_request:
+    types: [opened, reopened, synchronize]
+  pull_request_review:
+    types: [submitted, edited]
+
+jobs:
+  update-summary-and-check:
+    name: Aggregate Comments & Enforce Resolution
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pr-comment-tracker-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
+    # Berechtigungen zum Lesen und Schreiben in PRs
+    permissions:
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Track, Summarize and Validate Comments
+        uses: actions/github-script@v7
+        env:
+          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+        with:
+          script: |
+            // 1. PR-Nummer aus dem Trigger-Event ermitteln
+            const prNumber = context.payload.pull_request.number;
+            const { owner, repo } = context.repo;
+
+            // Unsichtbarer Marker, um den Kommentar des Bots später wiederzufinden
+            const marker = "<!-- PR_COMMENT_TRACKER_MARKER -->";
+
+            // 2. Den bestehenden Kommentar abrufen, um bereits gemeldete Threads zu identifizieren
+            const issueComments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: prNumber });
+            const existingBotComment = issueComments.find(
+              c => c.body && c.body.startsWith(marker) && c.user && c.user.type === "Bot"
+            );
+
+            // Bereits gemeldete Thread-IDs aus dem bestehenden Kommentar extrahieren
+            let reportedThreadIds = new Set();
+            if (existingBotComment) {
+              const match = existingBotComment.body.match(/<!-- REPORTED_THREADS: (.*?) -->/);
+              if (match && match[1]) {
+                reportedThreadIds = new Set(match[1].split(',').filter(Boolean));
+              }
+            }
+
+            // 3. Ungelöste Review-Threads via GraphQL ermitteln
+            let hasNextPage = true;
+            let cursor = null;
+            const unresolvedThreads = [];
+
+            while (hasNextPage) {
+              const query = `
+                query($owner: String!, $repo: String!, $prNumber: Int!, $cursor: String) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $prNumber) {
+                      reviewThreads(first: 100, after: $cursor) {
+                        pageInfo {
+                          hasNextPage
+                          endCursor
+                        }
+                        nodes {
+                          id
+                          isResolved
+                          comments(first: 1) {
+                            nodes {
+                              author {
+                                login
+                                __typename
+                              }
+                              body
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `;
+              const result = await github.graphql(query, { owner, repo, prNumber, cursor });
+              const threads = result.repository.pullRequest.reviewThreads;
+
+              // Alle ungelösten Threads sammeln
+              const openThreads = threads.nodes.filter(t => !t.isResolved);
+              unresolvedThreads.push(...openThreads);
+
+              hasNextPage = threads.pageInfo.hasNextPage;
+              cursor = threads.pageInfo.endCursor;
+            }
+
+            // 4. Sanitize-Funktion, um HTML-Kommentare, <details> und Badges zu entfernen
+            function sanitizeComment(text) {
+              if (!text) return "";
+              return text
+                // Entferne Devin-Badge HTML-Block (zusammenhängende a/picture/img Struktur)
+                .replace(/<a[^>]*>\s*<picture[^>]*>[\s\S]*?<\/picture>\s*<\/a>/gi, '')
+                // Entferne alle HTML-Kommentare
+                .replace(/<!--[\s\S]*?-->/g, '')
+                // Entferne <details> Blöcke inklusive Inhalt
+                .replace(/<details[^>]*>[\s\S]*?<\/details>/gi, '')
+                // Entferne Markdown Bilder/Badges: [![alt](url)](url) und ![alt](url)
+                .replace(/\[!\[[^\]]*\]\([^)]+\)\]\([^)]+\)/g, '')
+                .replace(/!\[[^\]]*\]\([^)]+\)/g, '')
+                // Entferne übrig gebliebene <picture> oder <img> Tags
+                .replace(/<picture[^>]*>[\s\S]*?<\/picture>/gi, '')
+                .replace(/<img[^>]*>/gi, '')
+                // Entferne Feedback-Zeile von Bot-Kommentaren
+                .replace(/---\s*\*Was this helpful\? React with 👍 or 👎 to provide feedback\.\*/g, '')
+                // Maskiere Backticks, um Ausbrechen aus dem Markdown Code-Block zu verhindern
+                .replace(/```/g, '\\`\\`\\`')
+                // Zeilenumbrüche durch Leerzeichen ersetzen
+                .replace(/\r?\n|\r/g, ' ')
+                // Mehrfache Leerzeichen bereinigen
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+            }
+
+            // 5. Den kopierbaren Block formatieren - NUR offene Review Threads
+            const seenSignatures = new Set();
+            const validThreads = [];
+            const newThreads = [];
+            const newThreadIds = new Set(reportedThreadIds);
+
+            const formattedComments = unresolvedThreads.map(t => {
+              const firstComment = t.comments.nodes[0];
+              if (!firstComment) return null;
+
+              const author = firstComment.author;
+              const login = author ? author.login : "unknown";
+
+              const cleanBody = sanitizeComment(firstComment.body);
+
+              // Deduplizierung: Wir prüfen für alle Threads, ob wir exakt diesen Kommentar schon gelistet haben
+              // Wir nutzen den Autoren-Namen + die ersten 80 Zeichen als eindeutige Signatur
+              const signature = `${login}:${cleanBody.substring(0, 80)}`;
+              if (seenSignatures.has(signature)) {
+                return null; // Überspringen, Thread (identischer Kommentar) wurde bereits erfasst
+              }
+              seenSignatures.add(signature);
+
+              validThreads.push(t);
+              newThreadIds.add(t.id); // Alle gültigen aktuellen Thread-IDs merken
+
+              // Für core.setFailed nur die neuen Threads filtern, die wir noch nicht gemeldet hatten
+              if (!reportedThreadIds.has(t.id)) {
+                newThreads.push(`- [${login}]: ${cleanBody}`);
+              }
+
+              return `- [${login}]: ${cleanBody}`;
+            }).filter(Boolean).join('\n');
+
+            let copyableBlock = formattedComments.length > 0
+              ? formattedComments
+              : "Keine offenen Review-Threads vorhanden.";
+
+            const header = `\n### 📝 PR Kommentar-Zusammenfassung\n*Wird automatisch aktualisiert, sobald sich Kommentare ändern.*\n\n\`\`\`text\n`;
+            const footer = `\n\`\`\`\n`;
+
+            // Die Thread-IDs als versteckten HTML-Kommentar abspeichern
+            const idsStateMarker = `\n<!-- REPORTED_THREADS: ${Array.from(newThreadIds).join(',')} -->`;
+            const MAX_COMMENT_SIZE = 65536;
+            const extraText = "\n... (truncated)";
+            const fixedLength = marker.length + header.length + footer.length + idsStateMarker.length;
+
+            if (fixedLength + copyableBlock.length > MAX_COMMENT_SIZE) {
+              const allowedLength = MAX_COMMENT_SIZE - fixedLength - extraText.length;
+              copyableBlock = copyableBlock.substring(0, allowedLength) + extraText;
+            }
+
+            // Das endgültige Markdown für den Bot-Kommentar
+            const body = marker + header + copyableBlock + footer + idsStateMarker;
+
+            // 6. Prüfen, ob der Zusammenfassungs-Kommentar bereits existiert und updaten/erstellen
+            try {
+              if (existingBotComment) {
+                console.log(`Aktualisiere bestehenden Kommentar (ID: ${existingBotComment.id})...`);
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: existingBotComment.id,
+                  body: body
+                });
+              } else {
+                console.log("Erstelle neuen Zusammenfassungs-Kommentar...");
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  body: body
+                });
+              }
+            } catch (err) {
+              core.warning(`Fehler beim Erstellen/Aktualisieren des Zusammenfassungs-Kommentars: ${err.message}`);
+            }
+
+            // 7. Workflow-Status auswerten - Bot blockiert nur anhand NEUER, noch nicht gemeldeter Review Threads
+            if (newThreads.length > 0) {
+              // Schreibe den formatierten Text der blockierenden NEUEN Review-Threads in core.setFailed
+              const newThreadsBlock = newThreads.join('\n');
+              core.setFailed(`Der Workflow blockiert den PR. Es existieren ${newThreads.length} NEUE ungelöste(r) Review-Thread(s):\n\n${newThreadsBlock}`);
+            } else {
+              console.log("Keine neuen blockierenden Review-Threads vorhanden. Workflow erfolgreich.");
+            }

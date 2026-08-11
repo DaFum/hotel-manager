@@ -60,9 +60,9 @@ describe("App", () => {
       }),
     );
 
-    expect(screen.getByRole("status", { name: "View state" }).textContent).toContain(
-      "Floor 2",
-    );
+    expect(
+      screen.getByRole("status", { name: "View state" }).textContent,
+    ).toContain("Floor 2");
     expect(screen.getByText(/alert\.room-focus · warning/)).toBeTruthy();
     expect(document.activeElement).toBe(
       screen.getByRole("button", {

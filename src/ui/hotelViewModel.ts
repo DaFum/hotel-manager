@@ -127,17 +127,22 @@ export function worldProblems(snapshot: GameSnapshot): {
       alert.target.entityId,
     );
     if (!placement) return [];
-    return [{
-      id: alert.id,
-      entityId: alert.target.entityId,
-      // The keys remain intact, UI handles resolving them
-      title: alert.title,
-      cause: alert.cause,
-      causeValues: alert.causeValues,
-      x: placement.x,
-      y: placement.y,
-      floor: placement.floor,
-      kind: alert.target.kind === "navigation" ? ("problem" as const) : alert.target.kind,
-    }];
+    return [
+      {
+        id: alert.id,
+        entityId: alert.target.entityId,
+        // The keys remain intact, UI handles resolving them
+        title: alert.title,
+        cause: alert.cause,
+        causeValues: alert.causeValues,
+        x: placement.x,
+        y: placement.y,
+        floor: placement.floor,
+        kind:
+          alert.target.kind === "navigation"
+            ? ("problem" as const)
+            : alert.target.kind,
+      },
+    ];
   });
 }

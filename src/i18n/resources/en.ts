@@ -12,6 +12,7 @@ export const en = {
     language: "Language",
     save: "Save",
     load: "Load",
+
   },
   hotel: {
     status: "Hotel status",
@@ -98,4 +99,23 @@ export const en = {
   },
   alerts: { liquidityCritical: "Liquidity is critical" },
   events: { guestCheckin: "Guest checked in" },
+  alert: {
+    "housekeeping-backlog": { title: "Housekeeping backlog", cause: "{value} rooms waiting for cleaning" },
+    "cleaning-stockout": { title: "Cleaning supplies exhausted", cause: "No cleaning units in stock" },
+    "linen-short": { title: "Linen shortage", cause: "Insufficient clean linen" },
+    "security": { spaces: { title: "Security short" } },
+    "breakfast-queue": { title: "Breakfast queue" },
+    "room-service-late": { title: "Room service delayed" },
+    "spa-unstaffed": { title: "Spa unstaffed", cause: "No therapists scheduled" },
+    "security-short": { title: "Security short" },
+    "staff-areas-crowded": { title: "Staff areas crowded", cause: "Staff capacity exceeded" },
+    "construction-noise": { title: "Construction noise" },
+    "long-check-in": { title: "Long check-in" },
+    "complaint-unanswered": { title: "Complaint left unanswered" },
+    "recovery-escalated": { title: "Recovery escalated" },
+    "booking-refused": { title: "Booking request refused" },
+    "conference-booked": { title: "Conference booked" },
+    "insolvent": { title: "Insolvent" },
+    "space": { title: "Space turned guests away" }
+  },
 } as const;

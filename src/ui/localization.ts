@@ -118,8 +118,8 @@ export function translateKey(key: string): string {
   return ENGLISH_TEXT[key as LocalizationKey] ?? key;
 }
 
-export function translateAlertCause(key: string): string {
-  return (
-    ENGLISH_TEXT[key as LocalizationKey] ?? ENGLISH_TEXT["alert.cause.unknown"]
-  );
+export function translateAlertCause(key: string, values?: Record<string, string | number>): string {
+  const template = ENGLISH_TEXT[key as LocalizationKey] ?? ENGLISH_TEXT["alert.cause.unknown"];
+  if (!values) return template;
+  return template.replace(/\{([^}]+)\}/g, (_, k) => String(values[k] ?? `{${k}}`));
 }

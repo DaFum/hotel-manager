@@ -12,6 +12,7 @@
   grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
   align-items: start;
   min-height: 100vh;
+  height: 100vh;
 }
 
 /* --- The department rail ------------------------------------------------ */
@@ -30,6 +31,8 @@
   align-self: stretch;
   padding: var(--hm-space-7) 0 var(--hm-space-6);
   border-right: 1px solid var(--hm-rule);
+  height: 100vh;
+  overflow-y: auto;
   background:
     linear-gradient(
       180deg,
@@ -37,7 +40,7 @@
       var(--hm-ground-deep) 70%
     ),
     var(--hm-ground);
-  box-shadow: 1px 0 0 rgb(0 0 0 / 40%);
+  box-shadow: 1px 0 0 var(--hm-shadow-rail);
 }
 
 /*
@@ -198,6 +201,9 @@
     padding: var(--hm-space-3) 0 0;
     border-right: 0;
     border-bottom: 1px solid var(--hm-rule);
+    min-height: auto;
+    height: auto;
+    overflow-y: visible;
   }
 
   .hm-shell__plate {

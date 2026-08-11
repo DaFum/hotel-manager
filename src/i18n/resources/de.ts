@@ -12,6 +12,7 @@ export const de = {
     language: "Sprache",
     save: "Speichern",
     load: "Laden",
+
   },
   hotel: {
     status: "Hotelstatus",
@@ -100,4 +101,23 @@ export const de = {
   },
   alerts: { liquidityCritical: "Liquidität ist kritisch" },
   events: { guestCheckin: "Gast eingecheckt" },
+  alert: {
+    "housekeeping-backlog": { title: "Reinigungsrückstand", cause: "{value} Zimmer warten auf Reinigung" },
+    "cleaning-stockout": { title: "Reinigungsmittel aufgebraucht", cause: "Keine Reinigungseinheiten vorrätig" },
+    "linen-short": { title: "Wäschemangel", cause: "Unzureichend saubere Wäsche" },
+    "security": { spaces: { title: "Sicherheit knapp" } },
+    "breakfast-queue": { title: "Frühstücksschlange" },
+    "room-service-late": { title: "Zimmerservice verspätet" },
+    "spa-unstaffed": { title: "Spa unterbesetzt", cause: "Keine Therapeuten eingeplant" },
+    "security-short": { title: "Sicherheit knapp" },
+    "staff-areas-crowded": { title: "Personalbereiche überfüllt", cause: "Personalkapazität überschritten" },
+    "construction-noise": { title: "Baulärm" },
+    "long-check-in": { title: "Langer Check-in" },
+    "complaint-unanswered": { title: "Beschwerde unbeantwortet" },
+    "recovery-escalated": { title: "Wiedergutmachung eskaliert" },
+    "booking-refused": { title: "Buchungsanfrage abgelehnt" },
+    "conference-booked": { title: "Konferenz gebucht" },
+    "insolvent": { title: "Insolvent" },
+    "space": { title: "Räumlichkeit wies Gäste ab" }
+  },
 } as const;

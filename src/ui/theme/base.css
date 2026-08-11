@@ -31,12 +31,12 @@ body {
   background-image:
     radial-gradient(
       120ch 80ch at 12% -10%,
-      rgb(232 163 61 / 7%),
+      var(--hm-atmosphere-wash),
       transparent 65%
     ),
     radial-gradient(
       90ch 70ch at 92% 8%,
-      rgb(109 157 197 / 6%),
+      var(--hm-steel-wash),
       transparent 60%
     ),
     linear-gradient(var(--hm-rule-faint) 1px, transparent 1px),

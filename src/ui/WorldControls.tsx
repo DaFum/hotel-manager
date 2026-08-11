@@ -1,3 +1,4 @@
+import { translateAlertCause } from "./localization";
 import {
   MAX_ZOOM,
   MIN_ZOOM,
@@ -16,6 +17,7 @@ export interface WorldProblem {
   id: string;
   title: string;
   cause: string;
+  causeValues?: Record<string, string | number>;
   floor: number;
   x: number;
   y: number;
@@ -134,7 +136,7 @@ export function WorldControls(props: {
             <li key={problem.id}>
               <button
                 type="button"
-                aria-label={`Go to ${problem.title}: ${problem.cause}`}
+                aria-label={`Go to ${problem.title}: ${translateAlertCause(problem.cause, problem.causeValues)}`}
                 // Where the camera is, not a toggle the player switched on.
                 aria-current={
                   camera.focusedId === problem.id ? true : undefined
@@ -151,7 +153,7 @@ export function WorldControls(props: {
                   )
                 }
               >
-                {problem.title} — {problem.cause}
+                {problem.title} — {translateAlertCause(problem.cause, problem.causeValues)}
               </button>
             </li>
           ))}

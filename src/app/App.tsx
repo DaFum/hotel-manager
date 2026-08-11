@@ -245,10 +245,10 @@ export function App() {
                 : ""}
             </p>
             <p aria-label="Command status" aria-live="polite">
-              Command: {game.commandStatus}
+              {translateGame(preferences.locale, "app.telemetry.command" as any, { status: game.commandStatus })}
             </p>
             <p aria-label="Saves committed">
-              Saves committed: {game.savedCount}
+              {translateGame(preferences.locale, "app.telemetry.saves" as any, { count: game.savedCount })}
             </p>
           </div>
           <TopBar

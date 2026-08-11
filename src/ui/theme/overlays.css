@@ -37,7 +37,7 @@
 
 /* The desk goes dark around the document that is being read. */
 .hm-root dialog::backdrop {
-  background: rgb(4 5 6 / 72%);
+  background: var(--hm-backdrop);
   backdrop-filter: blur(2px);
 }
 

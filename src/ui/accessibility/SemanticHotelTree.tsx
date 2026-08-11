@@ -1,4 +1,5 @@
 import { translateGame, type GameLocale } from "../../i18n";
+import { groupByFloor } from "../../render/sceneLayout";
 
 export interface SemanticRoom {
   id: string;
@@ -72,21 +73,3 @@ export function SemanticHotelTree({
   );
 }
 
-/**
- * Rooms by floor, ground up. Without a floor map the house is one list, which
- * is what a hotel with no declared storeys actually is.
- */
-function groupByFloor(
-  rooms: readonly SemanticRoom[],
-  floorByRoomId?: Readonly<Record<string, number>>,
-): [number, SemanticRoom[]][] {
-  if (!floorByRoomId) return [[0, [...rooms]]];
-  const byFloor = new Map<number, SemanticRoom[]>();
-  for (const room of rooms) {
-    const floor = floorByRoomId[room.id] ?? 0;
-    const bucket = byFloor.get(floor);
-    if (bucket) bucket.push(room);
-    else byFloor.set(floor, [room]);
-  }
-  return [...byFloor.entries()].sort(([a], [b]) => a - b);
-}

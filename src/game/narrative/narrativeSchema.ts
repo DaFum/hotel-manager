@@ -12,10 +12,8 @@ import type { AnnualProfitAccumulator } from "./narrativeState";
 /**
  * What a persisted narrative section has to look like to be usable.
  *
- * One definition, read by both sides of the boundary: the migration replaces
- * anything that fails with a bootstrap value, and `validateEnvelope` refuses a
- * save that still fails afterwards. Two separate opinions about the same shape
- * is how a save loads and then divides by a string.
+ * `validateEnvelope` uses these guards before a save reaches simulation
+ * arithmetic, so every persisted narrative is judged by one shape definition.
  */
 
 export const isRecord = (value: unknown): value is Record<string, unknown> =>

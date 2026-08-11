@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { openManagementArea } from "./management";
 
 test("shows every facility with the constraint that is binding it", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await openManagementArea(page, "hotel");
   const facilities = page.getByRole("region", { name: "Facilities" });
   await expect(facilities).toBeVisible();
 
@@ -21,6 +23,7 @@ test("shows every facility with the constraint that is binding it", async ({
   ).toContainText(/therapists on duty/);
 
   // The same stable facility target is available without the canvas.
+  await openManagementArea(page, "mainView");
   const fallback = page.getByRole("button", {
     name: /Breakfast room, .* limited by/i,
   });
@@ -37,6 +40,7 @@ test("rosters a specialist role and declares a specialization", async ({
 }) => {
   await page.goto("/?seed=424242");
 
+  await openManagementArea(page, "staff");
   const staff = page.getByRole("region", { name: "Staff" });
   const rows = staff.getByRole("row");
   // The roster arrives with the first snapshot; count it only once it is there.
@@ -47,6 +51,7 @@ test("rosters a specialist role and declares a specialization", async ({
   await expect(rows).toHaveCount(before + 1);
   await expect(staff).toContainText(/wellness/);
 
+  await openManagementArea(page, "hotel");
   const classification = page.getByRole("region", { name: "Classification" });
   await expect(classification.getByLabel("Star rating")).toContainText(/stars/);
   await classification.getByLabel("Specialization").selectOption({
@@ -61,6 +66,7 @@ test("runs a conference through the deep house without breaking the board", asyn
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "hotel");
   await page.getByRole("button", { name: "16x", exact: true }).click();
 
   const facilities = page.getByRole("region", { name: "Facilities" });

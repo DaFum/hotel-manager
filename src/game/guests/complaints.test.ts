@@ -44,19 +44,27 @@ describe("complaints", () => {
     expect(authorized).toEqual({ ok: true, costMinor: resolved.expenseMinor });
   });
 
-  it("returns stable keys when recovery cannot be authorized", () => {
+  it("returns structured causes when recovery cannot be authorized", () => {
     expect(
       authorizeRecovery("discount10", 10000, {
         frontDeskOnDuty: 0,
         cashMinor: 10000,
       }),
-    ).toEqual({ ok: false, reason: "alert.recovery.noFrontDesk" });
+    ).toEqual({
+      ok: false,
+      cause: "alert.recovery.noFrontDesk",
+      causeValues: { frontDeskOnDuty: 0 },
+    });
     expect(
       authorizeRecovery("discount10", 10000, {
         frontDeskOnDuty: 1,
         cashMinor: 999,
       }),
-    ).toEqual({ ok: false, reason: "alert.recovery.insufficientCash" });
+    ).toEqual({
+      ok: false,
+      cause: "alert.recovery.insufficientCash",
+      causeValues: { cashMinor: 999, costMinor: 1000 },
+    });
   });
 
   it("never pushes satisfaction above the scale maximum", () => {

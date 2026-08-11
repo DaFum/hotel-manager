@@ -1,4 +1,4 @@
-import { migrateEnvelope, validateEnvelope } from "./saveSchema";
+import { validateEnvelope } from "./saveSchema";
 import { recoverySlot } from "./savePolicy";
 import type { SaveEnvelope } from "./saveVersions";
 
@@ -76,9 +76,8 @@ export interface RecoveryOutcome {
 }
 
 /**
- * A store or a migration can reject with anything at all — a string, a plain
- * object, nothing. The player is still owed a reason they can read, so the
- * rejection carries a description rather than `undefined`.
+ * A store can reject with anything at all — a string, a plain object, nothing.
+ * The player is still owed a reason they can read.
  */
 function rejectionReason(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
@@ -93,14 +92,13 @@ function rejectionReason(error: unknown): string {
 
 export interface RecoveryRejection {
   slot: string;
-  stage: "read" | "missing" | "migration" | "validation";
+  stage: "read" | "missing" | "validation";
   reason: string;
 }
 
 /**
  * Loads a slot, falling back through the recovery generations when it cannot
- * be trusted. Every candidate is migrated and validated before it is offered:
- * a save that would corrupt the running game is not a save.
+ * be trusted. Every candidate is validated before it is offered.
  */
 export async function loadWithRecovery(
   store: SaveStore,
@@ -132,18 +130,7 @@ export async function loadWithRecovery(
       });
       continue;
     }
-    let migrated: SaveEnvelope;
-    try {
-      migrated = migrateEnvelope(stored);
-    } catch (error) {
-      rejected.push({
-        slot: candidate,
-        stage: "migration",
-        reason: rejectionReason(error),
-      });
-      continue;
-    }
-    const problems = validateEnvelope(migrated);
+    const problems = validateEnvelope(stored);
     if (problems.length > 0) {
       rejected.push({
         slot: candidate,
@@ -152,7 +139,7 @@ export async function loadWithRecovery(
       });
       continue;
     }
-    return { envelope: migrated, slot: candidate, rejected };
+    return { envelope: stored, slot: candidate, rejected };
   }
   return { rejected };
 }

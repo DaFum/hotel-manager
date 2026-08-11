@@ -11,16 +11,15 @@ describe("alerts", () => {
           {
             id: "a1",
             severity: "warning",
-            title: "Housekeeping backlog",
-            cause: "6 rooms waiting for cleaning",
+            title: "alert.housekeeping-backlog.title",
+            cause: "alert.housekeeping-backlog.cause",
+            causeValues: { rooms: 6 },
           },
         ]}
         onOpen={() => {}}
       />,
     );
-    expect(
-      screen.getByText("An operational issue needs attention."),
-    ).toBeTruthy();
+    expect(screen.getByText("6 rooms waiting for cleaning")).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /open housekeeping backlog/i }),
     ).toBeTruthy();
@@ -35,8 +34,9 @@ describe("alerts", () => {
           {
             id: "a1",
             severity: "warning",
-            title: "Housekeeping backlog",
-            cause: "6 rooms waiting for cleaning",
+            title: "alert.housekeeping-backlog.title",
+            cause: "alert.housekeeping-backlog.cause",
+            causeValues: { rooms: 6 },
           },
         ]}
         onOpen={onOpen}
@@ -46,6 +46,30 @@ describe("alerts", () => {
       screen.getByRole("button", { name: /open housekeeping backlog/i }),
     );
     expect(onOpen).toHaveBeenCalledWith("a1");
+  });
+
+  it("resolves alert keys and values in the selected locale", () => {
+    render(
+      <AlertsPanel
+        alerts={[
+          {
+            id: "a1",
+            severity: "warning",
+            title: "alert.housekeeping-backlog.title",
+            cause: "alert.housekeeping-backlog.cause",
+            causeValues: { rooms: 6 },
+          },
+        ]}
+        locale="de-DE"
+        onOpen={() => {}}
+      />,
+    );
+    expect(screen.getByText("Reinigungsrückstand")).toBeTruthy();
+    expect(screen.getByText("6 Zimmer warten auf Reinigung")).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "Reinigungsrückstand öffnen" })
+        .textContent,
+    ).toBe("Öffnen");
   });
 });
 

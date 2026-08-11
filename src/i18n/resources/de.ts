@@ -1,6 +1,10 @@
 export const de = {
   app: {
     main: "Hotelverwaltung",
+    telemetry: {
+      command: "Befehl: {status}",
+      saves: "Gespeicherte Spielstände: {count}",
+    },
   },
   topbar: {
     status: "Statusleiste",
@@ -12,20 +16,70 @@ export const de = {
     language: "Sprache",
     save: "Speichern",
     load: "Laden",
-
   },
   hotel: {
     status: "Hotelstatus",
     inspect: "Prüfen",
     serviceAreas: "Servicebereiche",
   },
+  world: {
+    goToProblem: "Gehe zu {title}: {cause}",
+  },
+  fnb: {
+    title: "Speisen und Getränke",
+    outlets: {
+      breakfastRoom: "Frühstücksraum",
+      bar: "Bar",
+      roomService: "Zimmerservice",
+      restaurant: "Restaurant",
+    },
+    metrics: {
+      seats: "Sitzplätze: {seats}",
+      covers: "Bewirtungen: {served}/{demand} (Kapazität {capacity})",
+      waitlisted: "Warteliste: {waitlisted}",
+      serviceLoad: "Serviceauslastung: {load}",
+      kitchenLoad: "Küchenauslastung: {load}",
+      averageWait: "Wartezeit: {minutes} Minuten",
+      waste: "Abfall: {covers} Bewirtungen",
+      foodCost: "Wareneinsatz: {cost}",
+      limitedBy: "Begrenzt durch: {cause}",
+    },
+  },
+  facility: {
+    cause: {
+      closed: "geschlossen",
+      demand: "aktuelle Nachfrage",
+      seating: "Sitzplätze",
+      serviceStaff: "Servicepersonal",
+      kitchenLine: "Küchenlinie",
+      stock: "Bestand",
+      miseEnPlace: "Mise en Place",
+      transport: "Servicetransport",
+      elevator: "Aufzugskapazität",
+    },
+  },
+  expense: {
+    revenue: "Erlöskorrektur",
+    operating: "Betriebsausgabe",
+    capital: "Investitionsausgabe",
+    investing: "Anlageausgabe",
+    borrowing: "Kreditaufnahme",
+    equity: "Eigenkapitaltransaktion",
+    financing: "Finanzierungsausgabe",
+    settlement: "Begleichung einer Verbindlichkeit",
+  },
   management: {
     skip: "Zum Verwaltungsinhalt springen",
     areas: "Verwaltungsbereiche",
+    mainView: "Hauptansicht",
     hotel: "Hotel",
     staff: "Personal",
     finance: "Finanzen",
+    revenue: "Erlöse",
+    marketing: "Marketing & Vertrieb",
+    market: "Markt",
     company: "Unternehmen",
+    campaign: "Kampagne",
   },
   settings: {
     presentation: "Darstellungseinstellungen",
@@ -72,6 +126,7 @@ export const de = {
     critical: "Sofortige Aufmerksamkeit erforderlich",
     acknowledge: "Bestätigen",
     open: "{title} öffnen",
+    openAction: "Öffnen",
     causes: {
       negativeLiquidity: "Bargeld abzüglich Verbindlichkeiten ist negativ",
     },
@@ -102,22 +157,94 @@ export const de = {
   alerts: { liquidityCritical: "Liquidität ist kritisch" },
   events: { guestCheckin: "Gast eingecheckt" },
   alert: {
-    "housekeeping-backlog": { title: "Reinigungsrückstand", cause: "{value} Zimmer warten auf Reinigung" },
-    "cleaning-stockout": { title: "Reinigungsmittel aufgebraucht", cause: "Keine Reinigungseinheiten vorrätig" },
-    "linen-short": { title: "Wäschemangel", cause: "Unzureichend saubere Wäsche" },
-    "security": { spaces: { title: "Sicherheit knapp" } },
-    "breakfast-queue": { title: "Frühstücksschlange" },
-    "room-service-late": { title: "Zimmerservice verspätet" },
-    "spa-unstaffed": { title: "Spa unterbesetzt", cause: "Keine Therapeuten eingeplant" },
-    "security-short": { title: "Sicherheit knapp" },
-    "staff-areas-crowded": { title: "Personalbereiche überfüllt", cause: "Personalkapazität überschritten" },
-    "construction-noise": { title: "Baulärm" },
-    "long-check-in": { title: "Langer Check-in" },
+    "housekeeping-backlog": {
+      title: "Reinigungsrückstand",
+      cause: "{rooms} Zimmer warten auf Reinigung",
+    },
+    "cleaning-stockout": {
+      title: "Reinigungsmittel aufgebraucht",
+      cause: "Die Zimmerreinigung kann keine Zimmer fertigstellen.",
+    },
+    "linen-short": {
+      title: "Wäschemangel",
+      cause: "Zimmer können erst nach Abschluss der Wäsche bezogen werden.",
+    },
+    security: {
+      spaces: {
+        title: "Sicherheit knapp",
+        cause:
+          "{inHouseGuests} im Haus, {eventGuests} bei Veranstaltungen, {openSpaces} Bereiche geöffnet.",
+      },
+    },
+    "breakfast-queue": {
+      title: "Frühstücksschlange",
+      cause: "{queue} Gäste konnten nicht bedient werden.",
+    },
+    "fnb-wait": {
+      title: "Verzögerung im Gastronomieservice",
+      cause:
+        "{outletId}: {waitlisted} warten bei Nachfrage {demand} und Kapazität {capacity}; durchschnittliche Wartezeit {averageWaitMinutes} Minuten.",
+    },
+    "spa-unstaffed": {
+      title: "Spa unterbesetzt",
+      cause:
+        "{demand} Anfragen und {sold} Buchungen, aber nur {therapists} Therapeuten im Dienst.",
+    },
+    "security-short": {
+      title: "Sicherheit knapp",
+      cause:
+        "{short} Wachkräfte fehlen; Basis {base}, Veranstaltungsgäste {eventGuests}, VIP-Stufe {vipLevel}.",
+    },
+    "staff-areas-crowded": {
+      title: "Personalbereiche überfüllt",
+      cause: "Die Umkleiden fassen nicht die gesamte Schicht zugleich.",
+    },
+    "construction-noise": {
+      title: "Baulärm",
+      cause: "{guests} Gäste sind während der Bauarbeiten im Haus.",
+    },
+    "long-check-in": {
+      title: "Langer Check-in",
+      cause: "{bookingId} wartete {waitedMinutes} Minuten an der Rezeption.",
+    },
     "complaint-unanswered": { title: "Beschwerde unbeantwortet" },
-    "recovery-escalated": { title: "Wiedergutmachung eskaliert" },
-    "booking-refused": { title: "Buchungsanfrage abgelehnt" },
-    "conference-booked": { title: "Konferenz gebucht" },
-    "insolvent": { title: "Insolvent" },
-    "space": { title: "Räumlichkeit wies Gäste ab" }
+    recovery: {
+      noFrontDesk: "An der Rezeption ist niemand zur Genehmigung im Dienst.",
+      insufficientCash:
+        "Das Hotel hat {cashMinor}, der Nachlass kostet jedoch {costMinor}.",
+    },
+    "recovery-escalated": {
+      title: "Wiedergutmachung eskaliert",
+      cause:
+        "Die Leitung darf {expenseMinor} für {bookingId} nicht genehmigen.",
+    },
+    "booking-refused": {
+      title: "Buchungsanfrage abgelehnt",
+      cause: {
+        price: "{bookingId} wurde wegen eines zu hohen Preises abgelehnt.",
+        inventory:
+          "{bookingId} wurde abgelehnt, weil am {dateKey} kein Kontingent mehr frei war.",
+      },
+    },
+    "conference-booked": {
+      title: "Konferenz gebucht",
+      cause:
+        "{guests} Teilnehmer für {nights} Tag(e), {roomsBlocked} Zimmer blockiert.",
+    },
+    insolvent: {
+      title: "Insolvent",
+      cause: "Die {expense} konnte nicht vollständig bezahlt werden.",
+    },
+    space: {
+      title: "{spaceId} musste Gäste abweisen",
+      cause: {
+        closed: "{spaceId} ist derzeit geschlossen.",
+        unstaffed:
+          "{spaceId} benötigt {staffRequired} Mitarbeiter, hat aber {staffOnDuty}.",
+        atCapacity:
+          "{spaceId} erreichte die Kapazität {capacity} und wies {turnedAway} Gäste ab.",
+        demand: "{spaceId} bediente die aktuelle Nachfrage.",
+      },
+    },
   },
 } as const;

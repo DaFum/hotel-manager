@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { createInitialGameState } from "../simulation/initialState";
-import { migrateEnvelope, validateEnvelope } from "../persistence/saveSchema";
+import { validateEnvelope } from "../persistence/saveSchema";
 import {
   CONTENT_VERSION,
   SAVE_VERSION,
@@ -8,6 +8,7 @@ import {
 } from "../persistence/saveVersions";
 import { runWorldMonths, runWorldYears } from "../test/worldScenario";
 import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
+import { PROTOCOL_VERSION } from "../domain/protocol";
 
 it("keeps 50 years bounded and deterministic across a persisted checkpoint", () => {
   const uninterrupted = runWorldYears(50, 9001);
@@ -20,14 +21,14 @@ it("keeps 50 years bounded and deterministic across a persisted checkpoint", () 
   const game = createInitialGameState(9001);
   game.world = firstHalf.state;
   game.rngState = firstHalf.rngState;
-  const saved = migrateEnvelope({
+  const saved = {
     saveVersion: SAVE_VERSION,
     contentVersion: CONTENT_VERSION,
-    protocolVersion: 2,
+    protocolVersion: PROTOCOL_VERSION,
     rngState: firstHalf.rngState,
     state: game,
     preferences: DEFAULT_PLAYER_PREFERENCES,
-  } satisfies SaveEnvelope);
+  } satisfies SaveEnvelope;
   expect(validateEnvelope(saved)).toEqual([]);
   const restored = saved.state as typeof game;
   const continued = runWorldMonths(25 * 12, 9001, {

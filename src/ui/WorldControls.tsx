@@ -1,4 +1,4 @@
-import { translateAlertCause } from "./localization";
+import { translateGame, type GameLocale } from "../i18n";
 import {
   MAX_ZOOM,
   MIN_ZOOM,
@@ -43,10 +43,12 @@ export function WorldControls(props: {
   problems: readonly WorldProblem[];
   elevator: { queue: number; waitMinutes: number; cause: string };
   onCamera: (camera: CameraState) => void;
+  locale?: GameLocale;
 }) {
   const { camera } = props;
   const light = lightingFor(props.minuteOfDay);
   const detail = detailFor(camera.zoom);
+  const locale = props.locale ?? "en-GB";
 
   return (
     <section aria-label="World controls">
@@ -136,7 +138,18 @@ export function WorldControls(props: {
             <li key={problem.id}>
               <button
                 type="button"
-                aria-label={`Go to ${problem.title}: ${translateAlertCause(problem.cause, problem.causeValues)}`}
+                aria-label={translateGame(locale, "world.goToProblem", {
+                  title: translateGame(
+                    locale,
+                    problem.title,
+                    problem.causeValues,
+                  ),
+                  cause: translateGame(
+                    locale,
+                    problem.cause,
+                    problem.causeValues,
+                  ),
+                })}
                 // Where the camera is, not a toggle the player switched on.
                 aria-current={
                   camera.focusedId === problem.id ? true : undefined
@@ -153,7 +166,8 @@ export function WorldControls(props: {
                   )
                 }
               >
-                {problem.title} — {translateAlertCause(problem.cause, problem.causeValues)}
+                {translateGame(locale, problem.title, problem.causeValues)} —{" "}
+                {translateGame(locale, problem.cause, problem.causeValues)}
               </button>
             </li>
           ))}

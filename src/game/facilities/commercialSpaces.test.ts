@@ -143,7 +143,17 @@ describe("commercial spaces", () => {
         staffOnDuty: 1,
         minuteOfDay: 60,
       }),
-    ).toEqual({ served: 0, turnedAway: 10, cause: "closed" });
+    ).toEqual({
+      served: 0,
+      turnedAway: 10,
+      cause: "alert.space.cause.closed",
+      causeValues: {
+        spaceId: "space.shop",
+        openMinute: 480,
+        closeMinute: 1200,
+        minuteOfDay: 60,
+      },
+    });
   });
 
   it("will not open unstaffed, whatever its capacity says", () => {
@@ -157,7 +167,12 @@ describe("commercial spaces", () => {
     ).toEqual({
       served: 0,
       turnedAway: 10,
-      cause: "unstaffed: needs 1, has 0",
+      cause: "alert.space.cause.unstaffed",
+      causeValues: {
+        spaceId: "space.shop",
+        staffRequired: 1,
+        staffOnDuty: 0,
+      },
     });
   });
 
@@ -169,7 +184,17 @@ describe("commercial spaces", () => {
         staffOnDuty: 1,
         minuteOfDay: 600,
       }),
-    ).toEqual({ served: 40, turnedAway: 20, cause: "at capacity" });
+    ).toEqual({
+      served: 40,
+      turnedAway: 20,
+      cause: "alert.space.cause.atCapacity",
+      causeValues: {
+        spaceId: "space.shop",
+        capacity: 40,
+        demand: 60,
+        turnedAway: 20,
+      },
+    });
   });
 
   it("pays the hotel differently under each operator model", () => {
@@ -219,7 +244,14 @@ describe("commercial spaces", () => {
       openSpaces: 3,
     });
     expect(busy.guardsRequired).toBeGreaterThan(quiet.guardsRequired);
-    expect(busy.cause).toMatch(/3 spaces open/);
+    expect(busy).toMatchObject({
+      cause: "alert.security.spaces.cause",
+      causeValues: {
+        inHouseGuests: 20,
+        eventGuests: 150,
+        openSpaces: 3,
+      },
+    });
     expect(quiet.guardsRequired).toBeGreaterThanOrEqual(1);
   });
 

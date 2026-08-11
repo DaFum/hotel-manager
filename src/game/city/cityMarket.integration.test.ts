@@ -1,17 +1,9 @@
 import { expect, it } from "vitest";
 import { runCityYears } from "../test/cityScenario";
-import { migrateEnvelope } from "../persistence/saveSchema";
-import {
-  SAVE_VERSION,
-  isCompatible,
-  type SaveEnvelope,
-} from "../persistence/saveSchema";
-import saveV2Fixture from "../persistence/fixtures/save-v2.json";
 import { GameSimulation } from "../simulation/GameSimulation";
 import { createInitialGameState } from "../simulation/initialState";
 import { QUANTUM_MINUTES } from "../simulation/clock";
 import { MINUTES_PER_DAY } from "../domain/calendar";
-import { FEEDBACK_DELAY_MONTHS } from "./feedback";
 import {
   allocateCityDay,
   createCityMarket,
@@ -83,25 +75,4 @@ it("runs the same market inside the real simulation", () => {
   );
   // The player still trades in the city rather than being frozen out.
   expect(s.finance.month.soldRoomNights + s.stays.length).toBeGreaterThan(0);
-});
-
-it("restores a migrated v2 save into a runnable market", () => {
-  const legacy = structuredClone(saveV2Fixture) as unknown as SaveEnvelope;
-  expect(legacy.saveVersion).toBe(2);
-  const legacyState = legacy.state as Record<string, unknown>;
-  expect(legacyState.cityMarket).toBeUndefined();
-  expect(legacyState.competitors).toBeUndefined();
-
-  const migrated = migrateEnvelope(legacy);
-  expect(migrated.saveVersion).toBe(SAVE_VERSION);
-  expect(isCompatible(migrated)).toBe(true);
-
-  const sim = new GameSimulation(
-    migrated.state as ReturnType<typeof createInitialGameState>,
-  );
-  sim.advanceQuantum();
-  const s = sim.snapshot();
-  expect(s.competitors.length).toBeGreaterThan(0);
-  expect(s.cityMarket.landPriceMinor).toBeGreaterThan(0);
-  expect(s.cityMarket.feedbackPipeline).toHaveLength(FEEDBACK_DELAY_MONTHS);
 });

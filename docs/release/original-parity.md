@@ -12,8 +12,8 @@ until supported by durable primary evidence and added through specification revi
 ## Behavioral review
 
 For each verified term, release review checks that the modern system presents a real
-choice and exposes its consequence rather than merely naming a menu. The critical path,
-focused domain tests, and 54-row registry provide automated evidence; this document is
+choice and exposes its consequence rather than merely naming a menu. The critical path
+and focused domain tests provide automated evidence; this document is
 the human-reviewed boundary against unsupported historical claims.
 
 The project is a single-player spiritual successor. It does not copy protected original

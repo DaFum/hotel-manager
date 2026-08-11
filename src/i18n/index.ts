@@ -1,4 +1,5 @@
 import i18next, { type i18n } from "i18next";
+import { formatMinorCurrency } from "./formatters";
 import { de } from "./resources/de";
 import { en } from "./resources/en";
 
@@ -23,12 +24,11 @@ export async function createGameI18n(
 interface TranslationBranch {
   [key: string]: string | TranslationBranch;
 }
-export function translateGame(
-  locale: GameLocale,
+
+function findTranslation(
+  catalogue: TranslationBranch,
   key: string,
-  values: Record<string, string | number> = {},
-): string {
-  const catalogue = (locale === "de-DE" ? de : en) as TranslationBranch;
+): string | undefined {
   const found = key
     .split(".")
     .reduce<string | TranslationBranch | undefined>(
@@ -36,8 +36,23 @@ export function translateGame(
         value && typeof value === "object" ? value[part] : undefined,
       catalogue,
     );
-  if (typeof found !== "string") return key;
-  return found.replace(/\{(\w+)\}/g, (_, name: string) =>
-    String(values[name] ?? `{${name}}`),
-  );
+  return typeof found === "string" ? found : undefined;
+}
+
+export function translateGame(
+  locale: GameLocale,
+  key: string,
+  values: Record<string, string | number> = {},
+): string {
+  const catalogue = (locale === "de-DE" ? de : en) as TranslationBranch;
+  const found = findTranslation(catalogue, key);
+  if (!found) return key;
+  return found.replace(/\{(\w+)\}/g, (_, name: string) => {
+    const value = values[name];
+    if (typeof value === "number" && name.endsWith("Minor"))
+      return formatMinorCurrency(value, "DEM", locale);
+    if (typeof value === "string")
+      return findTranslation(catalogue, value) ?? value;
+    return String(value ?? `{${name}}`);
+  });
 }

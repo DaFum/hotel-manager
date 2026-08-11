@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { openManagementArea } from "./management";
 
 test("shows the group as a portfolio the player can drill into", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "company");
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await expect(portfolio).toBeVisible();
 
@@ -25,6 +27,7 @@ test("flies a brand and reports the standards a house is breaking", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "company");
   const brands = page.getByRole("region", { name: "Brands" });
   await expect(brands).toBeVisible();
   // The flag's uplift is quoted next to what it costs to keep.
@@ -47,6 +50,7 @@ test("keeps delegated authority and the decisions it sent up on one panel", asyn
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "company");
   const governance = page.getByRole("region", { name: "Manager governance" });
   await expect(governance).toBeVisible();
   await expect(governance).toContainText(/repairs to .*DM/);
@@ -66,6 +70,7 @@ test("says plainly that no scheme is in the pipeline before one is started", asy
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "company");
   const pipeline = page.getByRole("region", { name: "Development pipeline" });
   await expect(pipeline).toBeVisible();
   await expect(pipeline).toContainText("No scheme is in the pipeline");
@@ -73,6 +78,7 @@ test("says plainly that no scheme is in the pipeline before one is started", asy
 
 test("carries the group through a save and a reload", async ({ page }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "company");
   const brands = page.getByRole("region", { name: "Brands" });
   await brands
     .getByRole("button", { name: /fly mainblick over hotel mainblick/i })
@@ -93,6 +99,7 @@ test("shows what is advertised, what is agreed, and what loyalty owes", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "marketing");
   // Exact: "Commercial spaces" is a different region on the same page.
   const commercial = page.getByRole("region", {
     name: "Commercial",
@@ -114,6 +121,7 @@ test("shows the parts of the hotel that are not bedrooms as a business", async (
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await openManagementArea(page, "hotel");
   const spaces = page.getByRole("region", { name: "Commercial spaces" });
   await expect(spaces).toBeVisible();
   await expect(spaces.getByLabel("Lobby load")).toContainText(

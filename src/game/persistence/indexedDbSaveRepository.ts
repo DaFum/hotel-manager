@@ -1,8 +1,4 @@
-import {
-  assertCompatible,
-  migrateEnvelope,
-  type SaveEnvelope,
-} from "./saveSchema";
+import { assertCompatible, type SaveEnvelope } from "./saveSchema";
 
 const STORE = "saves";
 
@@ -64,11 +60,8 @@ export class IndexedDbSaveRepository {
       promisify<SaveEnvelope | undefined>(store.get(slot)),
     );
     if (!found) return null;
-    // Older slots are brought forward before validation, so a save written by
-    // a previous build stays playable instead of being rejected.
-    const migrated = migrateEnvelope(found);
-    assertCompatible(migrated);
-    return migrated;
+    assertCompatible(found);
+    return found;
   }
 
   async listSlots(): Promise<string[]> {

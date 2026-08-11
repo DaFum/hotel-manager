@@ -1,9 +1,11 @@
 import { test, expect } from "@playwright/test";
+import { openManagementArea } from "./management";
 
 test("presents the systemic campaign and its remembered history", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await openManagementArea(page, "campaign");
   const setup = page.getByRole("region", { name: "Campaign setup" });
   await expect(setup).toContainText("Frankfurt, 1 January 1991");
   await expect(setup).toContainText("No hidden money or knowledge");
@@ -19,6 +21,7 @@ test("starts the career on the difficulty the player chose, then locks it", asyn
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await openManagementArea(page, "campaign");
   const setup = page.getByRole("region", { name: "Campaign setup" });
   const difficulty = setup.getByLabel("Difficulty");
   const status = page.getByRole("region", { name: /Status bar|Statusleiste/ });

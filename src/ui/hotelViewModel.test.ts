@@ -88,7 +88,9 @@ describe("the isometric hotel read off the snapshot", () => {
     const known = roomFocusPoint(targetRoom.id, s);
 
     expect(Number.isFinite(known.x)).toBe(true);
-    expect(known.floor).toBe(s.renderDescriptors.floorByRoomId[targetRoom.id] ?? 0);
+    expect(known.floor).toBe(
+      s.renderDescriptors.floorByRoomId[targetRoom.id] ?? 0,
+    );
     expect(roomFocusPoint("room.nowhere", s, { x: 7, y: 8, floor: 2 })).toEqual(
       {
         x: 7,
@@ -105,14 +107,14 @@ describe("the isometric hotel read off the snapshot", () => {
       {
         id: `alert.${roomId}`,
         severity: "warning",
-        title: "Room out of service",
-        cause: "maintenance",
+        title: "alert.room-out-of-service.title",
+        cause: "alert.room-out-of-service.cause",
       },
       {
         id: "alert.cash",
         severity: "critical",
-        title: "Cash is short",
-        cause: "payables exceed cash",
+        title: "alert.cash-short.title",
+        cause: "alert.cash-short.cause",
       },
     ];
 
@@ -136,13 +138,16 @@ describe("the isometric hotel read off the snapshot", () => {
       {
         id: `alert.${longRoomId}`,
         severity: "warning",
-        title: "Room out of service",
-        cause: "maintenance",
+        title: "alert.room-out-of-service.title",
+        cause: "alert.room-out-of-service.cause",
       },
     ];
 
     const [pinned] = worldProblems(s);
-    const placement = placeRooms(s.hotel.rooms, s.renderDescriptors.floorByRoomId).find(p => p.id === longRoomId)!;
+    const placement = placeRooms(
+      s.hotel.rooms,
+      s.renderDescriptors.floorByRoomId,
+    ).find((p) => p.id === longRoomId)!;
 
     expect(pinned.kind).toBe("room");
     expect(pinned.x).toBe(placement.x);

@@ -7,7 +7,15 @@ export const ENGLISH_TEXT = {
   "alert.recovery.noFrontDesk": "Nobody is on the desk to authorise it.",
   "alert.recovery.insufficientCash": "The hotel cannot cover the discount.",
   "alert.cause.unknown": "An operational issue needs attention.",
+  "facility.cause.closed": "closed",
+  "facility.cause.demand": "current demand",
+  "facility.cause.seating": "seating",
+  "facility.cause.serviceStaff": "service staff",
   "facility.cause.kitchenLine": "kitchen line",
+  "facility.cause.stock": "stock",
+  "facility.cause.miseEnPlace": "mise-en-place",
+  "facility.cause.transport": "service transport",
+  "facility.cause.elevator": "lift capacity",
   "save.loading": "Loading…",
   "save.recovering": "Recovering…",
   "save.loadingMonthly": "Loading monthly autosave…",
@@ -118,8 +126,14 @@ export function translateKey(key: string): string {
   return ENGLISH_TEXT[key as LocalizationKey] ?? key;
 }
 
-export function translateAlertCause(key: string, values?: Record<string, string | number>): string {
-  const template = ENGLISH_TEXT[key as LocalizationKey] ?? ENGLISH_TEXT["alert.cause.unknown"];
+export function translateAlertCause(
+  key: string,
+  values?: Record<string, string | number>,
+): string {
+  const template =
+    ENGLISH_TEXT[key as LocalizationKey] ?? ENGLISH_TEXT["alert.cause.unknown"];
   if (!values) return template;
-  return template.replace(/\{([^}]+)\}/g, (_, k) => String(values[k] ?? `{${k}}`));
+  return template.replace(/\{([^}]+)\}/g, (_, k) =>
+    String(values[k] ?? `{${k}}`),
+  );
 }

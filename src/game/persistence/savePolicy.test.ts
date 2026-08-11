@@ -8,7 +8,7 @@ import {
   orderSlots,
   recoverySlot,
 } from "./savePolicy";
-import { migrateEnvelope, validateEnvelope } from "./saveSchema";
+import { validateEnvelope } from "./saveSchema";
 import {
   CONTENT_VERSION,
   SAVE_VERSION,
@@ -16,8 +16,6 @@ import {
 } from "./saveVersions";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { createInitialGameState } from "../simulation/initialState";
-import v1 from "./fixtures/save-v1.json";
-import v2 from "./fixtures/save-v2.json";
 import { DEFAULT_PLAYER_PREFERENCES } from "../settings/playerPreferences";
 
 const state = createInitialGameState(12);
@@ -96,33 +94,11 @@ describe("save policy", () => {
     expect(isMajorAction("BUY_MARKET_RESEARCH")).toBe(false);
   });
 
-  it("round-trips every fixture version through the migration chain", () => {
-    for (const [label, fixture] of [
-      ["v1", v1],
-      ["v2", v2],
-      ["v3", current],
-    ] as const) {
-      const migrated = migrateEnvelope(fixture as unknown as SaveEnvelope);
-      expect(migrated.saveVersion, label).toBe(SAVE_VERSION);
-      expect(migrated.protocolVersion, label).toBe(PROTOCOL_VERSION);
-      expect(validateEnvelope(migrated), label).toEqual([]);
-
-      const state = migrated.state as ReturnType<typeof createInitialGameState>;
-      // Everything authoritative survives the chain: the calendar, the money,
-      // the ids, the rooms, the city and its rivals, and every RNG stream.
-      expect(state.calendar.dateKey, label).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-      expect(Number.isSafeInteger(state.finance.cashMinor), label).toBe(true);
-      expect(state.hotel.rooms.length, label).toBeGreaterThan(0);
-      expect(new Set(state.hotel.rooms.map((r) => r.id)).size, label).toBe(
-        state.hotel.rooms.length,
-      );
-      expect(state.cityMarket, label).toBeTruthy();
-      expect(Array.isArray(state.competitors), label).toBe(true);
-      expect(state.rngState, label).toEqual(migrated.rngState);
-
-      // Migration is idempotent: a save already at this version is left alone.
-      expect(migrateEnvelope(migrated), label).toEqual(migrated);
-    }
+  it("accepts the current format and rejects an older save version", () => {
+    expect(validateEnvelope(current)).toEqual([]);
+    expect(
+      validateEnvelope({ ...current, saveVersion: SAVE_VERSION - 1 }),
+    ).toContain(`save version ${SAVE_VERSION - 1} is not ${SAVE_VERSION}`);
   });
 
   it("reports malformed room and stay collections without throwing", () => {
@@ -162,7 +138,7 @@ describe("save policy", () => {
     malformed.state.company.treasury.hotelCashMinor[malformed.state.hotel.id] =
       1.5;
     expect(validateEnvelope(malformed)).toContain(
-      "the state has no complete Plan 05 company",
+      "the state has no complete company",
     );
   });
 });

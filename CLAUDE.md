@@ -74,9 +74,10 @@ reformatted.
 - **Accessibility is structural.** Pixi is decorative; every player action has a DOM path.
   `HotelView` degrades to its room list when no renderer exists.
 - **Saves are versioned.** `saveVersion`, `contentVersion`, `protocolVersion` and all RNG
-  states travel together; a schema change needs a migration and fixtures. The current
-  version is 6; the v6 fixture and the replay corpus are recorded from real runs by
-  `scripts/record-save-fixture.ts` and `scripts/record-replay-corpus.ts`, never edited.
+  states travel together. Before the first public release, only the exact current format
+  is supported; older development saves are rejected. After release, schema changes need
+  explicit migrations for published formats. Replay corpora are recorded from real runs
+  by `scripts/record-replay-corpus.ts`, never edited.
 - **The treasury never holds money.** `consolidatedCashMinor(treasury)` must always equal
   `finance.cashMinor`; the invariants assert it every quantum. Cash only moves through
   `earn`/`spend` or an explicit ledger posting — an assignment beside the ledger trips

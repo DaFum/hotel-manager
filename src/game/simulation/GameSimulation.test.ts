@@ -51,17 +51,6 @@ describe("simulation order", () => {
     ]);
     expect(sim.state.commercial.loyalty.members).toHaveLength(1);
   });
-  it("opens legacy state without guest satisfaction or handled complaints", () => {
-    const state = createInitialGameState(3);
-    const legacy = state as unknown as Record<string, unknown>;
-    delete legacy.guestSatisfaction;
-    delete legacy.handledComplaintIds;
-
-    const sim = new GameSimulation(state);
-    expect(sim.state.guestSatisfaction).toEqual({ score: 70, causes: [] });
-    expect(sim.state.handledComplaintIds).toEqual([]);
-  });
-
   it("matches the MASTER deterministic phase contract exactly", () => {
     expect(PHASE_ORDER).toEqual([
       "commands",
@@ -135,6 +124,22 @@ describe("simulation order", () => {
         finance: { ...state.finance, cashMinor: 1.5 },
       }),
     ).toThrow(/cash/);
+  });
+
+  it("rejects impossible F&B operating records", () => {
+    const state = createInitialGameState(42);
+    state.fnb.outlets[0].stockLeft = -1;
+    expect(() => assertInvariants(state)).toThrow(/F&B.*stock/i);
+
+    state.fnb.outlets[0].stockLeft = 0;
+    state.fnb.outlets[0].demand = 1;
+    state.fnb.outlets[0].capacity = 1;
+    state.fnb.outlets[0].served = 2;
+    expect(() => assertInvariants(state)).toThrow(/F&B.*served/i);
+
+    state.fnb.outlets[0].served = 1;
+    state.fnb.outlets[0].serviceUtilizationBp = 1_000_001;
+    expect(() => assertInvariants(state)).toThrow(/F&B.*utilization/i);
   });
 });
 
@@ -390,7 +395,7 @@ describe("simulated operations", () => {
     expect(after.rngState.staffing).toBe(before);
     // The refusal is on the command journal, not written into the hotel: a
     // rejected command must leave authoritative state alone.
-    expect(after.alerts.some((a) => a.title === "Command rejected")).toBe(
+    expect(after.alerts.some((a) => a.id === "alert.command-rejected")).toBe(
       false,
     );
     expect(after.commandLog.at(-1)).toMatchObject({
@@ -546,5 +551,148 @@ describe("hotel depth", () => {
     expect(s.eventHousekeepingWorkedMinutes).toBeGreaterThan(0);
     // Labour spent on the hall is no longer available for room turnaround.
     expect(s.housekeepingMinutes).toBe(0);
+  });
+});
+
+describe("localized alerts", () => {
+  it("keeps a refused booking id in cause values", () => {
+    const state = createInitialGameState(4242);
+    state.calendar.minuteOfDay = 595;
+    for (let day = 1; day <= 7; day++) {
+      const dateKey = `1991-01-${String(day).padStart(2, "0")}`;
+      state.rates[`${dateKey}/single`] = 50_000;
+      state.rates[`${dateKey}/double`] = 50_000;
+    }
+    const sim = new GameSimulation(state);
+
+    sim.advanceQuantum();
+
+    expect(
+      sim.state.alerts.find((alert) =>
+        alert.id.startsWith("alert.booking-refused."),
+      ),
+    ).toMatchObject({
+      title: "alert.booking-refused.title",
+      cause: "alert.booking-refused.cause.price",
+      causeValues: { bookingId: "booking.5.0" },
+    });
+  });
+
+  it("keeps commercial-space and security inputs in cause values", () => {
+    const state = createInitialGameState(101);
+    state.calendar.minuteOfDay = 1075;
+    state.stays = Array.from({ length: 100 }, (_, index) => ({
+      bookingId: `booking.space.${index}`,
+      roomId: state.hotel.rooms[index % state.hotel.rooms.length].id,
+      rateMinor: 10_000,
+      departureDateKey: "1991-01-02",
+    }));
+    const sim = new GameSimulation(state);
+
+    sim.advanceQuantum();
+
+    expect(
+      sim.state.alerts.find(
+        (alert) => alert.id === "alert.space.space.carpark",
+      ),
+    ).toMatchObject({
+      title: "alert.space.title",
+      cause: "alert.space.cause.atCapacity",
+      causeValues: {
+        spaceId: "space.carpark",
+        capacity: 18,
+        demand: 70,
+        turnedAway: 52,
+      },
+    });
+    expect(
+      sim.state.alerts.find((alert) => alert.id === "alert.security.spaces"),
+    ).toMatchObject({
+      title: "alert.security.spaces.title",
+      cause: "alert.security.spaces.cause",
+      causeValues: {
+        inHouseGuests: 100,
+        eventGuests: 0,
+        openSpaces: 3,
+      },
+    });
+  });
+
+  it("keeps booking and recovery amounts out of localized alert keys", () => {
+    const state = createInitialGameState(102);
+    const bookingId = "booking.localized.1";
+    state.reservations = [
+      reserve(
+        { availableRoomsOn: () => 1 },
+        {
+          id: bookingId,
+          guestId: "guest.localized.1",
+          roomsRequested: 1,
+          rateMinor: 1_000_000,
+          willingnessMinor: 1_000_000,
+          channel: "directPhone",
+          partySize: 1,
+          segmentId: "segment.leisure",
+          category: "single",
+          arrivalDateKey: "1991-01-01",
+          nights: 1,
+          terms: {
+            guaranteed: true,
+            freeCancellationDays: 1,
+            lateChargeBp: 10_000,
+          },
+          atMinutes: 0,
+        },
+      ),
+    ];
+    state.receptionQueue = [{ bookingId, waitedMinutes: 21 }];
+    state.staff.find((member) => member.id === "staff.reception.2")!.absent =
+      true;
+    const sim = new GameSimulation(state);
+
+    sim.advanceQuantum();
+
+    expect(
+      sim.state.alerts.find(
+        (alert) => alert.id === `alert.complaint.${bookingId}`,
+      ),
+    ).toMatchObject({
+      title: "alert.long-check-in.title",
+      cause: "alert.long-check-in.cause",
+      causeValues: { bookingId, waitedMinutes: 26 },
+    });
+    expect(
+      sim.state.alerts.find(
+        (alert) => alert.id === `alert.recovery.complaint.${bookingId}`,
+      ),
+    ).toMatchObject({
+      title: "alert.recovery-escalated.title",
+      cause: "alert.recovery-escalated.cause",
+      causeValues: { bookingId, expenseMinor: 100_000 },
+    });
+  });
+
+  it("keeps an unpaid expense as a localization key in cause values", () => {
+    const state = createInitialGameState(103);
+    state.calendar.minuteOfDay = 1435;
+    state.staff.push({
+      id: "staff.expensive.1",
+      role: "reception",
+      shift: "morning",
+      skill: 50,
+      monthlyWageMinor: 2_000_000_000,
+      absent: false,
+    });
+    const sim = new GameSimulation(state);
+
+    sim.advanceQuantum();
+
+    expect(
+      sim.state.alerts.find((alert) => alert.id === "alert.insolvent"),
+    ).toMatchObject({
+      title: "alert.insolvent.title",
+      cause: "alert.insolvent.cause",
+      causeValues: { expense: "expense.operating" },
+    });
   });
 });

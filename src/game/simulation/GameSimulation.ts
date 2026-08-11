@@ -1,8 +1,4 @@
-import {
-  captureRngState,
-  createRngStreams,
-  restoreRngStreams,
-} from "../domain/rng";
+import { captureRngState, restoreRngStreams } from "../domain/rng";
 import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
@@ -15,6 +11,7 @@ import {
   holdsRoomOn,
   lateChargeMinor,
   markNoShow,
+  ReservationRefusalError,
   reserve,
 } from "../bookings/bookingEngine";
 import type { BookingChannel } from "../bookings/bookingTypes";
@@ -52,16 +49,38 @@ import {
   resolveComplaint,
 } from "../guests/complaints";
 import { cleanRoom } from "../rooms/housekeeping";
-import { serveBreakfast } from "../fnb/breakfastService";
-import { barCovers, barRevenueMinor, BAR_OPEN_MINUTE } from "../fnb/barService";
+import {
+  BREAKFAST_CLOSE_MINUTE,
+  BREAKFAST_STAY_MINUTES,
+} from "../fnb/breakfastService";
+import {
+  barRevenueMinor,
+  BAR_CLOSE_MINUTE,
+  BAR_OPEN_MINUTE,
+  BAR_STAY_MINUTES,
+  COVERS_PER_BARKEEPER,
+} from "../fnb/barService";
 import {
   deliveryMinutes,
   lateDeliveryComplaints,
   roomServiceOrders,
-  ROOM_SERVICE_OPEN_MINUTE,
 } from "../fnb/roomService";
+import {
+  BAR_SERVICE_MINUTE,
+  BREAKFAST_START,
+  ROOM_SERVICE_MINUTE,
+} from "../fnb/schedule";
+import { boardCommitment } from "../fnb/boardPlans";
+import { runKitchenService } from "../fnb/kitchen";
+import { seatService } from "../fnb/seating";
+import type { FnbConstraintKey, FnbOutletState } from "../fnb/fnbState";
 import { externalCovers } from "../fnb/externalDemand";
-import { averageCoverMinor, menuItem } from "../content/1991/menu";
+import {
+  averageCoverMinor,
+  menuItem,
+  outletMenu,
+  type Outlet,
+} from "../content/1991/menu";
 import { linenSoiled, runLaundryDay, LINEN_SKU } from "../laundry/laundry";
 import { bookSlot } from "../wellness/reservations";
 import { fitnessCapacity } from "../wellness/fitness";
@@ -79,7 +98,7 @@ import {
   SERVICE_MINUTES,
 } from "../maintenance/maintenance";
 import { elevatorTrips, elevatorWaitMinutes } from "../facilities/mobility";
-import { createUtilityState, meterUtilities } from "../facilities/utilities";
+import { meterUtilities } from "../facilities/utilities";
 import {
   requiredSecurityStaff,
   securityGapAlert,
@@ -88,7 +107,11 @@ import {
   changingRoomPressureBp,
   staffAreaCapacity,
 } from "../facilities/staffAreas";
-import { facilityRow } from "../facilities/facilityBoard";
+import {
+  facilityRow,
+  type FacilityConstraint,
+} from "../facilities/facilityBoard";
+import { utilizationBp } from "../facilities/capacity";
 import { classify } from "../classification/quality";
 import {
   expansionCostMinor,
@@ -129,16 +152,10 @@ import {
 } from "../commands/commandHandler";
 import { QUANTUM_MINUTES, advanceClock } from "./clock";
 import { assertInvariants } from "./invariants";
-import {
-  createEventJournal,
-  drainEvents,
-  emitEvent,
-} from "../domain/eventBuffer";
+import { drainEvents, emitEvent } from "../domain/eventBuffer";
 import type { DomainEvent, DomainEventPayload } from "../domain/events";
+import type { LocalizedAlertCause } from "../domain/localization";
 import {
-  createGuestSatisfaction,
-  createRenderDescriptors,
-  createSavePolicyMetadata,
   type AlertRecord,
   type EventRecord,
   type GameState,
@@ -146,7 +163,6 @@ import {
   type RoomRecord,
   type StayRecord,
 } from "./initialState";
-import { createNarrativeState } from "../narrative/narrativeState";
 import { detectMilestones } from "../milestones/milestoneEngine";
 import { appendChronicleEntry } from "../chronicle/chronicle";
 import { compactLedgerHistory } from "../history/historyCompaction";
@@ -154,11 +170,7 @@ import {
   chooseEndlessContinuation,
   type RecoveryPath,
 } from "../campaign/careerOutcome";
-import {
-  careerFacts,
-  applyRecoveryPath,
-  validateRecoveryPath,
-} from "../campaign/recovery";
+import { applyRecoveryPath, validateRecoveryPath } from "../campaign/recovery";
 import {
   createCampaignConfig,
   adjustedStartingCapitalMinor,
@@ -170,7 +182,7 @@ import {
   runNarrativeMonth,
   validateNarrativeChoice,
 } from "../narrative/narrativeSystem";
-import { createWorldState, WorldSimulation } from "../world/WorldSimulation";
+import { WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
   advanceTechnologyProject,
@@ -180,19 +192,14 @@ import {
   availableChannels,
   netChannelRevenueMinor,
 } from "../distribution/channelEvolution";
-import { createRevenuePolicy } from "../revenue/revenuePolicy";
-import { createCompanyState } from "../company/companyState";
-import { createCommercialState } from "../commercial/commercialState";
 import {
   applyReputationEvent,
-  createReputationState,
   decayReputation,
 } from "../reputation/dimensions";
 import { earnPoints, releaseBreakageMinor } from "../commercial/loyalty";
 import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
   createContract as createEmploymentContract,
-  createWorkforceState,
   employ,
   markSick,
   fallsSick,
@@ -202,11 +209,9 @@ import {
   willResign,
   workOvertime,
 } from "../staff/employeeLifecycle";
-import { createProcurementState } from "../purchasing/contracts";
 import { createManagerAuthority } from "../management/managerAuthority";
 import {
   beginStay,
-  createGuestRelationsState,
   createParty,
   recordStayEvent,
   registerParty,
@@ -217,7 +222,6 @@ import {
   satisfactionAfterRecovery,
 } from "../guests/recoveryAuthority";
 import {
-  createCommercialSpaceState,
   isOpen as isSpaceOpen,
   monthlyContributionMinor,
   recordUse,
@@ -247,17 +251,12 @@ import {
 import {
   accountClass,
   capitaliseAsset,
-  createStatements,
   depreciationMinor,
   postDepreciation,
 } from "../finance/statements";
-import {
-  createInsuranceState,
-  totalMonthlyPremiumMinor,
-} from "../risk/insurance";
+import { totalMonthlyPremiumMinor } from "../risk/insurance";
 import {
   UTILITY_KINDS,
-  createUtilityContracts,
   readMeters,
   standingChargeMinor,
   utilityUsageMinor,
@@ -298,9 +297,6 @@ export type {
 const CHECKOUT_MINUTE = 660;
 const ARRIVAL_MINUTE = 840;
 const DEMAND_MINUTE = 600;
-const BREAKFAST_START = 390;
-const BAR_SERVICE_MINUTE = BAR_OPEN_MINUTE + 120;
-const ROOM_SERVICE_MINUTE = ROOM_SERVICE_OPEN_MINUTE + 30;
 const WELLNESS_OPEN_MINUTE = 600;
 const LAUNDRY_MINUTE = 480;
 /** Basis points of in-house guests who ask for a treatment on a given day. */
@@ -310,6 +306,7 @@ const BAR_TAKE_UP_BP = 6000;
 /** Basis points of days on which a conference enquiry arrives. */
 const EVENT_LEAD_CHANCE_BP = 1200;
 const MAX_ALERTS = 20;
+const FNB_SERVICE_STOCK_SKU = "breakfast-portion";
 /** How long a plant asset is written down over; a balancing constant. */
 const ASSET_USEFUL_LIFE_MONTHS = 120;
 /** Half a percent chance per day that a worn asset fails, in basis points. */
@@ -348,6 +345,27 @@ const SORTED_WASTE_BP = 2500;
 
 const WATER_UNIT_MINOR = 2;
 const ENERGY_UNIT_MINOR = 3;
+/** Planned over-production available to absorb late orders during a service. */
+const FNB_PREPARATION_BUFFER_BP = 1000;
+/** Only unused preparation can become waste; this is its service allowance. */
+const FNB_WASTE_BP = 1000;
+
+function plannedFnbPreparation(demand: number, kitchenThroughput: number) {
+  return Math.min(
+    kitchenThroughput,
+    demand + Math.ceil((demand * FNB_PREPARATION_BUFFER_BP) / 10_000),
+  );
+}
+
+function averageIngredientMinor(outlet: Outlet): number {
+  const items = outletMenu(outlet);
+  return items.length === 0
+    ? 0
+    : Math.round(
+        items.reduce((sum, item) => sum + item.ingredientMinor, 0) /
+          items.length,
+      );
+}
 
 export class GameSimulation implements CommandExecutor {
   private queued: CommandEnvelope[] = [];
@@ -361,48 +379,6 @@ export class GameSimulation implements CommandExecutor {
   private causingCommandId: string | undefined;
 
   constructor(public state: GameState) {
-    // A save written before the command and event journals existed carries
-    // neither. Opening it at zero is the honest reading — nothing is known
-    // about decisions taken before the journal did — and it keeps a migrated
-    // old save runnable rather than crashing on its first derived section.
-    state.stateVersion ??= 0;
-    state.commandSequence ??= 0;
-    state.commandLog ??= [];
-    state.eventJournal ??= createEventJournal();
-    state.guestSatisfaction ??= createGuestSatisfaction();
-    state.handledComplaintIds ??= [];
-    state.utilities ??= createUtilityState();
-    state.utilities.pendingExpenseMinor ??= 0;
-    state.renderDescriptors ??= createRenderDescriptors(state.hotel.rooms);
-    state.savePolicy ??= createSavePolicyMetadata();
-    state.linen.floorStock ??= 0;
-    state.world ??= createWorldState();
-    state.revenuePolicy ??= createRevenuePolicy();
-    state.technologyProjects ??= [];
-    state.technologyImplementations ??= [];
-    state.company ??= createCompanyState();
-    state.statements ??= createStatements();
-    state.insurance ??= createInsuranceState();
-    state.utilityContracts ??= createUtilityContracts();
-    state.meters ??= { energy: 0, water: 0, waste: 0 };
-    state.outages ??= [];
-    state.commercial ??= createCommercialState();
-    state.reputation ??= createReputationState();
-    state.workforce ??= createWorkforceState();
-    state.procurement ??= createProcurementState();
-    state.guestRelations ??= createGuestRelationsState();
-    state.recoveries ??= [];
-    // A loaded game's career reading comes from the position it is actually
-    // in, never from an optimistic constant a fresh game would have had.
-    state.narrative ??= createNarrativeState({ career: careerFacts(state) });
-    state.rngState.narrative ??= createRngStreams(state.seed).narrative.state;
-    state.commercialSpaces ??= createCommercialSpaceState();
-    state.lobby ??= {
-      served: 0,
-      unserved: 0,
-      cause: "lobby is coping",
-      automation: [],
-    };
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -764,7 +740,7 @@ export class GameSimulation implements CommandExecutor {
         );
         this.spend(
           s.finance.cashMinor - result.cashMinor,
-          "supplies",
+          command.sku === FNB_SERVICE_STOCK_SKU ? "foodCost" : "supplies",
           `${command.quantity} ${command.sku}`,
         );
         s.pendingOrders.push(result.order);
@@ -1212,8 +1188,8 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.cleaning-stockout",
           severity: "critical",
-          title: "Cleaning supplies out of stock",
-          cause: "housekeeping cannot turn rooms around",
+          title: "alert.cleaning-stockout.title",
+          cause: "alert.cleaning-stockout.cause",
         });
         return;
       }
@@ -1223,8 +1199,8 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.linen-short",
           severity: "warning",
-          title: "Out of clean linen",
-          cause: "rooms cannot be made up until the laundry catches up",
+          title: "alert.linen-short.title",
+          cause: "alert.linen-short.cause",
         });
         return;
       }
@@ -1399,8 +1375,12 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: `alert.space.${space.id}`,
           severity: "info",
-          title: `${space.id} turned guests away`,
+          title: "alert.space.title",
           cause: result.cause,
+          causeValues: {
+            ...result.causeValues,
+            turnedAway: result.turnedAway,
+          },
         });
       else this.clearAlerts([`alert.space.${space.id}`]);
     }
@@ -1417,8 +1397,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.security.spaces",
         severity: "warning",
-        title: "Security short",
+        title: "alert.security.spaces.title",
         cause: security.cause,
+        causeValues: security.causeValues,
       });
     else this.clearAlerts(["alert.security.spaces"]);
   }
@@ -1509,30 +1490,80 @@ export class GameSimulation implements CommandExecutor {
   private runBreakfast(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== BREAKFAST_START) return;
-    const result = serveBreakfast({
-      demand: s.stays.length + this.eventBreakfastCovers(),
-      seats: STARTER_HOTEL.breakfastSeats,
-      kitchenCovers: STARTER_HOTEL.kitchenCovers,
-      stock: s.stock["breakfast-portion"] ?? 0,
-      priceMinor: STARTER_HOTEL.breakfastPriceMinor,
-      minuteOfDay: s.calendar.minuteOfDay,
-      // The recipe cost is what the portion actually cost to buy, so the
-      // reported contribution reconciles with the purchasing ledger.
-      ingredientMinor: supplierForSku("breakfast-portion").unitPriceMinor,
+    const boardCovers = boardCommitment("bed-and-breakfast", {
+      guests: s.stays.length,
+      nights: 1,
+    }).breakfast;
+    const demand = boardCovers + this.eventBreakfastCovers();
+    const seats = STARTER_HOTEL.breakfastSeats;
+    const reservedSeats = 0;
+    const seating = seatService({
+      demand,
+      seats,
+      reservedSeats,
+      walkIns: 0,
+      serviceMinutes: BREAKFAST_CLOSE_MINUTE - BREAKFAST_START,
+      averageStayMinutes: BREAKFAST_STAY_MINUTES,
+      // The seating calculation owns seats and turns only. Kitchen capacity
+      // remains a separate facility constraint below.
+      kitchenCovers: seats * 8,
+      isOpen: true,
     });
-    if (result.served === 0 && result.queue === 0) return;
-    if (result.served > 0) {
-      s.stock = consume(s.stock, "breakfast-portion", result.served);
-      this.earn(result.revenueMinor, "breakfastRevenue", "breakfast covers");
-      s.finance.month.otherRevenueMinor += result.revenueMinor;
+    const serviceThroughput =
+      this.onDuty("kitchen") * STARTER_HOTEL.kitchenCovers;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
+    const prepared = plannedFnbPreparation(demand, kitchenThroughput);
+    const constraints: FacilityConstraint[] = [
+      { label: "facility.cause.demand", value: demand },
+      { label: "facility.cause.seating", value: seating.capacity },
+      { label: "facility.cause.serviceStaff", value: serviceThroughput },
+      { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+      { label: "facility.cause.stock", value: stock },
+      { label: "facility.cause.miseEnPlace", value: prepared },
+    ];
+    const row = facilityRow({
+      id: "fnb.breakfastRoom",
+      name: "Breakfast room",
+      demand,
+      constraints,
+    });
+    const kitchen = runKitchenService({
+      boardCovers: Math.min(seating.seated, row.capacity),
+      aLaCarteCovers: 0,
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: supplierForSku(FNB_SERVICE_STOCK_SKU).unitPriceMinor,
+      wasteBp: FNB_WASTE_BP,
+    });
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
+    if (kitchen.served > 0) {
+      const revenue = kitchen.served * STARTER_HOTEL.breakfastPriceMinor;
+      this.earn(revenue, "breakfastRevenue", "breakfast covers");
+      s.finance.month.otherRevenueMinor += revenue;
     }
-    if (result.queue > 0)
-      this.pushAlert({
-        id: "alert.breakfast-queue",
-        severity: "warning",
-        title: "Breakfast queue",
-        cause: `${result.queue} guests could not be served`,
-      });
+    this.recordFnbOutlet({
+      id: "breakfastRoom",
+      seats,
+      reservedSeats,
+      demand,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted: Math.max(0, demand - kitchen.served),
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: demand > kitchen.served ? BREAKFAST_STAY_MINUTES : 0,
+      serviceUtilizationBp: utilizationBp(demand, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(demand, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
   }
 
   private runBar(): void {
@@ -1545,16 +1576,72 @@ export class GameSimulation implements CommandExecutor {
       priceIndexBp: STARTER_HOTEL.barPriceIndexBp,
       reputationBp: STARTER_HOTEL.barReputationBp,
     });
-    const covers = barCovers({
-      seats: STARTER_HOTEL.barSeats,
-      staffed: this.onDuty("fnb"),
-      demand: houseDemand + outside,
-      minuteOfDay: s.calendar.minuteOfDay,
+    const demand = houseDemand + outside;
+    const seats = STARTER_HOTEL.barSeats;
+    const reservedSeats = 0;
+    const seating = seatService({
+      demand,
+      seats,
+      reservedSeats,
+      walkIns: 0,
+      serviceMinutes: BAR_CLOSE_MINUTE - BAR_OPEN_MINUTE,
+      averageStayMinutes: BAR_STAY_MINUTES,
+      kitchenCovers: seats * 7,
+      isOpen: true,
     });
-    if (covers <= 0) return;
-    const revenue = barRevenueMinor(covers, averageCoverMinor("bar"));
-    this.earn(revenue, "barRevenue", `${covers} bar covers`);
-    s.finance.month.otherRevenueMinor += revenue;
+    const serviceThroughput = this.onDuty("fnb") * COVERS_PER_BARKEEPER;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
+    const prepared = plannedFnbPreparation(demand, kitchenThroughput);
+    const row = facilityRow({
+      id: "fnb.bar",
+      name: "Bar and lounge",
+      demand,
+      constraints: [
+        { label: "facility.cause.demand", value: demand },
+        { label: "facility.cause.seating", value: seating.capacity },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
+    });
+    const kitchen = runKitchenService({
+      boardCovers: 0,
+      aLaCarteCovers: Math.min(seating.seated, row.capacity),
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: averageIngredientMinor("bar"),
+      wasteBp: FNB_WASTE_BP,
+    });
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
+    if (kitchen.served > 0) {
+      const revenue = barRevenueMinor(kitchen.served, averageCoverMinor("bar"));
+      this.earn(revenue, "barRevenue", `${kitchen.served} bar covers`);
+      s.finance.month.otherRevenueMinor += revenue;
+    }
+    this.recordFnbOutlet({
+      id: "bar",
+      seats,
+      reservedSeats,
+      demand,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted: Math.max(0, demand - kitchen.served),
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: demand > kitchen.served ? BAR_STAY_MINUTES : 0,
+      serviceUtilizationBp: utilizationBp(demand, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(demand, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
   }
 
   private runRoomService(): void {
@@ -1564,29 +1651,121 @@ export class GameSimulation implements CommandExecutor {
       occupiedRooms: s.stays.length,
       minuteOfDay: s.calendar.minuteOfDay,
     });
-    if (orders <= 0) return;
     const item = menuItem("menu.roomservice.club");
     const minutes = deliveryMinutes({
       kitchen: item.prepMinutes,
       elevator: elevatorWaitMinutes(s.elevatorTrips, this.workingLifts()),
       service: 6,
     });
-    s.elevatorTrips += elevatorTrips({
-      arrivals: 0,
-      departures: 0,
-      serviceRuns: orders,
+    const serviceThroughput = this.onDuty("fnb") * COVERS_PER_BARKEEPER;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const transportThroughput = serviceThroughput;
+    const elevatorThroughput =
+      this.workingLifts() * STARTER_HOTEL.kitchenCovers;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
+    const prepared = plannedFnbPreparation(orders, kitchenThroughput);
+    const row = facilityRow({
+      id: "fnb.roomService",
+      name: "Room service",
+      demand: orders,
+      constraints: [
+        { label: "facility.cause.demand", value: orders },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.transport", value: transportThroughput },
+        { label: "facility.cause.elevator", value: elevatorThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
     });
-    const revenue = orders * item.priceMinor;
-    this.earn(revenue, "roomServiceRevenue", `${orders} room-service orders`);
-    s.finance.month.otherRevenueMinor += revenue;
-    const late = lateDeliveryComplaints(orders, minutes);
-    if (late > 0)
-      this.pushAlert({
-        id: "alert.room-service-late",
-        severity: "warning",
-        title: "Room service running late",
-        cause: `${minutes} minutes door to door, mostly waiting for the lift`,
+    const kitchen = runKitchenService({
+      boardCovers: 0,
+      aLaCarteCovers: row.capacity,
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: item.ingredientMinor,
+      wasteBp: FNB_WASTE_BP,
+    });
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
+    if (kitchen.served > 0) {
+      s.elevatorTrips += elevatorTrips({
+        arrivals: 0,
+        departures: 0,
+        serviceRuns: kitchen.served,
       });
+      const revenue = kitchen.served * item.priceMinor;
+      this.earn(
+        revenue,
+        "roomServiceRevenue",
+        `${kitchen.served} room-service orders`,
+      );
+      s.finance.month.otherRevenueMinor += revenue;
+    }
+    const waitlisted = Math.max(0, orders - kitchen.served);
+    this.recordFnbOutlet({
+      id: "roomService",
+      seats: 0,
+      reservedSeats: 0,
+      demand: orders,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted,
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: orders > 0 ? minutes : 0,
+      serviceUtilizationBp: utilizationBp(orders, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(orders, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
+  }
+
+  private recordFnbOutlet(next: FnbOutletState): void {
+    const index = this.state.fnb.outlets.findIndex(
+      (outlet) => outlet.id === next.id,
+    );
+    if (index < 0) throw new Error(`unknown F&B outlet ${next.id}`);
+    const previousCause = this.state.fnb.outlets[index].cause;
+    this.state.fnb.outlets[index] = next;
+    if (previousCause !== next.cause)
+      this.emit(
+        {
+          type: "FACILITY_CONSTRAINT_CHANGED",
+          facilityId: `fnb.${next.id}`,
+          cause: next.cause,
+        },
+        [`fnb.${next.id}`],
+      );
+
+    const delayed =
+      next.waitlisted > 0 ||
+      (next.id === "roomService" &&
+        lateDeliveryComplaints(next.served, next.averageWaitMinutes) > 0);
+    const waitAlertId = `alert.fnb-wait.${next.id}`;
+    if (delayed)
+      this.pushAlert({
+        id: waitAlertId,
+        severity: "warning",
+        title: "alert.fnb-wait.title",
+        cause: "alert.fnb-wait.cause",
+        causeValues: {
+          outletId: next.id,
+          demand: next.demand,
+          capacity: next.capacity,
+          waitlisted: next.waitlisted,
+          averageWaitMinutes: next.averageWaitMinutes,
+        },
+      });
+    else this.clearAlerts([waitAlertId]);
+
+    if (next.id === "breakfastRoom")
+      this.clearAlerts(["alert.breakfast-queue"]);
   }
 
   private runWellness(): void {
@@ -1615,8 +1794,9 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.spa-unstaffed",
           severity: "warning",
-          title: "Spa unstaffed",
-          cause: "treatment rooms are open but no therapist is rostered",
+          title: "alert.spa-unstaffed.title",
+          cause: "alert.spa-unstaffed.cause",
+          causeValues: { demand, sold, therapists: s.wellness.therapists },
         });
     }
   }
@@ -1787,8 +1967,9 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.security-short",
           severity: "warning",
-          title: "Security understaffed",
-          cause: `${gap.short} guards short for ${gap.cause}`,
+          title: "alert.security-short.title",
+          cause: gap.cause,
+          causeValues: gap.causeValues,
         });
 
       const pressureBp = changingRoomPressureBp(
@@ -1799,8 +1980,8 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.staff-areas-crowded",
           severity: "warning",
-          title: "Back of house overcrowded",
-          cause: "changing rooms cannot take the whole shift at once",
+          title: "alert.staff-areas-crowded.title",
+          cause: "alert.staff-areas-crowded.cause",
         });
 
       const noiseBp = s.renovation
@@ -1810,8 +1991,9 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.construction-noise",
           severity: "warning",
-          title: "Construction noise",
-          cause: `${s.stays.length} guests are in the house while the site is live`,
+          title: "alert.construction-noise.title",
+          cause: "alert.construction-noise.cause",
+          causeValues: { guests: s.stays.length },
         });
     }
 
@@ -1824,8 +2006,12 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: `alert.${complaint.id}`,
         severity: "warning",
-        title: "Long check-in",
-        cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
+        title: "alert.long-check-in.title",
+        cause: "alert.long-check-in.cause",
+        causeValues: {
+          bookingId: waiting.bookingId,
+          waitedMinutes: waiting.waitedMinutes,
+        },
       });
       if (s.handledComplaintIds.includes(complaint.id)) continue;
       s.handledComplaintIds.push(complaint.id);
@@ -1881,8 +2067,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: `alert.recovery.${complaintId}`,
         severity: "critical",
-        title: "Complaint left unanswered",
-        cause: verdict.reason,
+        title: "alert.complaint-unanswered.title",
+        cause: verdict.cause,
+        causeValues: verdict.causeValues,
       });
       return;
     }
@@ -1926,8 +2113,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: `alert.recovery.${complaintId}`,
         severity: "warning",
-        title: "Recovery escalated",
-        cause: `the manager may not authorise ${outcome.expenseMinor}`,
+        title: "alert.recovery-escalated.title",
+        cause: "alert.recovery-escalated.cause",
+        causeValues: { bookingId, expenseMinor: outcome.expenseMinor },
       });
       return;
     }
@@ -2312,16 +2500,28 @@ export class GameSimulation implements CommandExecutor {
           [reservation.id],
         );
       } catch (error) {
-        const reason = (error as Error).message;
-        if (
-          reason === "price rejected" ||
-          reason.startsWith("no inventory on ")
-        ) {
+        if (!(error instanceof ReservationRefusalError)) throw error;
+        const refusal: LocalizedAlertCause | null =
+          error.code === "price-rejected"
+            ? {
+                cause: "alert.booking-refused.cause.price" as const,
+                causeValues: { bookingId },
+              }
+            : error.code === "no-inventory"
+              ? {
+                  cause: "alert.booking-refused.cause.inventory" as const,
+                  causeValues: {
+                    bookingId,
+                    dateKey: error.dateKey,
+                  },
+                }
+              : null;
+        if (refusal) {
           this.pushAlert({
             id: `alert.booking-refused.${bookingId}`,
             severity: "info",
-            title: "Booking request refused",
-            cause: reason,
+            title: "alert.booking-refused.title",
+            ...refusal,
           });
           continue;
         }
@@ -2373,8 +2573,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.housekeeping-backlog",
         severity: "warning",
-        title: "Housekeeping backlog",
-        cause: `${dirty} rooms waiting for cleaning`,
+        title: "alert.housekeeping-backlog.title",
+        cause: "alert.housekeeping-backlog.cause",
+        causeValues: { rooms: dirty },
       });
     if (s.alerts.length > MAX_ALERTS) {
       // Critical alerts are pushed once and never refreshed, so newer warnings
@@ -2702,8 +2903,9 @@ export class GameSimulation implements CommandExecutor {
     this.pushAlert({
       id: `alert.event.${s.elapsedMinutes}`,
       severity: "info",
-      title: "Conference booked",
-      cause: `${guests} delegates for ${nights} day(s), ${roomsBlocked} rooms blocked`,
+      title: "alert.conference-booked.title",
+      cause: "alert.conference-booked.cause",
+      causeValues: { guests, nights, roomsBlocked },
     });
   }
 
@@ -3283,8 +3485,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.insolvent",
         severity: "critical",
-        title: "Out of cash",
-        cause: `${memo} could not be paid in full`,
+        title: "alert.insolvent.title",
+        cause: "alert.insolvent.cause",
+        causeValues: { expense: `expense.${accountClass(account)}` },
       });
     }
   }

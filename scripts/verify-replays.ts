@@ -5,7 +5,7 @@ import {
   type ReplayCorpus,
 } from "../src/game/debug/replay";
 
-const corpora = ["vertical-slice", "multi-hotel"];
+const corpora = ["vertical-slice"];
 for (const name of corpora) {
   const corpus = JSON.parse(
     readFileSync(`fixtures/replay/${name}.json`, "utf8"),

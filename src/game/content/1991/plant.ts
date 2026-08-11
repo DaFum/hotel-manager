@@ -1,6 +1,6 @@
 /**
  * The building plant the starter hotel runs on. Nameplate ratings live here so
- * a new game and a migrated save can never disagree about them.
+ * every new game starts from the same authoritative values.
  */
 export interface PlantAsset {
   id: string;

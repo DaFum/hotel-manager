@@ -217,7 +217,9 @@ describe("booking lifecycle", () => {
     ).toBe(false);
     expect(s.state.guestSatisfaction.score).toBeLessThan(satisfactionBefore);
     expect(s.state.finance.cashMinor).toBeLessThanOrEqual(cashBefore);
-    const unresolvedAlert = s.state.alerts.find((a) => a.title === "Complaint left unanswered" || a.title === "alert.complaint-unanswered.title");
+    const unresolvedAlert = s.state.alerts.find(
+      (a) => a.title === "alert.complaint-unanswered.title",
+    );
     expect(unresolvedAlert).toBeDefined();
     expect(unresolvedAlert?.cause).toBeDefined();
   });

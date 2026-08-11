@@ -94,7 +94,7 @@ function runOperational(input: ScenarioInput) {
     });
   }
   const simulation = new GameSimulation(
-    definition.id === "migration-load" ? structuredClone(state) : state,
+    definition.id === "save-load" ? structuredClone(state) : state,
   );
   const commandStarted = performance.now();
   simulation.queueEnvelope(

@@ -22,7 +22,7 @@ export function NotificationCenter({
   notifications: readonly NotificationRecord[];
   preferences: NotificationPreferences;
   pauseState?: "idle" | "pending" | "accepted" | "rejected";
-  onAction?: (entityId: string) => void;
+  onAction?: (entityId: string, notificationId: string) => void;
   onAcknowledge?: (id: string) => void;
   locale?: GameLocale;
 }) {
@@ -88,7 +88,11 @@ export function NotificationCenter({
                 ))}
               </ul>
               {item.actionTarget ? (
-                <button onClick={() => onAction?.(item.actionTarget!.entityId)}>
+                <button
+                  onClick={() =>
+                    onAction?.(item.actionTarget!.entityId, item.id)
+                  }
+                >
                   {translateGame(
                     locale,
                     item.actionTarget.label.key,

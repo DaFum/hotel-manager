@@ -32,15 +32,16 @@ describe("isometric camera", () => {
     const camera = selectFloor(createCamera(), 2);
     expect(visibleFloor(2, camera)).toBe(true);
     expect(visibleFloor(3, camera)).toBe(false);
-    expect(
-      focusCamera(camera, {
+    const focused = focusCamera(camera, {
         id: "facility.spa",
         kind: "facility",
         x: 0,
         y: 0,
-        floor: 2,
-      }).focusedId,
-    ).toBe("facility.spa");
+        floor: 3,
+      });
+    expect(focused.focusedId).toBe("facility.spa");
+    expect(focused.floor).toBe(3);
+    expect(visibleFloor(3, focused)).toBe(true);
   });
   it("drives lighting from time of day and detail from zoom", () => {
     expect([lightingFor(60), lightingFor(720), lightingFor(1140)]).toEqual([

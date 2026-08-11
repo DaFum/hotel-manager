@@ -49,6 +49,16 @@ function isValidAlert(value: unknown): boolean {
     !alert.cause.startsWith("alert.")
   )
     return false;
+  if (alert.target !== undefined) {
+    if (!alert.target || typeof alert.target !== "object") return false;
+    const target = alert.target as Record<string, unknown>;
+    if (
+      typeof target.entityId !== "string" ||
+      !target.entityId ||
+      !["room", "facility", "navigation"].includes(String(target.kind))
+    )
+      return false;
+  }
   if (alert.causeValues === undefined) return true;
   if (
     !alert.causeValues ||

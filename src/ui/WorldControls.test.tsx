@@ -13,6 +13,7 @@ it("localizes a problem's camera action accessible name", () => {
       problems={[
         {
           id: "alert.housekeeping",
+          entityId: "facility.housekeeping",
           title: "alert.housekeeping-backlog.title",
           cause: "alert.housekeeping-backlog.cause",
           causeValues: { rooms: 6 },

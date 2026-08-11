@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_PLAYER_PREFERENCES } from "../game/settings/playerPreferences";
 import { createInitialGameState } from "../game/simulation/initialState";
@@ -35,6 +35,42 @@ const gameStore: GameStore = {
 };
 
 describe("App", () => {
+  it("opens a notification's alert and moves focus to its semantic room", () => {
+    const snapshot = createInitialGameState(424242);
+    const room = snapshot.hotel.rooms[12];
+    snapshot.alerts = [
+      {
+        id: "alert.room-focus",
+        severity: "warning",
+        title: "alert.housekeeping-backlog.title",
+        cause: "alert.housekeeping-backlog.cause",
+        causeValues: { rooms: 1 },
+        target: { entityId: room.id, kind: "room" },
+      },
+    ];
+    vi.mocked(useGameStore).mockReturnValue({ ...gameStore, snapshot });
+    render(<App />);
+
+    const notifications = screen.getByRole("region", {
+      name: "Benachrichtigungszentrale",
+    });
+    fireEvent.click(
+      within(notifications).getByRole("button", {
+        name: /reinigungsrückstand öffnen/i,
+      }),
+    );
+
+    expect(screen.getByRole("status", { name: "View state" }).textContent).toContain(
+      "Floor 2",
+    );
+    expect(screen.getByText(/alert\.room-focus · warning/)).toBeTruthy();
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", {
+        name: new RegExp(`prüfen.*${room.id}`, "i"),
+      }),
+    );
+  });
+
   it("renders the hotel manager shell", () => {
     vi.mocked(useGameStore).mockReturnValue(gameStore);
     const { container } = render(<App />);

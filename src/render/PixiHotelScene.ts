@@ -3,6 +3,7 @@ import { FacilityLayer, type FacilityTile } from "./facilities/FacilityLayer";
 import { lightingFor, type CameraState } from "./camera";
 import {
   buildingCentre,
+  markerKindsForEntity,
   placeAgents,
   placeRooms,
   roomConcern,
@@ -53,6 +54,7 @@ const STATE_COLOURS: Record<string, number> = {
 /** The signal amber of the interface, so a selection means the same thing in
  *  the world as it does in the management panels. */
 const SELECTION = 0xe8a33d;
+const FOCUS = 0x6d9dc5;
 const CONCERN_MARK = {
   "needs-cleaning": 0xe8b53a,
   "out-of-service": 0xe2543c,
@@ -170,7 +172,13 @@ export class PixiHotelScene {
 
       this.tiles.addChild(tile);
       this.markConcern(placement, renovating.has(placement.id));
-      if (model.selectedId === placement.id) this.markSelection(placement);
+      for (const marker of markerKindsForEntity(
+        placement.id,
+        model.selectedId,
+        model.camera?.focusedId,
+      ))
+        if (marker === "selection") this.markSelection(placement);
+        else this.markFocus(placement);
     }
   }
 
@@ -202,6 +210,20 @@ export class PixiHotelScene {
       .stroke({ width: 2, color: SELECTION });
     outline.position.set(placement.x, placement.y);
     outline.label = `${placement.id}.selected`;
+    this.marks.addChild(outline);
+  }
+
+  /** Camera focus is a steel locator, distinct from amber room selection. */
+  private markFocus(placement: RoomPlacement): void {
+    const outline = new Graphics()
+      .moveTo(-3, TILE_HEIGHT / 2)
+      .lineTo(TILE_WIDTH / 2, -3)
+      .lineTo(TILE_WIDTH + 3, TILE_HEIGHT / 2)
+      .lineTo(TILE_WIDTH / 2, TILE_HEIGHT + 3)
+      .closePath()
+      .stroke({ width: 3, color: FOCUS });
+    outline.position.set(placement.x, placement.y);
+    outline.label = `${placement.id}.focused`;
     this.marks.addChild(outline);
   }
 

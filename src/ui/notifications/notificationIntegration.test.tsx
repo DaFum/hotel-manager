@@ -39,7 +39,7 @@ describe("NotificationCenter", () => {
     expect(screen.getByText("Critical")).toBeTruthy();
     expect(screen.getByText("Immediate attention required")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Open Finanzen" }));
-    expect(action).toHaveBeenCalledWith("finance");
+    expect(action).toHaveBeenCalledWith("finance", "alert.cash");
     expect(screen.getByRole("status").textContent).toContain("pending");
   });
   it("localizes message, cause, and action in German", () => {

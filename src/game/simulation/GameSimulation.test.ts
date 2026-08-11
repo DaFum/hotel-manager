@@ -598,6 +598,7 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.space.title",
       cause: "alert.space.cause.atCapacity",
+      target: { entityId: "space.carpark", kind: "facility" },
       causeValues: {
         spaceId: "space.carpark",
         capacity: 18,
@@ -610,6 +611,7 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.security.spaces.title",
       cause: "alert.security.spaces.cause",
+      target: { entityId: "facility.security", kind: "facility" },
       causeValues: {
         inHouseGuests: 100,
         eventGuests: 0,
@@ -659,6 +661,10 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.long-check-in.title",
       cause: "alert.long-check-in.cause",
+      target: {
+        entityId: "navigation.reception.queue",
+        kind: "navigation",
+      },
       causeValues: { bookingId, waitedMinutes: 26 },
     });
     expect(
@@ -668,6 +674,10 @@ describe("localized alerts", () => {
     ).toMatchObject({
       title: "alert.recovery-escalated.title",
       cause: "alert.recovery-escalated.cause",
+      target: {
+        entityId: "navigation.reception.queue",
+        kind: "navigation",
+      },
       causeValues: { bookingId, expenseMinor: 100_000 },
     });
   });
@@ -693,6 +703,28 @@ describe("localized alerts", () => {
       title: "alert.insolvent.title",
       cause: "alert.insolvent.cause",
       causeValues: { expense: "expense.operating" },
+    });
+  });
+
+  it("targets the housekeeping backlog at the placed housekeeping area", () => {
+    const state = createInitialGameState(104);
+    for (const room of state.hotel.rooms.slice(0, 6)) {
+      room.state = "VacantDirty";
+      room.cleanliness = 20;
+    }
+    state.staff = state.staff.filter(
+      (member) => member.role !== "housekeeping",
+    );
+    const sim = new GameSimulation(state);
+
+    sim.advanceQuantum();
+
+    expect(
+      sim.state.alerts.find(
+        (alert) => alert.id === "alert.housekeeping-backlog",
+      ),
+    ).toMatchObject({
+      target: { entityId: "facility.housekeeping", kind: "facility" },
     });
   });
 });

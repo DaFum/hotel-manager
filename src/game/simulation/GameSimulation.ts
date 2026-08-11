@@ -1190,6 +1190,7 @@ export class GameSimulation implements CommandExecutor {
           severity: "critical",
           title: "alert.cleaning-stockout.title",
           cause: "alert.cleaning-stockout.cause",
+          target: { entityId: "facility.housekeeping", kind: "facility" },
         });
         return;
       }
@@ -1201,6 +1202,7 @@ export class GameSimulation implements CommandExecutor {
           severity: "warning",
           title: "alert.linen-short.title",
           cause: "alert.linen-short.cause",
+          target: { entityId: "facility.housekeeping", kind: "facility" },
         });
         return;
       }
@@ -1381,6 +1383,7 @@ export class GameSimulation implements CommandExecutor {
             ...result.causeValues,
             turnedAway: result.turnedAway,
           },
+          target: { entityId: space.id, kind: "facility" },
         });
       else this.clearAlerts([`alert.space.${space.id}`]);
     }
@@ -1400,6 +1403,7 @@ export class GameSimulation implements CommandExecutor {
         title: "alert.security.spaces.title",
         cause: security.cause,
         causeValues: security.causeValues,
+        target: { entityId: "facility.security", kind: "facility" },
       });
     else this.clearAlerts(["alert.security.spaces"]);
   }
@@ -1761,6 +1765,15 @@ export class GameSimulation implements CommandExecutor {
           waitlisted: next.waitlisted,
           averageWaitMinutes: next.averageWaitMinutes,
         },
+        target: {
+          entityId:
+            next.id === "breakfastRoom"
+              ? "facility.breakfast_room"
+              : next.id === "bar"
+                ? "facility.bar"
+                : "facility.breakfast_room",
+          kind: "facility",
+        },
       });
     else this.clearAlerts([waitAlertId]);
 
@@ -1797,6 +1810,7 @@ export class GameSimulation implements CommandExecutor {
           title: "alert.spa-unstaffed.title",
           cause: "alert.spa-unstaffed.cause",
           causeValues: { demand, sold, therapists: s.wellness.therapists },
+          target: { entityId: "facility.wellness", kind: "facility" },
         });
     }
   }
@@ -1970,6 +1984,7 @@ export class GameSimulation implements CommandExecutor {
           title: "alert.security-short.title",
           cause: gap.cause,
           causeValues: gap.causeValues,
+          target: { entityId: "facility.security", kind: "facility" },
         });
 
       const pressureBp = changingRoomPressureBp(
@@ -1982,6 +1997,7 @@ export class GameSimulation implements CommandExecutor {
           severity: "warning",
           title: "alert.staff-areas-crowded.title",
           cause: "alert.staff-areas-crowded.cause",
+          target: { entityId: "facility.staff_area", kind: "facility" },
         });
 
       const noiseBp = s.renovation
@@ -1994,6 +2010,7 @@ export class GameSimulation implements CommandExecutor {
           title: "alert.construction-noise.title",
           cause: "alert.construction-noise.cause",
           causeValues: { guests: s.stays.length },
+          target: { entityId: "facility.maintenance", kind: "facility" },
         });
     }
 
@@ -2011,6 +2028,10 @@ export class GameSimulation implements CommandExecutor {
         causeValues: {
           bookingId: waiting.bookingId,
           waitedMinutes: waiting.waitedMinutes,
+        },
+        target: {
+          entityId: "navigation.reception.queue",
+          kind: "navigation",
         },
       });
       if (s.handledComplaintIds.includes(complaint.id)) continue;
@@ -2070,6 +2091,10 @@ export class GameSimulation implements CommandExecutor {
         title: "alert.complaint-unanswered.title",
         cause: verdict.cause,
         causeValues: verdict.causeValues,
+        target: {
+          entityId: "navigation.reception.queue",
+          kind: "navigation",
+        },
       });
       return;
     }
@@ -2116,6 +2141,10 @@ export class GameSimulation implements CommandExecutor {
         title: "alert.recovery-escalated.title",
         cause: "alert.recovery-escalated.cause",
         causeValues: { bookingId, expenseMinor: outcome.expenseMinor },
+        target: {
+          entityId: "navigation.reception.queue",
+          kind: "navigation",
+        },
       });
       return;
     }
@@ -2576,6 +2605,7 @@ export class GameSimulation implements CommandExecutor {
         title: "alert.housekeeping-backlog.title",
         cause: "alert.housekeeping-backlog.cause",
         causeValues: { rooms: dirty },
+        target: { entityId: "facility.housekeeping", kind: "facility" },
       });
     if (s.alerts.length > MAX_ALERTS) {
       // Critical alerts are pushed once and never refreshed, so newer warnings
@@ -2906,6 +2936,7 @@ export class GameSimulation implements CommandExecutor {
       title: "alert.conference-booked.title",
       cause: "alert.conference-booked.cause",
       causeValues: { guests, nights, roomsBlocked },
+      target: { entityId: "facility.conference", kind: "facility" },
     });
   }
 

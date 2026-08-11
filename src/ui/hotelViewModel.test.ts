@@ -100,15 +100,16 @@ describe("the isometric hotel read off the snapshot", () => {
     );
   });
 
-  it("pins an alert that names a room to that room", () => {
+  it("pins an alert to its structured room target and omits a non-spatial alert", () => {
     const s = snapshot();
     const roomId = s.hotel.rooms[0].id;
     s.alerts = [
       {
-        id: `alert.${roomId}`,
+        id: "alert.room-problem",
         severity: "warning",
         title: "alert.room-out-of-service.title",
         cause: "alert.room-out-of-service.cause",
+        target: { entityId: roomId, kind: "room" },
       },
       {
         id: "alert.cash",
@@ -116,22 +117,19 @@ describe("the isometric hotel read off the snapshot", () => {
         title: "alert.cash-short.title",
         cause: "alert.cash-short.cause",
       },
-    ];
+    ] as typeof s.alerts;
 
-    const [pinned, house] = worldProblems(s);
+    const [pinned] = worldProblems(s);
     expect(pinned.kind).toBe("room");
+    expect(pinned.entityId).toBe(roomId);
     expect(pinned).toMatchObject(roomFocusPoint(roomId, s));
-    expect(house.kind).toBe("problem");
+    expect(worldProblems(s)).toHaveLength(1);
   });
 
-  it("does not match a shorter prefix room ID for alerts on a longer ID", () => {
+  it("never guesses a target by matching room ids inside alert text", () => {
     const s = snapshot();
-    // Simulate a prefix room ID
     const shortRoomId = s.hotel.rooms[0].id;
     const longRoomId = shortRoomId + "0";
-
-    // Inject the longer room id at the end, meaning if prefix matching was broken,
-    // the system would match shortRoomId first because it comes earlier in the array.
     s.hotel.rooms = [...s.hotel.rooms, { ...s.hotel.rooms[0], id: longRoomId }];
 
     s.alerts = [
@@ -139,19 +137,10 @@ describe("the isometric hotel read off the snapshot", () => {
         id: `alert.${longRoomId}`,
         severity: "warning",
         title: "alert.room-out-of-service.title",
-        cause: "alert.room-out-of-service.cause",
+        cause: `alert.room-out-of-service.cause.${longRoomId}`,
       },
     ];
 
-    const [pinned] = worldProblems(s);
-    const placement = placeRooms(
-      s.hotel.rooms,
-      s.renderDescriptors.floorByRoomId,
-    ).find((p) => p.id === longRoomId)!;
-
-    expect(pinned.kind).toBe("room");
-    expect(pinned.x).toBe(placement.x);
-    expect(pinned.y).toBe(placement.y);
-    expect(pinned.floor).toBe(placement.floor);
+    expect(worldProblems(s)).toEqual([]);
   });
 });

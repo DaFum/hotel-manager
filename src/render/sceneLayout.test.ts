@@ -12,6 +12,7 @@ import {
   visiblePlacements,
   type LayoutRoom,
 } from "./sceneLayout";
+import * as sceneLayout from "./sceneLayout";
 
 const ROOMS: LayoutRoom[] = [
   { id: "room.101", category: "single", state: "VacantClean", cleanliness: 90 },
@@ -28,6 +29,23 @@ const FLOORS = {
 };
 
 describe("the hotel as a building", () => {
+  it("keeps camera focus and selection as two distinct marks", () => {
+    const markerKindsForEntity = (
+      sceneLayout as typeof sceneLayout & {
+        markerKindsForEntity?: (
+          entityId: string,
+          selectedId: string | null,
+          focusedId: string | null,
+        ) => string[];
+      }
+    ).markerKindsForEntity;
+
+    expect(markerKindsForEntity).toBeTypeOf("function");
+    expect(markerKindsForEntity?.("room.101", "room.101", "room.101")).toEqual(
+      ["selection", "focus"],
+    );
+  });
+
   it("stacks rooms onto the floor the simulation put them on", () => {
     const placed = placeRooms(ROOMS, FLOORS, 2);
 

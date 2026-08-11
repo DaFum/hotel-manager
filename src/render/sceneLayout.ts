@@ -51,12 +51,56 @@ export interface RoomPlacement {
   y: number;
 }
 
+export interface EntityPlacement extends Point {
+  id: string;
+  floor: number;
+  gridX: number;
+  gridY: number;
+}
+
+/** Projects one authoritative entity grid position into the stacked world. */
+export function resolveEntityPosition(
+  positionByEntityId: Readonly<
+    Record<string, { floor: number; gridX: number; gridY: number }>
+  >,
+  entityId: string,
+): EntityPlacement | null {
+  const position = positionByEntityId[entityId];
+  if (!position) return null;
+  const projected = isoProject(
+    position.gridX,
+    position.gridY,
+    TILE_WIDTH,
+    TILE_HEIGHT,
+  );
+  return {
+    id: entityId,
+    ...position,
+    x: projected.x,
+    y: projected.y - position.floor * FLOOR_HEIGHT,
+  };
+}
+
 export interface AgentPlacement {
   id: string;
   kind: VisualAgent["kind"];
   x: number;
   y: number;
   queued: boolean;
+}
+
+export type EntityMarkerKind = "selection" | "focus";
+
+/** Selection and camera focus are independent facts and may coexist. */
+export function markerKindsForEntity(
+  entityId: string,
+  selectedId: string | null | undefined,
+  focusedId: string | null | undefined,
+): EntityMarkerKind[] {
+  const markers: EntityMarkerKind[] = [];
+  if (selectedId === entityId) markers.push("selection");
+  if (focusedId === entityId) markers.push("focus");
+  return markers;
 }
 
 /**

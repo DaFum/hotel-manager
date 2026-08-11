@@ -103,6 +103,8 @@ export function HotelView(props: {
   onSelectFacility?: (facilityId: string) => void;
   /** Moving the view; the world controls move the very same camera. */
   onCamera?: (camera: CameraState) => void;
+  /** Entity the camera just reached; rooms receive equivalent DOM focus. */
+  focusedEntityId?: string | null;
   disableRenderer?: boolean;
   locale?: GameLocale;
 }) {
@@ -249,6 +251,7 @@ export function HotelView(props: {
       <SemanticHotelTree
         locale={props.locale}
         floorByRoomId={props.floorByRoomId}
+        focusedId={props.focusedEntityId}
         rooms={props.rooms}
         onInspect={(roomId) => {
           setSelected(roomId);

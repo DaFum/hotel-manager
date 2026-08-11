@@ -15,6 +15,7 @@ import {
 
 export interface WorldProblem {
   id: string;
+  entityId: string;
   title: string;
   cause: string;
   causeValues?: Record<string, string | number>;
@@ -152,12 +153,12 @@ export function WorldControls(props: {
                 })}
                 // Where the camera is, not a toggle the player switched on.
                 aria-current={
-                  camera.focusedId === problem.id ? true : undefined
+                  camera.focusedId === problem.entityId ? true : undefined
                 }
                 onClick={() =>
                   props.onCamera(
                     focusCamera(camera, {
-                      id: problem.id,
+                      id: problem.entityId,
                       x: problem.x,
                       y: problem.y,
                       floor: problem.floor,

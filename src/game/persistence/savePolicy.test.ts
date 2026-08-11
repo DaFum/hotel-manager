@@ -101,6 +101,21 @@ describe("save policy", () => {
     ).toContain(`save version ${SAVE_VERSION - 1} is not ${SAVE_VERSION}`);
   });
 
+  it("validates structured alert targets in the current save format", () => {
+    const malformed = structuredClone(current);
+    malformed.state.alerts.push({
+      id: "alert.invalid-target",
+      severity: "warning",
+      title: "alert.room.cleaning.title",
+      cause: "alert.room.cleaning.cause",
+      target: { entityId: "room.101", kind: "invalid" },
+    } as never);
+
+    expect(validateEnvelope(malformed)).toContain(
+      "the state has malformed alerts",
+    );
+  });
+
   it("reports malformed room and stay collections without throwing", () => {
     const malformed = structuredClone(current) as unknown as {
       state: { hotel: { rooms: unknown }; stays: unknown };

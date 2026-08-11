@@ -55,6 +55,7 @@ import {
   worldProblems,
 } from "../ui/hotelViewModel";
 import { elevatorVisual } from "../render/agentMaterialization";
+import { resolveEntityPosition } from "../render/sceneLayout";
 import { monthlyContributionMinor } from "../game/facilities/commercialSpaces";
 import { PortfolioDashboard } from "../ui/company/PortfolioDashboard";
 import { BrandDashboard } from "../ui/company/BrandDashboard";
@@ -221,6 +222,26 @@ export function App() {
     />
   );
 
+  const openNotificationTarget = (entityId: string, alertId: string) => {
+    setOpenAlert(alertId);
+    const alert = s.alerts.find((candidate) => candidate.id === alertId);
+    const position = resolveEntityPosition(
+      s.renderDescriptors.positionByEntityId,
+      entityId,
+    );
+    if (!alert?.target || !position) return;
+    const targetKind = alert.target.kind;
+    setCamera((current) =>
+      focusCamera(current, {
+        id: entityId,
+        x: position.x,
+        y: position.y,
+        floor: position.floor,
+        kind: targetKind === "navigation" ? "problem" : targetKind,
+      }),
+    );
+  };
+
   const areaContent: Record<ManagementAreaId, ReactNode> = {
     mainView: (
       <>
@@ -231,6 +252,7 @@ export function App() {
           floorByRoomId={s.renderDescriptors.floorByRoomId}
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
+          focusedEntityId={camera.focusedId}
           stays={s.stays}
           rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
           renovatingRoomIds={renovatingRoomIds(s)}
@@ -598,23 +620,25 @@ export function App() {
           acknowledged: acknowledgedAlerts.has(alert.id),
           groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
           message: { key: alert.title, values: alert.causeValues },
-          actionTarget: {
-            label: {
-              key: "notifications.open",
-              values: {
-                title: translateGame(
-                  preferences.locale,
-                  alert.title,
-                  alert.causeValues,
-                ),
-              },
-            },
-            entityId: alert.id,
-          },
+          actionTarget: alert.target
+            ? {
+                label: {
+                  key: "notifications.open",
+                  values: {
+                    title: translateGame(
+                      preferences.locale,
+                      alert.title,
+                      alert.causeValues,
+                    ),
+                  },
+                },
+                entityId: alert.target.entityId,
+              }
+            : undefined,
         }))}
         preferences={preferences.notifications}
         pauseState={game.pauseStatus}
-        onAction={setOpenAlert}
+        onAction={openNotificationTarget}
         onAcknowledge={(id) =>
           setAcknowledgedAlerts((current) => new Set(current).add(id))
         }

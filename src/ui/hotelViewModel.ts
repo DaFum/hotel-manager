@@ -3,7 +3,7 @@ import {
   materializeAgents,
   type VisualAgent,
 } from "../render/agentMaterialization";
-import { placeRooms } from "../render/sceneLayout";
+import { resolveEntityPosition } from "../render/sceneLayout";
 import { VISIBLE_AGENT_BUDGET } from "../game/simulation/materialization";
 import { getRate, isRoomCategory } from "../game/revenue/rates";
 import type { GameSnapshot } from "../game/domain/snapshot";
@@ -96,59 +96,48 @@ export function roomFocusPoint(
   snapshot: GameSnapshot,
   fallback: { x: number; y: number; floor: number } = { x: 0, y: 0, floor: 0 },
 ): { x: number; y: number; floor: number } {
-  const placement = placeRooms(
-    snapshot.hotel.rooms,
-    snapshot.renderDescriptors.floorByRoomId,
-  ).find((candidate) => candidate.id === roomId);
+  const placement = resolveEntityPosition(
+    snapshot.renderDescriptors.positionByEntityId,
+    roomId,
+  );
   return placement
     ? { x: placement.x, y: placement.y, floor: placement.floor }
     : fallback;
 }
 
 /**
- * Alerts as places to go. An alert that names a room is pinned to that room;
- * one that names nothing in particular stays a problem about the house, and
- * says so by keeping the camera where the player left it.
+ * Alerts as places to go. Only authoritative structured targets are exposed;
+ * unresolved and non-spatial alerts stay in the alert panel.
  */
 export function worldProblems(snapshot: GameSnapshot): {
   id: string;
+  entityId: string;
   title: string;
   cause: string;
   causeValues?: Record<string, string | number>;
   floor: number;
   x: number;
   y: number;
-  kind: "problem" | "room";
+  kind: "facility" | "problem" | "room";
 }[] {
-  const placements = placeRooms(
-    snapshot.hotel.rooms,
-    snapshot.renderDescriptors.floorByRoomId,
-  );
-  const placementsById = new Map(placements.map((p) => [p.id, p]));
-
-  return snapshot.alerts.map((alert) => {
-    // Prefer exact or boundary-checked room ID match over simple substring inclusion
-    // to avoid matching "room.10" when searching for "room.1".
-    const roomId = snapshot.hotel.rooms.find((room) => {
-      const boundaryRegex = new RegExp(
-        `\\b${room.id.replace(/\./g, "\\.")}\\b`,
-      );
-      return boundaryRegex.test(alert.id) || boundaryRegex.test(alert.cause);
-    })?.id;
-
-    const placement = roomId ? placementsById.get(roomId) : undefined;
-    const point = placement
-      ? { x: placement.x, y: placement.y, floor: placement.floor }
-      : { x: 0, y: 0, floor: 0 };
-
-    return {
+  return snapshot.alerts.flatMap((alert) => {
+    if (!alert.target) return [];
+    const placement = resolveEntityPosition(
+      snapshot.renderDescriptors.positionByEntityId,
+      alert.target.entityId,
+    );
+    if (!placement) return [];
+    return [{
       id: alert.id,
+      entityId: alert.target.entityId,
       // The keys remain intact, UI handles resolving them
       title: alert.title,
       cause: alert.cause,
       causeValues: alert.causeValues,
-      ...point,
-      kind: placement ? ("room" as const) : ("problem" as const),
-    };
+      x: placement.x,
+      y: placement.y,
+      floor: placement.floor,
+      kind: alert.target.kind === "navigation" ? ("problem" as const) : alert.target.kind,
+    }];
   });
 }

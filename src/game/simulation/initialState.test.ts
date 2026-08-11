@@ -17,4 +17,27 @@ describe("initial state", () => {
       "weather",
     ]);
   });
+
+  it("publishes a stable grid position for every room and focusable hotel area", () => {
+    const s = createInitialGameState(1234);
+    const descriptors = s.renderDescriptors as typeof s.renderDescriptors & {
+      positionByEntityId?: Record<
+        string,
+        { floor: number; gridX: number; gridY: number }
+      >;
+    };
+
+    expect(descriptors.positionByEntityId).toBeTruthy();
+    expect(descriptors.positionByEntityId?.[s.hotel.rooms[0].id]).toEqual({
+      floor: 1,
+      gridX: 0,
+      gridY: 0,
+    });
+    expect(descriptors.positionByEntityId?.["facility.housekeeping"]).toEqual(
+      expect.objectContaining({ floor: 0 }),
+    );
+    expect(
+      descriptors.positionByEntityId?.["navigation.reception.queue"],
+    ).toEqual(expect.objectContaining({ floor: 0 }));
+  });
 });

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { translateGame, type GameLocale } from "../../i18n";
 import { groupByFloor } from "../../render/sceneLayout";
 
@@ -17,16 +18,29 @@ export function SemanticHotelTree({
   rooms,
   onInspect,
   floorByRoomId,
+  focusedId,
   locale = "en-GB",
 }: {
   rooms: readonly SemanticRoom[];
   onInspect: (id: string) => void;
   floorByRoomId?: Readonly<Record<string, number>>;
+  focusedId?: string | null;
   locale?: GameLocale;
 }) {
+  const root = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!focusedId) return;
+    const item = [...(root.current?.querySelectorAll<HTMLElement>("[data-entity-id]") ?? [])].find(
+      (candidate) => candidate.dataset.entityId === focusedId,
+    );
+    if (!item) return;
+    item.scrollIntoView?.({ block: "nearest" });
+    item.querySelector<HTMLButtonElement>("button")?.focus();
+  }, [focusedId]);
+
   const floors = groupByFloor(rooms, floorByRoomId);
   return (
-    <section aria-label={translateGame(locale, "hotel.status")}>
+    <section ref={root} aria-label={translateGame(locale, "hotel.status")}>
       <h2>{translateGame(locale, "hotel.status")}</h2>
       {/* One scrolling frame around the whole house: a cap per floor would
           clip every storey's last room instead of bounding the list. */}
@@ -48,7 +62,11 @@ export function SemanticHotelTree({
                 return (
                   // The state marker lets the eye find the dirty and the out-of-order
                   // rooms; the state is written out in words on the same line.
-                  <li key={room.id} data-room-state={room.state}>
+                  <li
+                    key={room.id}
+                    data-room-state={room.state}
+                    data-entity-id={room.id}
+                  >
                     <span>
                       {label}: {state}
                       {room.cleanliness === undefined

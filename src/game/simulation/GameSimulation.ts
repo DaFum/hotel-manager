@@ -2730,12 +2730,23 @@ export class GameSimulation implements CommandExecutor {
   /** Joins authoritative entities into stable, renderer-ready references. */
   private refreshRenderDescriptors(): void {
     const s = this.state;
-    const floorPlan = generateFloorPlan(s.hotel.rooms);
-    s.renderDescriptors.floorPlan = floorPlan;
-    s.renderDescriptors.floorByRoomId = Object.fromEntries(
-      Object.values(floorPlan.rooms).map((room) => [room.id, room.floor]),
-    );
-    s.renderDescriptors.positionByEntityId = positionMapForPlan(floorPlan);
+    const plannedRoomIds = Object.keys(
+      s.renderDescriptors.floorPlan.rooms,
+    ).sort(compareIds);
+    const currentRoomIds = s.hotel.rooms
+      .map((room) => room.id)
+      .sort(compareIds);
+    const geometryIsCurrent =
+      plannedRoomIds.length === currentRoomIds.length &&
+      plannedRoomIds.every((roomId, index) => roomId === currentRoomIds[index]);
+    if (!geometryIsCurrent) {
+      const floorPlan = generateFloorPlan(s.hotel.rooms);
+      s.renderDescriptors.floorPlan = floorPlan;
+      s.renderDescriptors.floorByRoomId = Object.fromEntries(
+        Object.values(floorPlan.rooms).map((room) => [room.id, room.floor]),
+      );
+      s.renderDescriptors.positionByEntityId = positionMapForPlan(floorPlan);
+    }
     const renovationPhaseByRoomId: GameState["renderDescriptors"]["renovationPhaseByRoomId"] =
       {};
     if (s.renovation)

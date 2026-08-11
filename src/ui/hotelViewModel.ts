@@ -114,19 +114,25 @@ export function worldProblems(snapshot: GameSnapshot): {
   id: string;
   title: string;
   cause: string;
+  causeValues?: Record<string, string | number>;
   floor: number;
   x: number;
   y: number;
   kind: "problem" | "room";
 }[] {
-  const placements = placeRooms(snapshot.hotel.rooms, snapshot.renderDescriptors.floorByRoomId);
-  const placementsById = new Map(placements.map(p => [p.id, p]));
+  const placements = placeRooms(
+    snapshot.hotel.rooms,
+    snapshot.renderDescriptors.floorByRoomId,
+  );
+  const placementsById = new Map(placements.map((p) => [p.id, p]));
 
   return snapshot.alerts.map((alert) => {
     // Prefer exact or boundary-checked room ID match over simple substring inclusion
     // to avoid matching "room.10" when searching for "room.1".
     const roomId = snapshot.hotel.rooms.find((room) => {
-      const boundaryRegex = new RegExp(`\\b${room.id.replace(/\./g, '\\.')}\\b`);
+      const boundaryRegex = new RegExp(
+        `\\b${room.id.replace(/\./g, "\\.")}\\b`,
+      );
       return boundaryRegex.test(alert.id) || boundaryRegex.test(alert.cause);
     })?.id;
 
@@ -140,7 +146,7 @@ export function worldProblems(snapshot: GameSnapshot): {
       // The keys remain intact, UI handles resolving them
       title: alert.title,
       cause: alert.cause,
-      causeValues: (alert as any).causeValues,
+      causeValues: alert.causeValues,
       ...point,
       kind: placement ? ("room" as const) : ("problem" as const),
     };

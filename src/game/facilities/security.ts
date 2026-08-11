@@ -1,3 +1,5 @@
+import type { LocalizedAlertCause } from "../domain/localization";
+
 /** One guard covers this many event guests. */
 export const GUESTS_PER_GUARD = 150;
 
@@ -13,9 +15,8 @@ export function requiredSecurityStaff(i: {
   );
 }
 
-export interface SecurityGap {
+export interface SecurityGap extends LocalizedAlertCause {
   short: number;
-  cause: string;
 }
 
 export interface SecurityRequirement {
@@ -24,21 +25,9 @@ export interface SecurityRequirement {
   vipLevel: number;
 }
 
-/** Names what is actually driving the requirement, not a fixed phrase. */
-function shortfallCause(load?: SecurityRequirement): string {
-  if (!load) return "rostered guards below requirement";
-  const drivers: string[] = [];
-  if (load.eventGuests > 0) drivers.push("event load");
-  if (load.vipLevel > 0) drivers.push("vip load");
-  return drivers.length === 0
-    ? "base cover for the house"
-    : drivers.join(" and ");
-}
-
 /**
- * Understaffed security is a named cause, not a silent modifier: the player
- * has to be able to see why the alert fired. The cause follows the components
- * of the requirement, so a base-only shortfall does not blame an event.
+ * Understaffed security remains explainable without putting presentation text
+ * in the simulation. The key names the cause and the values retain its inputs.
  */
 export function securityGapAlert(
   rostered: number,
@@ -46,5 +35,16 @@ export function securityGapAlert(
   load?: SecurityRequirement,
 ): SecurityGap | null {
   const short = required - rostered;
-  return short > 0 ? { short, cause: shortfallCause(load) } : null;
+  return short > 0
+    ? {
+        short,
+        cause: "alert.security-short.cause",
+        causeValues: {
+          short,
+          base: load?.base ?? required,
+          eventGuests: load?.eventGuests ?? 0,
+          vipLevel: load?.vipLevel ?? 0,
+        },
+      }
+    : null;
 }

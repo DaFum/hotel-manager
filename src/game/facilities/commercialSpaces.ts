@@ -1,4 +1,5 @@
 import { compareIds } from "../domain/ids";
+import type { LocalizedAlertCause } from "../domain/localization";
 import {
   assertBasisPoints,
   assertCount,
@@ -93,23 +94,46 @@ export function spaceThroughput(input: {
   demand: number;
   staffOnDuty: number;
   minuteOfDay: number;
-}): { served: number; turnedAway: number; cause: string } {
+}): { served: number; turnedAway: number } & LocalizedAlertCause {
   assertCount(input.demand, "space demand");
   assertCount(input.staffOnDuty, "staff on duty");
   const { space } = input;
   if (!isOpen(space, input.minuteOfDay))
-    return { served: 0, turnedAway: input.demand, cause: "closed" };
+    return {
+      served: 0,
+      turnedAway: input.demand,
+      cause: "alert.space.cause.closed",
+      causeValues: {
+        spaceId: space.id,
+        openMinute: space.openMinute,
+        closeMinute: space.closeMinute,
+        minuteOfDay: input.minuteOfDay,
+      },
+    };
   if (input.staffOnDuty < space.staffRequired)
     return {
       served: 0,
       turnedAway: input.demand,
-      cause: `unstaffed: needs ${space.staffRequired}, has ${input.staffOnDuty}`,
+      cause: "alert.space.cause.unstaffed",
+      causeValues: {
+        spaceId: space.id,
+        staffRequired: space.staffRequired,
+        staffOnDuty: input.staffOnDuty,
+      },
     };
   const served = Math.min(space.capacity, input.demand);
   return {
     served,
     turnedAway: input.demand - served,
-    cause: served < input.demand ? "at capacity" : "demand",
+    cause:
+      served < input.demand
+        ? "alert.space.cause.atCapacity"
+        : "alert.space.cause.demand",
+    causeValues: {
+      spaceId: space.id,
+      capacity: space.capacity,
+      demand: input.demand,
+    },
   };
 }
 
@@ -165,7 +189,7 @@ export function securityLoad(input: {
   inHouseGuests: number;
   eventGuests: number;
   openSpaces: number;
-}): { load: number; guardsRequired: number; cause: string } {
+}): { load: number; guardsRequired: number } & LocalizedAlertCause {
   assertCount(input.inHouseGuests, "in-house guests");
   assertCount(input.eventGuests, "event guests");
   assertCount(input.openSpaces, "open spaces");
@@ -174,7 +198,12 @@ export function securityLoad(input: {
   return {
     load,
     guardsRequired: Math.max(1, Math.ceil(load / 120)),
-    cause: `${input.inHouseGuests} in house, ${input.eventGuests} at events, ${input.openSpaces} spaces open`,
+    cause: "alert.security.spaces.cause",
+    causeValues: {
+      inHouseGuests: input.inHouseGuests,
+      eventGuests: input.eventGuests,
+      openSpaces: input.openSpaces,
+    },
   };
 }
 

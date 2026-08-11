@@ -182,8 +182,8 @@ describe("command handler", () => {
         draft.alerts.push({
           id: "alert.half-written",
           severity: "info",
-          title: "half written",
-          cause: "should not survive",
+          title: "alert.half-written.title",
+          cause: "alert.half-written.cause",
         });
         streams.staffing.nextUint32();
         throw new Error("supplier refused the order");

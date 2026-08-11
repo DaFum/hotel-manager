@@ -1,4 +1,8 @@
 import { createRngStreams, type RngStateRecord } from "../domain/rng";
+import type {
+  AlertLocalizationKey,
+  LocalizationValues,
+} from "../domain/localization";
 import type { CommandLogEntry } from "../commands/commandEnvelope";
 import { createEventJournal, type EventJournal } from "../domain/eventBuffer";
 import { CITY } from "../content/1991/frankfurt";
@@ -134,9 +138,9 @@ export interface EventRecord {
 export interface AlertRecord {
   id: string;
   severity: "info" | "warning" | "critical";
-  title: string;
-  cause: string;
-  causeValues?: Record<string, string | number>;
+  title: AlertLocalizationKey;
+  cause: AlertLocalizationKey;
+  causeValues?: LocalizationValues;
 }
 
 export interface MonthAccumulator {

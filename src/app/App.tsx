@@ -245,10 +245,16 @@ export function App() {
                 : ""}
             </p>
             <p aria-label="Command status" aria-live="polite">
-              {translateGame(preferences.locale, "app.telemetry.command" as any, { status: game.commandStatus })}
+              {translateGame(
+                preferences.locale,
+                "app.telemetry.command" as any,
+                { status: game.commandStatus },
+              )}
             </p>
             <p aria-label="Saves committed">
-              {translateGame(preferences.locale, "app.telemetry.saves" as any, { count: game.savedCount })}
+              {translateGame(preferences.locale, "app.telemetry.saves" as any, {
+                count: game.savedCount,
+              })}
             </p>
           </div>
           <TopBar
@@ -350,15 +356,21 @@ export function App() {
                 hotelId: s.hotel.id,
                 regionId: CITY.id,
               },
-              causes: [{ key: alert.cause }],
+              causes: [{ key: alert.cause, values: alert.causeValues }],
               read: openAlert === alert.id,
               acknowledged: acknowledgedAlerts.has(alert.id),
               groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
-              message: { key: alert.title },
+              message: { key: alert.title, values: alert.causeValues },
               actionTarget: {
                 label: {
                   key: "notifications.open",
-                  values: { title: alert.title },
+                  values: {
+                    title: translateGame(
+                      preferences.locale,
+                      alert.title,
+                      alert.causeValues,
+                    ),
+                  },
                 },
                 entityId: alert.id,
               },
@@ -417,6 +429,7 @@ export function App() {
             elevator={elevatorVisual(s.renderDescriptors.elevator)}
             problems={worldProblems(s)}
             onCamera={setCamera}
+            locale={preferences.locale}
           />
           <FacilitiesDashboard rows={s.facilities} />
           <CommercialSpacesPanel
@@ -616,6 +629,7 @@ export function App() {
             alerts={s.alerts}
             openAlertId={openAlert}
             onOpen={setOpenAlert}
+            locale={preferences.locale}
           />
           <MonthlyCloseModal
             report={

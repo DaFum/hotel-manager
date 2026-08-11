@@ -1,4 +1,5 @@
 import { applyBasisPoints, assertNonNegativePfennig } from "../domain/money";
+import type { LocalizedAlertCause } from "../domain/localization";
 
 export type ComplaintCause =
   "longCheckIn" | "dirtyRoom" | "brokenAsset" | "breakfastWait";
@@ -56,13 +57,21 @@ export function authorizeRecovery(
   action: RecoveryAction,
   roomChargeMinor: number,
   authority: RecoveryAuthority,
-): { ok: true; costMinor: number } | { ok: false; reason: string } {
+): { ok: true; costMinor: number } | ({ ok: false } & LocalizedAlertCause) {
   if (authority.frontDeskOnDuty <= 0)
-    return { ok: false, reason: "alert.recovery.noFrontDesk" };
+    return {
+      ok: false,
+      cause: "alert.recovery.noFrontDesk",
+      causeValues: { frontDeskOnDuty: authority.frontDeskOnDuty },
+    };
   if (action === "apologize") return { ok: true, costMinor: 0 };
   const costMinor = discountCostMinor(roomChargeMinor);
   if (authority.cashMinor < costMinor)
-    return { ok: false, reason: "alert.recovery.insufficientCash" };
+    return {
+      ok: false,
+      cause: "alert.recovery.insufficientCash",
+      causeValues: { cashMinor: authority.cashMinor, costMinor },
+    };
   return { ok: true, costMinor };
 }
 

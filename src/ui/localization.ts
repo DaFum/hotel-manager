@@ -69,6 +69,11 @@ export const ENGLISH_TEXT = {
   "room.standard.double.name": "Standard double",
   "room.comfort.double.name": "Comfort double",
   "room.suite.junior.name": "Junior suite",
+  "room.renovation.planning": "Planning",
+  "room.renovation.approval": "Approval",
+  "room.renovation.construction": "Construction",
+  "room.renovation.acceptance": "Acceptance",
+  "room.renovation.complete": "Reopened",
 
   "milestone.first-profitable-year": "First profitable year",
   "milestone.second-hotel": "A second hotel",
@@ -109,6 +114,33 @@ export const ENGLISH_TEXT = {
   "chronicle.opportunity.paid-off": "An old stake was sold at a profit.",
   "chronicle.opportunity.written-off": "An old stake was written off.",
 } as const;
+
+export type RenovationPhase =
+  "planning" | "approval" | "construction" | "acceptance" | "complete";
+
+const RENOVATION_PHASE_KEYS: Record<RenovationPhase, string> = {
+  planning: "room.renovation.planning",
+  approval: "room.renovation.approval",
+  construction: "room.renovation.construction",
+  acceptance: "room.renovation.acceptance",
+  complete: "room.renovation.complete",
+};
+
+/** Presentation-only code: stable and readable without exposing a booking id. */
+export function guestIdentityCode(guestId: string): string {
+  const code = guestId.replace(/^guest\./, "").replace(/[^a-z0-9]+/gi, "-");
+  return `G-${code.toUpperCase()}`;
+}
+
+export function renovationPhaseKey(phase: RenovationPhase): string {
+  return RENOVATION_PHASE_KEYS[phase];
+}
+
+export function roomConditionKey(state: string): string {
+  return state === "OutOfOrder" || state === "Blocked"
+    ? "room.condition.unserviceable"
+    : "room.condition.serviceable";
+}
 
 export type LocalizationKey = keyof typeof ENGLISH_TEXT;
 

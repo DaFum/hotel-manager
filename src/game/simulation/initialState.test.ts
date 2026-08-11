@@ -39,5 +39,7 @@ describe("initial state", () => {
     expect(
       descriptors.positionByEntityId?.["navigation.reception.queue"],
     ).toEqual(expect.objectContaining({ floor: 0 }));
+    expect(s.renderDescriptors.renovationPhaseByRoomId).toEqual({});
+    expect(s.renderDescriptors.occupantByRoomId).toEqual({});
   });
 });

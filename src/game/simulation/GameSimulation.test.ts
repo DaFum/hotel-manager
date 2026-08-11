@@ -5,6 +5,7 @@ import { assertInvariants } from "./invariants";
 import { createInitialGameState, type GameState } from "./initialState";
 import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
 import { reserve } from "../bookings/bookingEngine";
+import { startRenovation } from "../building/renovations";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -703,6 +704,59 @@ describe("localized alerts", () => {
       title: "alert.insolvent.title",
       cause: "alert.insolvent.cause",
       causeValues: { expense: "expense.operating" },
+    });
+  });
+
+  it("publishes renovation phases and stable occupant references per room", () => {
+    const state = createInitialGameState(424242);
+    const room = state.hotel.rooms[0];
+    state.renovation = startRenovation("module.free", state.finance.cashMinor, {
+      affected: [room.id],
+    }).job;
+    const booking = reserve(
+      { availableRoomsOn: () => 1 },
+      {
+        id: "booking.render.1",
+        guestId: "guest.returning.1",
+        roomsRequested: 1,
+        rateMinor: 12_000,
+        willingnessMinor: 12_000,
+        channel: "directPhone",
+        partySize: 1,
+        segmentId: "segment.business",
+        category: "single",
+        arrivalDateKey: state.calendar.dateKey,
+        nights: 2,
+        terms: {
+          guaranteed: true,
+          freeCancellationDays: 1,
+          lateChargeBp: 10_000,
+        },
+        atMinutes: 0,
+      },
+    );
+    state.reservations = [booking];
+    state.stays = [
+      {
+        bookingId: booking.id,
+        roomId: room.id,
+        rateMinor: booking.rateMinor,
+        departureDateKey: "1991-01-03",
+      },
+    ];
+    room.state = "Occupied";
+
+    const sim = new GameSimulation(state);
+    sim.advanceQuantum();
+
+    expect(sim.state.renderDescriptors.renovationPhaseByRoomId[room.id]).toBe(
+      "planning",
+    );
+    expect(sim.state.renderDescriptors.occupantByRoomId[room.id]).toEqual({
+      guestId: "guest.returning.1",
+      bookingId: booking.id,
+      rateMinor: booking.rateMinor,
+      departureDateKey: "1991-01-03",
     });
   });
 

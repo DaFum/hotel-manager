@@ -18,6 +18,7 @@ import type { LedgerEntry } from "../finance/ledger";
 import type { Loan } from "../finance/loans";
 import type { Asset } from "../maintenance/maintenance";
 import type { RenovationJob } from "../building/renovations";
+import type { Phase as RenovationPhase } from "../renovation/projects";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
 import { defaultModuleForCategory } from "../content/rooms/modules";
@@ -157,6 +158,13 @@ export interface EntityGridPosition {
   gridY: number;
 }
 
+export interface RoomOccupantRef {
+  guestId: string;
+  bookingId: string;
+  rateMinor: number;
+  departureDateKey: string;
+}
+
 export interface MonthAccumulator {
   openingCashMinor: number;
   roomRevenueMinor: number;
@@ -219,6 +227,8 @@ export interface GameState {
   renderDescriptors: {
     floorByRoomId: Record<string, number>;
     positionByEntityId: Record<string, EntityGridPosition>;
+    renovationPhaseByRoomId: Record<string, RenovationPhase>;
+    occupantByRoomId: Record<string, RoomOccupantRef>;
     closedNavigationIds: string[];
     elevator: {
       id: string;
@@ -490,6 +500,8 @@ export function createRenderDescriptors(
   return {
     floorByRoomId,
     positionByEntityId: createPositionByEntityId(rooms, floorByRoomId),
+    renovationPhaseByRoomId: {},
+    occupantByRoomId: {},
     closedNavigationIds: [],
     elevator: {
       id: "asset.elevator",
@@ -501,9 +513,7 @@ export function createRenderDescriptors(
   };
 }
 
-const STARTER_AREA_POSITIONS: Readonly<
-  Record<string, EntityGridPosition>
-> = {
+const STARTER_AREA_POSITIONS: Readonly<Record<string, EntityGridPosition>> = {
   "navigation.lobby": { floor: 0, gridX: 0, gridY: 2 },
   "navigation.reception.queue": { floor: 0, gridX: 1, gridY: 2 },
   "facility.breakfast_room": { floor: 0, gridX: 3, gridY: 1 },

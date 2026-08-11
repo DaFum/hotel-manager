@@ -49,7 +49,6 @@ import { WorldControls } from "../ui/WorldControls";
 import { createCamera, focusCamera, type CameraState } from "../render/camera";
 import {
   rateByCategory,
-  renovatingRoomIds,
   roomFocusPoint,
   visualAgents,
   worldProblems,
@@ -253,9 +252,9 @@ export function App() {
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
           focusedEntityId={camera.focusedId}
-          stays={s.stays}
+          occupantByRoomId={s.renderDescriptors.occupantByRoomId}
           rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
-          renovatingRoomIds={renovatingRoomIds(s)}
+          renovationPhaseByRoomId={s.renderDescriptors.renovationPhaseByRoomId}
           // Choosing a room anywhere moves the one camera the world uses,
           // so the register and the building never look at different places.
           onSelect={(roomId) =>

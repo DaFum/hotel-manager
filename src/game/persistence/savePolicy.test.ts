@@ -102,7 +102,9 @@ describe("save policy", () => {
   });
 
   it("validates structured alert targets in the current save format", () => {
-    const malformed = structuredClone(current);
+    const malformed = structuredClone(current) as SaveEnvelope & {
+      state: typeof state;
+    };
     malformed.state.alerts.push({
       id: "alert.invalid-target",
       severity: "warning",

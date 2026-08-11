@@ -5,6 +5,13 @@ import { formatDm } from "./money";
 import { dragCamera, wheelZoom, type CameraState } from "../render/camera";
 import type { VisualAgent } from "../render/agentMaterialization";
 import { translateGame, type GameLocale } from "../i18n";
+import type { RoomOccupantRef } from "../game/simulation/initialState";
+import type { Phase as RenovationPhase } from "../game/renovation/projects";
+import {
+  guestIdentityCode,
+  renovationPhaseKey,
+  roomConditionKey,
+} from "./localization";
 
 export interface HotelViewRoom {
   id: string;
@@ -38,7 +45,7 @@ interface SceneModel {
   facilities: readonly HotelViewFacility[];
   agents: readonly VisualAgent[];
   floorByRoomId: Readonly<Record<string, number>>;
-  renovatingRoomIds: readonly string[];
+  renovationPhaseByRoomId: Readonly<Record<string, RenovationPhase>>;
   camera?: CameraState;
   selectedId: string | null;
   minuteOfDay: number;
@@ -60,16 +67,26 @@ export function humanRoomState(state: string): string {
  */
 export function roomProblems(
   room: HotelViewRoom,
-  renovatingRoomIds: readonly string[] = [],
+  renovationPhaseByRoomId: Readonly<Record<string, RenovationPhase>> = {},
 ): { key: string; values?: Record<string, string | number> }[] {
-  const problems: { key: string; values?: Record<string, string | number> }[] = [];
-  const concern = roomConcern(room.state, room.cleanliness, renovatingRoomIds.includes(room.id));
-  if (concern === "under-construction") {
-    problems.push({ key: "room.problems.renovating" });
-  } else if (concern === "out-of-service") {
-    problems.push({ key: "room.problems.outOfService", values: { state: `room.states.${room.state}` } });
+  const problems: { key: string; values?: Record<string, string | number> }[] =
+    [];
+  const phase = renovationPhaseByRoomId[room.id];
+  if (phase) {
+    problems.push({ key: `room.problems.renovation.${phase}` });
+    return problems;
+  }
+  const concern = roomConcern(room.state, room.cleanliness);
+  if (concern === "out-of-service") {
+    problems.push({
+      key: "room.problems.outOfService",
+      values: { state: `room.states.${room.state}` },
+    });
   } else if (concern === "needs-cleaning") {
-    problems.push({ key: "room.problems.needsCleaning", values: { cleanliness: room.cleanliness } });
+    problems.push({
+      key: "room.problems.needsCleaning",
+      values: { cleanliness: room.cleanliness },
+    });
   }
   return problems;
 }
@@ -97,8 +114,9 @@ export function HotelView(props: {
   stays?: readonly HotelViewStay[];
   /** Tonight's rate for a category, in minor units, keyed by category. */
   rateByCategory?: Readonly<Record<string, number>>;
-  /** Rooms currently shut for a renovation the house is paying for. */
-  renovatingRoomIds?: readonly string[];
+  /** Active phase per affected room, projected by the worker. */
+  renovationPhaseByRoomId?: Readonly<Record<string, RenovationPhase>>;
+  occupantByRoomId?: Readonly<Record<string, RoomOccupantRef>>;
   onSelect?: (roomId: string) => void;
   onSelectFacility?: (facilityId: string) => void;
   /** Moving the view; the world controls move the very same camera. */
@@ -118,7 +136,6 @@ export function HotelView(props: {
   // The scene is attached once and keeps the handler it was given, so the
   // callback is held in a ref rather than baked into that one attachment.
   const selectRoom = useRef<(roomId: string) => void>(() => {});
-
 
   // Attach once. The worker republishes a snapshot ten times a second, so
   // rebuilding the WebGL context per update would thrash the renderer.
@@ -160,7 +177,7 @@ export function HotelView(props: {
       facilities: props.facilities ?? [],
       agents: props.agents ?? [],
       floorByRoomId: props.floorByRoomId ?? {},
-      renovatingRoomIds: props.renovatingRoomIds ?? [],
+      renovationPhaseByRoomId: props.renovationPhaseByRoomId ?? {},
       camera: props.camera,
       selectedId: selected,
       minuteOfDay: props.minuteOfDay ?? 720,
@@ -170,7 +187,7 @@ export function HotelView(props: {
     props.facilities,
     props.agents,
     props.floorByRoomId,
-    props.renovatingRoomIds,
+    props.renovationPhaseByRoomId,
     props.camera,
     props.minuteOfDay,
     selected,
@@ -188,7 +205,6 @@ export function HotelView(props: {
     cameraRef.current = props.camera;
     moveCamera.current = (camera: CameraState) => props.onCamera?.(camera);
   });
-
 
   useEffect(() => {
     const node = host.current;
@@ -212,10 +228,49 @@ export function HotelView(props: {
   const stay = detail
     ? (props.stays ?? []).find((s) => s.roomId === detail.id)
     : undefined;
-  const rateMinor = detail
-    ? (stay?.rateMinor ?? props.rateByCategory?.[detail.category])
+  const occupant = detail
+    ? (props.occupantByRoomId?.[detail.id] ??
+      (stay
+        ? {
+            guestId: `guest.${stay.bookingId}`,
+            bookingId: stay.bookingId,
+            rateMinor: stay.rateMinor,
+            departureDateKey: stay.departureDateKey,
+          }
+        : undefined))
     : undefined;
-  const problems = detail ? roomProblems(detail, props.renovatingRoomIds) : [];
+  const rateMinor = detail
+    ? (occupant?.rateMinor ?? props.rateByCategory?.[detail.category])
+    : undefined;
+  const problems = detail
+    ? roomProblems(detail, props.renovationPhaseByRoomId)
+    : [];
+  const locale = props.locale ?? "en-GB";
+  const semanticRooms = props.rooms.map((room) => {
+    const roomOccupant = props.occupantByRoomId?.[room.id];
+    const phase = props.renovationPhaseByRoomId?.[room.id];
+    const roomProblemLabels = roomProblems(
+      room,
+      props.renovationPhaseByRoomId,
+    ).map((problem) => translateGame(locale, problem.key, problem.values));
+    return {
+      ...room,
+      guestLabel: roomOccupant
+        ? translateGame(locale, "room.guestLabel", {
+            code: guestIdentityCode(roomOccupant.guestId),
+          })
+        : undefined,
+      rateLabel:
+        roomOccupant?.rateMinor !== undefined
+          ? formatDm(roomOccupant.rateMinor, locale)
+          : props.rateByCategory?.[room.category] !== undefined
+            ? formatDm(props.rateByCategory[room.category], locale)
+            : undefined,
+      conditionKey: roomConditionKey(room.state),
+      problemLabels: roomProblemLabels,
+      renovationPhase: phase,
+    };
+  });
 
   return (
     <section aria-label="Hotel view">
@@ -226,7 +281,8 @@ export function HotelView(props: {
         onPointerDown={(event) => {
           if (!props.onCamera) return;
           drag.current = { x: event.clientX, y: event.clientY };
-          if (event.currentTarget.setPointerCapture) event.currentTarget.setPointerCapture(event.pointerId);
+          if (event.currentTarget.setPointerCapture)
+            event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerMove={(event) => {
           const from = drag.current;
@@ -242,7 +298,8 @@ export function HotelView(props: {
         }}
         onPointerUp={(event) => {
           drag.current = null;
-          if (event.currentTarget.releasePointerCapture) event.currentTarget.releasePointerCapture(event.pointerId);
+          if (event.currentTarget.releasePointerCapture)
+            event.currentTarget.releasePointerCapture(event.pointerId);
         }}
         onPointerCancel={() => {
           drag.current = null;
@@ -252,7 +309,7 @@ export function HotelView(props: {
         locale={props.locale}
         floorByRoomId={props.floorByRoomId}
         focusedId={props.focusedEntityId}
-        rooms={props.rooms}
+        rooms={semanticRooms}
         onInspect={(roomId) => {
           setSelected(roomId);
           props.onSelect?.(roomId);
@@ -291,44 +348,76 @@ export function HotelView(props: {
             {detail.cleanliness}
           </p>
           <dl>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.status" as any)}</dt>
+            <dt>{translateGame(locale, "room.detail.status")}</dt>
             <dd>{humanRoomState(detail.state)}</dd>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.category" as any)}</dt>
-            <dd>{detail.category}</dd>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.guest" as any)}</dt>
-            <dd>{stay ? stay.bookingId : (translateGame(props.locale ?? "en-GB", "room.detail.none" as any) || "none")}</dd>
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.rate" as any)}</dt>
+            <dt>{translateGame(locale, "room.detail.occupancy")}</dt>
             <dd>
-              {rateMinor === undefined ? (translateGame(props.locale ?? "en-GB", "room.detail.notPriced" as any) || "not priced") : formatDm(rateMinor, props.locale ?? "en-GB")}
+              {translateGame(
+                locale,
+                occupant ? "room.detail.occupied" : "room.detail.vacant",
+              )}
             </dd>
-            {stay ? (
+            <dt>{translateGame(locale, "room.detail.category")}</dt>
+            <dd>{detail.category}</dd>
+            <dt>{translateGame(locale, "room.detail.guest")}</dt>
+            <dd>
+              {occupant
+                ? translateGame(locale, "room.guestLabel", {
+                    code: guestIdentityCode(occupant.guestId),
+                  })
+                : translateGame(locale, "room.detail.none")}
+            </dd>
+            <dt>{translateGame(locale, "room.detail.rate")}</dt>
+            <dd>
+              {rateMinor === undefined
+                ? translateGame(locale, "room.detail.notPriced")
+                : formatDm(rateMinor, locale)}
+            </dd>
+            {occupant ? (
               <>
-                <dt>{translateGame(props.locale ?? "en-GB", "room.detail.departing" as any)}</dt>
-                <dd>{stay.departureDateKey}</dd>
+                <dt>{translateGame(locale, "room.detail.departing")}</dt>
+                <dd>{occupant.departureDateKey}</dd>
               </>
             ) : null}
-            <dt>{translateGame(props.locale ?? "en-GB", "room.detail.condition" as any)}</dt>
+            <dt>{translateGame(locale, "room.detail.condition")}</dt>
+            <dd>{translateGame(locale, roomConditionKey(detail.state))}</dd>
+            <dt>{translateGame(locale, "room.detail.cleanliness")}</dt>
             <dd>{detail.cleanliness}</dd>
+            {props.renovationPhaseByRoomId?.[detail.id] ? (
+              <>
+                <dt>{translateGame(locale, "room.detail.renovationPhase")}</dt>
+                <dd>
+                  {translateGame(
+                    locale,
+                    renovationPhaseKey(
+                      props.renovationPhaseByRoomId[detail.id],
+                    ),
+                  )}
+                </dd>
+              </>
+            ) : null}
             {detail.moduleId === undefined ? null : (
               <>
-                <dt>{translateGame(props.locale ?? "en-GB", "room.detail.fittedOutAs" as any)}</dt>
+                <dt>{translateGame(locale, "room.detail.fittedOutAs")}</dt>
                 <dd>{detail.moduleId}</dd>
               </>
             )}
             {detail.styleAgeYears === undefined ? null : (
               <>
-                <dt>{translateGame(props.locale ?? "en-GB", "room.detail.yearsSinceRefit" as any)}</dt>
+                <dt>{translateGame(locale, "room.detail.yearsSinceRefit")}</dt>
                 <dd>{detail.styleAgeYears}</dd>
               </>
             )}
           </dl>
-          <h3>{translateGame(props.locale ?? "en-GB", "room.detail.openProblems" as any) || "Open problems"}</h3>
+          <h3>{translateGame(locale, "room.detail.openProblems")}</h3>
           {problems.length === 0 ? (
-            <p>{translateGame(props.locale ?? "en-GB", "room.problems.none")}</p>
+            <p>{translateGame(locale, "room.problems.none")}</p>
           ) : (
             <ul>
               {problems.map((problem) => (
-                <li key={problem.key}>{translateGame(props.locale ?? "en-GB", problem.key as any, problem.values as any)}</li>
+                <li key={problem.key}>
+                  {translateGame(locale, problem.key, problem.values)}
+                </li>
               ))}
             </ul>
           )}

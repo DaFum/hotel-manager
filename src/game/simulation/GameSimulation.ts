@@ -2617,6 +2617,7 @@ export class GameSimulation implements CommandExecutor {
   }
 
   private refreshMetrics(): void {
+    this.refreshRenderDescriptors();
     this.refreshFacilities();
     this.refreshClassification();
     // Group cash is one number wherever it moved this quantum; the treasury
@@ -2632,6 +2633,36 @@ export class GameSimulation implements CommandExecutor {
         m.availableRoomNights,
       ),
     };
+  }
+
+  /** Joins authoritative entities into stable, renderer-ready references. */
+  private refreshRenderDescriptors(): void {
+    const s = this.state;
+    const renovationPhaseByRoomId: GameState["renderDescriptors"]["renovationPhaseByRoomId"] =
+      {};
+    if (s.renovation)
+      for (const roomId of [...s.renovation.project.affected].sort(compareIds))
+        renovationPhaseByRoomId[roomId] = s.renovation.project.phase;
+
+    const reservationById = new Map(
+      s.reservations.map((reservation) => [reservation.id, reservation]),
+    );
+    const occupantByRoomId: GameState["renderDescriptors"]["occupantByRoomId"] =
+      {};
+    for (const stay of [...s.stays].sort((a, b) =>
+      compareIds(a.roomId, b.roomId),
+    )) {
+      const reservation = reservationById.get(stay.bookingId);
+      occupantByRoomId[stay.roomId] = {
+        guestId: reservation?.guestId ?? `guest.${stay.bookingId}`,
+        bookingId: stay.bookingId,
+        rateMinor: stay.rateMinor,
+        departureDateKey: stay.departureDateKey,
+      };
+    }
+
+    s.renderDescriptors.renovationPhaseByRoomId = renovationPhaseByRoomId;
+    s.renderDescriptors.occupantByRoomId = occupantByRoomId;
   }
 
   // --- city market -------------------------------------------------------

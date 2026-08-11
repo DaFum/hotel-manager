@@ -85,7 +85,14 @@ describe("hotel view", () => {
     const onSelect = vi.fn();
     // Non-default zoom to verify scaling
     const baseCamera = zoomCamera(createCamera(), 2.0);
-    render(<HotelView rooms={rooms} camera={baseCamera} onCamera={onCamera} onSelect={onSelect} />);
+    render(
+      <HotelView
+        rooms={rooms}
+        camera={baseCamera}
+        onCamera={onCamera}
+        onSelect={onSelect}
+      />,
+    );
 
     const canvas = screen.getByTestId("hotel-canvas");
 
@@ -102,7 +109,9 @@ describe("hotel view", () => {
 
     // Larger movement (above 3px threshold)
     fireEvent.pointerMove(canvas, { clientX: 105, clientY: 105, pointerId: 1 });
-    expect(onCamera).toHaveBeenCalledWith(dragCamera(baseCamera, { x: 5, y: 5 }));
+    expect(onCamera).toHaveBeenCalledWith(
+      dragCamera(baseCamera, { x: 5, y: 5 }),
+    );
 
     // Pointer up
     fireEvent.pointerUp(canvas, { pointerId: 1 });
@@ -115,7 +124,14 @@ describe("hotel view", () => {
   it("selects a room with a non-drag pointer sequence", () => {
     const onSelect = vi.fn();
     const onCamera = vi.fn();
-    render(<HotelView rooms={rooms} camera={createCamera()} onSelect={onSelect} onCamera={onCamera} />);
+    render(
+      <HotelView
+        rooms={rooms}
+        camera={createCamera()}
+        onSelect={onSelect}
+        onCamera={onCamera}
+      />,
+    );
     const canvas = screen.getByTestId("hotel-canvas");
 
     fireEvent.pointerDown(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
@@ -130,5 +146,36 @@ describe("hotel view", () => {
     );
 
     expect(onSelect).toHaveBeenCalledWith("room.101");
+  });
+
+  it("shows the guest identity and differentiated renovation phase in the inspector", () => {
+    render(
+      <HotelView
+        rooms={[{ ...rooms[0], state: "Occupied" }]}
+        disableRenderer
+        locale="en-GB"
+        occupantByRoomId={{
+          "room.101": {
+            guestId: "guest.returning.1",
+            bookingId: "booking.private.42",
+            rateMinor: 12_000,
+            departureDateKey: "1991-01-03",
+          },
+        }}
+        renovationPhaseByRoomId={{ "room.101": "planning" }}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single occupied/i }),
+    );
+
+    expect(screen.getAllByText("Guest G-RETURNING-1").length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.queryByText("booking.private.42")).toBeNull();
+    expect(screen.getAllByText("Planning").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("serviceable").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Planning phase").length).toBeGreaterThan(0);
   });
 });

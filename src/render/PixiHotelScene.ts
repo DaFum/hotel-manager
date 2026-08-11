@@ -3,6 +3,7 @@ import { FacilityLayer, type FacilityTile } from "./facilities/FacilityLayer";
 import { lightingFor, type CameraState } from "./camera";
 import {
   buildingCentre,
+  FLOOR_HEIGHT,
   markerKindsForEntity,
   placeAgents,
   placeRooms,
@@ -13,6 +14,14 @@ import {
 } from "./sceneLayout";
 import { TILE_HEIGHT, TILE_WIDTH } from "./tileMetrics";
 import type { VisualAgent } from "./agentMaterialization";
+import type { Phase as RenovationPhase } from "../game/renovation/projects";
+import { isoProject } from "./isoProjection";
+import {
+  aggregateRoomState,
+  renovationVisualFor,
+  roomLighting,
+  roomLodFor,
+} from "./roomVisuals";
 
 export { TILE_HEIGHT, TILE_WIDTH } from "./tileMetrics";
 
@@ -32,8 +41,7 @@ export interface SceneModel {
   rooms: readonly SceneRoom[];
   facilities?: readonly FacilityTile[];
   agents?: readonly VisualAgent[];
-  /** Rooms shut for a renovation the house is paying for. */
-  renovatingRoomIds?: readonly string[];
+  renovationPhaseByRoomId?: Readonly<Record<string, RenovationPhase>>;
   floorByRoomId?: Readonly<Record<string, number>>;
   camera?: CameraState;
   selectedId?: string | null;
@@ -136,9 +144,25 @@ export class PixiHotelScene {
     for (const child of this.marks.removeChildren()) child.destroy();
 
     const tint = LIGHT_TINT[lightingFor(model.minuteOfDay ?? 720)];
-    const renovating = new Set(model.renovatingRoomIds ?? []);
+    this.world.tint = tint;
+    const placements = this.placements(model);
+    const lod = roomLodFor(model.camera?.zoom ?? 1);
 
-    for (const placement of this.placements(model)) {
+    if (!lod.drawRoomTiles) {
+      this.drawFloorStructure(placements);
+      for (const placement of placements)
+        for (const marker of markerKindsForEntity(
+          placement.id,
+          model.selectedId,
+          model.camera?.focusedId,
+        ))
+          if (marker === "selection") this.markSelection(placement);
+          else this.markFocus(placement);
+      return;
+    }
+
+    for (const placement of placements) {
+      const lighting = roomLighting(placement.state, model.minuteOfDay ?? 720);
       const tile = new Graphics()
         .moveTo(0, TILE_HEIGHT / 2)
         .lineTo(TILE_WIDTH / 2, 0)
@@ -151,7 +175,7 @@ export class PixiHotelScene {
         .stroke({ width: 1, color: 0x0e1114, alignment: 1 });
       tile.position.set(placement.x, placement.y);
       tile.label = placement.id;
-      tile.tint = tint;
+      tile.tint = lighting.tint;
 
       // The same stable id the semantic DOM control uses, so clicking the
       // world and clicking the room list are the same action.
@@ -166,12 +190,14 @@ export class PixiHotelScene {
       });
       tile.on("pointerout", () => {
         if (this.hoveredId === placement.id) this.hoveredId = null;
-        tile.tint = tint;
+        tile.tint = lighting.tint;
       });
       if (this.hoveredId === placement.id) tile.tint = HOVER_TINT;
 
       this.tiles.addChild(tile);
-      this.markConcern(placement, renovating.has(placement.id));
+      const phase = model.renovationPhaseByRoomId?.[placement.id];
+      if (phase) this.markRenovation(placement, phase);
+      else if (lod.drawFineStatus) this.markConcern(placement, false);
       for (const marker of markerKindsForEntity(
         placement.id,
         model.selectedId,
@@ -179,6 +205,39 @@ export class PixiHotelScene {
       ))
         if (marker === "selection") this.markSelection(placement);
         else this.markFocus(placement);
+    }
+  }
+
+  /** Aggregate zoom reads as stacked floor slabs carrying their worst state. */
+  private drawFloorStructure(placements: readonly RoomPlacement[]): void {
+    const floors = new Map<number, RoomPlacement[]>();
+    for (const placement of placements) {
+      const floor = floors.get(placement.floor);
+      if (floor) floor.push(placement);
+      else floors.set(placement.floor, [placement]);
+    }
+    for (const [floor, rooms] of [...floors].sort(([a], [b]) => a - b)) {
+      const minX = Math.min(...rooms.map((room) => room.gridX));
+      const maxX = Math.max(...rooms.map((room) => room.gridX)) + 1;
+      const minY = Math.min(...rooms.map((room) => room.gridY));
+      const maxY = Math.max(...rooms.map((room) => room.gridY)) + 1;
+      const corners = [
+        isoProject(minX, minY, TILE_WIDTH, TILE_HEIGHT),
+        isoProject(maxX, minY, TILE_WIDTH, TILE_HEIGHT),
+        isoProject(maxX, maxY, TILE_WIDTH, TILE_HEIGHT),
+        isoProject(minX, maxY, TILE_WIDTH, TILE_HEIGHT),
+      ].map((point) => ({ x: point.x, y: point.y - floor * FLOOR_HEIGHT }));
+      const status = aggregateRoomState(rooms.map((room) => room.state));
+      const slab = new Graphics()
+        .moveTo(corners[0].x, corners[0].y)
+        .lineTo(corners[1].x, corners[1].y)
+        .lineTo(corners[2].x, corners[2].y)
+        .lineTo(corners[3].x, corners[3].y)
+        .closePath()
+        .fill(STATE_COLOURS[status] ?? 0x888888)
+        .stroke({ width: 2, color: 0x38434d });
+      slab.label = `floor.${floor}.aggregate`;
+      this.tiles.addChild(slab);
     }
   }
 
@@ -197,6 +256,37 @@ export class PixiHotelScene {
       .circle(placement.x + TILE_WIDTH / 2, placement.y - 4, 4)
       .fill(CONCERN_MARK[concern]);
     mark.label = `${placement.id}.concern`;
+    this.marks.addChild(mark);
+  }
+
+  /** Renovation uses architectural notation, not one generic concern dot. */
+  private markRenovation(
+    placement: RoomPlacement,
+    phase: RenovationPhase,
+  ): void {
+    const visual = renovationVisualFor(phase);
+    const x = placement.x + TILE_WIDTH / 2;
+    const y = placement.y - 4;
+    const mark = new Graphics();
+    if (visual.notation === "outline")
+      mark.circle(x, y, 5).stroke({ width: 1, color: visual.colour });
+    else if (visual.notation === "permit")
+      mark.rect(x - 4, y - 4, 8, 8).stroke({ width: 2, color: visual.colour });
+    else if (visual.notation === "hatch")
+      mark
+        .moveTo(x - 5, y - 5)
+        .lineTo(x + 5, y + 5)
+        .moveTo(x + 5, y - 5)
+        .lineTo(x - 5, y + 5)
+        .stroke({ width: 2, color: visual.colour });
+    else if (visual.notation === "inspection")
+      mark
+        .moveTo(x - 5, y)
+        .lineTo(x - 1, y + 4)
+        .lineTo(x + 6, y - 5)
+        .stroke({ width: 2, color: visual.colour });
+    else mark.circle(x, y, 4).fill(visual.colour);
+    mark.label = `${placement.id}.renovation.${phase}`;
     this.marks.addChild(mark);
   }
 

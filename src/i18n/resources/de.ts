@@ -21,10 +21,15 @@ export const de = {
   management: {
     skip: "Zum Verwaltungsinhalt springen",
     areas: "Verwaltungsbereiche",
+    mainView: "Hauptansicht",
     hotel: "Hotel",
     staff: "Personal",
     finance: "Finanzen",
+    revenue: "Erlöse",
+    marketing: "Marketing & Vertrieb",
+    market: "Markt",
     company: "Unternehmen",
+    campaign: "Kampagne",
   },
   settings: {
     presentation: "Darstellungseinstellungen",

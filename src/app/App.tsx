@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AccessibilityPreferences } from "../ui/accessibility/AccessibilityPreferences";
 import { AudioSettings } from "../ui/settings/AudioSettings";
 import { TutorialCoach } from "../ui/onboarding/TutorialCoach";
@@ -38,7 +38,11 @@ import { CompetitorTable } from "../ui/market/CompetitorTable";
 import { marketWageMinor } from "../game/labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
-import { ManagementShell } from "../ui/ManagementShell";
+import {
+  AREA_ORDER,
+  ManagementShell,
+  type ManagementAreaId,
+} from "../ui/ManagementShell";
 import { TechnologyPanel } from "../ui/TechnologyPanel";
 import { WorldControls } from "../ui/WorldControls";
 import { createCamera, focusCamera, type CameraState } from "../render/camera";
@@ -207,6 +211,263 @@ export function App() {
       technology.adoptionBp,
     ]),
   );
+
+  const areaContent: Record<ManagementAreaId, ReactNode> = {
+    mainView: (
+      <>
+        <HotelView
+          rooms={s.hotel.rooms}
+          facilities={s.facilities}
+          agents={visualAgents(s, camera)}
+          floorByRoomId={s.renderDescriptors.floorByRoomId}
+          camera={camera}
+          minuteOfDay={s.calendar.minuteOfDay}
+          stays={s.stays}
+          rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
+          renovatingRoomIds={renovatingRoomIds(s)}
+          // Choosing a room anywhere moves the one camera the world uses,
+          // so the register and the building never look at different places.
+          onSelect={(roomId) =>
+            setCamera((current) =>
+              focusCamera(current, {
+                id: roomId,
+                ...roomFocusPoint(roomId, s),
+                kind: "room",
+              }),
+            )
+          }
+          onCamera={setCamera}
+          disableRenderer={rendererDisabled()}
+          locale={preferences.locale}
+        />
+        <WorldControls
+          camera={camera}
+          floors={[
+            ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
+          ].sort((a, b) => a - b)}
+          minuteOfDay={s.calendar.minuteOfDay}
+          elevator={elevatorVisual(s.renderDescriptors.elevator)}
+          problems={worldProblems(s)}
+          onCamera={setCamera}
+          locale={preferences.locale}
+        />
+      </>
+    ),
+    hotel: (
+      <>
+        <FacilitiesDashboard rows={s.facilities} />
+        <CommercialSpacesPanel
+          spaces={s.commercialSpaces.spaces.map((space) => ({
+            id: space.id,
+            kind: space.kind,
+            capacity: space.capacity,
+            openMinute: space.openMinute,
+            closeMinute: space.closeMinute,
+            operator: space.operator.kind,
+            hotelShareMinor: monthlyContributionMinor(
+              space,
+              s.commercialSpaces.unitsSold[space.id] ?? 0,
+            ).hotelShareMinor,
+            unitsSold: s.commercialSpaces.unitsSold[space.id] ?? 0,
+            fitBp: space.fitBp ?? (space.fit ?? 0) * 100,
+          }))}
+          lobby={s.lobby}
+        />
+        <ClassificationPanel
+          classification={s.classification}
+          specializationId={s.specializationId}
+          investedArea={s.investedArea}
+          onSetSpecialization={(specializationId) =>
+            game.send({ type: "SET_SPECIALIZATION", specializationId })
+          }
+          onExpand={(area) => game.send({ type: "EXPAND_FACILITY", area })}
+        />
+        <BuildPanel
+          renovationActive={s.renovation !== null}
+          onStartRenovation={() => game.send({ type: "START_RENOVATION" })}
+        />
+        <TechnologyPanel
+          technologies={s.world.technologies}
+          projects={s.technologyProjects}
+          implementations={s.technologyImplementations}
+          onAdopt={(technologyId) =>
+            game.send({ type: "ADOPT_TECHNOLOGY", technologyId })
+          }
+        />
+      </>
+    ),
+    staff: (
+      <StaffDashboard
+        staff={s.staff}
+        roles={STAFF_ROLES}
+        marketWageMinor={cityWageMinor}
+        onHire={(role) =>
+          game.send({
+            type: "HIRE",
+            role,
+            shift: "morning",
+            // The house never offers under the going rate; a tight labour
+            // market is paid for, not worked around.
+            monthlyWageMinor: Math.max(250_000, cityWageMinor),
+          })
+        }
+      />
+    ),
+    finance: (
+      <>
+        <FinanceDashboard
+          cashMinor={s.finance.cashMinor}
+          loanPrincipalMinor={s.loan.principalMinor}
+          monthToDateProfitMinor={
+            s.finance.month.roomRevenueMinor +
+            s.finance.month.otherRevenueMinor -
+            s.finance.month.operatingExpenseMinor
+          }
+        />
+        <PurchasingDashboard
+          stock={s.stock}
+          onOrder={(sku) =>
+            game.send({ type: "ORDER_SUPPLIES", sku, quantity: 60 })
+          }
+        />
+      </>
+    ),
+    revenue: (
+      <>
+        <RevenueDashboard
+          adrMinor={s.metrics.adrMinor}
+          revParMinor={s.metrics.revParMinor}
+          occupancyBasisPoints={s.metrics.occupancyBasisPoints}
+          singleRateMinor={singleRateMinor}
+          onSetSingleRate={(rateMinor) =>
+            game.send({
+              type: "SET_RATE",
+              dateKey: s.calendar.dateKey,
+              category: "single",
+              rateMinor,
+            })
+          }
+        />
+        <CompetitorTable
+          rows={s.competitors}
+          playerRateMinor={singleRateMinor}
+          playerOccupancyBp={s.metrics.occupancyBasisPoints}
+        />
+      </>
+    ),
+    marketing: (
+      <CommercialDashboard
+        campaigns={campaignRows(s)}
+        accounts={accountRows(s)}
+        reputation={reputationRows(s)}
+        loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
+        loyaltyMembers={s.commercial.loyalty.members.length}
+        marketableGuests={marketableGuestCount(s)}
+      />
+    ),
+    market: (
+      <>
+        <CityDashboard
+          business={s.cityMarket.demand.business}
+          leisure={s.cityMarket.demand.leisure}
+          event={s.cityMarket.demand.event}
+          group={s.cityMarket.demand.group}
+          low={s.cityMarket.forecast.low}
+          high={s.cityMarket.forecast.high}
+          connectivityIndex={connectivityIndex(s.cityMarket.transport)}
+          informationQuality={s.cityMarket.informationQuality}
+          researchCostMinor={REPORT_COST_MINOR}
+          onBuyResearch={() => game.send({ type: "BUY_MARKET_RESEARCH" })}
+        />
+        <CompetitorTable
+          rows={s.competitors}
+          playerRateMinor={singleRateMinor}
+          playerOccupancyBp={s.metrics.occupancyBasisPoints}
+        />
+      </>
+    ),
+    company: (
+      <>
+        <PortfolioDashboard
+          hotels={portfolioRows(s)}
+          onOpenHotel={setOpenHotel}
+        />
+        <p aria-label="Selected hotel">
+          Viewing: {hotelName(s, openHotel ?? s.hotel.id)}
+        </p>
+        <BrandDashboard
+          brands={brandRows(s)}
+          audits={brandAuditRows(s)}
+          hotels={portfolioRows(s).map((h) => ({ id: h.id, name: h.name }))}
+          onAssignBrand={(hotelId, brandId) =>
+            game.send({ type: "ASSIGN_BRAND", hotelId, brandId })
+          }
+        />
+        <DevelopmentDashboard
+          developments={developmentRows(s)}
+          onCompleteTask={(developmentId, item) =>
+            game.send({
+              type: "COMPLETE_PRE_OPENING_TASK",
+              developmentId,
+              item,
+            })
+          }
+          onOpen={(developmentId) =>
+            game.send({ type: "OPEN_DEVELOPMENT", developmentId })
+          }
+        />
+        <ManagerGovernancePanel
+          managers={managerRows(s)}
+          escalations={escalationRows(s)}
+          onSetRepairLimit={(hotelId, repairLimitMinor) =>
+            game.send({
+              type: "SET_MANAGER_AUTHORITY",
+              hotelId,
+              authority: { repairLimitMinor },
+            })
+          }
+          onResolve={(escalationId, approve) =>
+            game.send({ type: "RESOLVE_ESCALATION", escalationId, approve })
+          }
+        />
+      </>
+    ),
+    campaign: (
+      <>
+        <CampaignSetup
+          difficulty={s.narrative.campaign.difficulty}
+          locked={s.elapsedMinutes > 0}
+          onDifficulty={(difficulty) =>
+            game.send({ type: "SET_CAMPAIGN_DIFFICULTY", difficulty })
+          }
+        />
+        <StoryInbox
+          events={s.narrative.activeEvents.map((event) => ({
+            id: event.id,
+            titleKey: `${event.definitionId}.title`,
+            bodyKey: `${event.definitionId}.body`,
+            raisedDateKey: event.triggeredDateKey,
+            choices: event.choices.map((choice) => ({
+              id: choice.id,
+              labelKey: choice.labelKey,
+            })),
+          }))}
+          onChoose={(eventId, choiceId) =>
+            game.send({ type: "RESOLVE_NARRATIVE_EVENT", eventId, choiceId })
+          }
+        />
+        <ChronicleView
+          entries={s.narrative.chronicle.map((entry) => ({
+            id: entry.id,
+            date: entry.date,
+            text: entry.textKey,
+            scope: entry.scope,
+          }))}
+        />
+      </>
+    ),
+  };
+
   return (
     <div
       lang={preferences.locale.slice(0, 2)}
@@ -214,436 +475,201 @@ export function App() {
       style={{ fontSize: `${preferences.accessibility.textScale}rem` }}
       data-reduced-motion={preferences.accessibility.reducedMotion}
     >
+      <h1>
+        {s.hotel.name}, {CITY.name} 1991
+      </h1>
+      {/* The telemetry line: three live regions the player can consult but
+          is never interrupted by, set as one quiet status strip. */}
+      <div className="hm-telemetry">
+        <p
+          className="hm-telemetry__status"
+          role="status"
+          aria-label="Simulation status"
+          aria-live="polite"
+        >
+          {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
+        </p>
+        <p aria-label="Command status" aria-live="polite">
+          {translateGame(preferences.locale, "app.telemetry.command" as any, {
+            status: game.commandStatus,
+          })}
+        </p>
+        <p aria-label="Saves committed">
+          {translateGame(preferences.locale, "app.telemetry.saves" as any, {
+            count: game.savedCount,
+          })}
+        </p>
+      </div>
+      <TopBar
+        city={CITY.name}
+        dateKey={s.calendar.dateKey}
+        minuteOfDay={s.calendar.minuteOfDay}
+        cashMinor={s.finance.cashMinor}
+        monthProfitMinor={
+          s.finance.month.roomRevenueMinor +
+          s.finance.month.otherRevenueMinor -
+          s.finance.month.operatingExpenseMinor
+        }
+        occupancyBasisPoints={s.metrics.occupancyBasisPoints}
+        reputation={s.guestSatisfaction.score}
+        warningCount={s.alerts.length}
+        speed={game.speed}
+        onSpeed={game.setSpeed}
+        onSave={() => game.save()}
+        onLoad={() => game.load()}
+        locale={preferences.locale}
+      />
+      <ContextHelp
+        title={translateGame(preferences.locale, "help.guestSatisfaction")}
+        drivers={s.guestSatisfaction.causes.map((key) => ({ key }))}
+        locale={preferences.locale}
+      />
+      <section
+        aria-label={translateGame(preferences.locale, "settings.presentation")}
+      >
+        <label>
+          {translateGame(preferences.locale, "topbar.language")}{" "}
+          <select
+            aria-label={translateGame(preferences.locale, "topbar.language")}
+            value={preferences.locale}
+            onChange={(event) => {
+              const locale = event.currentTarget.value as "de-DE" | "en-GB";
+              game.setPreferences({ ...preferences, locale });
+            }}
+          >
+            <option value="de-DE">Deutsch</option>
+            <option value="en-GB">English</option>
+          </select>
+        </label>
+        <AccessibilityPreferences
+          value={preferences.accessibility}
+          locale={preferences.locale}
+          onChange={(accessibility) =>
+            game.setPreferences({ ...preferences, accessibility })
+          }
+        />
+        <AudioSettings
+          value={preferences.audio}
+          locale={preferences.locale}
+          onChange={(audio) => game.setPreferences({ ...preferences, audio })}
+        />
+      </section>
+      {preferences.tutorialCompleted.length < 3 ? (
+        <TutorialCoach
+          state={{
+            step:
+              preferences.tutorialCompleted.length === 0
+                ? "set-room-price"
+                : preferences.tutorialCompleted.at(-1) === "set-room-price"
+                  ? "inspect-bookings"
+                  : "hire-housekeeping",
+            completed: preferences.tutorialCompleted,
+          }}
+          onDismiss={() =>
+            game.setPreferences({
+              ...preferences,
+              tutorialCompleted: [
+                "set-room-price",
+                "inspect-bookings",
+                "hire-housekeeping",
+              ],
+            })
+          }
+          onAction={game.observeTutorialAction}
+          locale={preferences.locale}
+        />
+      ) : null}
+      <NotificationCenter
+        notifications={s.alerts.map((alert): NotificationRecord => ({
+          id: alert.id,
+          type: alert.id,
+          category: alert.id.split(".")[0] || "operations",
+          severity: alert.severity,
+          gameTime: `${s.calendar.dateKey}:${s.calendar.minuteOfDay}`,
+          source: {
+            companyId: s.company.companyId,
+            hotelId: s.hotel.id,
+            regionId: CITY.id,
+          },
+          causes: [{ key: alert.cause, values: alert.causeValues }],
+          read: openAlert === alert.id,
+          acknowledged: acknowledgedAlerts.has(alert.id),
+          groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
+          message: { key: alert.title, values: alert.causeValues },
+          actionTarget: {
+            label: {
+              key: "notifications.open",
+              values: {
+                title: translateGame(
+                  preferences.locale,
+                  alert.title,
+                  alert.causeValues,
+                ),
+              },
+            },
+            entityId: alert.id,
+          },
+        }))}
+        preferences={preferences.notifications}
+        pauseState={game.pauseStatus}
+        onAction={setOpenAlert}
+        onAcknowledge={(id) =>
+          setAcknowledgedAlerts((current) => new Set(current).add(id))
+        }
+        locale={preferences.locale}
+      />
+      <SaveTransferPanel />
+      <SaveManager
+        slots={game.slots}
+        recoveredFrom={game.recoveredFrom}
+        validationFailure={game.validationFailure}
+        onSave={(slot) => game.save(slot)}
+        onLoad={(slot) => game.load(slot)}
+      />
+      {new URLSearchParams(window.location.search).get("balancing") === "on" ? (
+        <BalancingDashboard metrics={balancingMetricsFromSnapshot(s)} />
+      ) : null}
       <ManagementShell
         locale={preferences.locale}
+        title={translateGame(preferences.locale, "app.main")}
         adoption={{
           personalComputerBp: adoption["personal-computer"] ?? 0,
           internetBp: adoption.internet ?? 0,
           smartphoneBp: adoption.smartphone ?? 0,
           channelManagerBp: adoption["channel-manager"] ?? 0,
         }}
-      >
-        <main
-          className="hm-main"
-          id="management-content"
-          aria-label={translateGame(preferences.locale, "app.main")}
-        >
-          <h1>
-            {s.hotel.name}, {CITY.name} 1991
-          </h1>
-          {/* The telemetry line: three live regions the player can consult but
-              is never interrupted by, set as one quiet status strip. */}
-          <div className="hm-telemetry">
-            <p
-              className="hm-telemetry__status"
-              role="status"
-              aria-label="Simulation status"
-              aria-live="polite"
-            >
-              {game.errors.length > 0
-                ? game.errors[game.errors.length - 1]
-                : ""}
-            </p>
-            <p aria-label="Command status" aria-live="polite">
-              {translateGame(
-                preferences.locale,
-                "app.telemetry.command" as any,
-                { status: game.commandStatus },
-              )}
-            </p>
-            <p aria-label="Saves committed">
-              {translateGame(preferences.locale, "app.telemetry.saves" as any, {
-                count: game.savedCount,
-              })}
-            </p>
-          </div>
-          <TopBar
-            city={CITY.name}
-            dateKey={s.calendar.dateKey}
-            minuteOfDay={s.calendar.minuteOfDay}
-            cashMinor={s.finance.cashMinor}
-            monthProfitMinor={
-              s.finance.month.roomRevenueMinor +
-              s.finance.month.otherRevenueMinor -
-              s.finance.month.operatingExpenseMinor
-            }
-            occupancyBasisPoints={s.metrics.occupancyBasisPoints}
-            reputation={s.guestSatisfaction.score}
-            warningCount={s.alerts.length}
-            speed={game.speed}
-            onSpeed={game.setSpeed}
-            onSave={() => game.save()}
-            onLoad={() => game.load()}
-            locale={preferences.locale}
-          />
-          <ContextHelp
-            title={translateGame(preferences.locale, "help.guestSatisfaction")}
-            drivers={s.guestSatisfaction.causes.map((key) => ({ key }))}
-            locale={preferences.locale}
-          />
-          <section
-            aria-label={translateGame(
-              preferences.locale,
-              "settings.presentation",
-            )}
-          >
-            <label>
-              {translateGame(preferences.locale, "topbar.language")}{" "}
-              <select
-                aria-label={translateGame(
-                  preferences.locale,
-                  "topbar.language",
-                )}
-                value={preferences.locale}
-                onChange={(event) => {
-                  const locale = event.currentTarget.value as "de-DE" | "en-GB";
-                  game.setPreferences({ ...preferences, locale });
-                }}
-              >
-                <option value="de-DE">Deutsch</option>
-                <option value="en-GB">English</option>
-              </select>
-            </label>
-            <AccessibilityPreferences
-              value={preferences.accessibility}
-              locale={preferences.locale}
-              onChange={(accessibility) =>
-                game.setPreferences({ ...preferences, accessibility })
-              }
-            />
-            <AudioSettings
-              value={preferences.audio}
-              locale={preferences.locale}
-              onChange={(audio) =>
-                game.setPreferences({ ...preferences, audio })
-              }
-            />
-          </section>
-          {preferences.tutorialCompleted.length < 3 ? (
-            <TutorialCoach
-              state={{
-                step:
-                  preferences.tutorialCompleted.length === 0
-                    ? "set-room-price"
-                    : preferences.tutorialCompleted.at(-1) === "set-room-price"
-                      ? "inspect-bookings"
-                      : "hire-housekeeping",
-                completed: preferences.tutorialCompleted,
-              }}
-              onDismiss={() =>
-                game.setPreferences({
-                  ...preferences,
-                  tutorialCompleted: [
-                    "set-room-price",
-                    "inspect-bookings",
-                    "hire-housekeeping",
-                  ],
-                })
-              }
-              onAction={game.observeTutorialAction}
-              locale={preferences.locale}
-            />
-          ) : null}
-          <NotificationCenter
-            notifications={s.alerts.map((alert): NotificationRecord => ({
-              id: alert.id,
-              type: alert.id,
-              category: alert.id.split(".")[0] || "operations",
-              severity: alert.severity,
-              gameTime: `${s.calendar.dateKey}:${s.calendar.minuteOfDay}`,
-              source: {
-                companyId: s.company.companyId,
-                hotelId: s.hotel.id,
-                regionId: CITY.id,
-              },
-              causes: [{ key: alert.cause, values: alert.causeValues }],
-              read: openAlert === alert.id,
-              acknowledged: acknowledgedAlerts.has(alert.id),
-              groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
-              message: { key: alert.title, values: alert.causeValues },
-              actionTarget: {
-                label: {
-                  key: "notifications.open",
-                  values: {
-                    title: translateGame(
-                      preferences.locale,
-                      alert.title,
-                      alert.causeValues,
-                    ),
-                  },
-                },
-                entityId: alert.id,
-              },
-            }))}
-            preferences={preferences.notifications}
-            pauseState={game.pauseStatus}
-            onAction={setOpenAlert}
-            onAcknowledge={(id) =>
-              setAcknowledgedAlerts((current) => new Set(current).add(id))
-            }
-            locale={preferences.locale}
-          />
-          <SaveTransferPanel />
-          <SaveManager
-            slots={game.slots}
-            recoveredFrom={game.recoveredFrom}
-            validationFailure={game.validationFailure}
-            onSave={(slot) => game.save(slot)}
-            onLoad={(slot) => game.load(slot)}
-          />
-          {new URLSearchParams(window.location.search).get("balancing") ===
-          "on" ? (
-            <BalancingDashboard metrics={balancingMetricsFromSnapshot(s)} />
-          ) : null}
-          <HotelView
-            rooms={s.hotel.rooms}
-            facilities={s.facilities}
-            agents={visualAgents(s, camera)}
-            floorByRoomId={s.renderDescriptors.floorByRoomId}
-            camera={camera}
-            minuteOfDay={s.calendar.minuteOfDay}
-            stays={s.stays}
-            rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
-            renovatingRoomIds={renovatingRoomIds(s)}
-            // Choosing a room anywhere moves the one camera the world uses,
-            // so the register and the building never look at different places.
-            onSelect={(roomId) =>
-              setCamera((current) =>
-                focusCamera(current, {
-                  id: roomId,
-                  ...roomFocusPoint(roomId, s),
-                  kind: "room",
-                }),
-              )
-            }
-            onCamera={setCamera}
-            disableRenderer={rendererDisabled()}
-            locale={preferences.locale}
-          />
-          <WorldControls
-            camera={camera}
-            floors={[
-              ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
-            ].sort((a, b) => a - b)}
-            minuteOfDay={s.calendar.minuteOfDay}
-            elevator={elevatorVisual(s.renderDescriptors.elevator)}
-            problems={worldProblems(s)}
-            onCamera={setCamera}
-            locale={preferences.locale}
-          />
-          <FacilitiesDashboard rows={s.facilities} />
-          <CommercialSpacesPanel
-            spaces={s.commercialSpaces.spaces.map((space) => ({
-              id: space.id,
-              kind: space.kind,
-              capacity: space.capacity,
-              openMinute: space.openMinute,
-              closeMinute: space.closeMinute,
-              operator: space.operator.kind,
-              hotelShareMinor: monthlyContributionMinor(
-                space,
-                s.commercialSpaces.unitsSold[space.id] ?? 0,
-              ).hotelShareMinor,
-              unitsSold: s.commercialSpaces.unitsSold[space.id] ?? 0,
-              fitBp: space.fitBp ?? (space.fit ?? 0) * 100,
-            }))}
-            lobby={s.lobby}
-          />
-          <ClassificationPanel
-            classification={s.classification}
-            specializationId={s.specializationId}
-            investedArea={s.investedArea}
-            onSetSpecialization={(specializationId) =>
-              game.send({ type: "SET_SPECIALIZATION", specializationId })
-            }
-            onExpand={(area) => game.send({ type: "EXPAND_FACILITY", area })}
-          />
-          <CityDashboard
-            business={s.cityMarket.demand.business}
-            leisure={s.cityMarket.demand.leisure}
-            event={s.cityMarket.demand.event}
-            group={s.cityMarket.demand.group}
-            low={s.cityMarket.forecast.low}
-            high={s.cityMarket.forecast.high}
-            connectivityIndex={connectivityIndex(s.cityMarket.transport)}
-            informationQuality={s.cityMarket.informationQuality}
-            researchCostMinor={REPORT_COST_MINOR}
-            onBuyResearch={() => game.send({ type: "BUY_MARKET_RESEARCH" })}
-          />
-          <CompetitorTable
-            rows={s.competitors}
-            playerRateMinor={singleRateMinor}
-            playerOccupancyBp={s.metrics.occupancyBasisPoints}
-          />
-          <PortfolioDashboard
-            hotels={portfolioRows(s)}
-            onOpenHotel={setOpenHotel}
-          />
-          <p aria-label="Selected hotel">
-            Viewing: {hotelName(s, openHotel ?? s.hotel.id)}
-          </p>
-          <BrandDashboard
-            brands={brandRows(s)}
-            audits={brandAuditRows(s)}
-            hotels={portfolioRows(s).map((h) => ({ id: h.id, name: h.name }))}
-            onAssignBrand={(hotelId, brandId) =>
-              game.send({ type: "ASSIGN_BRAND", hotelId, brandId })
-            }
-          />
-          <DevelopmentDashboard
-            developments={developmentRows(s)}
-            onCompleteTask={(developmentId, item) =>
-              game.send({
-                type: "COMPLETE_PRE_OPENING_TASK",
-                developmentId,
-                item,
-              })
-            }
-            onOpen={(developmentId) =>
-              game.send({ type: "OPEN_DEVELOPMENT", developmentId })
-            }
-          />
-          <ManagerGovernancePanel
-            managers={managerRows(s)}
-            escalations={escalationRows(s)}
-            onSetRepairLimit={(hotelId, repairLimitMinor) =>
-              game.send({
-                type: "SET_MANAGER_AUTHORITY",
-                hotelId,
-                authority: { repairLimitMinor },
-              })
-            }
-            onResolve={(escalationId, approve) =>
-              game.send({ type: "RESOLVE_ESCALATION", escalationId, approve })
-            }
-          />
-          <CommercialDashboard
-            campaigns={campaignRows(s)}
-            accounts={accountRows(s)}
-            reputation={reputationRows(s)}
-            loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
-            loyaltyMembers={s.commercial.loyalty.members.length}
-            marketableGuests={marketableGuestCount(s)}
-          />
-          <CampaignSetup
-            difficulty={s.narrative.campaign.difficulty}
-            locked={s.elapsedMinutes > 0}
-            onDifficulty={(difficulty) =>
-              game.send({ type: "SET_CAMPAIGN_DIFFICULTY", difficulty })
-            }
-          />
-          <StoryInbox
-            events={s.narrative.activeEvents.map((event) => ({
-              id: event.id,
-              titleKey: `${event.definitionId}.title`,
-              bodyKey: `${event.definitionId}.body`,
-              raisedDateKey: event.triggeredDateKey,
-              choices: event.choices.map((choice) => ({
-                id: choice.id,
-                labelKey: choice.labelKey,
-              })),
-            }))}
-            onChoose={(eventId, choiceId) =>
-              game.send({ type: "RESOLVE_NARRATIVE_EVENT", eventId, choiceId })
-            }
-          />
-          <MilestoneToast
-            milestoneId={
-              latestMilestone !== announcedMilestone ? latestMilestone : null
-            }
-            onDismiss={() => setAnnouncedMilestone(latestMilestone)}
-          />
-          <ChronicleView
-            entries={s.narrative.chronicle.map((entry) => ({
-              id: entry.id,
-              date: entry.date,
-              text: entry.textKey,
-              scope: entry.scope,
-            }))}
-          />
-          <CareerOutcomeModal
-            outcome={s.narrative.career}
-            onRecovery={(path) =>
-              game.send({ type: "TAKE_RECOVERY_MEASURE", path })
-            }
-            onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
-            onRestart={() => game.restart()}
-          />
-          <TechnologyPanel
-            technologies={s.world.technologies}
-            projects={s.technologyProjects}
-            implementations={s.technologyImplementations}
-            onAdopt={(technologyId) =>
-              game.send({ type: "ADOPT_TECHNOLOGY", technologyId })
-            }
-          />
-          <RevenueDashboard
-            adrMinor={s.metrics.adrMinor}
-            revParMinor={s.metrics.revParMinor}
-            occupancyBasisPoints={s.metrics.occupancyBasisPoints}
-            singleRateMinor={singleRateMinor}
-            onSetSingleRate={(rateMinor) =>
-              game.send({
-                type: "SET_RATE",
-                dateKey: s.calendar.dateKey,
-                category: "single",
-                rateMinor,
-              })
-            }
-          />
-          <StaffDashboard
-            staff={s.staff}
-            roles={STAFF_ROLES}
-            marketWageMinor={cityWageMinor}
-            onHire={(role) =>
-              game.send({
-                type: "HIRE",
-                role,
-                shift: "morning",
-                // The house never offers under the going rate; a tight labour
-                // market is paid for, not worked around.
-                monthlyWageMinor: Math.max(250_000, cityWageMinor),
-              })
-            }
-          />
-          <PurchasingDashboard
-            stock={s.stock}
-            onOrder={(sku) =>
-              game.send({ type: "ORDER_SUPPLIES", sku, quantity: 60 })
-            }
-          />
-          <FinanceDashboard
-            cashMinor={s.finance.cashMinor}
-            loanPrincipalMinor={s.loan.principalMinor}
-            monthToDateProfitMinor={
-              s.finance.month.roomRevenueMinor +
-              s.finance.month.otherRevenueMinor -
-              s.finance.month.operatingExpenseMinor
-            }
-          />
-          <BuildPanel
-            renovationActive={s.renovation !== null}
-            onStartRenovation={() => game.send({ type: "START_RENOVATION" })}
-          />
-          <AlertsPanel
-            alerts={s.alerts}
-            openAlertId={openAlert}
-            onOpen={setOpenAlert}
-            locale={preferences.locale}
-          />
-          <MonthlyCloseModal
-            report={
-              s.lastMonthlyClose &&
-              s.lastMonthlyClose.periodKey !== dismissedClose
-                ? s.lastMonthlyClose
-                : null
-            }
-            onDismiss={() =>
-              setDismissedClose(s.lastMonthlyClose?.periodKey ?? null)
-            }
-          />
-        </main>
-      </ManagementShell>
+        areas={AREA_ORDER.map((id) => ({ id, content: areaContent[id] }))}
+      />
+      <AlertsPanel
+        alerts={s.alerts}
+        openAlertId={openAlert}
+        onOpen={setOpenAlert}
+        locale={preferences.locale}
+      />
+      <MonthlyCloseModal
+        report={
+          s.lastMonthlyClose && s.lastMonthlyClose.periodKey !== dismissedClose
+            ? s.lastMonthlyClose
+            : null
+        }
+        onDismiss={() =>
+          setDismissedClose(s.lastMonthlyClose?.periodKey ?? null)
+        }
+      />
+      <MilestoneToast
+        milestoneId={
+          latestMilestone !== announcedMilestone ? latestMilestone : null
+        }
+        onDismiss={() => setAnnouncedMilestone(latestMilestone)}
+      />
+      <CareerOutcomeModal
+        outcome={s.narrative.career}
+        onRecovery={(path) =>
+          game.send({ type: "TAKE_RECOVERY_MEASURE", path })
+        }
+        onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
+        onRestart={() => game.restart()}
+      />
     </div>
   );
 }

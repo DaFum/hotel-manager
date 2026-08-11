@@ -21,10 +21,15 @@ export const en = {
   management: {
     skip: "Skip to management content",
     areas: "Management areas",
+    mainView: "Main view",
     hotel: "Hotel",
     staff: "Staff",
     finance: "Finance",
+    revenue: "Revenue",
+    marketing: "Marketing & sales",
+    market: "Market",
     company: "Company",
+    campaign: "Campaign",
   },
   settings: {
     presentation: "Presentation settings",

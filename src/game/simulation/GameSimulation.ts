@@ -1615,9 +1615,8 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: "alert.spa-unstaffed",
           severity: "warning",
-          title: "alert.spa-unstaffed.title",
-          cause: "alert.spa-unstaffed.cause",
-          causeValues: { demand, sold, therapists: s.wellness.therapists },
+          title: "Spa unstaffed",
+          cause: "treatment rooms are open but no therapist is rostered",
         });
     }
   }
@@ -2374,9 +2373,8 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: "alert.housekeeping-backlog",
         severity: "warning",
-        title: "alert.housekeeping-backlog.title",
-        cause: "alert.housekeeping-backlog.cause",
-        causeValues: { value: dirty },
+        title: "Housekeeping backlog",
+        cause: `${dirty} rooms waiting for cleaning`,
       });
     if (s.alerts.length > MAX_ALERTS) {
       // Critical alerts are pushed once and never refreshed, so newer warnings

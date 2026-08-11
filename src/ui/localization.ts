@@ -146,6 +146,25 @@ export function agentStatusKey(status: string): string {
   return `agent.status.${status}`;
 }
 
+const FACILITY_CAUSE_KEYS: Readonly<Record<string, string>> = {
+  seating: "facility.cause.seating",
+  "staffed throughput": "facility.cause.serviceStaff",
+  "portions in stock": "facility.cause.stock",
+  "housekeepers on duty": "facility.cause.serviceStaff",
+  "clean linen": "facility.cause.stock",
+  "machine capacity": "facility.cause.equipment",
+  "laundry staff": "facility.cause.serviceStaff",
+  "cars in service": "facility.cause.elevator",
+  "guards rostered": "facility.cause.serviceStaff",
+  "changing room space": "facility.cause.space",
+};
+
+export function facilityCauseKey(cause: string): string {
+  return cause.startsWith("facility.cause.")
+    ? cause
+    : (FACILITY_CAUSE_KEYS[cause] ?? "facility.cause.demand");
+}
+
 export type LocalizationKey = keyof typeof ENGLISH_TEXT;
 
 /** Presentation-edge lookup until Plan 08 supplies locale-selected catalogs. */

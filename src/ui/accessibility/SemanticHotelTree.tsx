@@ -15,6 +15,7 @@ export interface SemanticRoom {
   problemKeys?: string[];
   problemLabels?: string[];
   renovationPhase?: RenovationPhase;
+  faultReasonKey?: string;
 }
 /**
  * The house as a list. This is not a fallback for the canvas — it is the
@@ -135,6 +136,14 @@ export function SemanticHotelTree({
                               renovationPhaseKey(room.renovationPhase),
                             )}
                           </dd>
+                        </>
+                      ) : null}
+                      {room.faultReasonKey ? (
+                        <>
+                          <dt>
+                            {translateGame(locale, "room.detail.faultReason")}
+                          </dt>
+                          <dd>{translateGame(locale, room.faultReasonKey)}</dd>
                         </>
                       ) : null}
                       <dt>

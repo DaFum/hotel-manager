@@ -68,6 +68,7 @@ import {
 import {
   BAR_SERVICE_MINUTE,
   BREAKFAST_START,
+  RESTAURANT_SERVICE_MINUTE,
   ROOM_SERVICE_MINUTE,
 } from "../fnb/schedule";
 import { boardCommitment } from "../fnb/boardPlans";
@@ -140,6 +141,7 @@ import {
   describeAgentLocations,
   describeLiftCars,
 } from "../building/agentLocations";
+import { describeOperationalSituations } from "../building/operationalSituations";
 import { addDays, daysInMonth, MINUTES_PER_DAY } from "../domain/calendar";
 import { compareIds } from "../domain/ids";
 import { STAFF_ROLES, type StaffRole } from "../domain/staffRoles";
@@ -1341,6 +1343,7 @@ export class GameSimulation implements CommandExecutor {
    */
   private runFacilities(): void {
     this.runBreakfast();
+    this.runRestaurant();
     this.runBar();
     this.runRoomService();
     this.runWellness();
@@ -1575,6 +1578,88 @@ export class GameSimulation implements CommandExecutor {
     });
   }
 
+  private runRestaurant(): void {
+    const s = this.state;
+    if (s.calendar.minuteOfDay !== RESTAURANT_SERVICE_MINUTE) return;
+    const houseDemand = Math.floor((s.stays.length * 6000) / 10000);
+    const outside = externalCovers({
+      baseCovers: STARTER_HOTEL.restaurantBaseExternalCovers,
+      seasonalityBp: seasonalityBp(s.calendar.dateKey),
+      priceIndexBp: STARTER_HOTEL.restaurantPriceIndexBp,
+      reputationBp: STARTER_HOTEL.restaurantReputationBp,
+    });
+    const demand = houseDemand + outside;
+    const seats = STARTER_HOTEL.restaurantSeats;
+    const reservedSeats = 0;
+    const seating = seatService({
+      demand,
+      seats,
+      reservedSeats,
+      walkIns: 0,
+      serviceMinutes: 240,
+      averageStayMinutes: 90,
+      kitchenCovers: seats * 2,
+      isOpen: true,
+    });
+    const serviceThroughput = this.onDuty("fnb") * COVERS_PER_BARKEEPER;
+    const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
+    const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
+    const prepared = plannedFnbPreparation(demand, kitchenThroughput);
+    const row = facilityRow({
+      id: "fnb.restaurant",
+      name: "Restaurant",
+      demand,
+      constraints: [
+        { label: "facility.cause.demand", value: demand },
+        { label: "facility.cause.seating", value: seating.capacity },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
+    });
+    const kitchen = runKitchenService({
+      boardCovers: 0,
+      aLaCarteCovers: Math.min(seating.seated, row.capacity),
+      prepared,
+      stock,
+      allergyCovers: 0,
+      substitutionStock: 0,
+      ingredientMinor: averageIngredientMinor("restaurant"),
+      wasteBp: FNB_WASTE_BP,
+    });
+    const consumed = kitchen.served + kitchen.wasted;
+    if (consumed > 0)
+      s.stock = consume(s.stock, FNB_SERVICE_STOCK_SKU, consumed);
+    if (kitchen.served > 0) {
+      const revenue = kitchen.served * averageCoverMinor("restaurant");
+      this.earn(
+        revenue,
+        "restaurantRevenue",
+        `${kitchen.served} restaurant covers`,
+      );
+      s.finance.month.otherRevenueMinor += revenue;
+    }
+    this.recordFnbOutlet({
+      id: "restaurant",
+      seats,
+      reservedSeats,
+      demand,
+      capacity: row.capacity,
+      served: kitchen.served,
+      waitlisted: Math.max(0, demand - kitchen.served),
+      serviceThroughput,
+      kitchenThroughput,
+      stockLeft: kitchen.stockLeft,
+      wastedCovers: kitchen.wasted,
+      ingredientExpenseMinor: kitchen.ingredientExpenseMinor,
+      averageWaitMinutes: demand > kitchen.served ? 45 : 0,
+      serviceUtilizationBp: utilizationBp(demand, serviceThroughput),
+      kitchenUtilizationBp: utilizationBp(demand, kitchenThroughput),
+      cause: row.cause as FnbConstraintKey,
+    });
+  }
+
   private runBar(): void {
     const s = this.state;
     if (s.calendar.minuteOfDay !== BAR_SERVICE_MINUTE) return;
@@ -1776,7 +1861,9 @@ export class GameSimulation implements CommandExecutor {
               ? "facility.breakfast_room"
               : next.id === "bar"
                 ? "facility.bar"
-                : "facility.breakfast_room",
+                : next.id === "restaurant"
+                  ? "facility.restaurant"
+                  : "facility.kitchen",
           kind: "facility",
         },
       });
@@ -2622,8 +2709,8 @@ export class GameSimulation implements CommandExecutor {
   }
 
   private refreshMetrics(): void {
-    this.refreshRenderDescriptors();
     this.refreshFacilities();
+    this.refreshRenderDescriptors();
     this.refreshClassification();
     // Group cash is one number wherever it moved this quantum; the treasury
     // only records where inside the group it sits.
@@ -2711,6 +2798,35 @@ export class GameSimulation implements CommandExecutor {
         waitingGuestIds,
       }),
     };
+    const queuedGuestIds = s.renderDescriptors.agents
+      .filter((agent) => agent.queuedFor === "facility.reception")
+      .map((agent) => agent.id);
+    s.renderDescriptors.situations = describeOperationalSituations({
+      elapsedMinutes: s.elapsedMinutes,
+      rooms: s.hotel.rooms,
+      floorByRoomId: s.renderDescriptors.floorByRoomId,
+      agents: s.renderDescriptors.agents,
+      receptionQueueGuestIds: queuedGuestIds,
+      receptionDeskCount: s.staff.filter(
+        (member) => member.role === "reception",
+      ).length,
+      assets: s.assets,
+      renovationRoomIds: Object.keys(renovationPhaseByRoomId),
+      facilities: s.facilities,
+      fnb: s.fnb,
+    });
+    const round = s.renderDescriptors.situations.housekeeping.round;
+    if (round) {
+      const index = s.renderDescriptors.agents.findIndex(
+        (agent) => agent.id === round.agentId,
+      );
+      if (index >= 0)
+        s.renderDescriptors.agents[index] = {
+          ...s.renderDescriptors.agents[index],
+          locationId: round.locationId,
+          routeIds: round.routeIds,
+        };
+    }
   }
 
   // --- city market -------------------------------------------------------
@@ -3029,6 +3145,9 @@ export class GameSimulation implements CommandExecutor {
     const dirtyRooms = s.hotel.rooms.filter(
       (r) => r.state === "VacantDirty",
     ).length;
+    const restaurant = s.fnb.outlets.find(
+      (outlet) => outlet.id === "restaurant",
+    );
 
     s.facilities = [
       facilityRow({
@@ -3054,6 +3173,17 @@ export class GameSimulation implements CommandExecutor {
         constraints: [
           { label: "seating", value: STARTER_HOTEL.barSeats * 7 },
           { label: "staffed throughput", value: this.onDuty("fnb") * 40 },
+        ],
+      }),
+      facilityRow({
+        id: "facility.restaurant",
+        name: "Restaurant",
+        demand: restaurant?.demand ?? 0,
+        constraints: [
+          {
+            label: restaurant?.cause ?? "facility.cause.closed",
+            value: restaurant?.capacity ?? 0,
+          },
         ],
       }),
       facilityRow({
@@ -3248,16 +3378,20 @@ export class GameSimulation implements CommandExecutor {
     const blocked = new Set(renovationBlockedRooms(step.job));
 
     for (const room of s.hotel.rooms) {
-      if (blocked.has(room.id) && room.state !== "Occupied")
+      if (blocked.has(room.id) && room.state !== "Occupied") {
         room.state = "OutOfOrder";
+        room.faultReasonCode = "room.fault.renovation";
+      }
       // Reopening is a cleaning job, not an instant sale: a handed-over room
       // still has to pass housekeeping.
       else if (
         before.has(room.id) &&
         !blocked.has(room.id) &&
         room.state === "OutOfOrder"
-      )
+      ) {
         room.state = "VacantDirty";
+        room.faultReasonCode = undefined;
+      }
     }
 
     if (step.roomsAdded > 0) {

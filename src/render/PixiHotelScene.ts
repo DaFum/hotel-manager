@@ -19,6 +19,7 @@ import {
   placeAgentsFromEntities,
   placeRooms,
   placeRoomsFromGeometry,
+  resolveEntityPosition,
   roomConcern,
   stageTransform,
   visiblePlacements,
@@ -29,6 +30,7 @@ import type { VisualAgent } from "./agentMaterialization";
 import type { ElevatorVisualState } from "./agentMaterialization";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
 import type { FloorPlan } from "../game/building/floorPlan";
+import type { OperationalSituationDescriptors } from "../game/building/operationalSituations";
 import { isoProject } from "./isoProjection";
 import {
   aggregateRoomState,
@@ -64,6 +66,7 @@ export interface SceneModel {
   floorPlan?: FloorPlan;
   closedNavigationIds?: readonly string[];
   elevator?: ElevatorVisualState;
+  situations?: OperationalSituationDescriptors;
   camera?: CameraState;
   selectedId?: string | null;
   minuteOfDay?: number;
@@ -113,6 +116,7 @@ export class PixiHotelScene {
   private world = new Container();
   private architecture = new Container();
   private lifts = new Container();
+  private operations = new Container();
   private areaTiles = new Container();
   private tiles = new Container();
   private marks = new Container();
@@ -131,6 +135,7 @@ export class PixiHotelScene {
     this.world.addChild(
       this.architecture,
       this.lifts,
+      this.operations,
       this.areaTiles,
       this.tiles,
       this.marks,
@@ -173,8 +178,113 @@ export class PixiHotelScene {
     this.drawBuilding(model);
     this.drawArchitecture(model);
     this.drawLiftCars(model);
+    this.drawOperationalSituations(model);
     this.drawPeople(model);
     this.applyCamera(model);
+  }
+
+  private drawOperationalSituations(model: SceneModel): void {
+    for (const child of this.operations.removeChildren()) child.destroy();
+    const situations = model.situations;
+    const positions = model.positionByEntityId;
+    if (!situations || !positions) return;
+
+    const reception = this.projectGrid(0, 0, 1);
+    situations.reception.desks.forEach((desk, index) => {
+      const x = reception.x + 8 + index * 13;
+      const y = reception.y + 4;
+      const graphic = new Graphics()
+        .rect(x, y, 10, 6)
+        .fill({ color: desk.staffed ? 0x4c9f70 : 0x555555 })
+        .stroke({
+          width: desk.staffed ? 1 : 2,
+          color: desk.staffed ? 0xe9e5db : 0xe2543c,
+        });
+      graphic.label = desk.id;
+      this.operations.addChild(graphic);
+    });
+
+    const round = situations.housekeeping.round;
+    if (round) {
+      const from = resolveEntityPosition(positions, round.locationId);
+      const to = resolveEntityPosition(positions, round.targetRoomId);
+      if (from && to) {
+        const route = new Graphics()
+          .moveTo(from.x, from.y)
+          .lineTo(to.x, to.y)
+          .stroke({ width: 2, color: 0x6d9dc5, alpha: 0.75 });
+        route.label = `${round.agentId}.route`;
+        this.operations.addChild(route);
+      }
+    }
+
+    const fnbAreaIds = new Set(
+      situations.fnb.outlets.map((outlet) => outlet.areaId),
+    );
+    for (const overload of situations.overloads) {
+      const position = resolveEntityPosition(positions, overload.facilityId);
+      if (!position) continue;
+      const alarm = new Graphics()
+        .circle(position.x, position.y, 9)
+        .stroke({ width: 2, color: 0xe2543c });
+      alarm.label = `${overload.facilityId}.overloaded.${overload.cause}`;
+      this.operations.addChild(alarm);
+      if (!fnbAreaIds.has(overload.facilityId))
+        overload.queueEntityIds.forEach((id, index) => {
+          const queued = new Graphics()
+            .circle(position.x + 12 + index * 7, position.y, 2.5)
+            .fill(AGENT_COLOURS.guest);
+          queued.label = id;
+          this.operations.addChild(queued);
+        });
+    }
+
+    for (const outlet of situations.fnb.outlets) {
+      const position = resolveEntityPosition(positions, outlet.areaId);
+      if (!position) continue;
+      outlet.tables.forEach((table, index) => {
+        const x = position.x + 8 + (index % 4) * 9;
+        const y = position.y + 4 + Math.floor(index / 4) * 9;
+        const graphic = new Graphics().circle(x, y, 3.5).fill({
+          color: table.occupiedSeats > 0 ? 0xe8a33d : 0x4c9f70,
+          alpha: 0.9,
+        });
+        graphic.label = `${table.id}.${table.occupiedSeats}-occupied`;
+        this.operations.addChild(graphic);
+      });
+      outlet.queueEntityIds.forEach((id, index) => {
+        const queued = new Graphics()
+          .circle(position.x - 7 - index * 6, position.y + 8, 2.5)
+          .fill(AGENT_COLOURS.guest);
+        queued.label = id;
+        this.operations.addChild(queued);
+      });
+    }
+
+    const kitchen = resolveEntityPosition(positions, "facility.kitchen");
+    const restaurant = resolveEntityPosition(positions, "facility.restaurant");
+    if (kitchen && restaurant) {
+      const servicePass = new Graphics()
+        .moveTo(restaurant.x, restaurant.y)
+        .lineTo(kitchen.x, kitchen.y)
+        .stroke({ width: 3, color: 0xe8a33d, alpha: 0.7 });
+      servicePass.label = "navigation.restaurant-kitchen.pass";
+      this.operations.addChild(servicePass);
+    }
+    if (kitchen)
+      situations.fnb.kitchen.stations.forEach((station, index) => {
+        const graphic = new Graphics()
+          .rect(kitchen.x + 6 + index * 8, kitchen.y + 3, 6, 10)
+          .fill({
+            color: station.active
+              ? situations.fnb.kitchen.overloaded
+                ? 0xe2543c
+                : 0xe8a33d
+              : 0x38434d,
+          });
+        graphic.label = station.id;
+        this.operations.addChild(graphic);
+      });
   }
 
   private drawLiftCars(model: SceneModel): void {

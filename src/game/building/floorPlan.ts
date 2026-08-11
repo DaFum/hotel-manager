@@ -108,6 +108,14 @@ const GROUND_AREAS: readonly Omit<PlacedArea, "floor">[] = [
   {
     id: "facility.conference",
     kind: "public",
+    gridX: 8,
+    gridY: 4,
+    width: 3,
+    depth: 2,
+  },
+  {
+    id: "facility.restaurant",
+    kind: "public",
     gridX: 2,
     gridY: 4,
     width: 3,

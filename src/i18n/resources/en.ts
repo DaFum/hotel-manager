@@ -75,7 +75,28 @@ export const en = {
       miseEnPlace: "mise-en-place",
       transport: "service transport",
       elevator: "lift capacity",
+      equipment: "equipment capacity",
+      space: "available space",
     },
+  },
+  operations: {
+    title: "Operational floor",
+    reception: "Reception desks",
+    deskStaffed: "Desk {number}: staffed by {staffId}",
+    deskUnstaffed: "Desk {number}: unmanned",
+    receptionQueue: "{count} parties waiting to check in",
+    housekeeping: "Housekeeping round",
+    dirtyRooms: "Floor {floor}: {count} dirty rooms",
+    round:
+      "Housekeeper {agentId} → {targetRoomId}; {guestLabel} is waiting for a room",
+    overloads: "Facility pressure",
+    overload: "{facilityId}: {count} waiting, limited by {cause}",
+    food: "Restaurant, kitchen and bar",
+    outlet:
+      "{outletId}: {free} free tables, {waiting} waiting, limited by {cause}",
+    kitchen: "Kitchen line: {status}, limited by {cause}",
+    kitchenOverloaded: "overloaded",
+    kitchenAvailable: "available",
   },
   expense: {
     revenue: "revenue correction",
@@ -193,6 +214,13 @@ export const en = {
       notPriced: "not priced",
       fittedOutAs: "Fitted out as",
       yearsSinceRefit: "Years since refit",
+      faultReason: "Fault reason",
+    },
+    fault: {
+      "boiler-failed": "Boiler failure",
+      "lift-failed": "Lift failure",
+      unavailable: "Unavailable — cause not yet diagnosed",
+      renovation: "Closed for renovation",
     },
     problems: {
       none: "No open problem",

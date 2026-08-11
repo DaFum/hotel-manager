@@ -42,6 +42,9 @@ export const STARTER_HOTEL = {
 
   // --- deep facilities ---------------------------------------------------
   restaurantSeats: restaurant.capacity,
+  restaurantBaseExternalCovers: 24,
+  restaurantPriceIndexBp: 10000,
+  restaurantReputationBp: 5000,
   barSeats: bar.capacity,
   /** Covers the bar draws from the city at market price and average repute. */
   barBaseExternalCovers: 20,

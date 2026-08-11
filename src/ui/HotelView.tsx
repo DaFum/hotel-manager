@@ -9,9 +9,11 @@ import { translateGame, type GameLocale } from "../i18n";
 import type { RoomOccupantRef } from "../game/simulation/initialState";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
 import type { FloorPlan } from "../game/building/floorPlan";
+import type { OperationalSituationDescriptors } from "../game/building/operationalSituations";
 import {
   guestIdentityCode,
   agentStatusKey,
+  facilityCauseKey,
   renovationPhaseKey,
   roomConditionKey,
 } from "./localization";
@@ -54,6 +56,7 @@ interface SceneModel {
   floorPlan?: FloorPlan;
   closedNavigationIds?: readonly string[];
   elevator?: ElevatorVisualState;
+  situations?: OperationalSituationDescriptors;
   renovationPhaseByRoomId: Readonly<Record<string, RenovationPhase>>;
   camera?: CameraState;
   selectedId: string | null;
@@ -125,6 +128,8 @@ export function HotelView(props: {
   floorPlan?: FloorPlan;
   closedNavigationIds?: readonly string[];
   elevator?: ElevatorVisualState;
+  situations?: OperationalSituationDescriptors;
+  roomFaultReasonByRoomId?: Readonly<Record<string, string>>;
   camera?: CameraState;
   minuteOfDay?: number;
   stays?: readonly HotelViewStay[];
@@ -204,6 +209,7 @@ export function HotelView(props: {
       floorPlan: props.floorPlan,
       closedNavigationIds: props.closedNavigationIds,
       elevator: props.elevator,
+      situations: props.situations,
       renovationPhaseByRoomId: props.renovationPhaseByRoomId ?? {},
       camera: props.camera,
       selectedId: selected,
@@ -218,6 +224,7 @@ export function HotelView(props: {
     props.floorPlan,
     props.closedNavigationIds,
     props.elevator,
+    props.situations,
     props.renovationPhaseByRoomId,
     props.camera,
     props.minuteOfDay,
@@ -304,6 +311,7 @@ export function HotelView(props: {
       conditionKey: roomConditionKey(room.state),
       problemLabels: roomProblemLabels,
       renovationPhase: phase,
+      faultReasonKey: props.roomFaultReasonByRoomId?.[room.id],
     };
   });
 
@@ -396,6 +404,99 @@ export function HotelView(props: {
           {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
           {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
         </p>
+      ) : null}
+      {props.situations ? (
+        <section aria-label={translateGame(locale, "operations.title")}>
+          <h3>{translateGame(locale, "operations.title")}</h3>
+          <h4>{translateGame(locale, "operations.reception")}</h4>
+          <ul>
+            {props.situations.reception.desks.map((desk, index) => (
+              <li key={desk.id} data-entity-id={desk.id}>
+                {translateGame(
+                  locale,
+                  desk.staffed
+                    ? "operations.deskStaffed"
+                    : "operations.deskUnstaffed",
+                  {
+                    number: index + 1,
+                    staffId: desk.staffId ?? "",
+                  },
+                )}
+              </li>
+            ))}
+          </ul>
+          <p>
+            {translateGame(locale, "operations.receptionQueue", {
+              count: props.situations.reception.queueGuestIds.length,
+            })}
+          </p>
+
+          <h4>{translateGame(locale, "operations.housekeeping")}</h4>
+          <ul>
+            {Object.entries(
+              props.situations.housekeeping.dirtyRoomIdsByFloor,
+            ).map(([floor, roomIds]) => (
+              <li key={floor}>
+                {translateGame(locale, "operations.dirtyRooms", {
+                  floor,
+                  count: roomIds.length,
+                })}
+              </li>
+            ))}
+          </ul>
+          {props.situations.housekeeping.round ? (
+            <p>
+              {translateGame(locale, "operations.round", {
+                agentId: props.situations.housekeeping.round.agentId,
+                targetRoomId: props.situations.housekeeping.round.targetRoomId,
+                guestLabel: props.situations.housekeeping.round.waitingGuestId
+                  ? translateGame(locale, "room.guestLabel", {
+                      code: guestIdentityCode(
+                        props.situations.housekeeping.round.waitingGuestId,
+                      ),
+                    })
+                  : translateGame(locale, "room.detail.none"),
+              })}
+            </p>
+          ) : null}
+
+          <h4>{translateGame(locale, "operations.overloads")}</h4>
+          <ul>
+            {props.situations.overloads.map((overload) => (
+              <li key={overload.facilityId}>
+                {translateGame(locale, "operations.overload", {
+                  facilityId: overload.facilityId,
+                  count: overload.excess,
+                  cause: facilityCauseKey(overload.cause),
+                })}
+              </li>
+            ))}
+          </ul>
+
+          <h4>{translateGame(locale, "operations.food")}</h4>
+          <ul>
+            {props.situations.fnb.outlets.map((outlet) => (
+              <li key={outlet.id} data-entity-id={outlet.areaId}>
+                {translateGame(locale, "operations.outlet", {
+                  outletId: outlet.id,
+                  free: outlet.tables.filter(
+                    (table) => table.occupiedSeats === 0,
+                  ).length,
+                  waiting: outlet.turnedAwayCount,
+                  cause: facilityCauseKey(outlet.cause),
+                })}
+              </li>
+            ))}
+          </ul>
+          <p>
+            {translateGame(locale, "operations.kitchen", {
+              status: props.situations.fnb.kitchen.overloaded
+                ? "operations.kitchenOverloaded"
+                : "operations.kitchenAvailable",
+              cause: facilityCauseKey(props.situations.fnb.kitchen.cause),
+            })}
+          </p>
+        </section>
       ) : null}
       <section aria-label={translateGame(locale, "agent.people")}>
         <h3>{translateGame(locale, "agent.people")}</h3>
@@ -502,6 +603,17 @@ export function HotelView(props: {
             <dd>{translateGame(locale, roomConditionKey(detail.state))}</dd>
             <dt>{translateGame(locale, "room.detail.cleanliness")}</dt>
             <dd>{detail.cleanliness}</dd>
+            {props.roomFaultReasonByRoomId?.[detail.id] ? (
+              <>
+                <dt>{translateGame(locale, "room.detail.faultReason")}</dt>
+                <dd>
+                  {translateGame(
+                    locale,
+                    props.roomFaultReasonByRoomId[detail.id],
+                  )}
+                </dd>
+              </>
+            ) : null}
             {props.renovationPhaseByRoomId?.[detail.id] ? (
               <>
                 <dt>{translateGame(locale, "room.detail.renovationPhase")}</dt>

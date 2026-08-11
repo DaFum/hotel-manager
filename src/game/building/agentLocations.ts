@@ -89,16 +89,6 @@ function guestActivity(
   return { locationId: roomId, status: "sleeping" };
 }
 
-function shiftIsActive(
-  shift: string | undefined,
-  minuteOfDay: number,
-): boolean {
-  if (!shift) return true;
-  if (shift === "morning") return minuteOfDay >= 360 && minuteOfDay < 840;
-  if (shift === "evening") return minuteOfDay >= 840 && minuteOfDay < 1320;
-  return minuteOfDay >= 1320 || minuteOfDay < 360;
-}
-
 /** Worker-owned, deterministic positions for every guest and staff record. */
 export function describeAgentLocations(
   input: AgentLocationInput,
@@ -155,22 +145,17 @@ export function describeAgentLocations(
   }
 
   for (const staff of input.staff) {
-    const active = shiftIsActive(staff.shift, input.minuteOfDay);
     agents.push({
       id: staff.id,
       kind: "staff",
       locationId: staff.absent
         ? "outside.hotel"
-        : active
-          ? (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area")
-          : "facility.staff_area",
-      status: staff.absent ? "absent" : active ? "working" : "off-duty",
+        : (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area"),
+      status: staff.absent ? "absent" : "working",
       routeIds: [
         staff.absent
           ? "outside.hotel"
-          : active
-            ? (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area")
-            : "facility.staff_area",
+          : (STAFF_AREA_BY_ROLE[staff.role] ?? "facility.staff_area"),
       ],
     });
   }

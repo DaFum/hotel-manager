@@ -232,4 +232,81 @@ describe("hotel view", () => {
       screen.getByRole("region", { name: /person detail/i }).textContent,
     ).toContain("room.101 → facility.breakfast_room");
   });
+
+  it("reads physical operating situations and fault reasons without colour", () => {
+    render(
+      <HotelView
+        rooms={[{ ...rooms[0], state: "OutOfOrder" }]}
+        disableRenderer
+        roomFaultReasonByRoomId={{
+          "room.101": "room.fault.boiler-failed",
+        }}
+        situations={{
+          reception: {
+            desks: [
+              {
+                id: "facility.reception.desk.1",
+                staffed: true,
+                staffId: "staff.reception.1",
+              },
+              { id: "facility.reception.desk.2", staffed: false },
+            ],
+            queueGuestIds: ["guest.waiting"],
+          },
+          housekeeping: {
+            dirtyRoomIdsByFloor: { "1": ["room.102"] },
+            round: {
+              agentId: "staff.housekeeping.1",
+              locationId: "navigation.floor.1.corridor",
+              targetRoomId: "room.102",
+              routeIds: ["facility.housekeeping", "room.102"],
+              waitingGuestId: "guest.waiting",
+            },
+          },
+          roomFaultReasonByRoomId: {
+            "room.101": "room.fault.boiler-failed",
+          },
+          overloads: [
+            {
+              facilityId: "facility.bar",
+              cause: "staffed throughput",
+              excess: 4,
+              queueEntityIds: ["queue.facility.bar.1"],
+            },
+          ],
+          fnb: {
+            outlets: [
+              {
+                id: "fnb.restaurant",
+                areaId: "facility.restaurant",
+                tables: [
+                  { id: "fnb.restaurant.table.1", seats: 4, occupiedSeats: 4 },
+                  { id: "fnb.restaurant.table.2", seats: 4, occupiedSeats: 0 },
+                ],
+                queueEntityIds: ["queue.fnb.restaurant.1"],
+                turnedAwayCount: 6,
+                averageWaitMinutes: 30,
+                cause: "facility.cause.kitchenLine",
+              },
+            ],
+            kitchen: {
+              stations: [{ id: "facility.kitchen.station.1", active: true }],
+              overloaded: true,
+              cause: "facility.cause.kitchenLine",
+            },
+          },
+        }}
+      />,
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /room\.101 single out of order/i }),
+    );
+    expect(screen.getAllByText("Boiler failure").length).toBeGreaterThan(0);
+    expect(screen.getByText(/desk 2: unmanned/i)).toBeTruthy();
+    expect(screen.getByText(/room\.102.*guest g-waiting/i)).toBeTruthy();
+    expect(
+      screen.getByText(/1 free table.*6 waiting.*kitchen line/i),
+    ).toBeTruthy();
+  });
 });

@@ -4,6 +4,7 @@ import { createInitialGameState, type StayRecord } from "./initialState";
 import {
   BAR_SERVICE_MINUTE,
   BREAKFAST_START,
+  RESTAURANT_SERVICE_MINUTE,
   ROOM_SERVICE_MINUTE,
 } from "../fnb/schedule";
 
@@ -110,6 +111,15 @@ describe("authoritative F&B operations", () => {
       ),
     ).toBe(true);
 
+    runToMinute(simulation, RESTAURANT_SERVICE_MINUTE - 5);
+    simulation.state.stock["breakfast-portion"] = 100;
+    simulation.advanceQuantum();
+    expect(outlet(simulation, "restaurant")).toMatchObject({
+      demand: expect.any(Number),
+      served: expect.any(Number),
+    });
+    expect(outlet(simulation, "restaurant").demand).toBeGreaterThan(0);
+
     runToMinute(simulation, BAR_SERVICE_MINUTE - 5);
     simulation.state.stock["breakfast-portion"] = 100;
     simulation.advanceQuantum();
@@ -120,7 +130,7 @@ describe("authoritative F&B operations", () => {
     expect(simulation.state.stock["breakfast-portion"]).toBeLessThan(
       stockAfterBar,
     );
-    for (const id of ["breakfastRoom", "bar", "roomService"])
+    for (const id of ["breakfastRoom", "restaurant", "bar", "roomService"])
       expect(outlet(simulation, id).demand).toBeGreaterThan(0);
 
     simulation.state.stays = stays(5);
@@ -131,18 +141,13 @@ describe("authoritative F&B operations", () => {
         (alert) => alert.id === "alert.fnb-wait.breakfastRoom",
       ),
     ).toBe(false);
-    expect(outlet(simulation, "restaurant")).toMatchObject({
-      demand: 0,
-      served: 0,
-      cause: "facility.cause.closed",
-    });
-
     const revenueAccounts = simulation.state.finance.ledger
       .filter((entry) => entry.amountMinor > 0)
       .map((entry) => entry.account);
     expect(revenueAccounts).toEqual(
       expect.arrayContaining([
         "breakfastRevenue",
+        "restaurantRevenue",
         "barRevenue",
         "roomServiceRevenue",
       ]),

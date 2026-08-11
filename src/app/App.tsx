@@ -287,6 +287,10 @@ export function App() {
           floorPlan={s.renderDescriptors.floorPlan}
           closedNavigationIds={s.renderDescriptors.closedNavigationIds}
           elevator={s.renderDescriptors.elevator}
+          situations={s.renderDescriptors.situations}
+          roomFaultReasonByRoomId={
+            s.renderDescriptors.situations.roomFaultReasonByRoomId
+          }
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
           focusedEntityId={camera.focusedId}

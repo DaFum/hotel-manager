@@ -27,6 +27,7 @@ import type {
   LiftCarDescriptor,
   RenderAgentDescriptor,
 } from "../building/agentLocations";
+import type { OperationalSituationDescriptors } from "../building/operationalSituations";
 import type { Phase as RenovationPhase } from "../renovation/projects";
 import type { MonthlyCloseReport } from "../finance/monthlyClose";
 import type { Classification } from "../classification/quality";
@@ -98,6 +99,8 @@ export interface RoomRecord {
   moduleId: string;
   /** Years since the fit-out was current; only a renovation resets it. */
   styleAgeYears: number;
+  /** Why an unavailable room is unavailable; presentation resolves the code. */
+  faultReasonCode?: string;
 }
 
 export interface StaffRecord {
@@ -240,6 +243,7 @@ export interface GameState {
     renovationPhaseByRoomId: Record<string, RenovationPhase>;
     occupantByRoomId: Record<string, RoomOccupantRef>;
     agents: RenderAgentDescriptor[];
+    situations: OperationalSituationDescriptors;
     closedNavigationIds: string[];
     elevator: {
       id: string;
@@ -517,6 +521,20 @@ export function createRenderDescriptors(
     renovationPhaseByRoomId: {},
     occupantByRoomId: {},
     agents: [],
+    situations: {
+      reception: { desks: [], queueGuestIds: [] },
+      housekeeping: { dirtyRoomIdsByFloor: {} },
+      roomFaultReasonByRoomId: {},
+      overloads: [],
+      fnb: {
+        outlets: [],
+        kitchen: {
+          stations: [],
+          overloaded: false,
+          cause: "facility.cause.demand",
+        },
+      },
+    },
     closedNavigationIds: [],
     elevator: {
       id: "asset.lift",

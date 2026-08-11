@@ -75,7 +75,28 @@ export const de = {
       miseEnPlace: "Mise en Place",
       transport: "Servicetransport",
       elevator: "Aufzugskapazität",
+      equipment: "Anlagenkapazität",
+      space: "verfügbare Fläche",
     },
+  },
+  operations: {
+    title: "Operative Hotellage",
+    reception: "Rezeptionstische",
+    deskStaffed: "Tisch {number}: besetzt durch {staffId}",
+    deskUnstaffed: "Tisch {number}: unbesetzt",
+    receptionQueue: "{count} Parteien warten auf den Check-in",
+    housekeeping: "Housekeeping-Runde",
+    dirtyRooms: "Etage {floor}: {count} unsaubere Zimmer",
+    round:
+      "Housekeeper {agentId} → {targetRoomId}; {guestLabel} wartet auf ein Zimmer",
+    overloads: "Belastete Bereiche",
+    overload: "{facilityId}: {count} warten, begrenzt durch {cause}",
+    food: "Restaurant, Küche und Bar",
+    outlet:
+      "{outletId}: {free} freie Tische, {waiting} warten, begrenzt durch {cause}",
+    kitchen: "Küchenlinie: {status}, begrenzt durch {cause}",
+    kitchenOverloaded: "überlastet",
+    kitchenAvailable: "verfügbar",
   },
   expense: {
     revenue: "Erlöskorrektur",
@@ -195,6 +216,13 @@ export const de = {
       notPriced: "ohne Preis",
       fittedOutAs: "Ausgebaut als",
       yearsSinceRefit: "Jahre seit Umbau",
+      faultReason: "Störungsgrund",
+    },
+    fault: {
+      "boiler-failed": "Heizungsausfall",
+      "lift-failed": "Aufzugsausfall",
+      unavailable: "Nicht verfügbar — Ursache noch nicht diagnostiziert",
+      renovation: "Wegen Renovierung geschlossen",
     },
     problems: {
       none: "Kein offenes Problem",

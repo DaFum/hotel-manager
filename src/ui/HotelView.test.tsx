@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { HotelView } from "./HotelView";
+import { createCamera } from "../render/camera";
 
 const rooms = [
   {
@@ -77,5 +78,27 @@ describe("hotel view", () => {
       screen.getByRole("button", { name: /Breakfast room, 30 demand/i }),
     );
     expect(screen.getByText(/Breakfast room: 30 demand/i)).toBeTruthy();
+  });
+
+  it("only pans the camera when drag movement exceeds the threshold", () => {
+    const onCamera = vi.fn();
+    const onSelect = vi.fn();
+    render(<HotelView rooms={rooms} camera={createCamera()} onCamera={onCamera} onSelect={onSelect} />);
+
+    const canvas = screen.getByTestId("hotel-canvas");
+
+    // Simulate pointer down
+    fireEvent.pointerDown(canvas, { clientX: 100, clientY: 100, pointerId: 1 });
+
+    // Small movement (below 3px threshold)
+    fireEvent.pointerMove(canvas, { clientX: 102, clientY: 102, pointerId: 1 });
+    expect(onCamera).not.toHaveBeenCalled();
+
+    // Larger movement (above 3px threshold)
+    fireEvent.pointerMove(canvas, { clientX: 105, clientY: 105, pointerId: 1 });
+    expect(onCamera).toHaveBeenCalled();
+
+    // Pointer up
+    fireEvent.pointerUp(canvas, { pointerId: 1 });
   });
 });

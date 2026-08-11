@@ -3,10 +3,11 @@ export interface Alert {
   severity: string;
   title: string;
   cause: string;
+  causeValues?: Record<string, string | number>;
 }
 
-function causeText(cause: string): string {
-  return translateAlertCause(cause);
+function causeText(cause: string, causeValues?: Record<string, string | number>): string {
+  return translateAlertCause(cause, causeValues);
 }
 
 export function AlertsPanel(props: {
@@ -23,7 +24,7 @@ export function AlertsPanel(props: {
         <article key={a.id} data-severity={a.severity}>
           <strong>{a.title}</strong>
           <span>{a.severity}</span>
-          <p>{causeText(a.cause)}</p>
+          <p>{causeText(a.cause, a.causeValues)}</p>
           <button
             type="button"
             onClick={() => props.onOpen(a.id)}
@@ -34,7 +35,7 @@ export function AlertsPanel(props: {
           </button>
           {props.openAlertId === a.id ? (
             <p aria-live="polite">
-              {a.id} · {a.severity} · {causeText(a.cause)}
+              {a.id} · {a.severity} · {causeText(a.cause, a.causeValues)}
             </p>
           ) : null}
         </article>

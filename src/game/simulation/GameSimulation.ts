@@ -1210,10 +1210,10 @@ export class GameSimulation implements CommandExecutor {
       if (!dirty) return;
       if ((s.stock["cleaning-unit"] ?? 0) < 1) {
         this.pushAlert({
-        id: "alert.cleaning-stockout",
-        severity: "critical",
-        title: "alert.cleaning-stockout.title",
-        cause: "alert.cleaning-stockout.cause",
+          id: "alert.cleaning-stockout",
+          severity: "critical",
+          title: "Cleaning supplies out of stock",
+          cause: "housekeeping cannot turn rooms around",
         });
         return;
       }
@@ -1221,10 +1221,10 @@ export class GameSimulation implements CommandExecutor {
       if (s.linen.clean < pieces) {
         this.clearAlerts(["alert.linen-short"]);
         this.pushAlert({
-        id: "alert.linen-short",
-        severity: "warning",
-        title: "alert.linen-short.title",
-        cause: "alert.linen-short.cause",
+          id: "alert.linen-short",
+          severity: "warning",
+          title: "Out of clean linen",
+          cause: "rooms cannot be made up until the laundry catches up",
         });
         return;
       }
@@ -1399,8 +1399,8 @@ export class GameSimulation implements CommandExecutor {
         this.pushAlert({
           id: `alert.space.${space.id}`,
           severity: "info",
-          title: `${space.id} turned guests away`,
-          cause: result.cause,
+          title: "alert.space.title",
+          cause: result.cause, // Let cause be evaluated downstream since it is variable or keep as is? The PR asked to replace keys
         });
       else this.clearAlerts([`alert.space.${space.id}`]);
     }
@@ -1531,7 +1531,8 @@ export class GameSimulation implements CommandExecutor {
         id: "alert.breakfast-queue",
         severity: "warning",
         title: "alert.breakfast-queue.title",
-        cause: `${result.queue} guests could not be served`,
+        cause: "alert.breakfast-queue.cause",
+        causeValues: { queue: result.queue },
       });
   }
 
@@ -1585,7 +1586,8 @@ export class GameSimulation implements CommandExecutor {
         id: "alert.room-service-late",
         severity: "warning",
         title: "alert.room-service-late.title",
-        cause: `${minutes} minutes door to door, mostly waiting for the lift`,
+        cause: "alert.room-service-late.cause",
+        causeValues: { minutes },
       });
   }
 
@@ -1613,10 +1615,10 @@ export class GameSimulation implements CommandExecutor {
       }
       if (demand > sold && s.wellness.therapists === 0)
         this.pushAlert({
-        id: "alert.spa-unstaffed",
-        severity: "warning",
-        title: "alert.spa-unstaffed.title",
-        cause: "alert.spa-unstaffed.cause",
+          id: "alert.spa-unstaffed",
+          severity: "warning",
+          title: "Spa unstaffed",
+          cause: "treatment rooms are open but no therapist is rostered",
         });
     }
   }
@@ -1785,10 +1787,11 @@ export class GameSimulation implements CommandExecutor {
       );
       if (gap)
         this.pushAlert({
-        id: "alert.security-short",
-        severity: "warning",
-        title: "alert.security-short.title",
-        cause: `${gap.short} guards short for ${gap.cause}`,
+          id: "alert.security-short",
+          severity: "warning",
+          title: "alert.security-short.title",
+          cause: "alert.security-short.cause",
+          causeValues: { short: gap.short, reason: gap.cause },
         });
 
       const pressureBp = changingRoomPressureBp(
@@ -1797,10 +1800,10 @@ export class GameSimulation implements CommandExecutor {
       );
       if (pressureBp > 0)
         this.pushAlert({
-        id: "alert.staff-areas-crowded",
-        severity: "warning",
-        title: "alert.staff-areas-crowded.title",
-        cause: "alert.staff-areas-crowded.cause",
+          id: "alert.staff-areas-crowded",
+          severity: "warning",
+          title: "Back of house overcrowded",
+          cause: "changing rooms cannot take the whole shift at once",
         });
 
       const noiseBp = s.renovation
@@ -1808,10 +1811,11 @@ export class GameSimulation implements CommandExecutor {
         : 0;
       if (noiseBp > 0)
         this.pushAlert({
-        id: "alert.construction-noise",
-        severity: "warning",
-        title: "alert.construction-noise.title",
-        cause: `${s.stays.length} guests are in the house while the site is live`,
+          id: "alert.construction-noise",
+          severity: "warning",
+          title: "alert.construction-noise.title",
+          cause: "alert.construction-noise.cause",
+          causeValues: { stays: s.stays.length },
         });
     }
 
@@ -1824,8 +1828,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: `alert.${complaint.id}`,
         severity: "warning",
-        title: "Long check-in",
-        cause: `${waiting.bookingId} waited ${waiting.waitedMinutes} minutes at reception`,
+        title: "alert.long-check-in.title",
+        cause: "alert.long-check-in.cause",
+        causeValues: { bookingId: waiting.bookingId, waitedMinutes: waiting.waitedMinutes },
       });
       if (s.handledComplaintIds.includes(complaint.id)) continue;
       s.handledComplaintIds.push(complaint.id);
@@ -1881,8 +1886,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: `alert.recovery.${complaintId}`,
         severity: "critical",
-        title: "Complaint left unanswered",
-        cause: verdict.reason,
+        title: "alert.complaint-unanswered.title",
+        cause: "alert.complaint-unanswered.cause",
+        causeValues: { reason: verdict.reason },
       });
       return;
     }
@@ -1926,8 +1932,9 @@ export class GameSimulation implements CommandExecutor {
       this.pushAlert({
         id: `alert.recovery.${complaintId}`,
         severity: "warning",
-        title: "Recovery escalated",
-        cause: `the manager may not authorise ${outcome.expenseMinor}`,
+        title: "alert.recovery-escalated.title",
+        cause: "alert.recovery-escalated.cause",
+        causeValues: { expenseMinor: outcome.expenseMinor },
       });
       return;
     }
@@ -2320,8 +2327,9 @@ export class GameSimulation implements CommandExecutor {
           this.pushAlert({
             id: `alert.booking-refused.${bookingId}`,
             severity: "info",
-            title: "Booking request refused",
-            cause: reason,
+            title: "alert.booking-refused.title",
+            cause: "alert.booking-refused.cause",
+            causeValues: { reason },
           });
           continue;
         }
@@ -2374,7 +2382,8 @@ export class GameSimulation implements CommandExecutor {
         id: "alert.housekeeping-backlog",
         severity: "warning",
         title: "alert.housekeeping-backlog.title",
-        cause: `${dirty}`, // Store data instead of prose
+        cause: "alert.housekeeping-backlog.cause",
+        causeValues: { value: dirty },
       });
     if (s.alerts.length > MAX_ALERTS) {
       // Critical alerts are pushed once and never refreshed, so newer warnings
@@ -2702,8 +2711,9 @@ export class GameSimulation implements CommandExecutor {
     this.pushAlert({
       id: `alert.event.${s.elapsedMinutes}`,
       severity: "info",
-      title: "Conference booked",
-      cause: `${guests} delegates for ${nights} day(s), ${roomsBlocked} rooms blocked`,
+      title: "alert.conference-booked.title",
+      cause: "alert.conference-booked.cause",
+      causeValues: { guests, nights, roomsBlocked },
     });
   }
 
@@ -3284,7 +3294,8 @@ export class GameSimulation implements CommandExecutor {
         id: "alert.insolvent",
         severity: "critical",
         title: "alert.insolvent.title",
-        cause: `${memo} could not be paid in full`,
+        cause: "alert.insolvent.cause",
+        causeValues: { memo },
       });
     }
   }

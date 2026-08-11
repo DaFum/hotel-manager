@@ -140,6 +140,7 @@ export function worldProblems(snapshot: GameSnapshot): {
       // The keys remain intact, UI handles resolving them
       title: alert.title,
       cause: alert.cause,
+      causeValues: (alert as any).causeValues,
       ...point,
       kind: placement ? ("room" as const) : ("problem" as const),
     };

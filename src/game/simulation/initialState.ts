@@ -115,6 +115,7 @@ export interface FacilityRecord {
   demand: number;
   capacity: number;
   cause: string;
+  causeValues?: Record<string, string | number>;
 }
 
 /** A signed conference, from the day it is booked to the day it moves out. */
@@ -135,6 +136,7 @@ export interface AlertRecord {
   severity: "info" | "warning" | "critical";
   title: string;
   cause: string;
+  causeValues?: Record<string, string | number>;
 }
 
 export interface MonthAccumulator {

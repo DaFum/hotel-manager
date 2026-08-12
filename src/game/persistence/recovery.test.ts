@@ -182,7 +182,14 @@ describe("save recovery", () => {
           queue: 0,
           travelMinutes: 1,
           failed: false,
-          cars: [{ id: "car.1", currentFloor: "1" }], // currentFloor is string, invalid
+          cars: [
+            {
+              id: "car.1",
+              currentFloor: "1", // currentFloor is string, invalid
+              targetFloor: 1,
+              positionFloorBasisPoints: 10_000,
+            },
+          ],
         },
       },
     } as any;

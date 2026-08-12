@@ -1,4 +1,5 @@
 import { PROTOCOL_VERSION } from "../domain/protocol";
+import { BASIS_POINTS } from "../domain/money";
 import type { GameState } from "../simulation/initialState";
 import {
   isValidAnnualProfit,
@@ -138,6 +139,12 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
   if (!isFnbState(state.fnb)) problems.push("the state has no complete fnb");
+  const topFloor = Math.max(
+    0,
+    ...Object.values(state.renderDescriptors?.floorByRoomId ?? {}).filter(
+      Number.isSafeInteger,
+    ),
+  );
   if (
     !state.renderDescriptors ||
     typeof state.renderDescriptors !== "object" ||
@@ -153,15 +160,22 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.renderDescriptors.elevator ||
     typeof state.renderDescriptors.elevator !== "object" ||
     !Array.isArray(state.renderDescriptors.elevator.cars) ||
-    !state.renderDescriptors.elevator.cars.every(
-      (car: any) =>
+    !state.renderDescriptors.elevator.cars.every((car: any) => {
+      return (
         car &&
         typeof car === "object" &&
         typeof car.id === "string" &&
-        typeof car.currentFloor === "number" &&
-        typeof car.targetFloor === "number" &&
-        typeof car.positionFloorBasisPoints === "number",
-    )
+        Number.isSafeInteger(car.currentFloor) &&
+        car.currentFloor >= 0 &&
+        car.currentFloor <= topFloor &&
+        Number.isSafeInteger(car.targetFloor) &&
+        car.targetFloor >= 0 &&
+        car.targetFloor <= topFloor &&
+        Number.isSafeInteger(car.positionFloorBasisPoints) &&
+        car.positionFloorBasisPoints >= 0 &&
+        car.positionFloorBasisPoints <= topFloor * BASIS_POINTS
+      );
+    })
   )
     problems.push("the state has no complete render descriptors");
   if (!Array.isArray(state.alerts) || !state.alerts.every(isValidAlert))

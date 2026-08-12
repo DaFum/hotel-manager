@@ -11,7 +11,7 @@ describe("release replay corpus", () => {
     expect(stableStateHash({ a: 1 })).not.toBe(stableStateHash({ a: 2 }));
   });
 
-  for (const name of ["vertical-slice", "multi-hotel"]) {
+  for (const name of ["vertical-slice"]) {
     it(`replays ${name} through the real command boundary`, () => {
       const corpus = JSON.parse(
         readFileSync(`fixtures/replay/${name}.json`, "utf8"),

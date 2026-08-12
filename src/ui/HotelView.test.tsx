@@ -256,7 +256,7 @@ describe("hotel view", () => {
             demand: 10,
             capacity: 20,
             cause: "demand",
-          } as any,
+          },
         ]}
         focusedEntityId="facility.pool"
       />,

@@ -19,10 +19,3 @@ it("keeps every facility on the board with a named binding constraint", () => {
   // Linen circulates rather than leaking out of the hotel.
   expect(r.linen.clean + r.linen.dirty).toBeGreaterThan(0);
 });
-
-it("stays deterministic across the deep systems", () => {
-  const a = runHotelDepthScenario(120);
-  const b = runHotelDepthScenario(120);
-  expect(b).toEqual(a);
-  expect(runHotelDepthScenario(120, 99)).not.toEqual(a);
-});

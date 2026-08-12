@@ -133,6 +133,39 @@ describe("save policy", () => {
     expect(validateEnvelope(valid)).toEqual([]);
   });
 
+  it.each([
+    ["currentFloor", 1.5],
+    ["targetFloor", Number.MAX_SAFE_INTEGER + 1],
+    ["currentFloor", -1],
+    ["targetFloor", Number.MAX_SAFE_INTEGER],
+    ["positionFloorBasisPoints", -1],
+    ["positionFloorBasisPoints", Number.MAX_SAFE_INTEGER],
+  ] as const)("rejects an elevator car with invalid %s", (field, value) => {
+    const malformed = structuredClone(current) as SaveEnvelope & {
+      state: typeof state;
+    };
+    malformed.state.renderDescriptors.elevator.cars = [
+      {
+        id: "elevator.car.1",
+        currentFloor: 1,
+        targetFloor: 1,
+        positionFloorBasisPoints: 10_000,
+        direction: "idle",
+        moving: false,
+        stopped: true,
+        failed: false,
+        waitingGuestIds: [],
+      },
+    ];
+    Object.assign(malformed.state.renderDescriptors.elevator.cars[0], {
+      [field]: value,
+    });
+
+    expect(validateEnvelope(malformed)).toContain(
+      "the state has no complete render descriptors",
+    );
+  });
+
   it("reports malformed room and stay collections without throwing", () => {
     const malformed = structuredClone(current) as unknown as {
       state: { hotel: { rooms: unknown }; stays: unknown };

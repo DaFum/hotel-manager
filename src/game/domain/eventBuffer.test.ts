@@ -427,6 +427,22 @@ describe("domain event buffer", () => {
       "accepted",
     );
     collected.push(...s.takeDomainEvents());
+    s.state.alerts.push({
+      id: "alert.coverage",
+      severity: "notice",
+      title: "alert.coverage",
+      cause: "alert.coverage",
+      category: "coverage",
+      groupId: `${s.state.hotel.id}:coverage`,
+      source: {
+        companyId: s.state.company.companyId,
+        hotelId: s.state.hotel.id,
+      },
+      gameTime: `${s.state.calendar.dateKey}:${s.state.calendar.minuteOfDay}`,
+      acknowledged: false,
+    });
+    submit(s, { type: "ACKNOWLEDGE_ALERT", alertId: "alert.coverage" });
+    collected.push(...s.takeDomainEvents());
     return collected;
   }
 

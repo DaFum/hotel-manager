@@ -62,12 +62,16 @@ export interface HotelOperatingResult {
   hotelId: string;
   periodKey: string;
   roomRevenueMinor: number;
+  eventRevenueMinor: number;
   otherRevenueMinor: number;
   operatingExpenseMinor: number;
   grossOperatingProfitMinor: number;
   occupancyBasisPoints: number;
   soldRoomNights: number;
   availableRoomNights: number;
+  qualityStars: number;
+  cashNeedMinor: number;
+  renovationNeedMinor: number;
 }
 
 /** The corporate layer, in full. Everything here is persisted save state. */

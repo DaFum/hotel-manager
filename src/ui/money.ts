@@ -22,3 +22,23 @@ export function formatBasisPoints(
     }).format(bp / 10000);
   return `${(bp / 100).toFixed(1)}%`;
 }
+
+export function formatSignedDm(
+  minor: number,
+  locale: GameLocale = "de-DE",
+): string {
+  return `${minor > 0 ? "+" : ""}${formatDm(minor, locale)}`;
+}
+
+export type TrendToken = "gain" | "loss" | "flat";
+
+export function trendForMinor(minor: number): TrendToken {
+  return minor > 0 ? "gain" : minor < 0 ? "loss" : "flat";
+}
+
+export function formatSignedBasisPoints(
+  bp: number,
+  locale: GameLocale = "de-DE",
+): string {
+  return `${bp > 0 ? "+" : ""}${formatBasisPoints(bp, locale)}`;
+}

@@ -1,5 +1,5 @@
 /** Save metadata shared by the writer and the current-format validator. */
-export const SAVE_VERSION = 9 as const;
+export const SAVE_VERSION = 12 as const;
 export const CONTENT_VERSION = "1991.1" as const;
 
 export type RngStreamName =

@@ -14,6 +14,7 @@ import type { RecoveryPath } from "../campaign/careerOutcome";
  * of its own. Identity, causation and concurrency live on the envelope.
  */
 export type GameCommand =
+  | { type: "ACKNOWLEDGE_ALERT"; alertId: string }
   | {
       type: "SET_RATE";
       dateKey: string;

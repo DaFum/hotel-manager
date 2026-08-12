@@ -8,8 +8,12 @@ import { ManagerGovernancePanel } from "./ManagerGovernancePanel";
 const HOTEL = {
   id: "h1",
   name: "Frankfurt Central",
+  cityName: "Frankfurt",
+  qualityStars: 4,
   occupancyBasisPoints: 7800,
   monthlyProfitMinor: 7100000,
+  cashNeedMinor: 500_000,
+  renovationNeedMinor: 2_000_000,
   warnings: 1,
   managerName: "Anna Keller",
 };
@@ -18,7 +22,11 @@ describe("PortfolioDashboard", () => {
   it("shows each hotel with occupancy, profit, warning count, and manager", () => {
     render(<PortfolioDashboard hotels={[HOTEL]} onOpenHotel={() => {}} />);
     expect(screen.getByText("Frankfurt Central")).toBeTruthy();
+    expect(screen.getAllByText("Frankfurt")).toHaveLength(2);
+    expect(screen.getByText(/4-star quality/)).toBeTruthy();
     expect(screen.getByText("78.0% occupancy")).toBeTruthy();
+    expect(screen.getByText(/5000,00 DM cash need/)).toBeTruthy();
+    expect(screen.getByText(/20000,00 DM renovation need/)).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /open frankfurt central/i }),
     ).toBeTruthy();

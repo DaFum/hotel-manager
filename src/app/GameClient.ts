@@ -153,6 +153,10 @@ export class GameClient {
     return requestId;
   }
 
+  acknowledgeAlert(id: string): string {
+    return this.sendCommand({ type: "ACKNOWLEDGE_ALERT", alertId: id });
+  }
+
   requestSave(preferences: PlayerPreferences): string {
     const requestId = `req.${++this.requestCounter}`;
     this.send({

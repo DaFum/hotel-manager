@@ -21,10 +21,11 @@ function areas(): readonly ManagementArea[] {
 }
 
 describe("ManagementShell", () => {
-  it("exports the immutable nine-area navigation order", () => {
+  it("exports the immutable management navigation order", () => {
     expect(AREA_ORDER).toEqual([
       "mainView",
       "hotel",
+      "guests",
       "staff",
       "finance",
       "revenue",
@@ -67,6 +68,7 @@ describe("ManagementShell", () => {
     expect(tabs.map((tab) => tab.textContent)).toEqual([
       "Main view",
       "Hotel",
+      "Guests",
       "Staff",
       "Finance",
       "Revenue",

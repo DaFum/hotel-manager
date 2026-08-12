@@ -3,8 +3,12 @@ import { formatBasisPoints, formatDm } from "../money";
 export interface PortfolioHotelRow {
   id: string;
   name: string;
+  cityName: string;
+  qualityStars: number;
   occupancyBasisPoints: number;
   monthlyProfitMinor: number;
+  cashNeedMinor: number;
+  renovationNeedMinor: number;
   warnings: number;
   managerName: string;
   /** The brand the house currently flies, if any. */
@@ -48,27 +52,44 @@ export function PortfolioDashboard(props: {
         {props.hotels.length} {props.hotels.length === 1 ? "hotel" : "hotels"},{" "}
         {formatDm(totalProfitMinor)} last published profit
       </p>
-      {props.hotels.map((hotel) => (
-        <article key={hotel.id} aria-label={hotel.name}>
-          <h3>{hotel.name}</h3>
-          <p>{formatBasisPoints(hotel.occupancyBasisPoints)} occupancy</p>
-          <p>{formatDm(hotel.monthlyProfitMinor)} last month</p>
-          <p>
-            {hotel.warnings} {hotel.warnings === 1 ? "warning" : "warnings"} -
-            Manager: {hotel.managerName}
-          </p>
-          <p>
-            {hotel.brandName ? `Flag: ${hotel.brandName}` : "Unbranded"}
-            {hotel.operatingModel ? ` - held ${hotel.operatingModel}` : ""}
-          </p>
-          <button
-            type="button"
-            onClick={() => props.onOpenHotel(hotel.id)}
-            aria-label={`Open ${hotel.name}`}
-          >
-            Open hotel
-          </button>
-        </article>
+      {[...new Set(props.hotels.map((hotel) => hotel.cityName))].map((city) => (
+        <section key={city} aria-label={`${city} region`}>
+          <h3>{city}</h3>
+          {props.hotels
+            .filter((hotel) => hotel.cityName === city)
+            .map((hotel) => (
+              <article key={hotel.id} aria-label={hotel.name}>
+                <h4>{hotel.name}</h4>
+                <p>{hotel.cityName}</p>
+                <p aria-label={`${hotel.qualityStars} star quality`}>
+                  {"★".repeat(hotel.qualityStars)} {hotel.qualityStars}-star
+                  quality
+                </p>
+                <p>{formatBasisPoints(hotel.occupancyBasisPoints)} occupancy</p>
+                <p>{formatDm(hotel.monthlyProfitMinor)} last month</p>
+                <p>{formatDm(hotel.cashNeedMinor)} cash need</p>
+                <p>{formatDm(hotel.renovationNeedMinor)} renovation need</p>
+                <p>
+                  {hotel.warnings}{" "}
+                  {hotel.warnings === 1 ? "warning" : "warnings"} - Manager:{" "}
+                  {hotel.managerName}
+                </p>
+                <p>
+                  {hotel.brandName ? `Flag: ${hotel.brandName}` : "Unbranded"}
+                  {hotel.operatingModel
+                    ? ` - held ${hotel.operatingModel}`
+                    : ""}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => props.onOpenHotel(hotel.id)}
+                  aria-label={`Open ${hotel.name}`}
+                >
+                  Open hotel
+                </button>
+              </article>
+            ))}
+        </section>
       ))}
     </section>
   );

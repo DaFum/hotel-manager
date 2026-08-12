@@ -64,6 +64,7 @@ export interface GameStore {
   setPreferences: (preferences: PlayerPreferences) => void;
   requestPause: () => void;
   requestResume: () => void;
+  acknowledgeAlert: (id: string) => void;
   observeTutorialAction: (
     action: Extract<TutorialObservation, "OPEN_BOOKINGS">,
   ) => void;
@@ -287,6 +288,9 @@ export function useGameStore(seed: number): GameStore {
       if (!requestId) return;
       controlRequestRef.current = { requestId, type: "resume" };
       setPauseStatus("pending");
+    },
+    acknowledgeAlert: (id) => {
+      clientRef.current?.acknowledgeAlert(id);
     },
     observeTutorialAction: (action) => {
       setPreferencesState((current) => advanceTutorial(current, action));

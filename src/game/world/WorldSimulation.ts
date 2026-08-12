@@ -191,7 +191,7 @@ export class WorldSimulation {
       risk,
       this.streams.events.nextUint32() % 10_000,
       "financial",
-      ["macro-credit"],
+      ["macro.credit.name"],
     );
     if (shock) next.activeShocks.push(shock);
     next.commonCurrency = advanceCommonCurrency({

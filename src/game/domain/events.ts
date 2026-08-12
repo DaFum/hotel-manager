@@ -10,6 +10,7 @@
  */
 
 export type DomainEventPayload =
+  | { type: "ALERT_ACKNOWLEDGED"; alertId: string }
   // --- reservations and the guest journey --------------------------------
   | {
       type: "BOOKING_CONFIRMED";
@@ -200,6 +201,7 @@ export type DomainEventType = DomainEventPayload["type"];
  * never silently pass over a transition nobody publishes.
  */
 const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
+  ALERT_ACKNOWLEDGED: true,
   BOOKING_CONFIRMED: true,
   BOOKING_CANCELLED: true,
   BOOKING_NO_SHOW: true,
@@ -254,6 +256,7 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
+  "ALERT_ACKNOWLEDGED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
   "BOOKING_NO_SHOW",

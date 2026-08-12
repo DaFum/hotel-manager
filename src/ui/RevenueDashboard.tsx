@@ -1,31 +1,319 @@
-import { formatBasisPoints, formatDm } from "./money";
+import { translateGame, type GameLocale } from "../i18n";
+import "./revenue.css";
+import { formatGameDate, formatGameDateRange } from "../i18n/formatters";
+import { GUEST_SEGMENTS } from "../game/content/1991/guestSegments";
+import { translateKey } from "./localization";
+import { formatBasisPoints, formatDm, formatSignedBasisPoints } from "./money";
+import type {
+  BookingsRow,
+  ChannelMixRow,
+  CompetitionRow,
+  OverbookingExposureRow,
+  PickupRow,
+  RateGridRow,
+  RatePlanRow,
+  RevenueMetricsRow,
+  OccupancyDriverRow,
+} from "./revenueViewModel";
 
+const segmentLabel = (segmentId: string): string =>
+  translateKey(
+    GUEST_SEGMENTS.find((segment) => segment.id === segmentId)?.nameKey ??
+      segmentId,
+  );
+
+/**
+ * Design intent (AGENTS §13)
+ * - Purpose: align price, rooms on the books, pickup and exposure on the same
+ *   dates so the player can act without mentally joining separate reports.
+ * - Tone: a 1991 yield-office timetable — compact, exact and annotated.
+ * - Constraints: semantic tables, textual states, individual SET_RATE edits,
+ *   and policy views that remain explicitly read-only.
+ * - Differentiator: one calendar spine makes every revenue signal comparable.
+ */
 export function RevenueDashboard(props: {
-  adrMinor: number;
-  revParMinor: number;
-  occupancyBasisPoints: number;
-  singleRateMinor: number;
-  onSetSingleRate: (rateMinor: number) => void;
+  rates: readonly RateGridRow[];
+  bookings: readonly BookingsRow[];
+  metrics: RevenueMetricsRow;
+  channels: readonly ChannelMixRow[];
+  pickup: readonly PickupRow[];
+  ratePlans: readonly RatePlanRow[];
+  overbooking: OverbookingExposureRow;
+  competition: readonly CompetitionRow[];
+  occupancyDrivers: readonly OccupancyDriverRow[];
+  onSetRate: (
+    dateKey: string,
+    category: RateGridRow["cells"][number]["category"],
+    rateMinor: number,
+  ) => void;
+  locale?: GameLocale;
 }) {
+  const locale = props.locale ?? "en-GB";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+  const bookingsByDate = new Map(
+    props.bookings.map((row) => [row.dateKey, row]),
+  );
+  const pickupByDate = new Map(props.pickup.map((row) => [row.dateKey, row]));
+  const empty = props.rates.length === 0 && props.bookings.length === 0;
   return (
-    <section aria-label="Revenue">
-      <h2>Revenue</h2>
+    <section aria-label={t("revenue.ui.title")} className="revenue-board">
+      <header className="revenue-board__header">
+        <p>{t("revenue.ui.kicker")}</p>
+        <h2>{t("revenue.ui.title")}</h2>
+      </header>
       <dl>
-        <dt>ADR</dt>
-        <dd>{formatDm(props.adrMinor)}</dd>
-        <dt>RevPAR</dt>
-        <dd>{formatDm(props.revParMinor)}</dd>
-        <dt>Occupancy</dt>
-        <dd>{formatBasisPoints(props.occupancyBasisPoints)}</dd>
-        <dt>Single rate</dt>
-        <dd>{formatDm(props.singleRateMinor)}</dd>
+        <dt>{t("revenue.ui.adr")}</dt>
+        <dd>{formatDm(props.metrics.adrMinor, locale)}</dd>
+        <dt>{t("revenue.ui.revpar")}</dt>
+        <dd>{formatDm(props.metrics.revParMinor, locale)}</dd>
+        <dt>{t("revenue.ui.occupancy")}</dt>
+        <dd>{formatBasisPoints(props.metrics.occupancyBasisPoints, locale)}</dd>
       </dl>
-      <button
-        type="button"
-        onClick={() => props.onSetSingleRate(props.singleRateMinor + 500)}
-      >
-        Set single rate
-      </button>
+      <section aria-label={t("revenue.ui.driversLabel")}>
+        <h3>{t("revenue.ui.drivers")}</h3>
+        {props.occupancyDrivers.length ? (
+          <ul>
+            {props.occupancyDrivers.map((row) => (
+              <li key={row.factor}>
+                {translateGame(locale, `revenue.driver.${row.factor}`)}{" "}
+                {formatSignedBasisPoints(row.deltaBasisPoints, locale)}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>{t("revenue.ui.noDrivers")}</p>
+        )}
+      </section>
+
+      <section aria-label={t("revenue.ui.timelineLabel")}>
+        <h3>{t("revenue.ui.timeline")}</h3>
+        {empty ? (
+          <p>{t("revenue.ui.noTimeline")}</p>
+        ) : (
+          <table>
+            <caption>
+              {props.rates.length
+                ? formatGameDateRange(
+                    props.rates[0].dateKey,
+                    props.rates.at(-1)!.dateKey,
+                    locale,
+                  )
+                : t("revenue.ui.window")}
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">{t("revenue.ui.date")}</th>
+                {props.rates[0]?.cells.map((cell) => (
+                  <th scope="col" key={cell.category}>
+                    {translateGame(locale, `revenue.category.${cell.category}`)}
+                  </th>
+                ))}
+                <th scope="col">{t("revenue.ui.onBooks")}</th>
+                <th scope="col">{t("revenue.ui.forecast")}</th>
+                <th scope="col">{t("revenue.ui.pickup")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {props.rates.map((row) => {
+                const booking = bookingsByDate.get(row.dateKey);
+                return (
+                  <tr key={row.dateKey} data-date-state={row.state}>
+                    <th scope="row">
+                      {formatGameDate(row.dateKey, locale)} —{" "}
+                      {t(`revenue.ui.dateState.${row.state}`)}
+                    </th>
+                    {row.cells.map((cell) => (
+                      <td key={cell.key}>
+                        <span>{formatDm(cell.rateMinor, locale)}</span>
+                        <button
+                          type="button"
+                          aria-label={t("revenue.ui.raiseRate", {
+                            category: `revenue.category.${cell.category}`,
+                            date: formatGameDate(row.dateKey, locale),
+                          })}
+                          onClick={() =>
+                            props.onSetRate(
+                              row.dateKey,
+                              cell.category,
+                              cell.rateMinor + 500,
+                            )
+                          }
+                        >
+                          + {formatDm(500, locale)}
+                        </button>
+                      </td>
+                    ))}
+                    <td>
+                      {booking
+                        ? t("revenue.ui.roomsBooked", {
+                            confirmed: booking.confirmedRooms,
+                            capacity: booking.capacityRooms,
+                            occupancy: formatBasisPoints(
+                              booking.occupancyBasisPoints,
+                              locale,
+                            ),
+                          })
+                        : t("revenue.ui.noBookings")}
+                    </td>
+                    <td>
+                      {booking
+                        ? t("revenue.ui.roomNights", {
+                            low: booking.forecastLow,
+                            high: booking.forecastHigh,
+                          })
+                        : t("revenue.ui.noForecast")}
+                    </td>
+                    <td>
+                      {t("revenue.ui.rooms", {
+                        count: pickupByDate.get(row.dateKey)?.rooms ?? 0,
+                      })}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      <section aria-label={t("revenue.ui.channelMix")}>
+        <h3>{t("revenue.ui.channelMix")}</h3>
+        {props.channels.length ? (
+          <table>
+            <caption>Confirmed business by channel</caption>
+            <thead>
+              <tr>
+                <th scope="col">Channel</th>
+                <th scope="col">Rooms</th>
+                <th scope="col">Room share</th>
+                <th scope="col">Revenue</th>
+                <th scope="col">Revenue share</th>
+                <th scope="col">Segments</th>
+              </tr>
+            </thead>
+            <tbody>
+              {props.channels.map((row) => (
+                <tr key={row.channel}>
+                  <th scope="row">
+                    {translateGame(locale, `revenue.channel.${row.channel}`)}
+                  </th>
+                  <td>{row.rooms}</td>
+                  <td>{formatBasisPoints(row.roomShareBasisPoints, locale)}</td>
+                  <td>{formatDm(row.revenueMinor, locale)}</td>
+                  <td>
+                    {formatBasisPoints(row.revenueShareBasisPoints, locale)}
+                  </td>
+                  <td>{row.segmentLabels.map(segmentLabel).join(", ")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>{t("revenue.ui.noChannels")}</p>
+        )}
+      </section>
+
+      <section aria-label={t("revenue.ui.ratePlans")}>
+        <h3>{t("revenue.ui.ratePlans")}</h3>
+        {props.ratePlans.length ? (
+          <table>
+            <caption>Current read-only rate plans</caption>
+            <thead>
+              <tr>
+                <th scope="col">Plan</th>
+                <th scope="col">Modifier</th>
+                <th scope="col">Refund</th>
+                <th scope="col">Stay</th>
+                <th scope="col">Arrival</th>
+              </tr>
+            </thead>
+            <tbody>
+              {props.ratePlans.map((row) => (
+                <tr key={row.id}>
+                  <th scope="row">{row.id}</th>
+                  <td>
+                    {formatSignedBasisPoints(
+                      row.modifierBasisPoints - 10_000,
+                      locale,
+                    )}
+                  </td>
+                  <td>
+                    {t(
+                      row.refundable
+                        ? "revenue.ui.refundable"
+                        : "revenue.ui.nonRefundable",
+                    )}
+                  </td>
+                  <td>
+                    {row.minimumStayNights}–
+                    {row.maximumStayNights ?? t("revenue.ui.unlimited")}{" "}
+                    {t("revenue.ui.nights")}
+                  </td>
+                  <td>
+                    {row.closedToArrival
+                      ? t("revenue.ui.closedArrival")
+                      : t("revenue.ui.openArrival")}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>{t("revenue.ui.noRatePlans")}</p>
+        )}
+      </section>
+
+      <section aria-label={t("revenue.ui.overbooking")}>
+        <h3>{t("revenue.ui.overbooking")}</h3>
+        <p>
+          {t("revenue.ui.policyLimit", { count: props.overbooking.limitRooms })}
+        </p>
+        <ul>
+          {props.overbooking.dates
+            .filter((row) => row.exposureRooms > 0)
+            .map((row) => (
+              <li key={row.dateKey}>
+                {row.dateKey}: {row.exposureRooms} rooms above physical capacity
+              </li>
+            ))}
+        </ul>
+        {props.overbooking.dates.length > 0 &&
+        props.overbooking.dates.every((row) => row.exposureRooms === 0) ? (
+          <p>{t("revenue.ui.noExposure")}</p>
+        ) : null}
+      </section>
+
+      <section aria-label={t("revenue.ui.competitionLabel")}>
+        <h3>{t("revenue.ui.competition")}</h3>
+        {props.competition.length ? (
+          <table>
+            <caption>Comparable city hotels</caption>
+            <thead>
+              <tr>
+                <th scope="col">Hotel</th>
+                <th scope="col">Rooms</th>
+                <th scope="col">Rate</th>
+                <th scope="col">Occupancy</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {props.competition.map((row) => (
+                <tr key={row.id}>
+                  <th scope="row">{translateKey(row.name)}</th>
+                  <td>{row.rooms}</td>
+                  <td>{formatDm(row.rateMinor, locale)}</td>
+                  <td>{formatBasisPoints(row.occupancyBasisPoints, locale)}</td>
+                  <td>{t(`revenue.ui.status.${row.status}`)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>{t("revenue.ui.noCompetition")}</p>
+        )}
+      </section>
     </section>
   );
 }

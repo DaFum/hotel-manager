@@ -3,7 +3,12 @@ import {
   ANCILLARY_REVENUE_SHARE_BP,
   adrForAnnualGopMinor,
   adrForAnnualRoomRevenueMinor,
+  cashNeedForLossMinor,
+  managedQualityStars,
+  managedRenovationNeedMinor,
+  managedHotelMonth,
 } from "./managedHotels";
+import { createTreasury, openHotelAccount } from "../treasury/treasury";
 
 /**
  * The stabilised annual model the ADR helper is the inverse of: a full year at
@@ -110,5 +115,89 @@ describe("the rate a managed house has to achieve", () => {
         occupancyBasisPoints: 10_001,
       }),
     ).toThrow(/occupancy/);
+  });
+});
+
+describe("managed hotel portfolio signals", () => {
+  const hotel = {
+    hotelId: "hotel.test",
+    name: "Test Hotel",
+    cityId: "city.frankfurt",
+    rooms: 60,
+    adrMinor: 12_000,
+    occupancyBasisPoints: 6500,
+    gopMarginBasisPoints: 2500,
+    openedDateKey: "1981-01-01",
+  };
+
+  it("reports only the part of a loss the hotel's balance cannot fund", () => {
+    const treasury = openHotelAccount(
+      createTreasury({ hqMinor: 0, reportingCurrency: "DEM" }),
+      hotel.hotelId,
+      300_000,
+    );
+    expect(cashNeedForLossMinor(treasury, hotel.hotelId, -500_000)).toBe(
+      200_000,
+    );
+  });
+
+  it("increases renovation need with age, size, and weaker margins", () => {
+    const base = managedRenovationNeedMinor(hotel, "1991-01-01");
+    expect(
+      managedRenovationNeedMinor({ ...hotel, rooms: 120 }, "1991-01-01"),
+    ).toBeGreaterThan(base);
+    expect(
+      managedRenovationNeedMinor(
+        { ...hotel, openedDateKey: "1971-01-01" },
+        "1991-01-01",
+      ),
+    ).toBeGreaterThan(base);
+    expect(
+      managedRenovationNeedMinor(
+        { ...hotel, gopMarginBasisPoints: 1000 },
+        "1991-01-01",
+      ),
+    ).toBeGreaterThan(base);
+  });
+
+  it("tiers quality from the three aggregate trading measures", () => {
+    expect(
+      managedQualityStars({
+        gopMarginBasisPoints: 3500,
+        occupancyBasisPoints: 8000,
+        adrMinor: 20_000,
+      }),
+    ).toBe(5);
+  });
+
+  it("rejects invalid persisted metrics before monthly arithmetic", () => {
+    const input = {
+      periodStartDateKey: "1991-01-01",
+      brandUpliftBp: 0,
+    };
+    expect(() => managedHotelMonth({ ...hotel, rooms: 1.5 }, input)).toThrow(
+      /rooms/,
+    );
+    expect(() =>
+      managedHotelMonth({ ...hotel, adrMinor: Number.MAX_VALUE }, input),
+    ).toThrow(/adr/);
+    expect(() =>
+      managedHotelMonth({ ...hotel, occupancyBasisPoints: 10_001 }, input),
+    ).toThrow(/occupancy/);
+    expect(() =>
+      managedHotelMonth({ ...hotel, gopMarginBasisPoints: 10_001 }, input),
+    ).toThrow(/gop margin/);
+    expect(() =>
+      managedHotelMonth(
+        { ...hotel, rooms: Math.floor(Number.MAX_SAFE_INTEGER / 31) + 1 },
+        input,
+      ),
+    ).toThrow(/available room nights/);
+    expect(() =>
+      managedHotelMonth(
+        { ...hotel, adrMinor: Math.floor(Number.MAX_SAFE_INTEGER / 1_200) },
+        input,
+      ),
+    ).toThrow(/room revenue/);
   });
 });

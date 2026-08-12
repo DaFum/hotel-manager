@@ -16,7 +16,7 @@ import { monthlyOwnershipPostings } from "../ownership/models";
 import { raiseEscalation, escalationReason } from "../management/escalation";
 import { managerForHotel } from "../management/managerAuthority";
 import { headquartersMonthlyCostMinor } from "./sharedServices";
-import { managedHotelMonth } from "./managedHotels";
+import { cashNeedForLossMinor, managedHotelMonth } from "./managedHotels";
 import {
   appendBrandAudit,
   operatedHotelIds,
@@ -25,7 +25,9 @@ import {
   type HotelOperatingResult,
 } from "./companyState";
 import { consolidatedCashMinor } from "../treasury/treasury";
+import { projectCostMinor } from "../renovation/projects";
 import { occupancyBasisPoints } from "../revenue/metrics";
+import { assertBasisPoints, assertNonNegativeMinor } from "../domain/units";
 
 /** What putting one failed brand standard right is reckoned to cost. */
 export const REMEDIATION_COST_PER_FAILURE_MINOR = 1_500_000;
@@ -49,6 +51,7 @@ export function runCompanyMonth(
 ): void {
   const periodKey = periodStartDateKey.slice(0, 7);
 
+  syncTreasury(state);
   publishFlagshipResult(state, periodKey, ctx);
   tradeManagedHotels(state, periodStartDateKey, periodKey, ctx);
   chargeOwnershipContracts(state, ctx);
@@ -70,22 +73,33 @@ function publishFlagshipResult(
   ctx: CompanyMonthContext,
 ): void {
   const month = state.finance.month;
+  // Event revenue is disclosed separately but remains part of the existing
+  // other-revenue subtotal, so it must not be counted twice here.
   const revenueMinor = month.roomRevenueMinor + month.otherRevenueMinor;
+  const grossOperatingProfitMinor = revenueMinor - month.operatingExpenseMinor;
   publishResult(
     state.company,
     {
       hotelId: state.hotel.id,
       periodKey,
       roomRevenueMinor: month.roomRevenueMinor,
+      eventRevenueMinor: month.eventRevenueMinor,
       otherRevenueMinor: month.otherRevenueMinor,
       operatingExpenseMinor: month.operatingExpenseMinor,
-      grossOperatingProfitMinor: revenueMinor - month.operatingExpenseMinor,
+      grossOperatingProfitMinor,
       occupancyBasisPoints: occupancyBasisPoints(
         month.soldRoomNights,
         month.availableRoomNights,
       ),
       soldRoomNights: month.soldRoomNights,
       availableRoomNights: month.availableRoomNights,
+      qualityStars: state.classification.stars,
+      cashNeedMinor: cashNeedForLossMinor(
+        state.company.treasury,
+        state.hotel.id,
+        grossOperatingProfitMinor,
+      ),
+      renovationNeedMinor: flagshipRenovationNeedMinor(state),
     },
     ctx,
   );
@@ -105,6 +119,7 @@ function tradeManagedHotels(
     const month = managedHotelMonth(hotel, {
       periodStartDateKey,
       brandUpliftBp: compliantBrandUpliftBp(state, hotel.hotelId),
+      treasury: c.treasury,
     });
     // Revenue and cost are posted separately so the group's P&L keeps them
     // apart; netting them here would make a busy loss-making house invisible.
@@ -133,16 +148,41 @@ function tradeManagedHotels(
         hotelId: hotel.hotelId,
         periodKey,
         roomRevenueMinor: month.roomRevenueMinor,
+        eventRevenueMinor: 0,
         otherRevenueMinor: month.otherRevenueMinor,
         operatingExpenseMinor: month.operatingExpenseMinor,
         grossOperatingProfitMinor: month.grossOperatingProfitMinor,
         occupancyBasisPoints: month.occupancyBasisPoints,
         soldRoomNights: month.soldRoomNights,
         availableRoomNights: month.availableRoomNights,
+        qualityStars: month.qualityStars,
+        cashNeedMinor: month.cashNeedMinor,
+        renovationNeedMinor: month.renovationNeedMinor,
       },
       ctx,
     );
   }
+}
+
+/** The flagship has real plant and project state, so its estimate uses both. */
+function flagshipRenovationNeedMinor(state: GameState): number {
+  const conditionNeedMinor = state.assets.reduce((sum, asset) => {
+    assertBasisPoints(asset.condition, "asset condition");
+    assertNonNegativeMinor(asset.replacementMinor, "asset replacement");
+    if (asset.condition > 10_000) throw new Error("invalid asset condition");
+    const gap = 10_000 - asset.condition;
+    const whole = Math.trunc(asset.replacementMinor / 10_000) * gap;
+    const remainder = Math.trunc(
+      ((asset.replacementMinor % 10_000) * gap) / 10_000,
+    );
+    return sum + whole + remainder;
+  }, 0);
+  const projectNeedMinor = state.renovation
+    ? projectCostMinor(state.renovation.project)
+    : 0;
+  const need = conditionNeedMinor + projectNeedMinor;
+  if (!Number.isSafeInteger(need)) throw new Error("invalid renovation need");
+  return need;
 }
 
 function publishResult(

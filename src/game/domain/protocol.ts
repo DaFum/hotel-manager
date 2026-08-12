@@ -4,10 +4,8 @@ import type { GameSnapshot } from "./snapshot";
 import type { StateDelta } from "./stateDelta";
 import type { PlayerPreferences } from "../settings/playerPreferences";
 
-/**
- * Version 4 adds delta/save byte measurements to performance samples.
- */
-export const PROTOCOL_VERSION = 4 as const;
+/** Version 6 adds authoritative notification metadata and acknowledgement. */
+export const PROTOCOL_VERSION = 6 as const;
 
 export type ProtocolVersion = typeof PROTOCOL_VERSION;
 

@@ -6,6 +6,7 @@ import { createInitialGameState, type GameState } from "./initialState";
 import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
 import { reserve } from "../bookings/bookingEngine";
 import { startRenovation } from "../building/renovations";
+import { stateHash } from "../debug/stateHash";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -597,6 +598,7 @@ describe("localized alerts", () => {
         (alert) => alert.id === "alert.space.space.carpark",
       ),
     ).toMatchObject({
+      severity: "notice",
       title: "alert.space.title",
       cause: "alert.space.cause.atCapacity",
       target: { entityId: "space.carpark", kind: "facility" },
@@ -606,6 +608,16 @@ describe("localized alerts", () => {
         demand: 70,
         turnedAway: 52,
       },
+      category: "space",
+      groupId: `${state.hotel.id}:space`,
+      source: {
+        companyId: state.company.companyId,
+        hotelId: state.hotel.id,
+        regionId: state.company.portfolio.hotelRegion[state.hotel.id],
+      },
+      gameTime: "1991-01-01:1080",
+      delegate: "Anna Keller",
+      acknowledged: false,
     });
     expect(
       sim.state.alerts.find((alert) => alert.id === "alert.security.spaces"),
@@ -619,6 +631,81 @@ describe("localized alerts", () => {
         openSpaces: 3,
       },
     });
+  });
+
+  it("acknowledges an alert through the command boundary", () => {
+    const run = () => {
+      const state = createInitialGameState(101);
+      state.alerts.push({
+        id: "alert.test",
+        severity: "notice",
+        title: "alert.test",
+        cause: "alert.test",
+        category: "test",
+        groupId: `${state.hotel.id}:test`,
+        source: { companyId: state.company.companyId, hotelId: state.hotel.id },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
+      });
+      const simulation = new GameSimulation(state);
+      simulation.queueCommand({
+        type: "ACKNOWLEDGE_ALERT",
+        alertId: "alert.test",
+      });
+      simulation.applyPendingCommands();
+      return {
+        simulation,
+        hash: stateHash(simulation.state),
+        commands: simulation.state.commandLog,
+        events: simulation.takeDomainEvents(),
+      };
+    };
+    const first = run();
+    const second = run();
+    expect(first.simulation.state.alerts[0].acknowledged).toBe(true);
+    expect(second.hash).toBe(first.hash);
+    expect(second.commands).toEqual(first.commands);
+    expect(second.events).toEqual(first.events);
+  });
+
+  it("preserves acknowledgement while a housekeeping condition remains", () => {
+    const state = createInitialGameState(102);
+    for (const room of state.hotel.rooms) room.state = "VacantDirty";
+    const simulation = new GameSimulation(state);
+    simulation.advanceQuantum();
+    expect(
+      simulation.state.alerts.some(
+        (alert) => alert.id === "alert.housekeeping-backlog",
+      ),
+    ).toBe(true);
+    simulation.queueCommand({
+      type: "ACKNOWLEDGE_ALERT",
+      alertId: "alert.housekeeping-backlog",
+    });
+    simulation.advanceQuantum();
+    expect(
+      simulation.state.alerts.find(
+        (alert) => alert.id === "alert.housekeeping-backlog",
+      )?.acknowledged,
+    ).toBe(true);
+  });
+
+  it("leaves an advisory with the player when no manager is assigned", () => {
+    const state = createInitialGameState(101);
+    state.company.managers = [];
+    state.calendar.minuteOfDay = 1075;
+    state.stays = Array.from({ length: 100 }, (_, index) => ({
+      bookingId: `booking.space.unmanaged.${index}`,
+      roomId: state.hotel.rooms[index % state.hotel.rooms.length].id,
+      rateMinor: 10_000,
+      departureDateKey: "1991-01-02",
+    }));
+    const sim = new GameSimulation(state);
+    sim.advanceQuantum();
+    expect(
+      sim.state.alerts.find((alert) => alert.id === "alert.space.space.carpark")
+        ?.delegate,
+    ).toBeUndefined();
   });
 
   it("keeps booking and recovery amounts out of localized alert keys", () => {

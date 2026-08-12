@@ -6,6 +6,7 @@ import { translateGame, type GameLocale } from "../i18n";
 export const AREA_ORDER = Object.freeze([
   "mainView",
   "hotel",
+  "guests",
   "staff",
   "finance",
   "revenue",

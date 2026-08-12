@@ -212,6 +212,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology implementations");
   if (
     !state.company?.hotelResults ||
+    typeof state.company.hotelResults !== "object" ||
+    Array.isArray(state.company.hotelResults) ||
     !Object.values(state.company.hotelResults).every(
       (result) =>
         result !== null &&

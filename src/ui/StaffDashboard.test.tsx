@@ -58,7 +58,7 @@ describe("StaffDashboard", () => {
       "influenza",
       "42",
       "24",
-      "housekeepers on duty",
+      "service staff",
     ])
       expect(screen.getByText(text)).toBeTruthy();
     expect(

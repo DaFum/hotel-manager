@@ -10,10 +10,11 @@ describe("cause explanations", () => {
       ]),
     ).toEqual({
       key: "explanation.occupancyDown.drivers",
-      values: {
-        drivers:
-          "rate above segment willingness (60%) and no walk-in inventory (40%)",
-      },
+      values: {},
+      drivers: [
+        { factor: "rate above segment willingness", weight: 60 },
+        { factor: "no walk-in inventory", weight: 40 },
+      ],
     });
   });
 
@@ -21,6 +22,7 @@ describe("cause explanations", () => {
     expect(explainCause("occupancyDown", [])).toEqual({
       key: "explanation.occupancyDown.empty",
       values: {},
+      drivers: [],
     });
   });
 });

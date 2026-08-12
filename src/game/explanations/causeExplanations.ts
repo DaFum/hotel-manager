@@ -9,6 +9,7 @@ export interface CauseDriver {
 export interface CauseExplanation {
   key: string;
   values: Record<string, string | number>;
+  drivers: CauseDriver[];
 }
 
 /**
@@ -20,7 +21,7 @@ export function explainCause(
   drivers: readonly CauseDriver[],
 ): CauseExplanation {
   if (drivers.length === 0)
-    return { key: `explanation.${change}.empty`, values: {} };
+    return { key: `explanation.${change}.empty`, values: {}, drivers: [] };
   // Code-unit order, not localeCompare: authoritative ordering must not depend
   // on the worker's locale.
   const ranked = [...drivers].sort(
@@ -28,13 +29,9 @@ export function explainCause(
       b.weight - a.weight ||
       (a.factor < b.factor ? -1 : a.factor > b.factor ? 1 : 0),
   );
-  const phrases = ranked.map((d) => `${d.factor} (${d.weight}%)`);
-  const list =
-    phrases.length === 1
-      ? phrases[0]
-      : `${phrases.slice(0, -1).join(", ")} and ${phrases[phrases.length - 1]}`;
   return {
     key: `explanation.${change}.drivers`,
-    values: { drivers: list },
+    values: {},
+    drivers: ranked,
   };
 }

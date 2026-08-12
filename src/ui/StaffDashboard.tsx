@@ -3,6 +3,7 @@ import type { StaffRole } from "../game/domain/staffRoles";
 import { translateGame, type GameLocale } from "../i18n";
 import type { WorkforceView } from "./workforceView";
 import { formatBasisPoints, formatDm } from "./money";
+import { facilityCauseKey } from "./localization";
 
 export function StaffDashboard(props: {
   view: WorkforceView;
@@ -99,7 +100,7 @@ export function StaffDashboard(props: {
           <dt>{t("staff.load.capacity")}</dt>
           <dd>{props.view.housekeeping.capacity}</dd>
           <dt>{t("staff.load.cause")}</dt>
-          <dd>{t(props.view.housekeeping.cause)}</dd>
+          <dd>{t(facilityCauseKey(props.view.housekeeping.cause))}</dd>
           <dt>{t("staff.housekeeping.carried")}</dt>
           <dd>
             {props.view.housekeeping.carriedMinutes} {t("staff.minutes")}

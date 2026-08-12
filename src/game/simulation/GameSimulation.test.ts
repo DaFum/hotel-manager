@@ -670,16 +670,19 @@ describe("localized alerts", () => {
 
   it("preserves acknowledgement while a housekeeping condition remains", () => {
     const state = createInitialGameState(102);
-    for (const room of state.hotel.rooms.slice(0, 6))
-      room.state = "VacantDirty";
+    for (const room of state.hotel.rooms) room.state = "VacantDirty";
     const simulation = new GameSimulation(state);
-    simulation.refreshDerivedState();
+    simulation.advanceQuantum();
+    expect(
+      simulation.state.alerts.some(
+        (alert) => alert.id === "alert.housekeeping-backlog",
+      ),
+    ).toBe(true);
     simulation.queueCommand({
       type: "ACKNOWLEDGE_ALERT",
       alertId: "alert.housekeeping-backlog",
     });
-    simulation.applyPendingCommands();
-    simulation.refreshDerivedState();
+    simulation.advanceQuantum();
     expect(
       simulation.state.alerts.find(
         (alert) => alert.id === "alert.housekeeping-backlog",

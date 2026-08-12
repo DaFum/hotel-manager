@@ -52,7 +52,8 @@ describe("GuestsDashboard", () => {
             cause: "Long check-in wait",
             why: {
               key: "explanation.satisfactionDown.drivers",
-              values: { drivers: "Long check-in wait (8%)" },
+              values: {},
+              drivers: [{ factor: "Long check-in wait", weight: 8 }],
             },
             status: "accepted",
             cost: "10,00 DM",
@@ -67,5 +68,37 @@ describe("GuestsDashboard", () => {
     expect(onSelectRoom).toHaveBeenCalledWith("room.101");
     fireEvent.click(screen.getByRole("button", { name: /Close case/ }));
     expect(onOpen).toHaveBeenCalledWith("complaint.1");
+  });
+
+  it("localizes an expanded complaint explanation in German", () => {
+    render(
+      <GuestsDashboard
+        {...base}
+        locale="de-DE"
+        openComplaintId="complaint.1"
+        complaints={[
+          {
+            complaintId: "complaint.1",
+            partyId: "party.1",
+            bookingId: "booking.1",
+            roomId: "room.101",
+            stayLabel: "stay booking.1",
+            segment: "Business",
+            stage: "front desk",
+            cause: "Long check-in wait",
+            why: {
+              key: "explanation.satisfactionDown.drivers",
+              values: {},
+              drivers: [{ factor: "Long check-in wait", weight: 8 }],
+            },
+            status: "accepted",
+            cost: "10,00 DM",
+            handled: true,
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText(/Die Gästezufriedenheit sank wegen/)).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Beschwerden" })).toBeTruthy();
   });
 });

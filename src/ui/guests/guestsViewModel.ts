@@ -47,7 +47,7 @@ function stageText(stage: string): string {
 
 function segmentName(segmentId: string | undefined): string {
   const name = GUEST_SEGMENTS.find((segment) => segment.id === segmentId)?.name;
-  return name ? translateKey(name) : "guest.unknown.segment";
+  return name ? translateKey(name) : translateKey("guest.unknown.segment");
 }
 
 export function satisfactionSummary(state: GameState): SatisfactionRow {

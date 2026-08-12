@@ -491,6 +491,7 @@ export function App() {
     ) : null,
     guests: flagshipSelected ? (
       <GuestsDashboard
+        locale={preferences.locale}
         satisfaction={satisfactionSummary(s)}
         complaints={complaintRows(s)}
         reviews={reviewRows(s)}

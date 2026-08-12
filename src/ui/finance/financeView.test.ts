@@ -40,7 +40,10 @@ describe("finance view", () => {
     ]);
     expect(view.costCause).toMatchObject({
       key: "explanation.profitDown.drivers",
-      values: { drivers: "wages (75%) and utilities (25%)" },
+      drivers: [
+        { factor: "wages", weight: 75 },
+        { factor: "utilities", weight: 25 },
+      ],
     });
   });
 });

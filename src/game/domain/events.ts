@@ -256,6 +256,7 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
+  "ALERT_ACKNOWLEDGED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
   "BOOKING_NO_SHOW",

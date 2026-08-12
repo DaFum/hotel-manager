@@ -240,7 +240,7 @@ describe("App", () => {
         "Build",
         "Technology",
       ],
-      guests: ["Guests"],
+      guests: ["Gäste"],
       staff: ["Personal"],
       finance: ["Finanzen", "Purchasing"],
       revenue: ["Umsatz", "Competitors"],

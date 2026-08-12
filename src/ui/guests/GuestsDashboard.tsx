@@ -1,5 +1,5 @@
 import "./guests.css";
-import { translateKey } from "../localization";
+import { translateGame, type GameLocale } from "../../i18n";
 
 export interface SatisfactionRow {
   score: number;
@@ -15,7 +15,11 @@ export interface ComplaintRow {
   segment: string;
   stage: string;
   cause: string;
-  why: { key: string; values: Record<string, string | number> };
+  why: {
+    key: string;
+    values: Record<string, string | number>;
+    drivers: { factor: string; weight: number }[];
+  };
   status: "offered" | "accepted" | "refused" | "escalated";
   cost: string;
   handled: boolean;
@@ -65,6 +69,22 @@ function EmptyList({ message }: { message: string }) {
   return <p>{message}</p>;
 }
 
+function explanationValues(
+  why: ComplaintRow["why"],
+  locale: GameLocale,
+): Record<string, string | number> {
+  const phrases = why.drivers.map(
+    (driver) => `${driver.factor} (${driver.weight}%)`,
+  );
+  const conjunction = translateGame(locale, "guests.and");
+  return {
+    drivers:
+      phrases.length < 2
+        ? (phrases[0] ?? "")
+        : `${phrases.slice(0, -1).join(", ")} ${conjunction} ${phrases.at(-1)}`,
+  };
+}
+
 /**
  * Design intent (AGENTS §13)
  * - Purpose: show why guests are unhappy and let the player reach the stay,
@@ -86,16 +106,23 @@ export function GuestsDashboard(props: {
   openComplaintId: string | null;
   onOpen: (id: string) => void;
   onSelectRoom?: (roomId: string) => void;
+  locale?: GameLocale;
 }) {
+  const locale = props.locale ?? "en-GB";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
   return (
-    <section aria-label="Guests" className="guest-ledger">
+    <section aria-label={t("guests.title")} className="guest-ledger">
       <header className="guest-ledger__masthead">
-        <p>Guest relations · case ledger</p>
-        <h2>Guests</h2>
+        <p>{t("guests.kicker")}</p>
+        <h2>{t("guests.title")}</h2>
       </header>
 
-      <section aria-label="Guest satisfaction" className="guest-ledger__score">
-        <h3>Guest satisfaction</h3>
+      <section
+        aria-label={t("guests.satisfaction.title")}
+        className="guest-ledger__score"
+      >
+        <h3>{t("guests.satisfaction.title")}</h3>
         <p className="guest-ledger__score-value">
           {props.satisfaction.score}
           <span>/100</span>
@@ -107,43 +134,57 @@ export function GuestsDashboard(props: {
             ))}
           </ul>
         ) : (
-          <p>No satisfaction drivers have been recorded yet.</p>
+          <p>{t("guests.satisfaction.empty")}</p>
         )}
       </section>
 
-      <section aria-label="Complaints" className="guest-ledger__cases">
-        <h3>Complaints</h3>
+      <section
+        aria-label={t("guests.complaints.title")}
+        className="guest-ledger__cases"
+      >
+        <h3>{t("guests.complaints.title")}</h3>
         {props.complaints.length ? (
           <ul>
             {props.complaints.map((row) => {
               const open = props.openComplaintId === row.complaintId;
               return (
                 <li key={row.complaintId}>
-                  <strong>{row.cause}</strong> — {row.status};{" "}
-                  {row.handled ? "handled" : "pending"}; {row.cost}
+                  <strong>{row.cause}</strong> —{" "}
+                  {t(`guests.complaints.status.${row.status}`)};{" "}
+                  {row.handled
+                    ? t("guests.complaints.handled")
+                    : t("guests.complaints.pending")}
+                  ; {row.cost}
                   <button
                     type="button"
                     aria-expanded={open}
                     onClick={() => props.onOpen(row.complaintId)}
                   >
-                    {open ? "Close case" : "Open case"}
+                    {open
+                      ? t("guests.complaints.close")
+                      : t("guests.complaints.open")}
                   </button>
                   {row.roomId ? (
                     <button
                       type="button"
                       onClick={() => props.onSelectRoom?.(row.roomId!)}
                     >
-                      Select room {row.roomId}
+                      {t("guests.selectRoom", { roomId: row.roomId })}
                     </button>
                   ) : null}
                   {open ? (
                     <div aria-live="polite">
                       <p>
-                        {translateKey(row.stayLabel)}; room{" "}
-                        {row.roomId ?? "unknown room"}; department: {row.stage};
-                        segment: {row.segment}
+                        {t("guests.detail", {
+                          stay: row.stayLabel,
+                          room: row.roomId ?? "guest.unknown.room",
+                          stage: row.stage,
+                          segment: row.segment,
+                        })}
                       </p>
-                      <p>{translateKey(row.why.key, row.why.values)}</p>
+                      <p>
+                        {t(row.why.key, explanationValues(row.why, locale))}
+                      </p>
                     </div>
                   ) : null}
                 </li>
@@ -151,12 +192,12 @@ export function GuestsDashboard(props: {
             })}
           </ul>
         ) : (
-          <EmptyList message="No complaints have been raised yet." />
+          <EmptyList message={t("guests.complaints.empty")} />
         )}
       </section>
 
-      <section aria-label="Guest reviews">
-        <h3>Guest reviews</h3>
+      <section aria-label={t("guests.reviews.title")}>
+        <h3>{t("guests.reviews.title")}</h3>
         {props.reviews.length ? (
           <ul>
             {props.reviews.map((row) => {
@@ -170,21 +211,26 @@ export function GuestsDashboard(props: {
                     aria-expanded={open}
                     onClick={() => props.onOpen(disclosureId)}
                   >
-                    {open ? "Close review" : "Open review"}
+                    {open
+                      ? t("guests.reviews.close")
+                      : t("guests.reviews.open")}
                   </button>
                   {row.roomId ? (
                     <button
                       type="button"
                       onClick={() => props.onSelectRoom?.(row.roomId!)}
                     >
-                      Select room {row.roomId}
+                      {t("guests.selectRoom", { roomId: row.roomId })}
                     </button>
                   ) : null}
                   {open ? (
                     <div aria-live="polite">
                       <p>
-                        {translateKey(row.stayLabel)}; room{" "}
-                        {row.roomId ?? "unknown room"}; department: {row.stage}
+                        {t("guests.reviewDetail", {
+                          stay: row.stayLabel,
+                          room: row.roomId ?? "guest.unknown.room",
+                          stage: row.stage,
+                        })}
                       </p>
                       <ul>
                         {row.reasons.map((reason) => (
@@ -198,76 +244,94 @@ export function GuestsDashboard(props: {
             })}
           </ul>
         ) : (
-          <EmptyList message="No guests have left a review yet." />
+          <EmptyList message={t("guests.reviews.empty")} />
         )}
       </section>
 
-      <section aria-label="Reception queue">
-        <h3>Reception queue</h3>
+      <section aria-label={t("guests.reception.title")}>
+        <h3>{t("guests.reception.title")}</h3>
         {props.reception.length ? (
           <ul>
             {props.reception.map((row) => (
               <li key={row.bookingId}>
-                {row.bookingId}: {row.waitedMinutes} minutes —{" "}
-                {row.waitingTooLong ? "waiting too long" : "within tolerance"}
+                {t("guests.reception.row", {
+                  bookingId: row.bookingId,
+                  minutes: row.waitedMinutes,
+                  status: row.waitingTooLong
+                    ? "guests.reception.tooLong"
+                    : "guests.reception.withinTolerance",
+                })}
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyList message="Nobody is waiting at reception." />
+          <EmptyList message={t("guests.reception.empty")} />
         )}
       </section>
 
-      <section aria-label="Guest loyalty">
-        <h3>Guest loyalty</h3>
+      <section aria-label={t("guests.loyalty.title")}>
+        <h3>{t("guests.loyalty.title")}</h3>
         {props.loyalty.length ? (
           <ul>
             {props.loyalty.map((row) => (
               <li key={row.guestId}>
-                {row.guestId}: {row.tier}, {row.points} points,{" "}
-                {row.qualifyingNights} qualifying nights — scheme liability{" "}
-                {row.liability}
+                {t("guests.loyalty.row", {
+                  guestId: row.guestId,
+                  tier: row.tier,
+                  points: row.points,
+                  nights: row.qualifyingNights,
+                  liability: row.liability,
+                })}
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyList message="No guests have joined the loyalty scheme." />
+          <EmptyList message={t("guests.loyalty.empty")} />
         )}
       </section>
 
-      <section aria-label="Repeat guests">
-        <h3>Repeat guests</h3>
+      <section aria-label={t("guests.repeat.title")}>
+        <h3>{t("guests.repeat.title")}</h3>
         {props.repeatGuests.length ? (
           <ul>
             {props.repeatGuests.map((row) => (
               <li key={row.guestId}>
-                {row.guestId}: {row.visits} visits; consent: {row.consent};
-                preferences:{" "}
-                {row.preferences.length
-                  ? row.preferences.join(", ")
-                  : "none recorded"}
+                {t("guests.repeat.row", {
+                  guestId: row.guestId,
+                  visits: row.visits,
+                  consent: row.consent,
+                  preferences: row.preferences.length
+                    ? row.preferences.join(", ")
+                    : "guests.repeat.noPreferences",
+                })}
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyList message="No repeat guest profiles have been recorded." />
+          <EmptyList message={t("guests.repeat.empty")} />
         )}
       </section>
 
-      <section aria-label="Guest reputation">
-        <h3>Guest reputation</h3>
+      <section aria-label={t("guests.reputation.title")}>
+        <h3>{t("guests.reputation.title")}</h3>
         {props.reputation.length ? (
           <ul>
             {props.reputation.map((row) => (
               <li key={`${row.dimension}.${row.scopeId}`}>
-                {row.dimension} ({row.scopeId}): {row.score}/100 — affects{" "}
-                {row.effect}
-                {row.topCause ? `; latest: ${row.topCause}` : ""}
+                {t("guests.reputation.row", {
+                  dimension: row.dimension,
+                  scope: row.scopeId,
+                  score: row.score,
+                  effect: row.effect,
+                  latest: row.topCause
+                    ? t("guests.reputation.latest", { cause: row.topCause })
+                    : "",
+                })}
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyList message="No guest-facing reputation has been recorded." />
+          <EmptyList message={t("guests.reputation.empty")} />
         )}
       </section>
     </section>

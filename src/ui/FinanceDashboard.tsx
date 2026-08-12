@@ -9,6 +9,25 @@ import "./theme/data.css";
 import "./theme/status.css";
 import { translateGame, type GameLocale } from "../i18n";
 
+function financeAccountLabel(locale: GameLocale, account: string): string {
+  const key = `finance.dashboard.account.${account}`;
+  const translated = translateGame(locale, key);
+  return translated === key ? account : translated;
+}
+
+function costCauseValues(view: FinanceView, locale: GameLocale) {
+  const phrases = view.costCause.drivers.map(
+    (driver) =>
+      `${financeAccountLabel(locale, driver.factor)} (${driver.weight}%)`,
+  );
+  return {
+    drivers:
+      phrases.length < 2
+        ? (phrases[0] ?? "")
+        : `${phrases.slice(0, -1).join(", ")} ${translateGame(locale, "finance.dashboard.and")} ${phrases.at(-1)}`,
+  };
+}
+
 function MoneyRow({
   label,
   amount,
@@ -192,9 +211,11 @@ export function FinanceDashboard({
         </p>
         {view.investments.renovation ? (
           <p>
-            {view.investments.renovation.id}:{" "}
-            {view.investments.renovation.phase}, target{" "}
-            {view.investments.renovation.targetModuleId}
+            {translateGame(locale, "finance.dashboard.renovationDetail", {
+              id: view.investments.renovation.id,
+              phase: `finance.dashboard.renovationPhase.${view.investments.renovation.phase}`,
+              target: view.investments.renovation.targetModuleId,
+            })}
           </p>
         ) : (
           <p>{t("finance.dashboard.noInvestments")}</p>
@@ -230,7 +251,7 @@ export function FinanceDashboard({
             <tbody>
               {view.costs.map((row) => (
                 <tr key={row.account}>
-                  <th>{row.account}</th>
+                  <th>{financeAccountLabel(locale, row.account)}</th>
                   <td>{formatDm(row.amountMinor, locale)}</td>
                   <td>{formatBasisPoints(row.shareBasisPoints, locale)}</td>
                 </tr>
@@ -241,7 +262,11 @@ export function FinanceDashboard({
           <p>{t("finance.dashboard.noCosts")}</p>
         )}
         <p>
-          {translateGame(locale, view.costCause.key, view.costCause.values)}
+          {translateGame(
+            locale,
+            view.costCause.key,
+            costCauseValues(view, locale),
+          )}
         </p>
         <p>{t("finance.dashboard.causeBoundary")}</p>
       </section>
@@ -256,7 +281,11 @@ export function FinanceDashboard({
             <ul>
               {view.policies.map((policy) => (
                 <li key={policy.id}>
-                  {policy.peril}: {formatDm(policy.limitMinor, locale)}{" "}
+                  {translateGame(
+                    locale,
+                    `finance.dashboard.peril.${policy.peril}`,
+                  )}
+                  : {formatDm(policy.limitMinor, locale)}{" "}
                   {t("finance.dashboard.limit")},{" "}
                   {formatDm(policy.deductibleMinor, locale)}{" "}
                   {t("finance.dashboard.deductible")}
@@ -267,7 +296,12 @@ export function FinanceDashboard({
               <ul>
                 {view.claims.map((claim) => (
                   <li key={claim.id}>
-                    {claim.id}: {claim.status}, {t("finance.dashboard.loss")}{" "}
+                    {claim.id}:{" "}
+                    {translateGame(
+                      locale,
+                      `finance.dashboard.claimStatus.${claim.status}`,
+                    )}
+                    , {t("finance.dashboard.loss")}{" "}
                     {formatDm(claim.lossMinor, locale)},{" "}
                     {t("finance.dashboard.settlement")}{" "}
                     {formatDm(claim.settlementMinor, locale)}

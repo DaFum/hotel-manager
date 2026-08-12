@@ -16,4 +16,12 @@ describe("locale formatters", () => {
       formatGameDate("1991-01-01", "en-GB"),
     );
   });
+
+  it("leaves impossible and normalized game dates unformatted", () => {
+    expect(formatGameDate("1991-02-31", "en-GB")).toBe("1991-02-31");
+    expect(formatGameDate("1991-13-01", "en-GB")).toBe("1991-13-01");
+    expect(formatGameDateRange("1991-02-31", "1991-03-01", "en-GB")).toBe(
+      "1991-02-31–1991-03-01",
+    );
+  });
 });

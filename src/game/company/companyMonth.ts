@@ -51,6 +51,7 @@ export function runCompanyMonth(
 ): void {
   const periodKey = periodStartDateKey.slice(0, 7);
 
+  syncTreasury(state);
   publishFlagshipResult(state, periodKey, ctx);
   tradeManagedHotels(state, periodStartDateKey, periodKey, ctx);
   chargeOwnershipContracts(state, ctx);

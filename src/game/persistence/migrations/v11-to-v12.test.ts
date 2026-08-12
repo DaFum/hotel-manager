@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { SaveEnvelope } from "../saveVersions";
 import { migrateV11ToV12 } from "./v11-to-v12";
+import { createInitialGameState } from "../../simulation/initialState";
+import { validateEnvelope } from "../saveSchema";
+import { CONTENT_VERSION, SAVE_VERSION } from "../saveVersions";
+import { PROTOCOL_VERSION } from "../../domain/protocol";
 
 describe("v11 to v12 alert migration", () => {
   it("backfills authoritative notification metadata on an old alert", () => {
@@ -56,5 +60,28 @@ describe("v11 to v12 alert migration", () => {
     expect(() => migrateV11ToV12({ ...base, state: {} })).toThrow(
       /alerts must be an array/,
     );
+  });
+
+  it("rejects an array in place of the hotel result record", () => {
+    const state = createInitialGameState(3) as any;
+    state.company.hotelResults = [];
+    expect(
+      validateEnvelope({
+        saveVersion: SAVE_VERSION,
+        contentVersion: CONTENT_VERSION,
+        protocolVersion: PROTOCOL_VERSION,
+        rngState: {
+          guests: 1,
+          staffing: 1,
+          failures: 1,
+          economy: 1,
+          events: 1,
+          weather: 1,
+          AI: 1,
+          narrative: 1,
+        },
+        state,
+      }),
+    ).toContain("the state has incomplete hotel operating results");
   });
 });

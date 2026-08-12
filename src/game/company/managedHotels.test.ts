@@ -187,5 +187,17 @@ describe("managed hotel portfolio signals", () => {
     expect(() =>
       managedHotelMonth({ ...hotel, gopMarginBasisPoints: 10_001 }, input),
     ).toThrow(/gop margin/);
+    expect(() =>
+      managedHotelMonth(
+        { ...hotel, rooms: Math.floor(Number.MAX_SAFE_INTEGER / 31) + 1 },
+        input,
+      ),
+    ).toThrow(/available room nights/);
+    expect(() =>
+      managedHotelMonth(
+        { ...hotel, adrMinor: Math.floor(Number.MAX_SAFE_INTEGER / 1_200) },
+        input,
+      ),
+    ).toThrow(/room revenue/);
   });
 });

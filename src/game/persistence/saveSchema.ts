@@ -145,6 +145,10 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
       Number.isSafeInteger,
     ),
   );
+  const maximumPositionBasisPoints =
+    topFloor <= Math.floor(Number.MAX_SAFE_INTEGER / BASIS_POINTS)
+      ? topFloor * BASIS_POINTS
+      : null;
   if (
     !state.renderDescriptors ||
     typeof state.renderDescriptors !== "object" ||
@@ -160,6 +164,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.renderDescriptors.elevator ||
     typeof state.renderDescriptors.elevator !== "object" ||
     !Array.isArray(state.renderDescriptors.elevator.cars) ||
+    maximumPositionBasisPoints === null ||
     !state.renderDescriptors.elevator.cars.every((car: any) => {
       return (
         car &&
@@ -173,7 +178,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
         car.targetFloor <= topFloor &&
         Number.isSafeInteger(car.positionFloorBasisPoints) &&
         car.positionFloorBasisPoints >= 0 &&
-        car.positionFloorBasisPoints <= topFloor * BASIS_POINTS
+        maximumPositionBasisPoints !== null &&
+        car.positionFloorBasisPoints <= maximumPositionBasisPoints
       );
     })
   )

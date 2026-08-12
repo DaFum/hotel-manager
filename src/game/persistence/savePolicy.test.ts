@@ -166,6 +166,18 @@ describe("save policy", () => {
     );
   });
 
+  it("rejects an elevator position bound that cannot remain a safe integer", () => {
+    const malformed = structuredClone(current) as SaveEnvelope & {
+      state: typeof state;
+    };
+    malformed.state.renderDescriptors.floorByRoomId["room.oversized"] =
+      Math.floor(Number.MAX_SAFE_INTEGER / 10_000) + 1;
+
+    expect(validateEnvelope(malformed)).toContain(
+      "the state has no complete render descriptors",
+    );
+  });
+
   it("reports malformed room and stay collections without throwing", () => {
     const malformed = structuredClone(current) as unknown as {
       state: { hotel: { rooms: unknown }; stays: unknown };

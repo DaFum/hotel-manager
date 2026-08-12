@@ -203,7 +203,7 @@ describe("hotel view", () => {
     const detail = screen.getByRole("region", { name: "Room detail" });
     expect(detail.textContent).toContain("Occupied");
     expect(detail.textContent).toContain("120.00");
-    expect(detail.textContent).not.toContain("G-BOOKING-PRIVATE-42");
+    expect(detail.textContent).not.toMatch(/booking/i);
   });
 
   it("exposes placed areas and stable navigation ids beside the canvas", () => {
@@ -243,6 +243,26 @@ describe("hotel view", () => {
       '[data-entity-id="facility.reception"]',
     )!;
     expect(document.activeElement).toBe(reception);
+
+    rerender(
+      <HotelView
+        rooms={rooms}
+        disableRenderer
+        floorPlan={floorPlan}
+        facilities={[
+          {
+            id: "facility.pool",
+            name: "Pool",
+            demand: 10,
+            capacity: 20,
+            cause: "demand",
+          } as any,
+        ]}
+        focusedEntityId="facility.pool"
+      />,
+    );
+    const pool = container.querySelector('[data-entity-id="facility.pool"]')!;
+    expect(document.activeElement).toBe(pool.querySelector("button"));
 
     rerender(
       <HotelView

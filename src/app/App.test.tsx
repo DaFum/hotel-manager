@@ -35,6 +35,28 @@ const gameStore: GameStore = {
 };
 
 describe("App", () => {
+  it("omits actionTarget for an alert if its target position is unresolvable", () => {
+    const snapshot = createInitialGameState(424242);
+    snapshot.alerts = [
+      {
+        id: "alert.unresolvable",
+        severity: "warning",
+        title: "alert.test",
+        cause: "alert.test",
+        target: { entityId: "missing.entity", kind: "facility" },
+      },
+    ];
+    vi.mocked(useGameStore).mockReturnValue({ ...gameStore, snapshot });
+    render(<App />);
+
+    const notifications = screen.getByRole("region", {
+      name: "Benachrichtigungszentrale",
+    });
+    expect(
+      within(notifications).queryByRole("button", { name: /öffnen/i }),
+    ).toBeNull();
+  });
+
   it("opens a notification's alert and moves focus to its semantic room", () => {
     const snapshot = createInitialGameState(424242);
     const room = snapshot.hotel.rooms[12];

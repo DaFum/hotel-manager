@@ -168,6 +168,35 @@ describe("save recovery", () => {
     expect(outcome.rejected[0].reason).toBe("no reason given");
   });
 
+  it("refuses a save with invalid elevator cars", async () => {
+    const store = memoryStore();
+    const slot = manualSlot("broken elevator");
+    const broken = envelopeAt(900);
+    broken.state = {
+      ...(broken.state as any),
+      renderDescriptors: {
+        ...(broken.state as any).renderDescriptors,
+        elevator: {
+          id: "elevator",
+          capacity: 4,
+          queue: 0,
+          travelMinutes: 1,
+          failed: false,
+          cars: [{ id: "car.1", currentFloor: "1" }], // currentFloor is string, invalid
+        },
+      },
+    } as any;
+    await store.save(slot, broken);
+
+    const outcome = await loadWithRecovery(store, slot);
+
+    expect(isRecovered(outcome)).toBe(false);
+    if (!isRecovered(outcome)) {
+      expect(outcome.rejected[0].stage).toBe("validation");
+      expect(outcome.rejected[0].reason).toMatch(/render descriptors/i);
+    }
+  });
+
   it("refuses a save whose state has lost its rng streams", async () => {
     const store = memoryStore();
     const slot = manualSlot("half a save");

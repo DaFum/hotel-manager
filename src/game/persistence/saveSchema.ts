@@ -150,7 +150,18 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.renderDescriptors.positionByEntityId ||
     typeof state.renderDescriptors.positionByEntityId !== "object" ||
     !Array.isArray(state.renderDescriptors.agents) ||
-    !state.renderDescriptors.elevator
+    !state.renderDescriptors.elevator ||
+    typeof state.renderDescriptors.elevator !== "object" ||
+    !Array.isArray(state.renderDescriptors.elevator.cars) ||
+    !state.renderDescriptors.elevator.cars.every(
+      (car: any) =>
+        car &&
+        typeof car === "object" &&
+        typeof car.id === "string" &&
+        typeof car.currentFloor === "number" &&
+        typeof car.targetFloor === "number" &&
+        typeof car.positionFloorBasisPoints === "number",
+    )
   )
     problems.push("the state has no complete render descriptors");
   if (!Array.isArray(state.alerts) || !state.alerts.every(isValidAlert))

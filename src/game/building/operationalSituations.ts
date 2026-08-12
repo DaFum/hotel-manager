@@ -225,7 +225,12 @@ export function describeOperationalSituations(
   const kitchenCause =
     input.fnb.outlets.find(
       (outlet) =>
-        outlet.waitlisted > 0 && outlet.cause === "facility.cause.kitchenLine",
+        outlet.waitlisted > 0 &&
+        [
+          "facility.cause.kitchenLine",
+          "facility.cause.stock",
+          "facility.cause.miseEnPlace",
+        ].includes(outlet.cause),
     )?.cause ?? "facility.cause.demand";
   const activeStations = Math.min(4, Math.ceil(kitchenUtilization / 2500));
 

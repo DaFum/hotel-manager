@@ -1,0 +1,89 @@
+.revenue-board {
+  --revenue-ink: #172424;
+  --revenue-paper: #e5e1d2;
+  --revenue-signal: #b7472d;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 27px,
+      rgb(23 36 36 / 7%) 28px
+    ),
+    linear-gradient(115deg, #eeeadd, var(--revenue-paper));
+  color: var(--revenue-ink);
+  border: 1px solid rgb(23 36 36 / 35%);
+  box-shadow: 0 1.25rem 3rem rgb(23 36 36 / 18%);
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.revenue-board__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  border-block: 4px double var(--revenue-ink);
+  margin-block-end: 1.5rem;
+  padding: 0.65rem 0;
+}
+
+.revenue-board__header p {
+  color: var(--revenue-signal);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.revenue-board__header h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 7vw, 5.5rem);
+  font-weight: 400;
+  letter-spacing: -0.055em;
+  line-height: 0.8;
+  margin: 0;
+}
+
+.revenue-board > section {
+  border-top: 1px solid rgb(23 36 36 / 35%);
+  margin-block-start: 1.2rem;
+  padding-block-start: 1rem;
+  overflow-x: auto;
+}
+
+.revenue-board table {
+  border-collapse: collapse;
+  min-width: 100%;
+}
+
+.revenue-board caption {
+  color: var(--revenue-signal);
+  font-weight: 700;
+  text-align: left;
+  padding-block: 0.5rem;
+}
+
+.revenue-board th,
+.revenue-board td {
+  border-bottom: 1px solid rgb(23 36 36 / 20%);
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.revenue-board tr[data-date-state="today"] {
+  outline: 2px solid var(--revenue-signal);
+  outline-offset: -2px;
+}
+
+.revenue-board button {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  margin-block-start: 0.35rem;
+}
+
+.revenue-board button:hover,
+.revenue-board button:focus-visible {
+  background: var(--revenue-ink);
+  color: var(--revenue-paper);
+}

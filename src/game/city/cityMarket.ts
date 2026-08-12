@@ -63,6 +63,8 @@ import {
   sourceRoomNights,
   totalRoomNights,
   type DemandSources,
+  occupancyContributors,
+  type OccupancyContributor,
 } from "./demand";
 import {
   conferenceEffect,
@@ -109,6 +111,13 @@ export interface CityMarketState {
   forecast: ForecastBand;
   /** Houses built since 1991; keeps entrant ids and names stable. */
   entrantCount: number;
+  occupancyAttribution: {
+    previousOccupancyBp: number;
+    occupancyMovementBp: number;
+    previousBusinessDemand: number;
+    previousCompetitorRooms: number;
+    contributors: OccupancyContributor[];
+  };
 }
 
 /** A stream of whole numbers; the caller owns which RNG stream it is. */
@@ -156,6 +165,16 @@ export function createCityMarket(dateKey: string): CityMarketState {
     informationQuality: 0,
     forecast: forecastBand(totalRoomNights(demand), 0),
     entrantCount: 0,
+    occupancyAttribution: {
+      previousOccupancyBp: 0,
+      occupancyMovementBp: 0,
+      previousBusinessDemand: demand.business,
+      previousCompetitorRooms: FRANKFURT_COMPETITORS.reduce(
+        (sum, c) => sum + c.rooms,
+        0,
+      ),
+      contributors: [],
+    },
   };
 }
 
@@ -472,6 +491,40 @@ export function advanceCityMonth(
     market.soldRoomNights,
     tradedRoomTotal * nightsInMonth,
   );
+  const attribution = market.occupancyAttribution;
+  const competitorRooms = competitors.reduce((sum, c) => sum + c.rooms, 0);
+  const occupancyMovementBp = cityOccupancyBp - attribution.previousOccupancyBp;
+  const marketRateBeforeActions = averageRateMinor(competitors, player);
+  const ownPriceDeltaBp = marketRateBeforeActions
+    ? Math.trunc(
+        ((player.rateMinor - marketRateBeforeActions) * 10_000) /
+          marketRateBeforeActions,
+      )
+    : 0;
+  market.occupancyAttribution = {
+    previousOccupancyBp: cityOccupancyBp,
+    occupancyMovementBp,
+    previousBusinessDemand: market.demand.business,
+    previousCompetitorRooms: competitorRooms,
+    contributors: occupancyContributors({
+      occupancyMovementBp,
+      businessDemandChangeBp: attribution.previousBusinessDemand
+        ? Math.trunc(
+            ((market.demand.business - attribution.previousBusinessDemand) *
+              10_000) /
+              attribution.previousBusinessDemand,
+          )
+        : 0,
+      competitorRoomSupplyChangeBp: attribution.previousCompetitorRooms
+        ? Math.trunc(
+            ((competitorRooms - attribution.previousCompetitorRooms) * 10_000) /
+              attribution.previousCompetitorRooms,
+          )
+        : 0,
+      ownPriceDeltaBp,
+      eventUpliftBp: market.eventUpliftBp,
+    }),
+  };
   // Every structural decision — employers, land, entry — is taken on the
   // season-adjusted figure rather than on the month just traded.
   const trendOccupancyBp = deseasoned(cityOccupancyBp);

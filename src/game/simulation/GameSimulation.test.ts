@@ -597,6 +597,7 @@ describe("localized alerts", () => {
         (alert) => alert.id === "alert.space.space.carpark",
       ),
     ).toMatchObject({
+      severity: "notice",
       title: "alert.space.title",
       cause: "alert.space.cause.atCapacity",
       target: { entityId: "space.carpark", kind: "facility" },
@@ -606,6 +607,16 @@ describe("localized alerts", () => {
         demand: 70,
         turnedAway: 52,
       },
+      category: "space",
+      groupId: `${state.hotel.id}:space`,
+      source: {
+        companyId: state.company.companyId,
+        hotelId: state.hotel.id,
+        regionId: state.company.portfolio.hotelRegion[state.hotel.id],
+      },
+      gameTime: "1991-01-01:1080",
+      delegate: "Anna Keller",
+      acknowledged: false,
     });
     expect(
       sim.state.alerts.find((alert) => alert.id === "alert.security.spaces"),
@@ -619,6 +630,43 @@ describe("localized alerts", () => {
         openSpaces: 3,
       },
     });
+  });
+
+  it("acknowledges an alert through the command boundary", () => {
+    const state = createInitialGameState(101);
+    state.alerts.push({
+      id: "alert.test",
+      severity: "notice",
+      title: "alert.test",
+      cause: "alert.test",
+      category: "test",
+      groupId: `${state.hotel.id}:test`,
+      source: { companyId: state.company.companyId, hotelId: state.hotel.id },
+      gameTime: "1991-01-01:0",
+      acknowledged: false,
+    });
+    const sim = new GameSimulation(state);
+    sim.queueCommand({ type: "ACKNOWLEDGE_ALERT", id: "alert.test" });
+    sim.applyPendingCommands();
+    expect(sim.state.alerts[0].acknowledged).toBe(true);
+  });
+
+  it("leaves an advisory with the player when no manager is assigned", () => {
+    const state = createInitialGameState(101);
+    state.company.managers = [];
+    state.calendar.minuteOfDay = 1075;
+    state.stays = Array.from({ length: 100 }, (_, index) => ({
+      bookingId: `booking.space.unmanaged.${index}`,
+      roomId: state.hotel.rooms[index % state.hotel.rooms.length].id,
+      rateMinor: 10_000,
+      departureDateKey: "1991-01-02",
+    }));
+    const sim = new GameSimulation(state);
+    sim.advanceQuantum();
+    expect(
+      sim.state.alerts.find((alert) => alert.id === "alert.space.space.carpark")
+        ?.delegate,
+    ).toBeUndefined();
   });
 
   it("keeps booking and recovery amounts out of localized alert keys", () => {

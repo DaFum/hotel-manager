@@ -39,6 +39,9 @@ function groupOwningTwo() {
     occupancyBasisPoints: 6000,
     soldRoomNights: 1_000,
     availableRoomNights: 1_800,
+    qualityStars: 3,
+    cashNeedMinor: 0,
+    renovationNeedMinor: 0,
   };
   c.treasury = openHotelAccount(c.treasury, SOLD, 0);
   c.managers = [

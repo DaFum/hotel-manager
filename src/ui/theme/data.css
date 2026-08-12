@@ -197,3 +197,37 @@
 .hm-panel:has(> table) {
   overflow-x: auto;
 }
+
+/* --- Finance registers -------------------------------------------------- */
+:root {
+  --finance-ink: var(--hm-ink, #20231f);
+  --finance-paper: var(--hm-surface, #f0eadb);
+  --finance-rule: var(--hm-rule, #8b8069);
+  --finance-gain: var(--hm-gain, #1f674b);
+  --finance-loss: var(--hm-loss, #9b382f);
+  --finance-flat: var(--hm-ink-dim, #625d53);
+}
+
+.register-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.register-table :is(th, td),
+.ledger-row {
+  border-bottom: 1px solid var(--finance-rule);
+  padding: 0.45rem 0.65rem;
+}
+
+.register-table td,
+.ledger-row dd,
+.ledger-row [data-amount] {
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.ledger-row {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) auto;
+  gap: 1rem;
+}

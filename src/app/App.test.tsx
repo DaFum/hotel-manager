@@ -26,6 +26,7 @@ const gameStore: GameStore = {
   setPreferences: noop,
   requestPause: noop,
   requestResume: noop,
+  acknowledgeAlert: noop,
   observeTutorialAction: noop,
   setSpeed: noop,
   send: noop,
@@ -35,10 +36,85 @@ const gameStore: GameStore = {
 };
 
 describe("App", () => {
-  it("omits actionTarget for an alert if its target position is unresolvable", () => {
+  it("still requests auto-pause from the consolidated notification flow", () => {
+    const requestPause = vi.fn();
     const snapshot = createInitialGameState(424242);
     snapshot.alerts = [
       {
+        id: "alert.critical.test",
+        severity: "critical",
+        title: "alert.test",
+        cause: "alert.test",
+        category: "critical",
+        groupId: `${snapshot.hotel.id}:critical`,
+        source: { companyId: snapshot.company.companyId },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
+      },
+    ];
+    vi.mocked(useGameStore).mockReturnValue({
+      ...gameStore,
+      snapshot,
+      requestPause,
+    });
+    render(<App />);
+    expect(requestPause).toHaveBeenCalled();
+  });
+
+  it("shares portfolio hotel selection with the aggregate room view", () => {
+    const snapshot = createInitialGameState(424242);
+    const managedId = "hotel.offenbach.1";
+    snapshot.company.portfolio.hotelIds.push(managedId);
+    snapshot.company.managedHotels.push({
+      hotelId: managedId,
+      name: "Hafenhaus",
+      cityId: snapshot.hotel.cityId,
+      rooms: 42,
+      adrMinor: 12_000,
+      occupancyBasisPoints: 6500,
+      gopMarginBasisPoints: 3200,
+      openedDateKey: "1987-01-01",
+    });
+    snapshot.company.hotelResults[managedId] = {
+      hotelId: managedId,
+      periodKey: "1991-01",
+      roomRevenueMinor: 1_000_000,
+      otherRevenueMinor: 200_000,
+      operatingExpenseMinor: 800_000,
+      grossOperatingProfitMinor: 400_000,
+      occupancyBasisPoints: 6500,
+      soldRoomNights: 846,
+      availableRoomNights: 1302,
+      qualityStars: 3,
+      cashNeedMinor: 0,
+      renovationNeedMinor: 2_000_000,
+    };
+    vi.mocked(useGameStore).mockReturnValue({ ...gameStore, snapshot });
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "Unternehmen" }));
+    fireEvent.click(screen.getByRole("button", { name: /open hafenhaus/i }));
+    expect(screen.getByLabelText("Selected hotel").textContent).toContain(
+      "Hafenhaus",
+    );
+
+    fireEvent.click(screen.getByRole("tab", { name: "Hauptansicht" }));
+    expect(
+      screen.getByText("No per-room state exists for this managed hotel."),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /room\.101/i })).toBeNull();
+  });
+
+  it("keeps an authoritative alert in the single notification center", () => {
+    const snapshot = createInitialGameState(424242);
+    snapshot.alerts = [
+      {
+        category: "test",
+        groupId: `${snapshot.hotel.id}:test`,
+        source: { companyId: snapshot.company.companyId },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
+        actionEntityId: "alert.unresolvable",
         id: "alert.unresolvable",
         severity: "warning",
         title: "alert.test",
@@ -53,14 +129,21 @@ describe("App", () => {
       name: "Benachrichtigungszentrale",
     });
     expect(
-      within(notifications).queryByRole("button", { name: /öffnen/i }),
-    ).toBeNull();
+      within(notifications).getByRole("button", { name: /öffnen/i }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Alerts" })).toBeNull();
   });
 
   it("renders actionTarget for an alert if its target position is resolvable", () => {
     const snapshot = createInitialGameState(424242);
     snapshot.alerts = [
       {
+        category: "test",
+        groupId: `${snapshot.hotel.id}:test`,
+        source: { companyId: snapshot.company.companyId },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
+        actionEntityId: "alert.resolvable",
         id: "alert.resolvable",
         severity: "warning",
         title: "alert.test",
@@ -84,6 +167,12 @@ describe("App", () => {
     const room = snapshot.hotel.rooms[12];
     snapshot.alerts = [
       {
+        category: "housekeeping-backlog",
+        groupId: `${snapshot.hotel.id}:housekeeping-backlog`,
+        source: { companyId: snapshot.company.companyId },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
+        actionEntityId: "alert.room-focus",
         id: "alert.room-focus",
         severity: "warning",
         title: "alert.housekeeping-backlog.title",
@@ -107,7 +196,11 @@ describe("App", () => {
     expect(
       screen.getByRole("status", { name: "View state" }).textContent,
     ).toContain(`Floor ${snapshot.renderDescriptors.floorByRoomId[room.id]}`);
-    expect(screen.getByText(/alert\.room-focus · warning/)).toBeTruthy();
+    expect(
+      within(notifications).getByRole("heading", {
+        name: /warnung: reinigungsrückstand/i,
+      }),
+    ).toBeTruthy();
     expect(document.activeElement).toBe(
       screen.getByRole("button", {
         name: new RegExp(`prüfen.*${room.id}`, "i"),
@@ -127,7 +220,6 @@ describe("App", () => {
       "Statusleiste",
       "Darstellungseinstellungen",
       "Benachrichtigungszentrale",
-      "Alerts",
     ]) {
       const chrome = container.querySelector(`[aria-label="${label}"]`);
       expect(chrome).not.toBeNull();
@@ -147,12 +239,27 @@ describe("App", () => {
         "Build",
         "Technology",
       ],
-      staff: ["Staff"],
+      guests: ["Guests"],
+      staff: ["Personal"],
       finance: ["Finance", "Purchasing"],
       revenue: ["Revenue", "Competitors"],
-      marketing: ["Commercial"],
-      market: ["City market", "Competitors"],
+      marketing: [
+        "Vertriebspipeline",
+        "CRM und Einwilligung",
+        "Zielgruppen und Reichweite",
+        "Commercial",
+      ],
+      market: [
+        "Stadtwirtschaft",
+        "Stadtaktivität",
+        "Weltlage",
+        "City market",
+        "Competitors",
+      ],
       company: [
+        "Konzernfinanzen",
+        "Fusionen und Übernahmen",
+        "Konzernzentrale",
         "Hotel portfolio",
         "Selected hotel",
         "Brands",

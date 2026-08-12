@@ -134,7 +134,7 @@ import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
 import { accrueMonthlyInterestMinor } from "../finance/loans";
-import { closeMonth } from "../finance/monthlyClose";
+import { closeMonth, deriveMonthlyBriefing } from "../finance/monthlyClose";
 import {
   advanceRenovation,
   renovationBlockedRooms,
@@ -220,7 +220,11 @@ import {
   willResign,
   workOvertime,
 } from "../staff/employeeLifecycle";
-import { createManagerAuthority } from "../management/managerAuthority";
+import {
+  createManagerAuthority,
+  managerForHotel,
+} from "../management/managerAuthority";
+import { escalationReason } from "../management/escalation";
 import {
   beginStay,
   createParty,
@@ -480,6 +484,10 @@ export class GameSimulation implements CommandExecutor {
     const s = state;
     try {
       switch (command.type) {
+        case "ACKNOWLEDGE_ALERT":
+          return s.alerts.some((alert) => alert.id === command.id)
+            ? { ok: true }
+            : { ok: false, reason: "unknown alert" };
         case "SET_RATE":
           setRate(
             s.rates,
@@ -725,6 +733,11 @@ export class GameSimulation implements CommandExecutor {
   private applyCommand(command: GameCommand): void {
     const s = this.state;
     switch (command.type) {
+      case "ACKNOWLEDGE_ALERT":
+        s.alerts = s.alerts.map((alert) =>
+          alert.id === command.id ? { ...alert, acknowledged: true } : alert,
+        );
+        return;
       case "SET_RATE":
         s.rates = setRate(
           s.rates,
@@ -1118,6 +1131,20 @@ export class GameSimulation implements CommandExecutor {
           this.streams.guests.nextUint32() % 10000 >= NO_SHOW_BP;
         if (!turnsUp) continue;
         s.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 0 });
+        const matching = s.hotel.rooms.filter(
+          (room) => room.category === booking.category,
+        );
+        const clean = matching.filter(
+          (room) => room.state === "VacantClean",
+        ).length;
+        const dirty = matching.filter(
+          (room) => room.state === "VacantDirty",
+        ).length;
+        if (
+          clean < booking.roomsRequested &&
+          clean + dirty >= booking.roomsRequested
+        )
+          s.finance.month.housekeepingLateRoomReleaseCount += 1;
       }
     }
 
@@ -1388,7 +1415,7 @@ export class GameSimulation implements CommandExecutor {
       if (result.turnedAway > 0)
         this.pushAlert({
           id: `alert.space.${space.id}`,
-          severity: "info",
+          severity: "notice",
           title: "alert.space.title",
           cause: result.cause,
           causeValues: {
@@ -3084,6 +3111,7 @@ export class GameSimulation implements CommandExecutor {
         });
         this.earn(event.valueMinor, "eventRevenue", `conference ${event.id}`);
         s.finance.month.otherRevenueMinor += event.valueMinor;
+        s.finance.month.eventRevenueMinor += event.valueMinor;
         this.emit(
           {
             type: "CONFERENCE_COMPLETED",
@@ -3460,7 +3488,7 @@ export class GameSimulation implements CommandExecutor {
     });
 
     const m = s.finance.month;
-    s.lastMonthlyClose = closeMonth({
+    const report = closeMonth({
       periodKey,
       openingCashMinor: m.openingCashMinor,
       closingCashMinor: s.finance.cashMinor,
@@ -3470,6 +3498,41 @@ export class GameSimulation implements CommandExecutor {
       soldRoomNights: m.soldRoomNights,
       availableRoomNights: m.availableRoomNights,
     });
+    const baseline = s.monthlyCloseBaseline;
+    const briefing = deriveMonthlyBriefing({
+      report,
+      previous: baseline.previousReport,
+      highWaterMarks: baseline.highWaterMarks,
+      eventRevenueMinor: m.eventRevenueMinor,
+      previousEventRevenueMinor: baseline.previousEventRevenueMinor,
+      lateRoomReleaseCount: m.housekeepingLateRoomReleaseCount,
+      previousLateRoomReleaseCount: baseline.previousLateRoomReleaseCount,
+      signals: {
+        dateKey: s.calendar.dateKey,
+        supplierContracts: s.procurement.contracts,
+        competitors: s.competitors,
+      },
+    });
+    s.lastMonthlyClose = { ...report, ...briefing };
+    s.monthlyCloseBaseline = {
+      previousReport: s.lastMonthlyClose,
+      previousEventRevenueMinor: m.eventRevenueMinor,
+      previousLateRoomReleaseCount: m.housekeepingLateRoomReleaseCount,
+      highWaterMarks: {
+        revenueMinor: Math.max(
+          baseline.highWaterMarks.revenueMinor,
+          report.revenueMinor,
+        ),
+        operatingProfitMinor: Math.max(
+          baseline.highWaterMarks.operatingProfitMinor,
+          report.operatingProfitMinor,
+        ),
+        eventRevenueMinor: Math.max(
+          baseline.highWaterMarks.eventRevenueMinor,
+          m.eventRevenueMinor,
+        ),
+      },
+    };
     // The flagship's own result is what `publishFlagshipResult` already read
     // off the month accumulator, and it is deliberately not restated from this
     // report. The report is the group's: by the time it is drawn up it also
@@ -3535,6 +3598,8 @@ export class GameSimulation implements CommandExecutor {
       openingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: 0,
       otherRevenueMinor: 0,
+      eventRevenueMinor: 0,
+      housekeepingLateRoomReleaseCount: 0,
       operatingExpenseMinor: 0,
       soldRoomNights: 0,
       // The first day of the new month is added right after this close.
@@ -3779,9 +3844,44 @@ export class GameSimulation implements CommandExecutor {
   }
 
   /** Adds an alert once. Returns true when this is the first time it is said. */
-  private pushAlert(alert: AlertRecord): boolean {
+  private pushAlert(
+    alert: Omit<
+      AlertRecord,
+      | "category"
+      | "groupId"
+      | "source"
+      | "gameTime"
+      | "actionEntityId"
+      | "delegate"
+      | "acknowledged"
+    >,
+  ): boolean {
     if (this.state.alerts.some((a) => a.id === alert.id)) return false;
-    this.state.alerts.push(alert);
+    const s = this.state;
+    const category = alert.id.split(".")[1] || "operations";
+    const hotelId = s.hotel.id;
+    const manager = managerForHotel(s.company.managers, hotelId);
+    const canDelegate =
+      manager !== null &&
+      alert.severity !== "critical" &&
+      escalationReason(manager.authority, {
+        kind: "repair",
+        amountMinor: 0,
+      }) === null;
+    s.alerts.push({
+      ...alert,
+      category,
+      groupId: `${hotelId}:${category}`,
+      source: {
+        companyId: s.company.companyId,
+        hotelId,
+        regionId: s.company.portfolio.hotelRegion[hotelId],
+      },
+      gameTime: `${s.calendar.dateKey}:${s.calendar.minuteOfDay}`,
+      actionEntityId: alert.id,
+      ...(canDelegate ? { delegate: manager.name } : {}),
+      acknowledged: false,
+    });
     return true;
   }
 }

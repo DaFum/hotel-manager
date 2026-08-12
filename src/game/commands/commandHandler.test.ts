@@ -180,6 +180,11 @@ describe("command handler", () => {
         // Two authoritative writes and an RNG draw, then a failure.
         draft.finance.cashMinor -= 5_000;
         draft.alerts.push({
+          category: "half-written",
+          groupId: `${draft.hotel.id}:half-written`,
+          source: { companyId: draft.company.companyId },
+          gameTime: "1991-01-01:0",
+          acknowledged: false,
           id: "alert.half-written",
           severity: "info",
           title: "alert.half-written.title",

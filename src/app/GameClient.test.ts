@@ -52,6 +52,17 @@ describe("GameClient protocol", () => {
       requestId: "req.2",
     });
   });
+  it("sends alert acknowledgement through the command channel", () => {
+    const worker = fakeWorker();
+    const client = new GameClient(worker);
+    expect(client.acknowledgeAlert("alert.1")).toBe("req.1");
+    expect(worker.postMessage.mock.lastCall![0]).toMatchObject({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND",
+      requestId: "req.1",
+      command: { type: "ACKNOWLEDGE_ALERT", id: "alert.1" },
+    });
+  });
   it("sends versioned INIT_GAME", () => {
     const worker = fakeWorker();
     new GameClient(worker).init(42);

@@ -134,7 +134,7 @@ describe("the isometric hotel read off the snapshot", () => {
         title: "alert.cash-short.title",
         cause: "alert.cash-short.cause",
       },
-    ] as typeof s.alerts;
+    ] as unknown as typeof s.alerts;
 
     const [pinned] = worldProblems(s);
     expect(pinned.kind).toBe("room");
@@ -167,7 +167,7 @@ describe("the isometric hotel read off the snapshot", () => {
         title: "alert.room-out-of-service.title",
         cause: `alert.room-out-of-service.cause.${longRoomId}`,
       },
-    ];
+    ] as unknown as typeof s.alerts;
 
     expect(worldProblems(s)).toEqual([]);
   });

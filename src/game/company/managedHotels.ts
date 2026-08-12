@@ -9,6 +9,8 @@ import {
   monthsOpen,
   rampUpDemandFactorBasisPoints,
 } from "../development/rampUp";
+import type { TreasuryState } from "../treasury/treasury";
+import { hotelCashMinor, overdrawnHotels } from "../treasury/treasury";
 
 /**
  * A hotel the group owns but does not run minute by minute. The flagship is
@@ -131,6 +133,65 @@ export interface ManagedHotelMonth {
   operatingExpenseMinor: number;
   grossOperatingProfitMinor: number;
   occupancyBasisPoints: number;
+  cashNeedMinor: number;
+  renovationNeedMinor: number;
+  qualityStars: number;
+}
+
+/** Funding required to absorb a loss and bring the hotel's account back to zero. */
+export function cashNeedForLossMinor(
+  treasury: TreasuryState,
+  hotelId: string,
+  grossOperatingProfitMinor: number,
+): number {
+  if (!Number.isSafeInteger(grossOperatingProfitMinor))
+    throw new Error("invalid gross operating profit");
+  if (grossOperatingProfitMinor >= 0) return 0;
+  const balance = hotelCashMinor(treasury, hotelId);
+  const isOverdrawn = overdrawnHotels(treasury).includes(hotelId);
+  const usableBalance = isOverdrawn ? balance : Math.max(0, balance);
+  return Math.max(0, -grossOperatingProfitMinor - usableBalance);
+}
+
+/** Stateless portfolio estimate: age, scale and weak margins all add need. */
+export function managedRenovationNeedMinor(
+  hotel: ManagedHotelRecord,
+  periodStartDateKey: string,
+): number {
+  assertCount(hotel.rooms, "rooms");
+  assertBasisPoints(hotel.gopMarginBasisPoints, "gop margin");
+  if (hotel.gopMarginBasisPoints > 10_000)
+    throw new Error("invalid gop margin");
+  const ageMonths = monthsOpen(hotel.openedDateKey, periodStartDateKey);
+  const ageYears = Math.trunc(ageMonths / 12);
+  const weakMarginBp = Math.max(0, 3500 - hotel.gopMarginBasisPoints);
+  const perRoomMinor = ageYears * 10_000 + weakMarginBp * 10;
+  const need = hotel.rooms * perRoomMinor;
+  if (!Number.isSafeInteger(need)) throw new Error("invalid renovation need");
+  return need;
+}
+
+/** Coarse aggregate quality: three disclosed trading measures, no fake audit. */
+export function managedQualityStars(input: {
+  gopMarginBasisPoints: number;
+  occupancyBasisPoints: number;
+  adrMinor: number;
+}): number {
+  assertBasisPoints(input.gopMarginBasisPoints, "gop margin");
+  assertBasisPoints(input.occupancyBasisPoints, "occupancy");
+  if (
+    input.gopMarginBasisPoints > 10_000 ||
+    input.occupancyBasisPoints > 10_000
+  )
+    throw new Error("invalid managed quality input");
+  assertNonNegativeMinor(input.adrMinor, "adr");
+  const score =
+    (input.gopMarginBasisPoints >= 1500 ? 1 : 0) +
+    (input.gopMarginBasisPoints >= 3000 ? 1 : 0) +
+    (input.occupancyBasisPoints >= 6000 ? 1 : 0) +
+    (input.adrMinor >= 10_000 ? 1 : 0) +
+    (input.adrMinor >= 18_000 && input.occupancyBasisPoints >= 7500 ? 1 : 0);
+  return Math.max(1, Math.min(5, score));
 }
 
 /**
@@ -140,7 +201,11 @@ export interface ManagedHotelMonth {
  */
 export function managedHotelMonth(
   hotel: ManagedHotelRecord,
-  input: { periodStartDateKey: string; brandUpliftBp: number },
+  input: {
+    periodStartDateKey: string;
+    brandUpliftBp: number;
+    treasury?: TreasuryState;
+  },
 ): ManagedHotelMonth {
   assertBasisPoints(input.brandUpliftBp, "brand uplift");
   const nights = daysInMonth(input.periodStartDateKey);
@@ -164,6 +229,10 @@ export function managedHotelMonth(
   const grossOperatingProfitMinor = Math.trunc(
     (revenueMinor * hotel.gopMarginBasisPoints) / 10_000,
   );
+  const occupancyBasisPoints =
+    availableRoomNights === 0
+      ? 0
+      : Math.round((soldRoomNights * 10_000) / availableRoomNights);
   return {
     soldRoomNights,
     availableRoomNights,
@@ -171,9 +240,22 @@ export function managedHotelMonth(
     otherRevenueMinor,
     operatingExpenseMinor: revenueMinor - grossOperatingProfitMinor,
     grossOperatingProfitMinor,
-    occupancyBasisPoints:
-      availableRoomNights === 0
-        ? 0
-        : Math.round((soldRoomNights * 10_000) / availableRoomNights),
+    occupancyBasisPoints,
+    cashNeedMinor: input.treasury
+      ? cashNeedForLossMinor(
+          input.treasury,
+          hotel.hotelId,
+          grossOperatingProfitMinor,
+        )
+      : Math.max(0, -grossOperatingProfitMinor),
+    renovationNeedMinor: managedRenovationNeedMinor(
+      hotel,
+      input.periodStartDateKey,
+    ),
+    qualityStars: managedQualityStars({
+      gopMarginBasisPoints: hotel.gopMarginBasisPoints,
+      occupancyBasisPoints,
+      adrMinor: hotel.adrMinor,
+    }),
   };
 }

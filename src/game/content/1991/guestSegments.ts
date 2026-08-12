@@ -3,6 +3,7 @@ import { CORE_CONTENT_REGISTRY } from "../corePack";
 export interface GuestSegment {
   id: string;
   name: string;
+  nameKey: string;
   /** Share of baseline demand, in basis points; the four shares sum to 10000. */
   shareBp: number;
   /** Highest nightly rate this segment will accept, in Pfennig. */
@@ -18,6 +19,7 @@ export const GUEST_SEGMENTS: readonly GuestSegment[] = [
   .map((entry) => ({
     id: entry.id,
     name: entry.name,
+    nameKey: entry.nameKey,
     shareBp: entry.shareBasisPoints,
     willingnessMinor: entry.willingnessToPayMinor,
     averageNights: entry.averageNights,

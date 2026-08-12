@@ -29,3 +29,22 @@ export function formatGameDate(iso: string, locale: string): string {
     timeZone: "UTC",
   }).format(new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])));
 }
+export function formatGameDateRange(
+  start: string,
+  end: string,
+  locale: string,
+): string {
+  const parse = (iso: string) => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
+    return match
+      ? new Date(Date.UTC(+match[1], +match[2] - 1, +match[3]))
+      : null;
+  };
+  const from = parse(start);
+  const to = parse(end);
+  if (!from || !to) return `${start}–${end}`;
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).formatRange(from, to);
+}

@@ -27,6 +27,49 @@ export interface DemandDrivers {
   congressScale: number;
 }
 
+export interface OccupancyContributor {
+  factor:
+    | "businessDemandChange"
+    | "competitorRoomSupplyChange"
+    | "ownPriceVsMarket"
+    | "eventUplift"
+    | "reputationEffect";
+  weight: number;
+}
+
+/** Integer marginal signals; reputation carries the exact reconciliation remainder. */
+export function occupancyContributors(input: {
+  occupancyMovementBp: number;
+  businessDemandChangeBp: number;
+  competitorRoomSupplyChangeBp: number;
+  ownPriceDeltaBp: number;
+  eventUpliftBp: number;
+}): OccupancyContributor[] {
+  for (const [key, value] of Object.entries(input))
+    if (!Number.isSafeInteger(value))
+      throw new Error(`invalid occupancy attribution ${key}`);
+  const named: OccupancyContributor[] = [
+    { factor: "businessDemandChange", weight: input.businessDemandChangeBp },
+    {
+      factor: "competitorRoomSupplyChange",
+      weight: -input.competitorRoomSupplyChangeBp,
+    },
+    {
+      factor: "ownPriceVsMarket",
+      weight: -Math.trunc(input.ownPriceDeltaBp / 10),
+    },
+    { factor: "eventUplift", weight: input.eventUpliftBp },
+  ];
+  const explained = named.reduce((sum, item) => sum + item.weight, 0);
+  return [
+    ...named,
+    {
+      factor: "reputationEffect",
+      weight: input.occupancyMovementBp - explained,
+    },
+  ];
+}
+
 /** Share of baseline city demand each source carries, in basis points. */
 export const SOURCE_SHARE_BP: Record<keyof DemandSources, number> = {
   business: 4200,

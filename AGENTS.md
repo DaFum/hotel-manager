@@ -702,7 +702,7 @@ Before the first public release, only the current save, content, and protocol ve
 are accepted. Older internal development saves are rejected and require no migration
 code or frozen fixtures.
 
-After the first public release, every persistent schema change requires an explicit
+After the first public release (actually state is unreleased), every persistent schema change requires an explicit
 migration path and tests/fixtures for published save versions.
 
 Never silently reinterpret an old field with a new meaning.

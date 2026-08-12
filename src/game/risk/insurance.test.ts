@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   createInsuranceState,
+  cancelPolicy,
   fileClaim,
   monthlyPremiumMinor,
   settleClaim,
   settlementMinor,
   takeOutPolicy,
   underinsuranceBasisPoints,
+  varyPolicy,
 } from "./insurance";
 import { XorShift32 } from "../domain/rng";
 
@@ -177,5 +179,29 @@ describe("insurance", () => {
     expect(() =>
       takeOutPolicy(createInsuranceState(), { ...POLICY, id: "" }),
     ).toThrow(/id/);
+  });
+
+  it("varies a policy immutably and revalidates its limits", () => {
+    const state = takeOutPolicy(createInsuranceState(), POLICY);
+    const varied = varyPolicy(state, POLICY.id, {
+      deductibleMinor: 3_000_000,
+      limitMinor: 50_000_000,
+    });
+    expect(varied.policies[0]).toMatchObject({
+      deductibleMinor: 3_000_000,
+      limitMinor: 50_000_000,
+    });
+    expect(state.policies[0]).toEqual(POLICY);
+    expect(() =>
+      varyPolicy(state, POLICY.id, {
+        limitMinor: POLICY.insuredValueMinor + 1,
+      }),
+    ).toThrow(/limit/);
+  });
+
+  it("cancels only a known policy", () => {
+    const state = takeOutPolicy(createInsuranceState(), POLICY);
+    expect(cancelPolicy(state, POLICY.id).policies).toEqual([]);
+    expect(() => cancelPolicy(state, "policy.missing")).toThrow(/unknown/);
   });
 });

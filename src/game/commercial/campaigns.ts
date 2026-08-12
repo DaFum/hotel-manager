@@ -6,6 +6,10 @@ import {
   assertNonNegativeMinor,
   assertScore,
 } from "../domain/units";
+import {
+  CAMPAIGN_ATTRIBUTION_LOG_LIMIT,
+  type CampaignAttributionEntry,
+} from "./commercialState";
 
 /**
  * Marketing as a decision with a shape. A campaign declares what it is for,
@@ -29,10 +33,12 @@ export interface Campaign {
   objective: CampaignObjective;
   /** The guest segment the work is aimed at. */
   targetSegmentId: string;
+  region: string;
   channel: CampaignChannel;
   startDateKey: string;
   durationDays: number;
   budgetMinor: number;
+  message: string;
   /** 0-100; the work itself, not the money behind it. */
   creativeQuality: number;
   status: "running" | "finished";
@@ -61,6 +67,8 @@ export function channelAvailable(
 export function createCampaign(input: Omit<Campaign, "status">): Campaign {
   if (!input.id) throw new Error("a campaign id is required");
   if (!input.targetSegmentId) throw new Error("a campaign needs a target");
+  if (!input.region.trim()) throw new Error("a campaign needs a region");
+  if (!input.message.trim()) throw new Error("a campaign needs a message");
   if (!Object.hasOwn(COST_PER_CONTACT_MINOR, input.channel))
     throw new Error("invalid campaign channel");
   if (!Number.isSafeInteger(input.durationDays) || input.durationDays <= 0)
@@ -72,6 +80,25 @@ export function createCampaign(input: Omit<Campaign, "status">): Campaign {
   if (!Object.hasOwn(COST_PER_CONTACT_MINOR, input.channel))
     throw new Error(`unknown campaign channel: ${input.channel}`);
   return { ...input, status: "running" };
+}
+
+export function appendCampaignAttribution(
+  entries: readonly CampaignAttributionEntry[],
+  entry: CampaignAttributionEntry,
+): CampaignAttributionEntry[] {
+  const key = `${entry.campaignId}:${entry.atDateKey}`;
+  return [
+    ...entries.filter(
+      (candidate) => `${candidate.campaignId}:${candidate.atDateKey}` !== key,
+    ),
+    { ...entry },
+  ]
+    .sort(
+      (a, b) =>
+        (a.atDateKey < b.atDateKey ? -1 : a.atDateKey > b.atDateKey ? 1 : 0) ||
+        compareIds(a.campaignId, b.campaignId),
+    )
+    .slice(-CAMPAIGN_ATTRIBUTION_LOG_LIMIT);
 }
 
 export interface CampaignReach {

@@ -117,6 +117,13 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     return [...problems, "the envelope carries no state"];
 
   const state = envelope.state as Partial<GameState>;
+  if (
+    !state.distribution ||
+    !Array.isArray(state.distribution.allotments) ||
+    !Array.isArray(state.distribution.groupBlocks) ||
+    !Array.isArray(state.distribution.channelInventory)
+  )
+    problems.push("the state has no valid distribution section");
   // The state carries the streams the simulation is actually restored from.
   // Checking only the header would let through a save whose state has none,
   // and restoring that would throw outside the validation path.

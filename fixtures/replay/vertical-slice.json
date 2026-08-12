@@ -1,5 +1,5 @@
 {
-  "saveVersion": 12,
+  "saveVersion": 13,
   "contentVersion": "1991.1",
   "protocolVersion": 6,
   "seed": 4242,
@@ -11392,6 +11392,18 @@
     {
       "eventId": "evt.912",
       "sequence": 912,
+      "atMinutes": 41760,
+      "entities": ["guest.segment.corporate.21"],
+      "payload": {
+        "type": "LOYALTY_BENEFIT_APPLIED",
+        "guestId": "guest.segment.corporate.21",
+        "benefit": "late-checkout",
+        "costMinor": 800
+      }
+    },
+    {
+      "eventId": "evt.913",
+      "sequence": 913,
       "atMinutes": 42120,
       "entities": ["supplier.baecker-sachs", "breakfast-portion"],
       "payload": {
@@ -11401,8 +11413,8 @@
       }
     },
     {
-      "eventId": "evt.913",
-      "sequence": 913,
+      "eventId": "evt.914",
+      "sequence": 914,
       "atMinutes": 42120,
       "entities": ["facility.breakfast_room"],
       "payload": {
@@ -11412,8 +11424,8 @@
       }
     },
     {
-      "eventId": "evt.914",
-      "sequence": 914,
+      "eventId": "evt.915",
+      "sequence": 915,
       "atMinutes": 42360,
       "entities": ["booking.42360.0"],
       "payload": {
@@ -11428,8 +11440,8 @@
       }
     },
     {
-      "eventId": "evt.915",
-      "sequence": 915,
+      "eventId": "evt.916",
+      "sequence": 916,
       "atMinutes": 42360,
       "entities": ["booking.42360.1"],
       "payload": {
@@ -11444,8 +11456,8 @@
       }
     },
     {
-      "eventId": "evt.916",
-      "sequence": 916,
+      "eventId": "evt.917",
+      "sequence": 917,
       "atMinutes": 42360,
       "entities": ["booking.42360.2"],
       "payload": {
@@ -11460,8 +11472,8 @@
       }
     },
     {
-      "eventId": "evt.917",
-      "sequence": 917,
+      "eventId": "evt.918",
+      "sequence": 918,
       "atMinutes": 42360,
       "entities": ["booking.42360.3"],
       "payload": {
@@ -11476,8 +11488,8 @@
       }
     },
     {
-      "eventId": "evt.918",
-      "sequence": 918,
+      "eventId": "evt.919",
+      "sequence": 919,
       "atMinutes": 42360,
       "entities": ["booking.42360.4"],
       "payload": {
@@ -11492,8 +11504,8 @@
       }
     },
     {
-      "eventId": "evt.919",
-      "sequence": 919,
+      "eventId": "evt.920",
+      "sequence": 920,
       "atMinutes": 42420,
       "entities": ["booking.29400.1", "room.116"],
       "payload": {
@@ -11503,8 +11515,8 @@
       }
     },
     {
-      "eventId": "evt.920",
-      "sequence": 920,
+      "eventId": "evt.921",
+      "sequence": 921,
       "atMinutes": 42420,
       "entities": ["room.116"],
       "payload": {
@@ -11515,26 +11527,14 @@
       }
     },
     {
-      "eventId": "evt.921",
-      "sequence": 921,
+      "eventId": "evt.922",
+      "sequence": 922,
       "atMinutes": 42420,
       "entities": ["booking.39480.3", "room.105"],
       "payload": {
         "type": "GUEST_CHECKED_OUT",
         "bookingId": "booking.39480.3",
         "roomId": "room.105"
-      }
-    },
-    {
-      "eventId": "evt.922",
-      "sequence": 922,
-      "atMinutes": 42420,
-      "entities": ["room.105"],
-      "payload": {
-        "type": "ROOM_STATE_CHANGED",
-        "roomId": "room.105",
-        "from": "Occupied",
-        "to": "VacantDirty"
       }
     },
     {
@@ -11545,13 +11545,25 @@
       "payload": {
         "type": "ROOM_STATE_CHANGED",
         "roomId": "room.105",
-        "from": "VacantDirty",
-        "to": "Inspected"
+        "from": "Occupied",
+        "to": "VacantDirty"
       }
     },
     {
       "eventId": "evt.924",
       "sequence": 924,
+      "atMinutes": 42420,
+      "entities": ["room.105"],
+      "payload": {
+        "type": "ROOM_STATE_CHANGED",
+        "roomId": "room.105",
+        "from": "VacantDirty",
+        "to": "Inspected"
+      }
+    },
+    {
+      "eventId": "evt.925",
+      "sequence": 925,
       "atMinutes": 42420,
       "entities": ["room.116"],
       "payload": {
@@ -11562,8 +11574,8 @@
       }
     },
     {
-      "eventId": "evt.925",
-      "sequence": 925,
+      "eventId": "evt.926",
+      "sequence": 926,
       "atMinutes": 42600,
       "entities": ["booking.33720.4", "room.102"],
       "payload": {
@@ -11574,8 +11586,8 @@
       }
     },
     {
-      "eventId": "evt.926",
-      "sequence": 926,
+      "eventId": "evt.927",
+      "sequence": 927,
       "atMinutes": 42600,
       "entities": ["room.102"],
       "payload": {
@@ -11586,8 +11598,8 @@
       }
     },
     {
-      "eventId": "evt.927",
-      "sequence": 927,
+      "eventId": "evt.928",
+      "sequence": 928,
       "atMinutes": 42600,
       "entities": ["booking.40920.1", "room.103"],
       "payload": {
@@ -11598,8 +11610,8 @@
       }
     },
     {
-      "eventId": "evt.928",
-      "sequence": 928,
+      "eventId": "evt.929",
+      "sequence": 929,
       "atMinutes": 42600,
       "entities": ["room.103"],
       "payload": {
@@ -11610,8 +11622,8 @@
       }
     },
     {
-      "eventId": "evt.929",
-      "sequence": 929,
+      "eventId": "evt.930",
+      "sequence": 930,
       "atMinutes": 42900,
       "entities": ["facility.breakfast_room"],
       "payload": {
@@ -11621,8 +11633,8 @@
       }
     },
     {
-      "eventId": "evt.930",
-      "sequence": 930,
+      "eventId": "evt.931",
+      "sequence": 931,
       "atMinutes": 42900,
       "entities": ["supplier.baecker-sachs", "breakfast-portion"],
       "payload": {
@@ -11634,8 +11646,8 @@
       "causedBy": "cmd.24.ORDER_SUPPLIES"
     },
     {
-      "eventId": "evt.931",
-      "sequence": 931,
+      "eventId": "evt.932",
+      "sequence": 932,
       "atMinutes": 43620,
       "entities": ["supplier.baecker-sachs", "breakfast-portion"],
       "payload": {
@@ -11645,8 +11657,8 @@
       }
     },
     {
-      "eventId": "evt.932",
-      "sequence": 932,
+      "eventId": "evt.933",
+      "sequence": 933,
       "atMinutes": 43620,
       "entities": ["facility.breakfast_room"],
       "payload": {
@@ -11656,8 +11668,8 @@
       }
     },
     {
-      "eventId": "evt.933",
-      "sequence": 933,
+      "eventId": "evt.934",
+      "sequence": 934,
       "atMinutes": 43800,
       "entities": ["booking.43800.0"],
       "payload": {
@@ -11672,8 +11684,8 @@
       }
     },
     {
-      "eventId": "evt.934",
-      "sequence": 934,
+      "eventId": "evt.935",
+      "sequence": 935,
       "atMinutes": 43800,
       "entities": ["booking.43800.1"],
       "payload": {
@@ -11688,8 +11700,8 @@
       }
     },
     {
-      "eventId": "evt.935",
-      "sequence": 935,
+      "eventId": "evt.936",
+      "sequence": 936,
       "atMinutes": 43800,
       "entities": ["booking.43800.2"],
       "payload": {
@@ -11704,8 +11716,8 @@
       }
     },
     {
-      "eventId": "evt.936",
-      "sequence": 936,
+      "eventId": "evt.937",
+      "sequence": 937,
       "atMinutes": 43800,
       "entities": ["booking.43800.3"],
       "payload": {
@@ -11720,8 +11732,8 @@
       }
     },
     {
-      "eventId": "evt.937",
-      "sequence": 937,
+      "eventId": "evt.938",
+      "sequence": 938,
       "atMinutes": 43800,
       "entities": ["booking.43800.4"],
       "payload": {
@@ -11736,8 +11748,8 @@
       }
     },
     {
-      "eventId": "evt.938",
-      "sequence": 938,
+      "eventId": "evt.939",
+      "sequence": 939,
       "atMinutes": 43800,
       "entities": ["booking.43800.5"],
       "payload": {
@@ -11752,8 +11764,8 @@
       }
     },
     {
-      "eventId": "evt.939",
-      "sequence": 939,
+      "eventId": "evt.940",
+      "sequence": 940,
       "atMinutes": 43800,
       "entities": ["booking.43800.6"],
       "payload": {
@@ -11768,8 +11780,8 @@
       }
     },
     {
-      "eventId": "evt.940",
-      "sequence": 940,
+      "eventId": "evt.941",
+      "sequence": 941,
       "atMinutes": 43860,
       "entities": ["booking.33720.2", "room.113"],
       "payload": {
@@ -11779,8 +11791,8 @@
       }
     },
     {
-      "eventId": "evt.941",
-      "sequence": 941,
+      "eventId": "evt.942",
+      "sequence": 942,
       "atMinutes": 43860,
       "entities": ["room.113"],
       "payload": {
@@ -11791,8 +11803,8 @@
       }
     },
     {
-      "eventId": "evt.942",
-      "sequence": 942,
+      "eventId": "evt.943",
+      "sequence": 943,
       "atMinutes": 43860,
       "entities": ["booking.39480.1", "room.114"],
       "payload": {
@@ -11802,8 +11814,8 @@
       }
     },
     {
-      "eventId": "evt.943",
-      "sequence": 943,
+      "eventId": "evt.944",
+      "sequence": 944,
       "atMinutes": 43860,
       "entities": ["room.114"],
       "payload": {
@@ -11814,8 +11826,8 @@
       }
     },
     {
-      "eventId": "evt.944",
-      "sequence": 944,
+      "eventId": "evt.945",
+      "sequence": 945,
       "atMinutes": 43860,
       "entities": ["room.113"],
       "payload": {
@@ -11826,8 +11838,8 @@
       }
     },
     {
-      "eventId": "evt.945",
-      "sequence": 945,
+      "eventId": "evt.946",
+      "sequence": 946,
       "atMinutes": 43860,
       "entities": ["room.114"],
       "payload": {
@@ -11838,8 +11850,8 @@
       }
     },
     {
-      "eventId": "evt.946",
-      "sequence": 946,
+      "eventId": "evt.947",
+      "sequence": 947,
       "atMinutes": 44040,
       "entities": ["booking.35160.1", "room.113"],
       "payload": {
@@ -11850,8 +11862,8 @@
       }
     },
     {
-      "eventId": "evt.947",
-      "sequence": 947,
+      "eventId": "evt.948",
+      "sequence": 948,
       "atMinutes": 44040,
       "entities": ["room.113"],
       "payload": {
@@ -11862,8 +11874,8 @@
       }
     },
     {
-      "eventId": "evt.948",
-      "sequence": 948,
+      "eventId": "evt.949",
+      "sequence": 949,
       "atMinutes": 44040,
       "entities": ["booking.36600.2", "room.114"],
       "payload": {
@@ -11874,8 +11886,8 @@
       }
     },
     {
-      "eventId": "evt.949",
-      "sequence": 949,
+      "eventId": "evt.950",
+      "sequence": 950,
       "atMinutes": 44040,
       "entities": ["room.114"],
       "payload": {
@@ -11886,8 +11898,8 @@
       }
     },
     {
-      "eventId": "evt.950",
-      "sequence": 950,
+      "eventId": "evt.951",
+      "sequence": 951,
       "atMinutes": 44040,
       "entities": ["booking.40920.0", "room.104"],
       "payload": {
@@ -11898,8 +11910,8 @@
       }
     },
     {
-      "eventId": "evt.951",
-      "sequence": 951,
+      "eventId": "evt.952",
+      "sequence": 952,
       "atMinutes": 44040,
       "entities": ["room.104"],
       "payload": {
@@ -11910,8 +11922,8 @@
       }
     },
     {
-      "eventId": "evt.952",
-      "sequence": 952,
+      "eventId": "evt.953",
+      "sequence": 953,
       "atMinutes": 44040,
       "entities": ["booking.40920.2", "room.105"],
       "payload": {
@@ -11922,8 +11934,8 @@
       }
     },
     {
-      "eventId": "evt.953",
-      "sequence": 953,
+      "eventId": "evt.954",
+      "sequence": 954,
       "atMinutes": 44040,
       "entities": ["room.105"],
       "payload": {
@@ -11934,8 +11946,8 @@
       }
     },
     {
-      "eventId": "evt.954",
-      "sequence": 954,
+      "eventId": "evt.955",
+      "sequence": 955,
       "atMinutes": 44040,
       "entities": ["booking.43800.3", "room.106"],
       "payload": {
@@ -11946,8 +11958,8 @@
       }
     },
     {
-      "eventId": "evt.955",
-      "sequence": 955,
+      "eventId": "evt.956",
+      "sequence": 956,
       "atMinutes": 44040,
       "entities": ["room.106"],
       "payload": {
@@ -11958,8 +11970,8 @@
       }
     },
     {
-      "eventId": "evt.956",
-      "sequence": 956,
+      "eventId": "evt.957",
+      "sequence": 957,
       "atMinutes": 44040,
       "entities": ["booking.43800.4", "room.107"],
       "payload": {
@@ -11970,8 +11982,8 @@
       }
     },
     {
-      "eventId": "evt.957",
-      "sequence": 957,
+      "eventId": "evt.958",
+      "sequence": 958,
       "atMinutes": 44040,
       "entities": ["room.107"],
       "payload": {
@@ -11982,8 +11994,8 @@
       }
     },
     {
-      "eventId": "evt.958",
-      "sequence": 958,
+      "eventId": "evt.959",
+      "sequence": 959,
       "atMinutes": 44040,
       "entities": ["booking.43800.5", "room.108"],
       "payload": {
@@ -11994,8 +12006,8 @@
       }
     },
     {
-      "eventId": "evt.959",
-      "sequence": 959,
+      "eventId": "evt.960",
+      "sequence": 960,
       "atMinutes": 44040,
       "entities": ["room.108"],
       "payload": {
@@ -12006,20 +12018,20 @@
       }
     },
     {
-      "eventId": "evt.960",
-      "sequence": 960,
+      "eventId": "evt.961",
+      "sequence": 961,
       "atMinutes": 44640,
       "entities": ["hotel.frankfurt.1"],
       "payload": {
         "type": "HOTEL_RESULT_PUBLISHED",
         "hotelId": "hotel.frankfurt.1",
         "periodKey": "1991-01",
-        "grossOperatingProfitMinor": 4462588
+        "grossOperatingProfitMinor": 4461788
       }
     },
     {
-      "eventId": "evt.961",
-      "sequence": 961,
+      "eventId": "evt.962",
+      "sequence": 962,
       "atMinutes": 44640,
       "entities": ["narrative.1991-02-01.narrative.press-profile"],
       "payload": {
@@ -12029,14 +12041,14 @@
       }
     },
     {
-      "eventId": "evt.962",
-      "sequence": 962,
+      "eventId": "evt.963",
+      "sequence": 963,
       "atMinutes": 44640,
       "entities": ["hotel.frankfurt.1"],
       "payload": {
         "type": "MONTH_CLOSED",
         "periodKey": "1991-01",
-        "profitMinor": 2962588,
+        "profitMinor": 2961788,
         "occupancyBasisPoints": 3938
       }
     }
@@ -12045,13 +12057,13 @@
     {
       "dateKey": "1991-01-01",
       "atMinutes": 0,
-      "stateHash": "cf7de4c6"
+      "stateHash": "a121d478"
     },
     {
       "dateKey": "1991-02-01",
       "atMinutes": 44640,
-      "stateHash": "bed57e5f"
+      "stateHash": "66426f00"
     }
   ],
-  "finalStateHash": "bed57e5f"
+  "finalStateHash": "66426f00"
 }

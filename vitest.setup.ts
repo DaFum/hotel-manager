@@ -1,7 +1,7 @@
-import { vi } from 'vitest';
+import { vi } from "vitest";
 
 // Simuliert den Canvas-Kontext für jsdom und Pixi.js
-Object.defineProperty(window.HTMLCanvasElement.prototype, 'getContext', {
+Object.defineProperty(window.HTMLCanvasElement.prototype, "getContext", {
   value: () => ({
     fillRect: vi.fn(),
     clearRect: vi.fn(),
@@ -32,7 +32,7 @@ Object.defineProperty(window.HTMLCanvasElement.prototype, 'getContext', {
 });
 
 // Zusätzlicher minimaler Mock für WebGL, da Pixi.js danach sucht
-Object.defineProperty(window.HTMLCanvasElement.prototype, 'getContextWebGL', {
+Object.defineProperty(window.HTMLCanvasElement.prototype, "getContextWebGL", {
   value: vi.fn(() => ({
     getParameter: vi.fn(),
     getExtension: vi.fn(),

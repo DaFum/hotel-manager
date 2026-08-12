@@ -1,4 +1,5 @@
 import type { BookingChannel } from "../bookings/bookingTypes";
+import type { ChannelInventoryRule } from "./distributionState";
 export type EvolvingChannel =
   BookingChannel | "directWeb" | "ota" | "group" | "allotment";
 export interface ChannelContext {
@@ -51,6 +52,22 @@ export function advanceBookingChannels(
   channels: readonly ChannelDefinition[],
 ): ChannelDefinition[] {
   return channels.filter((channel) => channel.id !== "walkIn");
+}
+export function channelMaySell(
+  channel: ChannelDefinition,
+  inventory: readonly ChannelInventoryRule[],
+  category: string,
+  ratePlanId: string,
+): boolean {
+  const rule = inventory.find(
+    (candidate) => candidate.channelId === channel.id,
+  );
+  return Boolean(
+    !rule ||
+    (!rule.closed &&
+      rule.allowedCategories.includes(category) &&
+      rule.allowedRatePlanIds.includes(ratePlanId)),
+  );
 }
 export function netChannelRevenueMinor(
   grossMinor: number,

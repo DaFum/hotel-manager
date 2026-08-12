@@ -95,6 +95,10 @@ import {
   type UtilityOutage,
 } from "../utilities/consumption";
 import { createFnbState, type FnbState } from "../fnb/fnbState";
+import {
+  createDistributionState,
+  type DistributionState,
+} from "../distribution/distributionState";
 
 export interface RoomRecord {
   id: string;
@@ -322,6 +326,7 @@ export interface GameState {
   metrics: {
     adrMinor: number;
     revParMinor: number;
+    gopparMinor: number;
     occupancyBasisPoints: number;
   };
   elapsedMinutes: number;
@@ -347,6 +352,8 @@ export interface GameState {
   outages: UtilityOutage[];
   /** Campaigns, negotiated accounts, guest records and the loyalty scheme. */
   commercial: CommercialState;
+  /** Channel inventory, contracted room partitions and group blocks. */
+  distribution: DistributionState;
   /** Every reputation dimension, scoped and with its causes. */
   reputation: ReputationState;
   /** Contracts, hours, absence and development for everybody on the payroll. */
@@ -481,7 +488,12 @@ export function createInitialGameState(seed: number): GameState {
         eventRevenueMinor: 0,
       },
     },
-    metrics: { adrMinor: 0, revParMinor: 0, occupancyBasisPoints: 0 },
+    metrics: {
+      adrMinor: 0,
+      revParMinor: 0,
+      gopparMinor: 0,
+      occupancyBasisPoints: 0,
+    },
     elapsedMinutes: 0,
     rngState: Object.fromEntries(
       Object.entries(streams).map(([k, v]) => [k, v.state]),
@@ -497,6 +509,7 @@ export function createInitialGameState(seed: number): GameState {
     meters: { energy: 0, water: 0, waste: 0 },
     outages: [],
     commercial: createCommercialState(),
+    distribution: createDistributionState(),
     reputation: createReputationState(),
     // Everybody the house starts with is on a real contract from day one.
     workforce: STARTER_STAFF.reduce(

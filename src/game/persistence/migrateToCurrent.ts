@@ -1,6 +1,8 @@
 import type { SaveEnvelope } from "./saveVersions";
 import { migrateV11ToV12 } from "./migrations/v11-to-v12";
+import { migrateV12ToV13 } from "./migrations/v12-to-v13";
 
 export function migrateToCurrent(save: SaveEnvelope): SaveEnvelope {
-  return save.saveVersion === 11 ? migrateV11ToV12(save) : save;
+  const v12 = save.saveVersion === 11 ? migrateV11ToV12(save) : save;
+  return v12.saveVersion === 12 ? migrateV12ToV13(v12) : v12;
 }

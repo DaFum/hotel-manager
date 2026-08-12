@@ -80,6 +80,38 @@ export function takeOutPolicy(
   };
 }
 
+export function varyPolicy(
+  state: InsuranceState,
+  policyId: string,
+  changes: { deductibleMinor?: number; limitMinor?: number },
+): InsuranceState {
+  const current = state.policies.find((policy) => policy.id === policyId);
+  if (!current) throw new Error(`unknown policy ${policyId}`);
+  const policy = { ...current, ...changes };
+  assertNonNegativeMinor(policy.limitMinor, "policy limit");
+  assertNonNegativeMinor(policy.deductibleMinor, "policy deductible");
+  if (policy.limitMinor > policy.insuredValueMinor)
+    throw new Error("a policy limit cannot exceed the value it insures");
+  return {
+    ...state,
+    policies: state.policies
+      .map((candidate) => (candidate.id === policyId ? policy : candidate))
+      .sort((a, b) => compareIds(a.id, b.id)),
+  };
+}
+
+export function cancelPolicy(
+  state: InsuranceState,
+  policyId: string,
+): InsuranceState {
+  if (!state.policies.some((policy) => policy.id === policyId))
+    throw new Error(`unknown policy ${policyId}`);
+  return {
+    ...state,
+    policies: state.policies.filter((policy) => policy.id !== policyId),
+  };
+}
+
 /**
  * Average, in the insurance sense: declare half the value and the policy pays
  * half the loss. The condition is reported as basis points so a partial

@@ -140,6 +140,9 @@ export function cancel(b: Booking, atMinutes: number): Booking {
 export function markNoShow(b: Booking, atMinutes: number): Booking {
   return transition(b, ["confirmed"], "noShow", atMinutes);
 }
+export function walkGuest(b: Booking, atMinutes: number): Booking {
+  return transition(b, ["confirmed"], "walked", atMinutes);
+}
 
 export function checkIn(b: Booking, atMinutes: number): Booking {
   return transition(b, ["confirmed"], "checkedIn", atMinutes);

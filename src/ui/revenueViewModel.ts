@@ -7,6 +7,7 @@ import {
   type RoomCategory,
 } from "../game/revenue/rates";
 import { STARTER_HOTEL } from "../game/content/1991/starterHotel";
+import { recommendedOverbookingLimit } from "../game/revenue/overbooking";
 
 export const REVENUE_WINDOW_DAYS = 14;
 export const REVENUE_PAST_DAYS = 3;
@@ -33,6 +34,7 @@ export interface BookingsRow {
 export interface RevenueMetricsRow {
   adrMinor: number;
   revParMinor: number;
+  gopparMinor?: number;
   occupancyBasisPoints: number;
 }
 export interface ChannelMixRow {
@@ -57,6 +59,7 @@ export interface RatePlanRow {
 }
 export interface OverbookingExposureRow {
   limitRooms: number;
+  recommendedRooms?: number;
   dates: {
     dateKey: string;
     confirmedRooms: number;
@@ -199,6 +202,18 @@ export function overbookingExposureRow(
   const capacityRooms = state.hotel.rooms.length;
   return {
     limitRooms: state.revenuePolicy.overbookingLimitRooms,
+    recommendedRooms: recommendedOverbookingLimit({
+      rooms: capacityRooms,
+      bookings: state.reservations.length,
+      cancellations: state.reservations.filter((booking) =>
+        booking.history.some((entry) => entry.status === "cancelled"),
+      ).length,
+      noShows: state.reservations.filter((booking) =>
+        booking.history.some((entry) => entry.status === "noShow"),
+      ).length,
+      walkCostMinor: 17_000,
+      riskTolerance: state.revenuePolicy.managerAttributes.RiskTolerance,
+    }),
     dates: windowDates(state).map((dateKey) => {
       const rooms = confirmedRooms(state, dateKey);
       return {

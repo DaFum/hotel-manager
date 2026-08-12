@@ -11,6 +11,7 @@
 
 export type DomainEventPayload =
   | { type: "ALERT_ACKNOWLEDGED"; alertId: string }
+  | { type: "REVENUE_POLICY_CHANGED"; hotelId: string }
   // --- reservations and the guest journey --------------------------------
   | {
       type: "BOOKING_CONFIRMED";
@@ -21,6 +22,10 @@ export type DomainEventPayload =
       roomsRequested: number;
       rateMinor: number;
       segmentId: string;
+      rateExplanation?: {
+        key: string;
+        drivers: { factor: string; weight: number }[];
+      };
     }
   | { type: "BOOKING_CANCELLED"; bookingId: string; releasedRooms: number }
   | { type: "BOOKING_NO_SHOW"; bookingId: string; releasedRooms: number }
@@ -46,6 +51,45 @@ export type DomainEventPayload =
   | { type: "ASSET_FAILED"; assetId: string }
   | { type: "ASSET_REPAIRED"; assetId: string }
   | { type: "ASSET_SERVICED"; assetId: string; costMinor: number }
+  // --- insurance ---------------------------------------------------------
+  | {
+      type: "INSURANCE_POLICY_CHANGED";
+      policyId: string;
+      peril: string;
+      operation: "takeOut" | "vary" | "cancel";
+      monthlyPremiumMinor: number;
+    }
+  | {
+      type: "INSURANCE_CLAIM_FILED";
+      claimId: string;
+      policyId: string;
+      lossMinor: number;
+    }
+  | {
+      type: "INSURANCE_CLAIM_SETTLED";
+      claimId: string;
+      policyId: string;
+      settlementMinor: number;
+      status: "settled" | "declined";
+    }
+  // --- commercial --------------------------------------------------------
+  | { type: "CAMPAIGN_LAUNCHED"; campaignId: string; budgetMinor: number }
+  | { type: "SALES_LEAD_ADDED"; leadId: string }
+  | { type: "SALES_LEAD_ADVANCED"; leadId: string; stage: string }
+  | { type: "CONTRACT_SIGNED"; contractId: string; leadId: string }
+  | { type: "CONTRACT_RENEWAL_SET"; contractId: string; intent: string }
+  | { type: "LOYALTY_CONFIGURED"; active: boolean }
+  | {
+      type: "LOYALTY_BENEFIT_APPLIED";
+      guestId: string;
+      benefit: string;
+      costMinor: number;
+    }
+  | {
+      type: "CAMPAIGN_ATTRIBUTION_RECORDED";
+      campaignId: string;
+      realised: number;
+    }
   // --- people, supply and money ------------------------------------------
   | { type: "STAFF_HIRED"; staffId: string; role: string; shift: string }
   | {
@@ -101,6 +145,27 @@ export type DomainEventPayload =
       projectId: string;
       technologyId: string;
     }
+  // --- distribution and corporate sales --------------------------------
+  | { type: "CORPORATE_ACCOUNT_OFFERED"; leadId: string }
+  | { type: "CORPORATE_ACCOUNT_SIGNED"; contractId: string }
+  | { type: "CORPORATE_ACCOUNT_RENEWED"; leadId: string }
+  | { type: "GROUP_CONTRACT_ACCEPTED"; blockId: string }
+  | { type: "GROUP_CONTRACT_DECLINED"; blockId: string }
+  | { type: "ALLOTMENT_ACCEPTED"; allotmentId: string }
+  | {
+      type: "ALLOTMENT_RELEASED";
+      allotmentId: string;
+      rooms: number;
+      category: string;
+    }
+  | { type: "CHANNEL_INVENTORY_CHANGED"; channelId: string; closed: boolean }
+  | {
+      type: "BOOKING_WALKED";
+      bookingId: string;
+      costMinor: number;
+      cause: string;
+    }
+  | { type: "GROUP_TARGETS_SET"; companyId: string }
   // --- the company above the hotels --------------------------------------
   | { type: "HOTEL_ADDED_TO_PORTFOLIO"; hotelId: string; legalEntityId: string }
   | { type: "HOTEL_REBRANDED"; hotelId: string; brandId: string | null }
@@ -202,6 +267,7 @@ export type DomainEventType = DomainEventPayload["type"];
  */
 const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   ALERT_ACKNOWLEDGED: true,
+  REVENUE_POLICY_CHANGED: true,
   BOOKING_CONFIRMED: true,
   BOOKING_CANCELLED: true,
   BOOKING_NO_SHOW: true,
@@ -216,6 +282,17 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   ASSET_FAILED: true,
   ASSET_REPAIRED: true,
   ASSET_SERVICED: true,
+  INSURANCE_POLICY_CHANGED: true,
+  INSURANCE_CLAIM_FILED: true,
+  INSURANCE_CLAIM_SETTLED: true,
+  CAMPAIGN_LAUNCHED: true,
+  SALES_LEAD_ADDED: true,
+  SALES_LEAD_ADVANCED: true,
+  CONTRACT_SIGNED: true,
+  CONTRACT_RENEWAL_SET: true,
+  LOYALTY_CONFIGURED: true,
+  LOYALTY_BENEFIT_APPLIED: true,
+  CAMPAIGN_ATTRIBUTION_RECORDED: true,
   STAFF_HIRED: true,
   SUPPLY_ORDERED: true,
   SUPPLY_DELIVERED: true,
@@ -232,6 +309,16 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   FACILITY_EXPANDED: true,
   TECHNOLOGY_ADOPTION_STARTED: true,
   TECHNOLOGY_ADOPTION_COMPLETED: true,
+  CORPORATE_ACCOUNT_OFFERED: true,
+  CORPORATE_ACCOUNT_SIGNED: true,
+  CORPORATE_ACCOUNT_RENEWED: true,
+  GROUP_CONTRACT_ACCEPTED: true,
+  GROUP_CONTRACT_DECLINED: true,
+  ALLOTMENT_ACCEPTED: true,
+  ALLOTMENT_RELEASED: true,
+  CHANNEL_INVENTORY_CHANGED: true,
+  BOOKING_WALKED: true,
+  GROUP_TARGETS_SET: true,
   HOTEL_ADDED_TO_PORTFOLIO: true,
   HOTEL_REBRANDED: true,
   BRAND_AUDIT_COMPLETED: true,
@@ -257,6 +344,7 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "ALERT_ACKNOWLEDGED",
+  "REVENUE_POLICY_CHANGED",
   "BOOKING_CONFIRMED",
   "BOOKING_CANCELLED",
   "BOOKING_NO_SHOW",
@@ -271,6 +359,17 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "ASSET_FAILED",
   "ASSET_REPAIRED",
   "ASSET_SERVICED",
+  "INSURANCE_POLICY_CHANGED",
+  "INSURANCE_CLAIM_FILED",
+  "INSURANCE_CLAIM_SETTLED",
+  "CAMPAIGN_LAUNCHED",
+  "SALES_LEAD_ADDED",
+  "SALES_LEAD_ADVANCED",
+  "CONTRACT_SIGNED",
+  "CONTRACT_RENEWAL_SET",
+  "LOYALTY_CONFIGURED",
+  "LOYALTY_BENEFIT_APPLIED",
+  "CAMPAIGN_ATTRIBUTION_RECORDED",
   "STAFF_HIRED",
   "SUPPLY_ORDERED",
   "SUPPLY_DELIVERED",
@@ -287,6 +386,16 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "FACILITY_EXPANDED",
   "TECHNOLOGY_ADOPTION_STARTED",
   "TECHNOLOGY_ADOPTION_COMPLETED",
+  "CORPORATE_ACCOUNT_OFFERED",
+  "CORPORATE_ACCOUNT_SIGNED",
+  "CORPORATE_ACCOUNT_RENEWED",
+  "GROUP_CONTRACT_ACCEPTED",
+  "GROUP_CONTRACT_DECLINED",
+  "ALLOTMENT_ACCEPTED",
+  "ALLOTMENT_RELEASED",
+  "CHANNEL_INVENTORY_CHANGED",
+  "BOOKING_WALKED",
+  "GROUP_TARGETS_SET",
   "HOTEL_ADDED_TO_PORTFOLIO",
   "HOTEL_REBRANDED",
   "BRAND_AUDIT_COMPLETED",

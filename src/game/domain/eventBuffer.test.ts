@@ -17,6 +17,7 @@ import { commandEnvelope, type GameCommand } from "../commands/commandEnvelope";
 import { QUANTUM_MINUTES } from "../simulation/clock";
 import type { RoomCategory } from "../revenue/rates";
 import { XorShift32 } from "./rng";
+import { reserve } from "../bookings/bookingEngine";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -446,6 +447,180 @@ describe("domain event buffer", () => {
     return collected;
   }
 
+  function commercialAndInsuranceScenario(): DomainEvent[] {
+    const s = sim(17);
+    const collected: DomainEvent[] = [];
+    const send = (payload: GameCommand) => {
+      expect(submit(s, payload).status).toBe("accepted");
+      collected.push(...s.takeDomainEvents());
+    };
+    send({
+      type: "SET_REVENUE_POLICY",
+      change: { targetOccupancyBasisPoints: 8000 },
+    });
+    send({
+      type: "SET_INSURANCE_POLICY",
+      operation: "takeOut",
+      policyId: "policy.fire",
+      policy: {
+        id: "policy.fire",
+        peril: "fire",
+        insuredValueMinor: 100_000_000,
+        limitMinor: 50_000_000,
+        deductibleMinor: 100_000,
+        annualRateBasisPoints: 100,
+        exclusions: [],
+      },
+    });
+    send({
+      type: "LAUNCH_CAMPAIGN",
+      objective: "occupancy",
+      targetSegmentId: "segment.business",
+      region: "Frankfurt",
+      channel: "print",
+      durationDays: 30,
+      budgetMinor: 100_000,
+      message: "Stay in Frankfurt",
+      creativeQuality: 70,
+    });
+    send({
+      type: "ADD_LEAD",
+      leadId: "lead.coverage",
+      accountName: "Coverage AG",
+      segmentId: "segment.business",
+      expectedRoomNights: 100,
+    });
+    send({ type: "ADVANCE_LEAD", leadId: "lead.coverage", stage: "proposed" });
+    send({
+      type: "SIGN_ACCOUNT",
+      leadId: "lead.coverage",
+      negotiatedRateMinor: 8_000,
+      expectedRoomNights: 100,
+      concessions: [],
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+    });
+    send({
+      type: "SET_RENEWAL_INTENT",
+      contractId: "contract.lead.coverage",
+      intent: "renewing",
+    });
+    send({ type: "CONFIGURE_LOYALTY", active: false });
+    s.state.assets.find((asset) => asset.id === "asset.boiler")!.condition = 0;
+    collected.push(...runDays(s, 45));
+    return collected;
+  }
+
+  function distributionAndTargetsScenario(): DomainEvent[] {
+    const s = sim(23);
+    const collected: DomainEvent[] = [];
+    const send = (payload: GameCommand) => {
+      expect(submit(s, payload).status).toBe("accepted");
+      collected.push(...s.takeDomainEvents());
+    };
+    send({
+      type: "OFFER_CORPORATE_ACCOUNT",
+      leadId: "lead.distribution",
+      accountName: "Trade AG",
+      segmentId: "segment.business",
+      expectedRoomNights: 365,
+    });
+    send({
+      type: "ACCEPT_CORPORATE_ACCOUNT",
+      leadId: "lead.distribution",
+      contractId: "contract.distribution",
+      negotiatedRateMinor: 8_000,
+      expectedRoomNights: 365,
+      concessions: [],
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+      blackoutDateKeys: [],
+      paymentTermsDays: 30,
+      cancellationDaysBeforeArrival: 2,
+      cancellationFeeBasisPoints: 5000,
+    });
+    send({
+      type: "OFFER_CORPORATE_ACCOUNT",
+      leadId: "lead.renewal",
+      accountName: "Renew AG",
+      segmentId: "segment.business",
+      expectedRoomNights: 100,
+    });
+    send({
+      type: "RENEW_CORPORATE_ACCOUNT",
+      leadId: "lead.renewal",
+      stage: "qualified",
+    });
+    send({
+      type: "ACCEPT_GROUP_CONTRACT",
+      blockId: "block.1",
+      category: "single",
+      roomsByDate: { "1991-01-03": 1 },
+      groupRateMinor: 7_000,
+      releaseDateKey: "1991-01-02",
+      depositMinor: 0,
+      cancellationDaysBeforeArrival: 2,
+      cancellationFeeBasisPoints: 5000,
+      paymentTermsDays: 14,
+    });
+    send({ type: "DECLINE_GROUP_CONTRACT", blockId: "block.declined" });
+    send({
+      type: "ACCEPT_ALLOTMENT",
+      allotmentId: "allotment.1",
+      partner: "Tour AG",
+      category: "single",
+      roomsByDate: { "1991-01-03": 1 },
+      releaseDateKey: "1991-01-02",
+    });
+    send({
+      type: "SET_CHANNEL_INVENTORY",
+      channelId: "travelAgency",
+      allowedCategories: ["single"],
+      allowedRatePlanIds: ["flexible"],
+    });
+    send({
+      type: "SET_GROUP_TARGETS",
+      targets: {
+        gopparMinor: 1000,
+        guestSatisfaction: 75,
+        staffTurnoverBasisPoints: 1500,
+        marketShareBasisPoints: 2000,
+        brandStandard: 80,
+      },
+    });
+    collected.push(...runDays(s, 2));
+
+    const booking = reserve(
+      { availableRoomsOn: () => 1 },
+      {
+        id: "booking.walk.coverage",
+        roomsRequested: 1,
+        rateMinor: 8_000,
+        willingnessMinor: 8_000,
+        channel: "directPhone",
+        partySize: 1,
+        segmentId: "segment.business",
+        category: "single",
+        arrivalDateKey: s.state.calendar.dateKey,
+        nights: 1,
+        terms: {
+          guaranteed: true,
+          freeCancellationDays: 0,
+          lateChargeBp: 10_000,
+        },
+        atMinutes: s.state.elapsedMinutes,
+      },
+    );
+    s.state.reservations.push(booking);
+    s.state.receptionQueue.push({ bookingId: booking.id, waitedMinutes: 30 });
+    for (const room of s.state.hotel.rooms) room.state = "Occupied";
+    for (let i = 0; i < 20; i++) {
+      s.advanceQuantum();
+      collected.push(...s.takeDomainEvents());
+    }
+    return collected;
+  }
+
   it("publishes an event for every declared simulation transition", () => {
     const seen = new Set<DomainEventType>();
     const record = (events: readonly DomainEvent[]) => {
@@ -463,6 +638,8 @@ describe("domain event buffer", () => {
     record(technologyAdoptionScenario());
     record(companyScenario());
     record(campaignScenario());
+    record(commercialAndInsuranceScenario());
+    record(distributionAndTargetsScenario());
 
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);
@@ -470,5 +647,5 @@ describe("domain event buffer", () => {
     // so this list cannot be used to hide an unpublished one.
     for (const type of AWAITING_TRANSITION)
       expect(DOMAIN_EVENT_TYPES).not.toContain(type);
-  });
+  }, 30_000);
 });

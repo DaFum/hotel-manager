@@ -1,5 +1,5 @@
 {
-  "saveVersion": 12,
+  "saveVersion": 13,
   "contentVersion": "1991.1",
   "protocolVersion": 6,
   "rngState": {
@@ -371,32 +371,8 @@
     ],
     "commandSequence": 44,
     "eventJournal": {
-      "sequence": 1188,
+      "sequence": 1190,
       "pending": [
-        {
-          "eventId": "evt.165",
-          "sequence": 165,
-          "atMinutes": 12180,
-          "entities": ["room.102"],
-          "payload": {
-            "type": "ROOM_STATE_CHANGED",
-            "roomId": "room.102",
-            "from": "VacantDirty",
-            "to": "Inspected"
-          }
-        },
-        {
-          "eventId": "evt.166",
-          "sequence": 166,
-          "atMinutes": 12180,
-          "entities": ["room.103"],
-          "payload": {
-            "type": "ROOM_STATE_CHANGED",
-            "roomId": "room.103",
-            "from": "VacantDirty",
-            "to": "Inspected"
-          }
-        },
         {
           "eventId": "evt.167",
           "sequence": 167,
@@ -12618,6 +12594,30 @@
         {
           "eventId": "evt.1154",
           "sequence": 1154,
+          "atMinutes": 56160,
+          "entities": ["guest.segment.business.8"],
+          "payload": {
+            "type": "LOYALTY_BENEFIT_APPLIED",
+            "guestId": "guest.segment.business.8",
+            "benefit": "late-checkout",
+            "costMinor": 800
+          }
+        },
+        {
+          "eventId": "evt.1155",
+          "sequence": 1155,
+          "atMinutes": 56160,
+          "entities": ["guest.segment.business.9"],
+          "payload": {
+            "type": "LOYALTY_BENEFIT_APPLIED",
+            "guestId": "guest.segment.business.9",
+            "benefit": "late-checkout",
+            "costMinor": 800
+          }
+        },
+        {
+          "eventId": "evt.1156",
+          "sequence": 1156,
           "atMinutes": 56550,
           "entities": ["facility.breakfast_room"],
           "payload": {
@@ -12627,8 +12627,8 @@
           }
         },
         {
-          "eventId": "evt.1155",
-          "sequence": 1155,
+          "eventId": "evt.1157",
+          "sequence": 1157,
           "atMinutes": 56550,
           "entities": ["supplier.baecker-sachs", "breakfast-portion"],
           "payload": {
@@ -12640,8 +12640,8 @@
           "causedBy": "cmd.42.ORDER_SUPPLIES"
         },
         {
-          "eventId": "evt.1156",
-          "sequence": 1156,
+          "eventId": "evt.1158",
+          "sequence": 1158,
           "atMinutes": 56760,
           "entities": ["booking.56760.0"],
           "payload": {
@@ -12656,8 +12656,8 @@
           }
         },
         {
-          "eventId": "evt.1157",
-          "sequence": 1157,
+          "eventId": "evt.1159",
+          "sequence": 1159,
           "atMinutes": 56760,
           "entities": ["booking.56760.1"],
           "payload": {
@@ -12672,8 +12672,8 @@
           }
         },
         {
-          "eventId": "evt.1158",
-          "sequence": 1158,
+          "eventId": "evt.1160",
+          "sequence": 1160,
           "atMinutes": 56760,
           "entities": ["booking.56760.3"],
           "payload": {
@@ -12688,8 +12688,8 @@
           }
         },
         {
-          "eventId": "evt.1159",
-          "sequence": 1159,
+          "eventId": "evt.1161",
+          "sequence": 1161,
           "atMinutes": 56760,
           "entities": ["booking.56760.4"],
           "payload": {
@@ -12704,8 +12704,8 @@
           }
         },
         {
-          "eventId": "evt.1160",
-          "sequence": 1160,
+          "eventId": "evt.1162",
+          "sequence": 1162,
           "atMinutes": 56760,
           "entities": ["booking.56760.5"],
           "payload": {
@@ -12720,8 +12720,8 @@
           }
         },
         {
-          "eventId": "evt.1161",
-          "sequence": 1161,
+          "eventId": "evt.1163",
+          "sequence": 1163,
           "atMinutes": 56820,
           "entities": ["booking.46680.5", "room.117"],
           "payload": {
@@ -12731,8 +12731,8 @@
           }
         },
         {
-          "eventId": "evt.1162",
-          "sequence": 1162,
+          "eventId": "evt.1164",
+          "sequence": 1164,
           "atMinutes": 56820,
           "entities": ["room.117"],
           "payload": {
@@ -12743,8 +12743,8 @@
           }
         },
         {
-          "eventId": "evt.1163",
-          "sequence": 1163,
+          "eventId": "evt.1165",
+          "sequence": 1165,
           "atMinutes": 56820,
           "entities": ["booking.48120.4", "room.118"],
           "payload": {
@@ -12754,8 +12754,8 @@
           }
         },
         {
-          "eventId": "evt.1164",
-          "sequence": 1164,
+          "eventId": "evt.1166",
+          "sequence": 1166,
           "atMinutes": 56820,
           "entities": ["room.118"],
           "payload": {
@@ -12766,8 +12766,8 @@
           }
         },
         {
-          "eventId": "evt.1165",
-          "sequence": 1165,
+          "eventId": "evt.1167",
+          "sequence": 1167,
           "atMinutes": 56820,
           "entities": ["booking.45240.1", "room.101"],
           "payload": {
@@ -12777,8 +12777,8 @@
           }
         },
         {
-          "eventId": "evt.1166",
-          "sequence": 1166,
+          "eventId": "evt.1168",
+          "sequence": 1168,
           "atMinutes": 56820,
           "entities": ["room.101"],
           "payload": {
@@ -12789,8 +12789,8 @@
           }
         },
         {
-          "eventId": "evt.1167",
-          "sequence": 1167,
+          "eventId": "evt.1169",
+          "sequence": 1169,
           "atMinutes": 56820,
           "entities": ["booking.49560.4", "room.116"],
           "payload": {
@@ -12800,8 +12800,8 @@
           }
         },
         {
-          "eventId": "evt.1168",
-          "sequence": 1168,
+          "eventId": "evt.1170",
+          "sequence": 1170,
           "atMinutes": 56820,
           "entities": ["room.116"],
           "payload": {
@@ -12812,8 +12812,8 @@
           }
         },
         {
-          "eventId": "evt.1169",
-          "sequence": 1169,
+          "eventId": "evt.1171",
+          "sequence": 1171,
           "atMinutes": 56820,
           "entities": ["booking.49560.6", "room.102"],
           "payload": {
@@ -12823,8 +12823,8 @@
           }
         },
         {
-          "eventId": "evt.1170",
-          "sequence": 1170,
+          "eventId": "evt.1172",
+          "sequence": 1172,
           "atMinutes": 56820,
           "entities": ["room.102"],
           "payload": {
@@ -12835,8 +12835,8 @@
           }
         },
         {
-          "eventId": "evt.1171",
-          "sequence": 1171,
+          "eventId": "evt.1173",
+          "sequence": 1173,
           "atMinutes": 56820,
           "entities": ["booking.53880.1", "room.105"],
           "payload": {
@@ -12846,8 +12846,8 @@
           }
         },
         {
-          "eventId": "evt.1172",
-          "sequence": 1172,
+          "eventId": "evt.1174",
+          "sequence": 1174,
           "atMinutes": 56820,
           "entities": ["room.105"],
           "payload": {
@@ -12858,8 +12858,8 @@
           }
         },
         {
-          "eventId": "evt.1173",
-          "sequence": 1173,
+          "eventId": "evt.1175",
+          "sequence": 1175,
           "atMinutes": 56820,
           "entities": ["booking.53880.4", "room.120"],
           "payload": {
@@ -12869,8 +12869,8 @@
           }
         },
         {
-          "eventId": "evt.1174",
-          "sequence": 1174,
+          "eventId": "evt.1176",
+          "sequence": 1176,
           "atMinutes": 56820,
           "entities": ["room.120"],
           "payload": {
@@ -12881,8 +12881,8 @@
           }
         },
         {
-          "eventId": "evt.1175",
-          "sequence": 1175,
+          "eventId": "evt.1177",
+          "sequence": 1177,
           "atMinutes": 56820,
           "entities": ["room.101"],
           "payload": {
@@ -12893,8 +12893,8 @@
           }
         },
         {
-          "eventId": "evt.1176",
-          "sequence": 1176,
+          "eventId": "evt.1178",
+          "sequence": 1178,
           "atMinutes": 56820,
           "entities": ["room.102"],
           "payload": {
@@ -12905,8 +12905,8 @@
           }
         },
         {
-          "eventId": "evt.1177",
-          "sequence": 1177,
+          "eventId": "evt.1179",
+          "sequence": 1179,
           "atMinutes": 56820,
           "entities": ["room.105"],
           "payload": {
@@ -12917,8 +12917,8 @@
           }
         },
         {
-          "eventId": "evt.1178",
-          "sequence": 1178,
+          "eventId": "evt.1180",
+          "sequence": 1180,
           "atMinutes": 56820,
           "entities": ["room.116"],
           "payload": {
@@ -12929,8 +12929,8 @@
           }
         },
         {
-          "eventId": "evt.1179",
-          "sequence": 1179,
+          "eventId": "evt.1181",
+          "sequence": 1181,
           "atMinutes": 56820,
           "entities": ["room.117"],
           "payload": {
@@ -12941,8 +12941,8 @@
           }
         },
         {
-          "eventId": "evt.1180",
-          "sequence": 1180,
+          "eventId": "evt.1182",
+          "sequence": 1182,
           "atMinutes": 56820,
           "entities": ["room.118"],
           "payload": {
@@ -12953,8 +12953,8 @@
           }
         },
         {
-          "eventId": "evt.1181",
-          "sequence": 1181,
+          "eventId": "evt.1183",
+          "sequence": 1183,
           "atMinutes": 56820,
           "entities": ["room.120"],
           "payload": {
@@ -12965,8 +12965,8 @@
           }
         },
         {
-          "eventId": "evt.1182",
-          "sequence": 1182,
+          "eventId": "evt.1184",
+          "sequence": 1184,
           "atMinutes": 57000,
           "entities": ["booking.51000.7", "room.101"],
           "payload": {
@@ -12977,8 +12977,8 @@
           }
         },
         {
-          "eventId": "evt.1183",
-          "sequence": 1183,
+          "eventId": "evt.1185",
+          "sequence": 1185,
           "atMinutes": 57000,
           "entities": ["room.101"],
           "payload": {
@@ -12989,8 +12989,8 @@
           }
         },
         {
-          "eventId": "evt.1184",
-          "sequence": 1184,
+          "eventId": "evt.1186",
+          "sequence": 1186,
           "atMinutes": 57000,
           "entities": ["booking.55320.5", "room.102"],
           "payload": {
@@ -13001,8 +13001,8 @@
           }
         },
         {
-          "eventId": "evt.1185",
-          "sequence": 1185,
+          "eventId": "evt.1187",
+          "sequence": 1187,
           "atMinutes": 57000,
           "entities": ["room.102"],
           "payload": {
@@ -13013,8 +13013,8 @@
           }
         },
         {
-          "eventId": "evt.1186",
-          "sequence": 1186,
+          "eventId": "evt.1188",
+          "sequence": 1188,
           "atMinutes": 57270,
           "entities": ["supplier.baecker-sachs", "breakfast-portion"],
           "payload": {
@@ -13024,8 +13024,8 @@
           }
         },
         {
-          "eventId": "evt.1187",
-          "sequence": 1187,
+          "eventId": "evt.1189",
+          "sequence": 1189,
           "atMinutes": 57270,
           "entities": ["facility.breakfast_room"],
           "payload": {
@@ -13035,8 +13035,8 @@
           }
         },
         {
-          "eventId": "evt.1188",
-          "sequence": 1188,
+          "eventId": "evt.1190",
+          "sequence": 1190,
           "atMinutes": 57600,
           "entities": ["supplier.baecker-sachs", "breakfast-portion"],
           "payload": {
@@ -13048,7 +13048,7 @@
           "causedBy": "fixture.16.ORDER_SUPPLIES"
         }
       ],
-      "dropped": 164
+      "dropped": 166
     },
     "calendar": {
       "dateKey": "1991-02-10",
@@ -19491,7 +19491,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 6397686,
+      "cashMinor": 6396086,
       "payableMinor": 0,
       "ledger": [
         {
@@ -19611,12 +19611,6 @@
         {
           "day": 3,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 3,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.114"
         },
@@ -19625,6 +19619,12 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 3,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.2040.5.1991-01-04"
         },
         {
           "day": 3,
@@ -19665,12 +19665,6 @@
         {
           "day": 4,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 4,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.114"
         },
@@ -19682,15 +19676,21 @@
         },
         {
           "day": 4,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 4,
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 4,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.2040.5.1991-01-05"
+        },
+        {
+          "day": 4,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.3480.7.1991-01-05"
         },
         {
           "day": 4,
@@ -19731,20 +19731,8 @@
         {
           "day": 5,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 5,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.101"
-        },
-        {
-          "day": 5,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
         },
         {
           "day": 5,
@@ -19760,15 +19748,27 @@
         },
         {
           "day": 5,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 5,
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 5,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.2040.5.1991-01-06"
+        },
+        {
+          "day": 5,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.3480.1.1991-01-06"
+        },
+        {
+          "day": 5,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.3480.7.1991-01-06"
         },
         {
           "day": 5,
@@ -19827,32 +19827,32 @@
         {
           "day": 6,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 6,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 6,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.113"
-        },
-        {
-          "day": 6,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
         },
         {
           "day": 6,
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 6,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.2040.2.1991-01-07"
+        },
+        {
+          "day": 6,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.3480.1.1991-01-07"
+        },
+        {
+          "day": 6,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.6360.2.1991-01-07"
         },
         {
           "day": 6,
@@ -19911,20 +19911,8 @@
         {
           "day": 7,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 7,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.113"
-        },
-        {
-          "day": 7,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
         },
         {
           "day": 7,
@@ -19949,6 +19937,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 7,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.2040.2.1991-01-08"
+        },
+        {
+          "day": 7,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.6360.2.1991-01-08"
         },
         {
           "day": 7,
@@ -19989,20 +19989,8 @@
         {
           "day": 8,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 8,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.113"
-        },
-        {
-          "day": 8,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
         },
         {
           "day": 8,
@@ -20037,12 +20025,6 @@
         {
           "day": 8,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.106"
-        },
-        {
-          "day": 8,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.116"
         },
@@ -20051,6 +20033,24 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 8,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.2040.2.1991-01-09"
+        },
+        {
+          "day": 8,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.4920.3.1991-01-09"
+        },
+        {
+          "day": 8,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.6360.2.1991-01-09"
         },
         {
           "day": 8,
@@ -20109,20 +20109,8 @@
         {
           "day": 9,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.106"
-        },
-        {
-          "day": 9,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.116"
-        },
-        {
-          "day": 9,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.101"
         },
         {
           "day": 9,
@@ -20139,18 +20127,6 @@
         {
           "day": 9,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.103"
-        },
-        {
-          "day": 9,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
-        },
-        {
-          "day": 9,
-          "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.107"
         },
@@ -20159,6 +20135,30 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 9,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.3480.2.1991-01-10"
+        },
+        {
+          "day": 9,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.4920.3.1991-01-10"
+        },
+        {
+          "day": 9,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.7800.3.1991-01-10"
+        },
+        {
+          "day": 9,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.7800.4.1991-01-10"
         },
         {
           "day": 9,
@@ -20199,12 +20199,6 @@
         {
           "day": 10,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.101"
-        },
-        {
-          "day": 10,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.113"
         },
@@ -20213,18 +20207,6 @@
           "account": "roomRevenue",
           "amountMinor": 8100,
           "memo": "room.102"
-        },
-        {
-          "day": 10,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.103"
-        },
-        {
-          "day": 10,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
         },
         {
           "day": 10,
@@ -20253,12 +20235,6 @@
         {
           "day": 10,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.108"
-        },
-        {
-          "day": 10,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.109"
         },
@@ -20267,6 +20243,30 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 10,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.12120.3.1991-01-11"
+        },
+        {
+          "day": 10,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.3480.2.1991-01-11"
+        },
+        {
+          "day": 10,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.7800.3.1991-01-11"
+        },
+        {
+          "day": 10,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.7800.4.1991-01-11"
         },
         {
           "day": 10,
@@ -20343,12 +20343,6 @@
         {
           "day": 11,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.108"
-        },
-        {
-          "day": 11,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.109"
         },
@@ -20363,6 +20357,12 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 11,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.12120.3.1991-01-12"
         },
         {
           "day": 11,
@@ -20421,20 +20421,8 @@
         {
           "day": 12,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
-        },
-        {
-          "day": 12,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.103"
-        },
-        {
-          "day": 12,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
         },
         {
           "day": 12,
@@ -20459,6 +20447,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 12,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.10680.0.1991-01-13"
+        },
+        {
+          "day": 12,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.7800.2.1991-01-13"
         },
         {
           "day": 12,
@@ -20505,20 +20505,8 @@
         {
           "day": 13,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
-        },
-        {
-          "day": 13,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.103"
-        },
-        {
-          "day": 13,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
         },
         {
           "day": 13,
@@ -20561,6 +20549,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 13,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.10680.0.1991-01-14"
+        },
+        {
+          "day": 13,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.7800.2.1991-01-14"
         },
         {
           "day": 13,
@@ -20637,12 +20637,6 @@
         {
           "day": 14,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
-        },
-        {
-          "day": 14,
-          "account": "roomRevenue",
           "amountMinor": 8100,
           "memo": "room.103"
         },
@@ -20669,6 +20663,12 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 14,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.10680.3.1991-01-15"
         },
         {
           "day": 14,
@@ -20715,12 +20715,6 @@
         {
           "day": 15,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
-        },
-        {
-          "day": 15,
-          "account": "roomRevenue",
           "amountMinor": 8100,
           "memo": "room.103"
         },
@@ -20751,18 +20745,6 @@
         {
           "day": 15,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.104"
-        },
-        {
-          "day": 15,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.105"
-        },
-        {
-          "day": 15,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.106"
         },
@@ -20783,6 +20765,24 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 15,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.10680.3.1991-01-16"
+        },
+        {
+          "day": 15,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.12120.6.1991-01-16"
+        },
+        {
+          "day": 15,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.16440.0.1991-01-16"
         },
         {
           "day": 15,
@@ -20823,26 +20823,8 @@
         {
           "day": 16,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
-        },
-        {
-          "day": 16,
-          "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.101"
-        },
-        {
-          "day": 16,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.104"
-        },
-        {
-          "day": 16,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.105"
         },
         {
           "day": 16,
@@ -20885,6 +20867,24 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 16,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.10680.3.1991-01-17"
+        },
+        {
+          "day": 16,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.12120.6.1991-01-17"
+        },
+        {
+          "day": 16,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.16440.0.1991-01-17"
         },
         {
           "day": 16,
@@ -20955,26 +20955,8 @@
         {
           "day": 17,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 17,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
-        },
-        {
-          "day": 17,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.115"
-        },
-        {
-          "day": 17,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.105"
         },
         {
           "day": 17,
@@ -20993,6 +20975,24 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 17,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.15000.3.1991-01-18"
+        },
+        {
+          "day": 17,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.16440.4.1991-01-18"
+        },
+        {
+          "day": 17,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.22200.1.1991-01-18"
         },
         {
           "day": 17,
@@ -21057,26 +21057,8 @@
         {
           "day": 18,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 18,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
-        },
-        {
-          "day": 18,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.115"
-        },
-        {
-          "day": 18,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.105"
         },
         {
           "day": 18,
@@ -21105,26 +21087,44 @@
         {
           "day": 18,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.109"
-        },
-        {
-          "day": 18,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.113"
-        },
-        {
-          "day": 18,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
         },
         {
           "day": 18,
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 18,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.15000.3.1991-01-19"
+        },
+        {
+          "day": 18,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.16440.4.1991-01-19"
+        },
+        {
+          "day": 18,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.16440.8.1991-01-19"
+        },
+        {
+          "day": 18,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.22200.1.1991-01-19"
+        },
+        {
+          "day": 18,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.23640.4.1991-01-19"
         },
         {
           "day": 18,
@@ -21189,20 +21189,8 @@
         {
           "day": 19,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.109"
-        },
-        {
-          "day": 19,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.113"
-        },
-        {
-          "day": 19,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
         },
         {
           "day": 19,
@@ -21215,6 +21203,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 19,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.16440.8.1991-01-20"
+        },
+        {
+          "day": 19,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.23640.4.1991-01-20"
         },
         {
           "day": 19,
@@ -21267,12 +21267,6 @@
         {
           "day": 20,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 20,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.103"
         },
@@ -21287,6 +21281,12 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 20,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.23640.0.1991-01-21"
         },
         {
           "day": 20,
@@ -21339,12 +21339,6 @@
         {
           "day": 21,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 21,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.103"
         },
@@ -21365,6 +21359,12 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 21,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.23640.0.1991-01-22"
         },
         {
           "day": 21,
@@ -21423,26 +21423,8 @@
         {
           "day": 22,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 22,
-          "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.105"
-        },
-        {
-          "day": 22,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 22,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
         },
         {
           "day": 22,
@@ -21461,6 +21443,24 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 22,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.22200.6.1991-01-23"
+        },
+        {
+          "day": 22,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.23640.0.1991-01-23"
+        },
+        {
+          "day": 22,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.25080.0.1991-01-23"
         },
         {
           "day": 22,
@@ -21501,18 +21501,6 @@
         {
           "day": 23,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 23,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 23,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.115"
         },
@@ -21542,15 +21530,27 @@
         },
         {
           "day": 23,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.103"
-        },
-        {
-          "day": 23,
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 23,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.22200.6.1991-01-24"
+        },
+        {
+          "day": 23,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.25080.0.1991-01-24"
+        },
+        {
+          "day": 23,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.27960.1.1991-01-24"
         },
         {
           "day": 23,
@@ -21597,12 +21597,6 @@
         {
           "day": 24,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 24,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.115"
         },
@@ -21627,38 +21621,14 @@
         {
           "day": 24,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.103"
-        },
-        {
-          "day": 24,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.113"
         },
         {
           "day": 24,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.118"
-        },
-        {
-          "day": 24,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 24,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.104"
-        },
-        {
-          "day": 24,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.105"
         },
         {
           "day": 24,
@@ -21677,6 +21647,36 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 24,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.25080.0.1991-01-25"
+        },
+        {
+          "day": 24,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.25080.2.1991-01-25"
+        },
+        {
+          "day": 24,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.27960.1.1991-01-25"
+        },
+        {
+          "day": 24,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.29400.0.1991-01-25"
+        },
+        {
+          "day": 24,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.30840.0.1991-01-25"
         },
         {
           "day": 24,
@@ -21735,26 +21735,8 @@
         {
           "day": 25,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.118"
-        },
-        {
-          "day": 25,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 25,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.104"
-        },
-        {
-          "day": 25,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.105"
         },
         {
           "day": 25,
@@ -21767,12 +21749,6 @@
           "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.107"
-        },
-        {
-          "day": 25,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
         },
         {
           "day": 25,
@@ -21791,6 +21767,30 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 25,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.25080.2.1991-01-26"
+        },
+        {
+          "day": 25,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.26520.4.1991-01-26"
+        },
+        {
+          "day": 25,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.29400.0.1991-01-26"
+        },
+        {
+          "day": 25,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.30840.0.1991-01-26"
         },
         {
           "day": 25,
@@ -21843,12 +21843,6 @@
         {
           "day": 26,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 26,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.104"
         },
@@ -21857,12 +21851,6 @@
           "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.106"
-        },
-        {
-          "day": 26,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.102"
         },
         {
           "day": 26,
@@ -21911,6 +21899,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 26,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.26520.4.1991-01-27"
+        },
+        {
+          "day": 26,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.29400.0.1991-01-27"
         },
         {
           "day": 26,
@@ -21993,12 +21993,6 @@
         {
           "day": 27,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 27,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.114"
         },
@@ -22007,6 +22001,12 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 27,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.33720.0.1991-01-28"
         },
         {
           "day": 27,
@@ -22065,12 +22065,6 @@
         {
           "day": 28,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 28,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.114"
         },
@@ -22101,12 +22095,6 @@
         {
           "day": 28,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
-        },
-        {
-          "day": 28,
-          "account": "roomRevenue",
           "amountMinor": 8100,
           "memo": "room.106"
         },
@@ -22127,6 +22115,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 28,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.33720.0.1991-01-29"
+        },
+        {
+          "day": 28,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.38040.0.1991-01-29"
         },
         {
           "day": 28,
@@ -22209,12 +22209,6 @@
         {
           "day": 29,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
-        },
-        {
-          "day": 29,
-          "account": "roomRevenue",
           "amountMinor": 8100,
           "memo": "room.106"
         },
@@ -22229,12 +22223,6 @@
           "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.116"
-        },
-        {
-          "day": 29,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.108"
         },
         {
           "day": 29,
@@ -22271,6 +22259,18 @@
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 29,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.36600.0.1991-01-30"
+        },
+        {
+          "day": 29,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.38040.0.1991-01-30"
         },
         {
           "day": 29,
@@ -22329,18 +22329,6 @@
         {
           "day": 30,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
-        },
-        {
-          "day": 30,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.108"
-        },
-        {
-          "day": 30,
-          "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.109"
         },
@@ -22371,26 +22359,38 @@
         {
           "day": 30,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.116"
-        },
-        {
-          "day": 30,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.117"
-        },
-        {
-          "day": 30,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.118"
         },
         {
           "day": 30,
           "account": "wages",
           "amountMinor": -89839,
           "memo": "daily payroll"
+        },
+        {
+          "day": 30,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.35160.3.1991-01-31"
+        },
+        {
+          "day": 30,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.36600.0.1991-01-31"
+        },
+        {
+          "day": 30,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.38040.0.1991-01-31"
+        },
+        {
+          "day": 30,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.40920.5.1991-01-31"
         },
         {
           "day": 30,
@@ -22443,38 +22443,8 @@
         {
           "day": 31,
           "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.116"
-        },
-        {
-          "day": 31,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.117"
-        },
-        {
-          "day": 31,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.118"
-        },
-        {
-          "day": 31,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 31,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 31,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
         },
         {
           "day": 31,
@@ -22499,6 +22469,36 @@
           "account": "interest",
           "amountMinor": -75000,
           "memo": "loan interest"
+        },
+        {
+          "day": 31,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.35160.3.1991-02-01"
+        },
+        {
+          "day": 31,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.35160.4.1991-02-01"
+        },
+        {
+          "day": 31,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.38040.1.1991-02-01"
+        },
+        {
+          "day": 31,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.40920.5.1991-02-01"
+        },
+        {
+          "day": 31,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.42360.1.1991-02-01"
         },
         {
           "day": 31,
@@ -22611,24 +22611,6 @@
         {
           "day": 32,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 32,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 32,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
-        },
-        {
-          "day": 32,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.103"
         },
@@ -22637,12 +22619,6 @@
           "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.114"
-        },
-        {
-          "day": 32,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
         },
         {
           "day": 32,
@@ -22661,6 +22637,30 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 32,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.35160.4.1991-02-02"
+        },
+        {
+          "day": 32,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.36600.1.1991-02-02"
+        },
+        {
+          "day": 32,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.38040.1.1991-02-02"
+        },
+        {
+          "day": 32,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.42360.1.1991-02-02"
         },
         {
           "day": 32,
@@ -22713,26 +22713,8 @@
         {
           "day": 33,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.101"
-        },
-        {
-          "day": 33,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 33,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.103"
-        },
-        {
-          "day": 33,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
         },
         {
           "day": 33,
@@ -22761,12 +22743,6 @@
         {
           "day": 33,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.107"
-        },
-        {
-          "day": 33,
-          "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.108"
         },
@@ -22785,12 +22761,6 @@
         {
           "day": 33,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 33,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.116"
         },
@@ -22799,6 +22769,36 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 33,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.35160.4.1991-02-03"
+        },
+        {
+          "day": 33,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.36600.1.1991-02-03"
+        },
+        {
+          "day": 33,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.38040.1.1991-02-03"
+        },
+        {
+          "day": 33,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.42360.0.1991-02-03"
+        },
+        {
+          "day": 33,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.43800.4.1991-02-03"
         },
         {
           "day": 33,
@@ -22851,12 +22851,6 @@
         {
           "day": 34,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
-        },
-        {
-          "day": 34,
-          "account": "roomRevenue",
           "amountMinor": 9000,
           "memo": "room.102"
         },
@@ -22865,12 +22859,6 @@
           "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.106"
-        },
-        {
-          "day": 34,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.107"
         },
         {
           "day": 34,
@@ -22893,26 +22881,8 @@
         {
           "day": 34,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 34,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.116"
-        },
-        {
-          "day": 34,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 34,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
         },
         {
           "day": 34,
@@ -22943,6 +22913,36 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 34,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.36600.1.1991-02-04"
+        },
+        {
+          "day": 34,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.39480.1.1991-02-04"
+        },
+        {
+          "day": 34,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.40920.3.1991-02-04"
+        },
+        {
+          "day": 34,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.42360.0.1991-02-04"
+        },
+        {
+          "day": 34,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.43800.4.1991-02-04"
         },
         {
           "day": 34,
@@ -23001,24 +23001,6 @@
         {
           "day": 35,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.114"
-        },
-        {
-          "day": 35,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
-        },
-        {
-          "day": 35,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
-        },
-        {
-          "day": 35,
-          "account": "roomRevenue",
           "amountMinor": 10800,
           "memo": "room.117"
         },
@@ -23063,6 +23045,24 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 35,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.39480.1.1991-02-05"
+        },
+        {
+          "day": 35,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.40920.3.1991-02-05"
+        },
+        {
+          "day": 35,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.43800.4.1991-02-05"
         },
         {
           "day": 35,
@@ -23111,12 +23111,6 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
-        },
-        {
-          "day": 36,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.113"
         },
         {
           "day": 36,
@@ -23186,15 +23180,21 @@
         },
         {
           "day": 36,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.108"
-        },
-        {
-          "day": 36,
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 36,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.39480.1.1991-02-06"
+        },
+        {
+          "day": 36,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.49560.1.1991-02-06"
         },
         {
           "day": 36,
@@ -23295,32 +23295,14 @@
         {
           "day": 37,
           "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.108"
-        },
-        {
-          "day": 37,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.113"
         },
         {
           "day": 37,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.117"
-        },
-        {
-          "day": 37,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.118"
-        },
-        {
-          "day": 37,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
         },
         {
           "day": 37,
@@ -23333,6 +23315,24 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 37,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.46680.5.1991-02-07"
+        },
+        {
+          "day": 37,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.49560.1.1991-02-07"
+        },
+        {
+          "day": 37,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.51000.6.1991-02-07"
         },
         {
           "day": 37,
@@ -23409,20 +23409,8 @@
         {
           "day": 38,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.117"
-        },
-        {
-          "day": 38,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.118"
-        },
-        {
-          "day": 38,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
         },
         {
           "day": 38,
@@ -23441,18 +23429,6 @@
           "account": "roomRevenue",
           "amountMinor": 10800,
           "memo": "room.114"
-        },
-        {
-          "day": 38,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.116"
-        },
-        {
-          "day": 38,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
         },
         {
           "day": 38,
@@ -23483,6 +23459,30 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 38,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.46680.5.1991-02-08"
+        },
+        {
+          "day": 38,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.49560.4.1991-02-08"
+        },
+        {
+          "day": 38,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.49560.6.1991-02-08"
+        },
+        {
+          "day": 38,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.51000.6.1991-02-08"
         },
         {
           "day": 38,
@@ -23535,12 +23535,6 @@
         {
           "day": 39,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.117"
-        },
-        {
-          "day": 39,
-          "account": "roomRevenue",
           "amountMinor": 10560,
           "memo": "room.118"
         },
@@ -23558,15 +23552,9 @@
         },
         {
           "day": 39,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.116"
-        },
-        {
-          "day": 39,
-          "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.102"
+          "account": "loyaltyBenefit",
+          "amountMinor": -800,
+          "memo": "late-checkout for guest.segment.business.8"
         },
         {
           "day": 39,
@@ -23594,15 +23582,9 @@
         },
         {
           "day": 39,
-          "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 39,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
+          "account": "loyaltyBenefit",
+          "amountMinor": -800,
+          "memo": "late-checkout for guest.segment.business.9"
         },
         {
           "day": 39,
@@ -23619,18 +23601,6 @@
         {
           "day": 39,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.108"
-        },
-        {
-          "day": 39,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
-        },
-        {
-          "day": 39,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.121"
         },
@@ -23639,6 +23609,48 @@
           "account": "wages",
           "amountMinor": -99464,
           "memo": "daily payroll"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.46680.3.1991-02-09"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.46680.5.1991-02-09"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.49560.2.1991-02-09"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.49560.4.1991-02-09"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.49560.6.1991-02-09"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.52440.3.1991-02-09"
+        },
+        {
+          "day": 39,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.53880.5.1991-02-09"
         },
         {
           "day": 39,
@@ -23703,18 +23715,6 @@
         {
           "day": 40,
           "account": "roomRevenue",
-          "amountMinor": 11400,
-          "memo": "room.113"
-        },
-        {
-          "day": 40,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.104"
-        },
-        {
-          "day": 40,
-          "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.106"
         },
@@ -23727,26 +23727,8 @@
         {
           "day": 40,
           "account": "roomRevenue",
-          "amountMinor": 8550,
-          "memo": "room.108"
-        },
-        {
-          "day": 40,
-          "account": "roomRevenue",
-          "amountMinor": 11280,
-          "memo": "room.115"
-        },
-        {
-          "day": 40,
-          "account": "roomRevenue",
           "amountMinor": 12000,
           "memo": "room.121"
-        },
-        {
-          "day": 40,
-          "account": "roomRevenue",
-          "amountMinor": 8460,
-          "memo": "room.101"
         },
         {
           "day": 40,
@@ -23762,6 +23744,36 @@
         },
         {
           "day": 40,
+          "account": "receivableSettlement",
+          "amountMinor": 11400,
+          "memo": "receivable.booking.46680.3.1991-02-10"
+        },
+        {
+          "day": 40,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.49560.2.1991-02-10"
+        },
+        {
+          "day": 40,
+          "account": "receivableSettlement",
+          "amountMinor": 8460,
+          "memo": "receivable.booking.51000.7.1991-02-10"
+        },
+        {
+          "day": 40,
+          "account": "receivableSettlement",
+          "amountMinor": 8550,
+          "memo": "receivable.booking.52440.3.1991-02-10"
+        },
+        {
+          "day": 40,
+          "account": "receivableSettlement",
+          "amountMinor": 11280,
+          "memo": "receivable.booking.53880.5.1991-02-10"
+        },
+        {
+          "day": 40,
           "account": "foodCost",
           "amountMinor": -90000,
           "memo": "200 breakfast-portion"
@@ -23773,7 +23785,7 @@
         "otherRevenueMinor": 1892550,
         "eventRevenueMinor": 1021200,
         "housekeepingLateRoomReleaseCount": 0,
-        "operatingExpenseMinor": 1226719,
+        "operatingExpenseMinor": 1228319,
         "soldRoomNights": 120,
         "availableRoomNights": 240
       }
@@ -26561,6 +26573,7 @@
       "occupancyBasisPoints": 3454,
       "adrMinor": 9454,
       "revParMinor": 3266,
+      "gopparMinor": -2891,
       "whatWentWell": [
         {
           "labelKey": "finance.monthlyClose.causes.revenueMinorRecord",
@@ -26598,6 +26611,7 @@
         "occupancyBasisPoints": 3454,
         "adrMinor": 9454,
         "revParMinor": 3266,
+        "gopparMinor": -2891,
         "whatWentWell": [
           {
             "labelKey": "finance.monthlyClose.causes.revenueMinorRecord",
@@ -26630,6 +26644,7 @@
     "metrics": {
       "adrMinor": 9627,
       "revParMinor": 4813,
+      "gopparMinor": 7581,
       "occupancyBasisPoints": 5000
     },
     "elapsedMinutes": 57600,
@@ -26716,10 +26731,24 @@
           "refundable": true,
           "minimumStayNights": 1,
           "maximumStayNights": null,
-          "closedToArrival": false
+          "closedToArrival": false,
+          "closedToDeparture": false,
+          "rateFloorMinor": 0,
+          "rateCeilingMinor": 9007199254740991,
+          "closedChannelIds": [],
+          "minimumAdvanceBookingNights": 0
         }
       ],
-      "rules": []
+      "rules": [],
+      "rateFloorMinor": 0,
+      "rateCeilingMinor": 9007199254740991,
+      "targetOccupancyBasisPoints": 7500,
+      "prioritizedSegmentIds": [],
+      "channelCostLimitBasisPoints": 10000,
+      "managerAttributes": {
+        "PricingStrategy": 50,
+        "RiskTolerance": 50
+      }
     },
     "technologyProjects": [],
     "technologyImplementations": [],
@@ -26898,7 +26927,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 4685648,
+        "hqMinor": 4684048,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -26978,6 +27007,7 @@
           "otherRevenueMinor": 4475975,
           "operatingExpenseMinor": 6600991,
           "grossOperatingProfitMinor": 304744,
+          "gopparMinor": 410,
           "occupancyBasisPoints": 3454,
           "soldRoomNights": 257,
           "availableRoomNights": 744,
@@ -26993,6 +27023,7 @@
           "otherRevenueMinor": 119489,
           "operatingExpenseMinor": 450583,
           "grossOperatingProfitMinor": 212038,
+          "gopparMinor": 163,
           "occupancyBasisPoints": 6498,
           "soldRoomNights": 846,
           "availableRoomNights": 1302,
@@ -27000,6 +27031,13 @@
           "cashNeedMinor": 0,
           "renovationNeedMinor": 1386000
         }
+      },
+      "groupTargets": {
+        "gopparMinor": 0,
+        "guestSatisfaction": 0,
+        "staffTurnoverBasisPoints": 0,
+        "marketShareBasisPoints": 0,
+        "brandStandard": 0
       },
       "sequence": 1
     },
@@ -27048,6 +27086,7 @@
     "commercial": {
       "campaigns": [],
       "campaignAgeDays": {},
+      "campaignAttributionLog": [],
       "sales": {
         "leads": [],
         "contracts": []
@@ -27613,6 +27652,7 @@
         ]
       },
       "loyalty": {
+        "active": true,
         "members": [
           {
             "guestId": "guest.segment.business.0",
@@ -27790,13 +27830,13 @@
           },
           {
             "guestId": "guest.segment.business.8",
-            "points": 972,
+            "points": 872,
             "qualifyingNights": 12,
             "tier": "silver"
           },
           {
             "guestId": "guest.segment.business.9",
-            "points": 1097,
+            "points": 997,
             "qualifyingNights": 12,
             "tier": "silver"
           },
@@ -28053,8 +28093,13 @@
             "tier": "none"
           }
         ],
-        "liabilityMinor": 280656
+        "liabilityMinor": 279056
       }
+    },
+    "distribution": {
+      "allotments": [],
+      "groupBlocks": [],
+      "channelInventory": []
     },
     "reputation": {
       "hotel": {

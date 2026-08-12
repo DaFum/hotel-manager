@@ -31,6 +31,7 @@ import {
   STARTER_REGION,
 } from "../content/1991/company";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
+import type { GroupTargets } from "./groupTargets";
 
 /**
  * A scheme from the day the group first studies it to the day it takes
@@ -66,6 +67,7 @@ export interface HotelOperatingResult {
   otherRevenueMinor: number;
   operatingExpenseMinor: number;
   grossOperatingProfitMinor: number;
+  gopparMinor?: number;
   occupancyBasisPoints: number;
   soldRoomNights: number;
   availableRoomNights: number;
@@ -104,6 +106,7 @@ export interface CompanyState {
   };
   /** The latest published result per hotel, by hotel id. */
   hotelResults: Record<string, HotelOperatingResult>;
+  groupTargets: GroupTargets;
   /** Monotonic counter for ids the company layer mints for itself. */
   sequence: number;
 }
@@ -181,6 +184,13 @@ export function createCompanyState(): CompanyState {
       capacityPerAnalyst: HEADQUARTERS.capacityPerAnalyst,
     },
     hotelResults: {},
+    groupTargets: {
+      gopparMinor: 0,
+      guestSatisfaction: 0,
+      staffTurnoverBasisPoints: 0,
+      marketShareBasisPoints: 0,
+      brandStandard: 0,
+    },
     sequence: 0,
   };
 }

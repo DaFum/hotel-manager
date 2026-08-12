@@ -19,6 +19,32 @@ export function assertInvariants(state: GameState): void {
   if (!Number.isSafeInteger(state.finance.payableMinor))
     throw new Error("payables must be whole Pfennig");
 
+  const claimIds = new Set<string>();
+  const policyIds = new Set(
+    state.insurance.policies.map((policy) => policy.id),
+  );
+  for (const claim of state.insurance.claims) {
+    if (claimIds.has(claim.id))
+      throw new Error(`duplicate claim id ${claim.id}`);
+    claimIds.add(claim.id);
+    if (!policyIds.has(claim.policyId))
+      throw new Error(
+        `claim ${claim.id} references unknown policy ${claim.policyId}`,
+      );
+    for (const [label, value] of [
+      ["loss", claim.lossMinor],
+      ["settlement", claim.settlementMinor],
+    ] as const)
+      if (!Number.isSafeInteger(value) || value < 0)
+        throw new Error(`claim ${claim.id} ${label} must be non-negative`);
+    if (claim.status === "filed" && claim.settledAtMinutes !== null)
+      throw new Error(`filed claim ${claim.id} cannot have a settlement time`);
+    if (claim.status !== "filed" && claim.settledAtMinutes === null)
+      throw new Error(
+        `${claim.status} claim ${claim.id} needs a settlement time`,
+      );
+  }
+
   if (!state.fnb || !Array.isArray(state.fnb.outlets))
     throw new Error("game state is missing F&B operations");
   for (const outlet of state.fnb.outlets) {

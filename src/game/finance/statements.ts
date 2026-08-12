@@ -56,6 +56,12 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   franchiseRoyalty: "operating",
   portfolioOperating: "operating",
   insurancePremium: "operating",
+  insuranceSettlement: "settlement",
+  campaignSpend: "operating",
+  loyaltyBenefit: "operating",
+  groupDeposit: "operating",
+  serviceRecovery: "operating",
+  receivableSettlement: "settlement",
   capex: "capital",
   // A stake bought in a venture and a house sold out of the group are both the
   // group moving capital about, not the hotel trading.

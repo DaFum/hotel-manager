@@ -579,6 +579,12 @@ export function App() {
               rateMinor,
             })
           }
+          onSetRevenuePolicy={(change) =>
+            game.send({ type: "SET_REVENUE_POLICY", change })
+          }
+          onSetGroupTargets={(targets) =>
+            game.send({ type: "SET_GROUP_TARGETS", targets })
+          }
         />
         {competitorTable}
       </>

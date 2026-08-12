@@ -14,6 +14,13 @@ export function revParMinor(
     : 0;
 }
 
+export function gopparMinor(
+  gopMinor: number,
+  availableRoomNights: number,
+): number {
+  return availableRoomNights ? Math.round(gopMinor / availableRoomNights) : 0;
+}
+
 export function occupancyBasisPoints(
   soldRoomNights: number,
   availableRoomNights: number,

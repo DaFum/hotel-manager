@@ -48,10 +48,12 @@ const CAMPAIGN = {
   id: "campaign.spring",
   objective: "occupancy" as const,
   targetSegmentId: "segment.business",
+  region: "Frankfurt",
   channel: "print" as const,
   startDateKey: "1991-03-01",
   durationDays: 30,
   budgetMinor: 400_000,
+  message: "Business stays made simple",
   creativeQuality: 70,
 };
 
@@ -152,6 +154,10 @@ const CONTRACT = {
   concessions: ["breakfast"],
   validFromDateKey: "1991-04-01",
   validToDateKey: "1992-04-01",
+  blackoutDateKeys: [],
+  paymentTermsDays: 30,
+  cancellationDaysBeforeArrival: 7,
+  cancellationFeeBasisPoints: 5000,
   renewalIntent: "unknown" as const,
 };
 

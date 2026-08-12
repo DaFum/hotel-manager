@@ -2,6 +2,7 @@ import {
   adrMinor,
   occupancyBasisPoints,
   revParMinor,
+  gopparMinor,
 } from "../revenue/metrics";
 import { addDays } from "../domain/calendar";
 
@@ -52,6 +53,7 @@ export interface MonthlyCloseReport extends MonthlyCloseInput {
   occupancyBasisPoints: number;
   adrMinor: number;
   revParMinor: number;
+  gopparMinor: number;
   whatWentWell: BriefingItem[];
   whatWentBadly: BriefingItem[];
   whatIsChanging: BriefingItem[];
@@ -59,10 +61,11 @@ export interface MonthlyCloseReport extends MonthlyCloseInput {
 
 export function closeMonth(x: MonthlyCloseInput): MonthlyCloseReport {
   const revenueMinor = x.roomRevenueMinor + x.otherRevenueMinor;
+  const operatingProfitMinor = revenueMinor - x.operatingExpenseMinor;
   return {
     ...x,
     revenueMinor,
-    operatingProfitMinor: revenueMinor - x.operatingExpenseMinor,
+    operatingProfitMinor,
     cashDeltaMinor: x.closingCashMinor - x.openingCashMinor,
     occupancyBasisPoints: occupancyBasisPoints(
       x.soldRoomNights,
@@ -70,6 +73,7 @@ export function closeMonth(x: MonthlyCloseInput): MonthlyCloseReport {
     ),
     adrMinor: adrMinor(x.roomRevenueMinor, x.soldRoomNights),
     revParMinor: revParMinor(x.roomRevenueMinor, x.availableRoomNights),
+    gopparMinor: gopparMinor(operatingProfitMinor, x.availableRoomNights),
     whatWentWell: [],
     whatWentBadly: [],
     whatIsChanging: [],

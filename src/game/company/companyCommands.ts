@@ -50,6 +50,7 @@ const COMPANY_COMMAND_TYPES = [
   "REMOVE_BRAND",
   "SET_OPERATING_MODEL",
   "SET_HOTEL_BUDGET",
+  "SET_GROUP_TARGETS",
   "SET_MANAGER_AUTHORITY",
   "RESOLVE_ESCALATION",
   "TRANSFER_INTERNAL_FUNDING",
@@ -133,6 +134,21 @@ export function validateCompanyCommand(
         command.operatingBudgetMinor < 0
       )
         return no("a budget must be whole non-negative Pfennig");
+      return ok;
+    case "SET_GROUP_TARGETS":
+      if (
+        Object.values(command.targets).some(
+          (value) => !Number.isSafeInteger(value) || value < 0,
+        )
+      )
+        return no("group targets must be whole non-negative values");
+      if (
+        command.targets.staffTurnoverBasisPoints > 10_000 ||
+        command.targets.marketShareBasisPoints > 10_000 ||
+        command.targets.guestSatisfaction > 100 ||
+        command.targets.brandStandard > 100
+      )
+        return no("group target is out of range");
       return ok;
     case "SET_MANAGER_AUTHORITY":
       if (!managerForHotel(c.managers, command.hotelId))
@@ -372,6 +388,12 @@ export function applyCompanyCommand(
       );
       return;
     }
+    case "SET_GROUP_TARGETS":
+      c.groupTargets = { ...command.targets };
+      ctx.emit({ type: "GROUP_TARGETS_SET", companyId: c.companyId }, [
+        c.companyId,
+      ]);
+      return;
     case "SET_MANAGER_AUTHORITY": {
       const manager = managerForHotel(c.managers, command.hotelId)!;
       const updated = setAuthorityLimit(manager, command.authority);

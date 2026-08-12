@@ -26,7 +26,7 @@ import {
 } from "./companyState";
 import { consolidatedCashMinor } from "../treasury/treasury";
 import { projectCostMinor } from "../renovation/projects";
-import { occupancyBasisPoints } from "../revenue/metrics";
+import { gopparMinor, occupancyBasisPoints } from "../revenue/metrics";
 import { assertBasisPoints, assertNonNegativeMinor } from "../domain/units";
 
 /** What putting one failed brand standard right is reckoned to cost. */
@@ -87,6 +87,10 @@ function publishFlagshipResult(
       otherRevenueMinor: month.otherRevenueMinor,
       operatingExpenseMinor: month.operatingExpenseMinor,
       grossOperatingProfitMinor,
+      gopparMinor: gopparMinor(
+        grossOperatingProfitMinor,
+        month.availableRoomNights,
+      ),
       occupancyBasisPoints: occupancyBasisPoints(
         month.soldRoomNights,
         month.availableRoomNights,
@@ -152,6 +156,10 @@ function tradeManagedHotels(
         otherRevenueMinor: month.otherRevenueMinor,
         operatingExpenseMinor: month.operatingExpenseMinor,
         grossOperatingProfitMinor: month.grossOperatingProfitMinor,
+        gopparMinor: gopparMinor(
+          month.grossOperatingProfitMinor,
+          month.availableRoomNights,
+        ),
         occupancyBasisPoints: month.occupancyBasisPoints,
         soldRoomNights: month.soldRoomNights,
         availableRoomNights: month.availableRoomNights,

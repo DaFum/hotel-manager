@@ -18,6 +18,7 @@ export interface LoyaltyMember {
 }
 
 export interface LoyaltyState {
+  active?: boolean;
   members: LoyaltyMember[];
   /** What the outstanding points would cost to honour, in Pfennig. */
   liabilityMinor: number;
@@ -37,7 +38,7 @@ const TIER_THRESHOLDS: readonly { tier: LoyaltyTier; nights: number }[] = [
 ];
 
 export function createLoyaltyState(): LoyaltyState {
-  return { members: [], liabilityMinor: 0 };
+  return { active: true, members: [], liabilityMinor: 0 };
 }
 
 export function tierForNights(qualifyingNights: number): LoyaltyTier {
@@ -77,6 +78,7 @@ export function earnPoints(
     tier: tierForNights(qualifyingNights),
   };
   return {
+    active: state.active ?? true,
     members: [
       ...state.members.filter((m) => m.guestId !== input.guestId),
       member,
@@ -102,6 +104,7 @@ export function burnPoints(
   const costMinor = input.points * POINT_VALUE_MINOR;
   return {
     state: {
+      active: state.active ?? true,
       members: state.members.map((m) =>
         m.guestId === input.guestId
           ? { ...m, points: m.points - input.points }
@@ -143,6 +146,7 @@ export function releaseBreakageMinor(state: LoyaltyState): {
   const releasedMinor = writtenOffPoints * POINT_VALUE_MINOR;
   return {
     state: {
+      active: state.active ?? true,
       members: state.members.map((member) => ({
         ...member,
         points: member.points - memberBreakagePoints(member),

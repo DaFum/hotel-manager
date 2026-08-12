@@ -8,6 +8,18 @@ import type { OpeningChecklistItem } from "../development/preOpening";
 import type { ManagerAuthority } from "../management/managerAuthority";
 import type { DifficultyId } from "../campaign/campaignConfig";
 import type { RecoveryPath } from "../campaign/careerOutcome";
+import type { InsurancePolicy } from "../risk/insurance";
+import type { RevenuePolicyChange } from "../revenue/revenuePolicy";
+import type {
+  CampaignChannel,
+  CampaignObjective,
+} from "../commercial/campaigns";
+import type {
+  LeadStage,
+  NegotiatedContract,
+} from "../commercial/salesPipeline";
+import type { EvolvingChannel } from "../distribution/channelEvolution";
+import type { GroupTargets } from "../company/groupTargets";
 
 /**
  * The payload half of a command: what the player wants done, with no identity
@@ -21,6 +33,101 @@ export type GameCommand =
       category: RoomCategory;
       rateMinor: number;
     }
+  | { type: "SET_REVENUE_POLICY"; change: RevenuePolicyChange }
+  | {
+      type: "SET_INSURANCE_POLICY";
+      operation: "takeOut" | "vary" | "cancel";
+      policyId: string;
+      policy?: InsurancePolicy;
+      deductibleMinor?: number;
+      limitMinor?: number;
+    }
+  // --- commercial decisions ---------------------------------------------
+  | {
+      type: "LAUNCH_CAMPAIGN";
+      objective: CampaignObjective;
+      targetSegmentId: string;
+      region: string;
+      channel: CampaignChannel;
+      durationDays: number;
+      budgetMinor: number;
+      message: string;
+      creativeQuality: number;
+    }
+  | {
+      type: "ADD_LEAD";
+      leadId: string;
+      accountName: string;
+      segmentId: string;
+      expectedRoomNights: number;
+    }
+  | { type: "ADVANCE_LEAD"; leadId: string; stage: LeadStage }
+  | {
+      type: "SIGN_ACCOUNT";
+      leadId: string;
+      negotiatedRateMinor: number;
+      expectedRoomNights: number;
+      concessions: string[];
+      validFromDateKey: string;
+      validToDateKey: string;
+    }
+  | {
+      type: "SET_RENEWAL_INTENT";
+      contractId: string;
+      intent: NegotiatedContract["renewalIntent"];
+    }
+  | { type: "CONFIGURE_LOYALTY"; active: boolean }
+  // --- distribution and corporate sales ---------------------------------
+  | {
+      type: "OFFER_CORPORATE_ACCOUNT";
+      leadId: string;
+      accountName: string;
+      segmentId: string;
+      expectedRoomNights: number;
+    }
+  | { type: "RENEW_CORPORATE_ACCOUNT"; leadId: string; stage: LeadStage }
+  | {
+      type: "ACCEPT_CORPORATE_ACCOUNT";
+      leadId: string;
+      contractId: string;
+      negotiatedRateMinor: number;
+      expectedRoomNights: number;
+      concessions: string[];
+      validFromDateKey: string;
+      validToDateKey: string;
+      blackoutDateKeys: string[];
+      paymentTermsDays: number;
+      cancellationDaysBeforeArrival: number;
+      cancellationFeeBasisPoints: number;
+    }
+  | {
+      type: "ACCEPT_GROUP_CONTRACT";
+      blockId: string;
+      category: string;
+      roomsByDate: Record<string, number>;
+      groupRateMinor: number;
+      releaseDateKey: string;
+      depositMinor: number;
+      cancellationDaysBeforeArrival: number;
+      cancellationFeeBasisPoints: number;
+      paymentTermsDays: number;
+    }
+  | { type: "DECLINE_GROUP_CONTRACT"; blockId: string }
+  | {
+      type: "ACCEPT_ALLOTMENT";
+      allotmentId: string;
+      partner: string;
+      category: string;
+      roomsByDate: Record<string, number>;
+      releaseDateKey: string;
+    }
+  | {
+      type: "SET_CHANNEL_INVENTORY";
+      channelId: EvolvingChannel;
+      allowedCategories: string[];
+      allowedRatePlanIds: string[];
+    }
+  | { type: "CLOSE_CHANNEL"; channelId: EvolvingChannel; closed: boolean }
   | { type: "ORDER_SUPPLIES"; sku: string; quantity: number }
   | {
       type: "HIRE";
@@ -43,6 +150,7 @@ export type GameCommand =
       capexBudgetMinor: number;
       operatingBudgetMinor: number;
     }
+  | { type: "SET_GROUP_TARGETS"; targets: GroupTargets }
   | {
       type: "SET_MANAGER_AUTHORITY";
       hotelId: string;

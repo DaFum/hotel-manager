@@ -15,6 +15,8 @@ import type {
   RevenueMetricsRow,
   OccupancyDriverRow,
 } from "./revenueViewModel";
+import type { RevenuePolicyChange } from "../game/revenue/revenuePolicy";
+import type { GroupTargets } from "../game/company/groupTargets";
 
 const segmentLabel = (segmentId: string): string =>
   translateKey(
@@ -46,6 +48,8 @@ export function RevenueDashboard(props: {
     category: RateGridRow["cells"][number]["category"],
     rateMinor: number,
   ) => void;
+  onSetRevenuePolicy?: (change: RevenuePolicyChange) => void;
+  onSetGroupTargets?: (targets: GroupTargets) => void;
   locale?: GameLocale;
 }) {
   const locale = props.locale ?? "en-GB";
@@ -67,6 +71,8 @@ export function RevenueDashboard(props: {
         <dd>{formatDm(props.metrics.adrMinor, locale)}</dd>
         <dt>{t("revenue.ui.revpar")}</dt>
         <dd>{formatDm(props.metrics.revParMinor, locale)}</dd>
+        <dt>{t("revenue.ui.goppar")}</dt>
+        <dd>{formatDm(props.metrics.gopparMinor ?? 0, locale)}</dd>
         <dt>{t("revenue.ui.occupancy")}</dt>
         <dd>{formatBasisPoints(props.metrics.occupancyBasisPoints, locale)}</dd>
       </dl>
@@ -269,6 +275,43 @@ export function RevenueDashboard(props: {
         <p>
           {t("revenue.ui.policyLimit", { count: props.overbooking.limitRooms })}
         </p>
+        <p>
+          {t("revenue.ui.recommendedLimit", {
+            count: props.overbooking.recommendedRooms ?? 0,
+          })}
+        </p>
+        <button
+          type="button"
+          onClick={() =>
+            props.onSetRevenuePolicy?.({
+              overbookingLimitRooms: props.overbooking.recommendedRooms ?? 0,
+            })
+          }
+        >
+          {t("revenue.ui.applyRecommendation")}
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            props.onSetRevenuePolicy?.({ managerAuthorityBp: 500 })
+          }
+        >
+          {t("revenue.ui.enableManager")}
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            props.onSetGroupTargets?.({
+              gopparMinor: props.metrics.gopparMinor ?? 0,
+              guestSatisfaction: 75,
+              staffTurnoverBasisPoints: 1500,
+              marketShareBasisPoints: 2000,
+              brandStandard: 80,
+            })
+          }
+        >
+          {t("revenue.ui.setGroupTargets")}
+        </button>
         <ul>
           {props.overbooking.dates
             .filter((row) => row.exposureRooms > 0)

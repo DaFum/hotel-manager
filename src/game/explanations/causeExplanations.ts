@@ -1,5 +1,9 @@
 export type ExplainableChange =
-  "occupancyDown" | "occupancyUp" | "profitDown" | "satisfactionDown";
+  | "occupancyDown"
+  | "occupancyUp"
+  | "profitDown"
+  | "satisfactionDown"
+  | "rateChanged";
 
 export interface CauseDriver {
   factor: string;

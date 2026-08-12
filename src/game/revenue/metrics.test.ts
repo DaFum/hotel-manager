@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adrMinor, revParMinor, forecastRooms } from "./metrics";
+import { adrMinor, gopparMinor, revParMinor, forecastRooms } from "./metrics";
 import { setRate, getRate, MIN_RATE_MINOR, MAX_RATE_MINOR } from "./rates";
 
 describe("revenue basics", () => {
@@ -30,6 +30,11 @@ describe("revenue basics", () => {
     expect(revParMinor(100000, 24)).toBe(4167);
     expect(adrMinor(100000, 0)).toBe(0);
     expect(revParMinor(100000, 0)).toBe(0);
+  });
+
+  it("calculates GOPPAR in whole minor units", () => {
+    expect(gopparMinor(100_000, 24)).toBe(4167);
+    expect(gopparMinor(100_000, 0)).toBe(0);
   });
 
   it("brackets the pickup forecast inside available inventory", () => {

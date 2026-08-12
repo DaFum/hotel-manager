@@ -32,6 +32,10 @@ export interface NegotiatedContract {
   concessions: string[];
   validFromDateKey: string;
   validToDateKey: string;
+  blackoutDateKeys: string[];
+  paymentTermsDays: number;
+  cancellationDaysBeforeArrival: number;
+  cancellationFeeBasisPoints: number;
   /** Whether the account has said it will come back next year. */
   renewalIntent: "unknown" | "renewing" | "leaving";
 }
@@ -86,12 +90,47 @@ export function advanceLead(
 
 export function signContract(
   state: SalesState,
-  contract: NegotiatedContract,
+  input: Omit<
+    NegotiatedContract,
+    | "blackoutDateKeys"
+    | "paymentTermsDays"
+    | "cancellationDaysBeforeArrival"
+    | "cancellationFeeBasisPoints"
+  > &
+    Partial<
+      Pick<
+        NegotiatedContract,
+        | "blackoutDateKeys"
+        | "paymentTermsDays"
+        | "cancellationDaysBeforeArrival"
+        | "cancellationFeeBasisPoints"
+      >
+    >,
 ): SalesState {
+  const contract: NegotiatedContract = {
+    ...input,
+    blackoutDateKeys: [...(input.blackoutDateKeys ?? [])],
+    paymentTermsDays: input.paymentTermsDays ?? 0,
+    cancellationDaysBeforeArrival: input.cancellationDaysBeforeArrival ?? 0,
+    cancellationFeeBasisPoints: input.cancellationFeeBasisPoints ?? 0,
+  };
   if (state.contracts.some((c) => c.id === contract.id))
     throw new Error(`contract ${contract.id} already exists`);
   assertNonNegativeMinor(contract.negotiatedRateMinor, "negotiated rate");
   assertCount(contract.expectedRoomNights, "expected room nights");
+  assertCount(contract.paymentTermsDays, "payment terms days");
+  assertCount(
+    contract.cancellationDaysBeforeArrival,
+    "cancellation days before arrival",
+  );
+  assertBasisPoints(contract.cancellationFeeBasisPoints, "cancellation fee");
+  if (
+    contract.blackoutDateKeys.some(
+      (date, index) =>
+        index > 0 && date <= contract.blackoutDateKeys[index - 1]!,
+    )
+  )
+    throw new Error("blackout dates must be unique and sorted");
   if (contract.validToDateKey <= contract.validFromDateKey)
     throw new Error("a contract must end after it starts");
   // Two live rates for one account would make the charged rate depend on
@@ -108,7 +147,7 @@ export function signContract(
     );
   return {
     ...state,
-    contracts: [...state.contracts, { ...contract }].sort((a, b) =>
+    contracts: [...state.contracts, contract].sort((a, b) =>
       compareIds(a.id, b.id),
     ),
   };
@@ -119,7 +158,10 @@ export function activeContracts(
   dateKey: string,
 ): NegotiatedContract[] {
   return state.contracts.filter(
-    (c) => c.validFromDateKey <= dateKey && dateKey < c.validToDateKey,
+    (c) =>
+      c.validFromDateKey <= dateKey &&
+      dateKey < c.validToDateKey &&
+      !c.blackoutDateKeys.includes(dateKey),
   );
 }
 

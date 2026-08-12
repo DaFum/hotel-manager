@@ -12,15 +12,28 @@ export interface CommercialState {
   campaigns: Campaign[];
   /** Days each running campaign has been live, so attribution can lag. */
   campaignAgeDays: Record<string, number>;
+  campaignAttributionLog: CampaignAttributionEntry[];
   sales: SalesState;
   crm: CrmState;
   loyalty: LoyaltyState;
 }
 
+export interface CampaignAttributionEntry {
+  campaignId: string;
+  low: number;
+  base: number;
+  high: number;
+  realised: number;
+  atDateKey: string;
+}
+
+export const CAMPAIGN_ATTRIBUTION_LOG_LIMIT = 120;
+
 export function createCommercialState(): CommercialState {
   return {
     campaigns: [],
     campaignAgeDays: {},
+    campaignAttributionLog: [],
     sales: createSalesState(),
     crm: createCrmState(),
     loyalty: createLoyaltyState(),

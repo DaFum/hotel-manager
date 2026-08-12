@@ -11,7 +11,7 @@ export type BookingChannel =
   | "allotment";
 
 export type BookingStatus =
-  "confirmed" | "cancelled" | "noShow" | "checkedIn" | "completed";
+  "confirmed" | "cancelled" | "noShow" | "walked" | "checkedIn" | "completed";
 
 /** One step of a reservation's life, in the order it happened. */
 export interface BookingStatusChange {

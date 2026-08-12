@@ -11,17 +11,29 @@ import {
   holdsRoomOn,
   lateChargeMinor,
   markNoShow,
+  walkGuest,
   ReservationRefusalError,
   reserve,
 } from "../bookings/bookingEngine";
 import type { BookingChannel } from "../bookings/bookingTypes";
 import {
   getRate,
+  corporateRateMinor,
   isRoomCategory,
   setRate,
   ROOM_CATEGORIES,
   type RoomCategory,
 } from "../revenue/rates";
+import {
+  activeContracts,
+  negotiatedDiscountBasisPoints,
+} from "../commercial/salesPipeline";
+import {
+  applyRatePlan,
+  automaticRate,
+  createRevenuePolicy,
+  updateRevenuePolicy,
+} from "../revenue/revenuePolicy";
 import {
   advanceCityMonth,
   allocateCityDay,
@@ -39,6 +51,7 @@ import { marketWageMinor } from "../labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../content/1991/cityMarket";
 import {
   adrMinor,
+  gopparMinor,
   occupancyBasisPoints,
   revParMinor,
 } from "../revenue/metrics";
@@ -207,7 +220,23 @@ import {
   applyReputationEvent,
   decayReputation,
 } from "../reputation/dimensions";
-import { earnPoints, releaseBreakageMinor } from "../commercial/loyalty";
+import {
+  burnPoints,
+  earnPoints,
+  memberFor,
+  releaseBreakageMinor,
+  tierBenefits,
+  tierForNights,
+} from "../commercial/loyalty";
+import {
+  appendCampaignAttribution,
+  attributedEffectBasisPoints,
+  campaignEffectBasisPoints,
+  campaignReach,
+  campaignUncertaintyBand,
+  finishExpiredCampaigns,
+  realisedEffectBasisPoints,
+} from "../commercial/campaigns";
 import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
   createContract as createEmploymentContract,
@@ -256,6 +285,11 @@ import {
   isCompanyCommand,
   validateCompanyCommand,
 } from "../company/companyCommands";
+import {
+  applyCommercialCommand,
+  isCommercialCommand,
+  validateCommercialCommand,
+} from "../commercial/commercialCommands";
 import { runCompanyMonth, syncTreasury } from "../company/companyMonth";
 import {
   adjustedForecastQuality,
@@ -269,7 +303,41 @@ import {
   depreciationMinor,
   postDepreciation,
 } from "../finance/statements";
-import { totalMonthlyPremiumMinor } from "../risk/insurance";
+import {
+  cancelPolicy,
+  fileClaim,
+  monthlyPremiumMinor,
+  settleClaim,
+  takeOutPolicy,
+  totalMonthlyPremiumMinor,
+  varyPolicy,
+} from "../risk/insurance";
+import { weatherInsurancePayout } from "../world/climate";
+import { createDistributionState } from "../distribution/distributionState";
+import {
+  applyDistributionCommand,
+  isDistributionCommand,
+  validateDistributionCommand,
+} from "../distribution/distributionCommands";
+import {
+  channelMaySell,
+  sharedAvailableRooms,
+} from "../distribution/channelEvolution";
+import {
+  recogniseReceivable,
+  settleReceivable,
+  overdueReceivables,
+} from "../finance/statements";
+import { displacementCostMinor } from "../revenue/revenuePolicy";
+import { explainCause } from "../explanations/causeExplanations";
+
+const ASSET_INSURANCE_PERIL: Readonly<
+  Record<string, "fire" | "businessInterruption">
+> = {
+  "asset.boiler": "fire",
+  "asset.elevator": "businessInterruption",
+  "asset.hvac": "businessInterruption",
+};
 import {
   UTILITY_KINDS,
   readMeters,
@@ -394,6 +462,15 @@ export class GameSimulation implements CommandExecutor {
   private causingCommandId: string | undefined;
 
   constructor(public state: GameState) {
+    state.commercial.campaignAttributionLog ??= [];
+    state.commercial.loyalty.active ??= true;
+    state.distribution ??= createDistributionState();
+    state.revenuePolicy = updateRevenuePolicy(createRevenuePolicy(), {
+      ...state.revenuePolicy,
+      managerAttributes:
+        state.revenuePolicy.managerAttributes ??
+        createRevenuePolicy().managerAttributes,
+    });
     this.streams = restoreRngStreams(state.rngState);
     this.commands = new CommandHandler(
       () => this.state,
@@ -496,6 +573,37 @@ export class GameSimulation implements CommandExecutor {
             command.rateMinor,
           );
           return { ok: true };
+        case "SET_REVENUE_POLICY":
+          updateRevenuePolicy(s.revenuePolicy, command.change);
+          return { ok: true };
+        case "SET_INSURANCE_POLICY": {
+          if (!command.policyId) throw new Error("a policy id is required");
+          if (command.operation === "takeOut") {
+            if (!command.policy || command.policy.id !== command.policyId)
+              throw new Error("takeOut requires the matching policy record");
+            takeOutPolicy(s.insurance, command.policy);
+          } else if (command.operation === "vary") {
+            if (command.policy)
+              throw new Error("vary accepts deductible and limit changes only");
+            varyPolicy(s.insurance, command.policyId, {
+              ...(command.deductibleMinor !== undefined
+                ? { deductibleMinor: command.deductibleMinor }
+                : {}),
+              ...(command.limitMinor !== undefined
+                ? { limitMinor: command.limitMinor }
+                : {}),
+            });
+          } else if (command.operation === "cancel") {
+            if (
+              command.policy ||
+              command.deductibleMinor !== undefined ||
+              command.limitMinor !== undefined
+            )
+              throw new Error("cancel accepts a policy id only");
+            cancelPolicy(s.insurance, command.policyId);
+          } else throw new Error("unknown insurance operation");
+          return { ok: true };
+        }
         case "ORDER_SUPPLIES": {
           const supplier = supplierForSku(command.sku);
           if (command.quantity < supplier.minimumQuantity)
@@ -616,6 +724,10 @@ export class GameSimulation implements CommandExecutor {
         default:
           if (isCompanyCommand(command))
             return validateCompanyCommand(s, command);
+          if (isCommercialCommand(command))
+            return validateCommercialCommand(s, command);
+          if (isDistributionCommand(command))
+            return validateDistributionCommand(s, command);
           return { ok: false, reason: "unknown command" };
       }
     } catch (error) {
@@ -751,6 +863,47 @@ export class GameSimulation implements CommandExecutor {
           command.rateMinor,
         );
         return;
+      case "SET_REVENUE_POLICY":
+        s.revenuePolicy = updateRevenuePolicy(s.revenuePolicy, command.change);
+        this.emit({ type: "REVENUE_POLICY_CHANGED", hotelId: s.hotel.id }, [
+          s.hotel.id,
+        ]);
+        return;
+      case "SET_INSURANCE_POLICY": {
+        const verdict = this.validateCommand(command);
+        if (!verdict.ok) throw new Error(verdict.reason);
+        const prior = s.insurance.policies.find(
+          (policy) => policy.id === command.policyId,
+        );
+        if (command.operation === "takeOut")
+          s.insurance = takeOutPolicy(s.insurance, command.policy!);
+        else if (command.operation === "vary")
+          s.insurance = varyPolicy(s.insurance, command.policyId, {
+            ...(command.deductibleMinor !== undefined
+              ? { deductibleMinor: command.deductibleMinor }
+              : {}),
+            ...(command.limitMinor !== undefined
+              ? { limitMinor: command.limitMinor }
+              : {}),
+          });
+        else s.insurance = cancelPolicy(s.insurance, command.policyId);
+        const policy =
+          s.insurance.policies.find(
+            (candidate) => candidate.id === command.policyId,
+          ) ?? prior!;
+        this.emit(
+          {
+            type: "INSURANCE_POLICY_CHANGED",
+            policyId: command.policyId,
+            peril: policy.peril,
+            operation: command.operation,
+            monthlyPremiumMinor:
+              command.operation === "cancel" ? 0 : monthlyPremiumMinor(policy),
+          },
+          [command.policyId],
+        );
+        return;
+      }
       case "ORDER_SUPPLIES": {
         const supplier = supplierForSku(command.sku);
         if (command.quantity < supplier.minimumQuantity)
@@ -1031,6 +1184,24 @@ export class GameSimulation implements CommandExecutor {
         return;
       }
       default: {
+        if (isCommercialCommand(command)) {
+          applyCommercialCommand(s, command, {
+            emit: (payload, entities) => this.emit(payload, entities),
+            spend: (amountMinor, account, memo) =>
+              this.spend(amountMinor, account, memo),
+            earn: (amountMinor, account, memo) =>
+              this.earn(amountMinor, account, memo),
+          });
+          return;
+        }
+        if (isDistributionCommand(command)) {
+          applyDistributionCommand(s, command, {
+            emit: (payload, entities) => this.emit(payload, entities),
+            spend: (amount, account, memo) => this.spend(amount, account, memo),
+            earn: (amount, account, memo) => this.earn(amount, account, memo),
+          });
+          return;
+        }
         if (!isCompanyCommand(command))
           throw new Error(`unknown command ${(command as GameCommand).type}`);
         // The corporate layer writes through the same draft, so an
@@ -1321,7 +1492,46 @@ export class GameSimulation implements CommandExecutor {
           s.hotel.rooms.find((r) => r.id === free.id) as RoomRecord,
         );
       }
-      if (assigned.length < booking.roomsRequested) continue;
+      if (assigned.length < booking.roomsRequested) {
+        const waited =
+          s.receptionQueue.find((item) => item.bookingId === bookingId)
+            ?.waitedMinutes ?? 0;
+        if (waited >= 30) {
+          const costMinor = displacementCostMinor(
+            booking.roomsRequested,
+            booking.rateMinor,
+            2_000,
+            5_000,
+          );
+          const walked = walkGuest(booking, s.elapsedMinutes);
+          booking.status = walked.status;
+          booking.history = walked.history;
+          s.receptionQueue = s.receptionQueue.filter(
+            (item) => item.bookingId !== bookingId,
+          );
+          this.spend(costMinor, "serviceRecovery", `walked ${booking.id}`);
+          this.moveReputation("hotel", s.hotel.id, -8, "overbooking walk");
+          this.openPartyStay(booking, "walked", waited);
+          const stayIndex = s.guestRelations.stays.findIndex(
+            (stay) => stay.bookingId === booking.id,
+          );
+          if (stayIndex >= 0)
+            s.guestRelations.stays[stayIndex] = recordStayEvent(
+              s.guestRelations.stays[stayIndex],
+              { stage: "checkIn", cause: "overbookingWalk", delta: -25 },
+            );
+          this.emit(
+            {
+              type: "BOOKING_WALKED",
+              bookingId: booking.id,
+              costMinor,
+              cause: "no physical room available",
+            },
+            [booking.id, s.hotel.id],
+          );
+        }
+        continue;
+      }
 
       // Read the wait before the party leaves the queue: how long check-in
       // took is part of what just happened to this guest.
@@ -2040,6 +2250,36 @@ export class GameSimulation implements CommandExecutor {
           this.emit({ type: "ASSET_FAILED", assetId: degraded.id }, [
             degraded.id,
           ]);
+          const peril = ASSET_INSURANCE_PERIL[degraded.id];
+          const policy = peril
+            ? s.insurance.policies.find(
+                (candidate) => candidate.peril === peril,
+              )
+            : undefined;
+          if (policy) {
+            const claimId = `claim.${s.elapsedMinutes}.${degraded.id}`;
+            s.insurance = fileClaim(
+              s.insurance,
+              {
+                id: claimId,
+                policyId: policy.id,
+                perilId: peril!,
+                lossMinor: degraded.replacementMinor,
+                filedAtMinutes: s.elapsedMinutes,
+                cause: `failure:${degraded.id}`,
+              },
+              this.streams.failures,
+            );
+            this.emit(
+              {
+                type: "INSURANCE_CLAIM_FILED",
+                claimId,
+                policyId: policy.id,
+                lossMinor: degraded.replacementMinor,
+              },
+              [claimId, policy.id],
+            );
+          }
           return { ...degraded, status: "failed" as const };
         }
       }
@@ -2468,18 +2708,48 @@ export class GameSimulation implements CommandExecutor {
       (reservation) => reservation.id === stay.bookingId,
     );
     const guestId = booking?.guestId ?? `guest.${stay.bookingId}`;
+    const loyalty = s.commercial.loyalty.active
+      ? earnPoints(s.commercial.loyalty, {
+          guestId,
+          roomRevenueMinor: stay.rateMinor,
+          nights: 1,
+        })
+      : s.commercial.loyalty;
     s.commercial = {
       ...s.commercial,
       crm: recordCrmStay(s.commercial.crm, {
         guestId,
         stayId: stay.bookingId,
       }),
-      loyalty: earnPoints(s.commercial.loyalty, {
-        guestId,
-        roomRevenueMinor: stay.rateMinor,
-        nights: 1,
-      }),
+      loyalty,
     };
+    const member = memberFor(loyalty, guestId);
+    const benefit = member
+      ? tierBenefits(tierForNights(member.qualifyingNights))[0]
+      : undefined;
+    const redemptionPoints = member ? Math.min(member.points, 100) : 0;
+    if (benefit && redemptionPoints >= 100) {
+      const burned = burnPoints(s.commercial.loyalty, {
+        guestId,
+        points: redemptionPoints,
+      });
+      s.commercial.loyalty = burned.state;
+      if (burned.costMinor > 0)
+        this.spend(
+          burned.costMinor,
+          "loyaltyBenefit",
+          `${benefit} for ${guestId}`,
+        );
+      this.emit(
+        {
+          type: "LOYALTY_BENEFIT_APPLIED",
+          guestId,
+          benefit,
+          costMinor: burned.costMinor,
+        },
+        [guestId],
+      );
+    }
   }
 
   /** Reputation moves only for things that actually happened to somebody. */
@@ -2510,7 +2780,27 @@ export class GameSimulation implements CommandExecutor {
         stay.rateMinor,
         booking?.commissionBp ?? 0,
       );
-      this.earn(recognized, "roomRevenue", stay.roomId);
+      if (booking?.channel === "corporate" || booking?.channel === "group") {
+        const contract =
+          booking.channel === "corporate"
+            ? activeContracts(s.commercial.sales, booking.arrivalDateKey).find(
+                (item) => item.segmentId === booking.segmentId,
+              )
+            : undefined;
+        const paymentTermsDays =
+          contract?.paymentTermsDays ??
+          s.distribution.groupBlocks.find(
+            (block) => block.id === booking.segmentId,
+          )?.paymentTermsDays ??
+          0;
+        const id = `receivable.${booking.id}.${s.calendar.dateKey}`;
+        if (!s.statements.receivables.some((item) => item.id === id))
+          s.statements = recogniseReceivable(s.statements, {
+            id,
+            amountMinor: recognized,
+            dueDateKey: addDays(s.calendar.dateKey, paymentTermsDays),
+          });
+      } else this.earn(recognized, "roomRevenue", stay.roomId);
       this.recordCommercialStay(stay);
       s.finance.month.roomRevenueMinor += recognized;
       s.finance.month.soldRoomNights += 1;
@@ -2535,6 +2825,15 @@ export class GameSimulation implements CommandExecutor {
     }
 
     this.settlePayables();
+    this.settleInsuranceClaims();
+    this.runContractCalendar();
+    for (const receivable of overdueReceivables(
+      s.statements,
+      s.calendar.dateKey,
+    )) {
+      s.statements = settleReceivable(s.statements, receivable.id);
+      this.earn(receivable.amountMinor, "receivableSettlement", receivable.id);
+    }
     if (this.monthRolled) {
       this.closeMonth();
       s.finance.ledger = compactLedgerHistory(
@@ -2558,6 +2857,7 @@ export class GameSimulation implements CommandExecutor {
       this.runCityMonth();
     const cityAllocation = this.runCityDay();
     const shareIndex = cityAllocation.playerShareIndex;
+    this.generateContractDemand();
 
     const season = seasonalityBp(s.calendar.dateKey);
     const parties = Math.max(
@@ -2573,7 +2873,7 @@ export class GameSimulation implements CommandExecutor {
       const arrivalDateKey = addDays(s.calendar.dateKey, leadDays);
       const category =
         this.streams.guests.nextUint32() % 2 ? "double" : "single";
-      const rateMinor = getRate(
+      let rateMinor = getRate(
         s.rates,
         arrivalDateKey,
         category,
@@ -2594,7 +2894,18 @@ export class GameSimulation implements CommandExecutor {
           s.world.technologies.find(
             (technology) => technology.id === "internet",
           )?.adoptionBp ?? 0,
-      });
+      }).filter(
+        (candidate) =>
+          candidate.commissionBp <=
+            s.revenuePolicy.channelCostLimitBasisPoints &&
+          channelMaySell(
+            candidate,
+            s.distribution.channelInventory,
+            category,
+            "flexible",
+          ),
+      );
+      if (channels.length === 0) continue;
       const advanceChannels = advanceBookingChannels(channels);
       const channelDefinition =
         leadDays === 0
@@ -2603,6 +2914,60 @@ export class GameSimulation implements CommandExecutor {
               this.streams.guests.nextUint32() % advanceChannels.length
             ];
       const channel = channelDefinition.id as BookingChannel;
+      const plan =
+        s.revenuePolicy.ratePlans.find(
+          (candidate) => candidate.id === "flexible",
+        ) ?? s.revenuePolicy.ratePlans[0];
+      if (!plan) continue;
+      const totalRooms = s.hotel.rooms.filter(
+        (room) => room.category === category,
+      ).length;
+      const occupied =
+        totalRooms - this.availableRooms(arrivalDateKey, category);
+      const decision = automaticRate(
+        rateMinor,
+        {
+          occupancy: totalRooms
+            ? Math.trunc((occupied * 10_000) / totalRooms)
+            : 0,
+          leadTime: leadDays,
+          forecast: s.cityMarket.forecast.base,
+        },
+        s.revenuePolicy,
+      );
+      rateMinor = Math.max(
+        s.revenuePolicy.rateFloorMinor,
+        Math.min(s.revenuePolicy.rateCeilingMinor, decision.rateMinor),
+      );
+      try {
+        rateMinor = applyRatePlan(rateMinor, plan, segment.averageNights, {
+          leadDays,
+          channelId: channel,
+        });
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          error.message === "rate plan restrictions reject stay"
+        ) {
+          this.pushAlert({
+            id: `alert.booking-refused.booking.${s.elapsedMinutes}.${i}`,
+            severity: "info",
+            title: "alert.booking-refused.title",
+            cause: "alert.booking-refused.cause.price",
+            causeValues: { bookingId: `booking.${s.elapsedMinutes}.${i}` },
+          });
+          continue;
+        }
+        throw error;
+      }
+      const contract = activeContracts(s.commercial.sales, arrivalDateKey).find(
+        (candidate) => candidate.segmentId === segment.id,
+      );
+      if (contract)
+        rateMinor = corporateRateMinor(
+          rateMinor,
+          negotiatedDiscountBasisPoints(contract, rateMinor),
+        );
       const bookingId = `booking.${s.elapsedMinutes}.${i}`;
       try {
         const reservation: ReservationRecord = reserve(
@@ -2622,6 +2987,23 @@ export class GameSimulation implements CommandExecutor {
             channel,
             partySize: 1 + (this.streams.guests.nextUint32() % 2),
             segmentId: segment.id,
+            ...(decision.rateMinor !==
+            getRate(
+              s.rates,
+              arrivalDateKey,
+              category,
+              STARTER_HOTEL.defaultRateMinor[category],
+            )
+              ? {
+                  rateExplanation: explainCause(
+                    "rateChanged",
+                    decision.causes.map((factor, index) => ({
+                      factor,
+                      weight: decision.causes.length - index,
+                    })),
+                  ),
+                }
+              : {}),
             category,
             arrivalDateKey,
             nights: segment.averageNights,
@@ -2634,7 +3016,7 @@ export class GameSimulation implements CommandExecutor {
             },
             atMinutes: s.elapsedMinutes,
             bookingDateKey: s.calendar.dateKey,
-            ratePlanId: "flexible",
+            ratePlanId: contract ? "corporate" : plan.id,
             commissionBp: channelDefinition.commissionBp,
             depositMinor: 0,
             specialRequirements: [],
@@ -2682,6 +3064,105 @@ export class GameSimulation implements CommandExecutor {
         }
         throw error;
       }
+    }
+  }
+
+  private generateContractDemand(): void {
+    const s = this.state;
+    const arrivalDateKey = addDays(s.calendar.dateKey, 1);
+    const addReservation = (
+      request: Parameters<typeof reserve>[1],
+      releasedHoldRooms = 0,
+    ) => {
+      if (s.reservations.some((booking) => booking.id === request.id)) return;
+      try {
+        const booking = reserve(
+          {
+            availableRoomsOn: (date) =>
+              this.availableRooms(date, request.category) + releasedHoldRooms,
+          },
+          request,
+        );
+        s.reservations.push(booking);
+        this.emit(
+          {
+            type: "BOOKING_CONFIRMED",
+            bookingId: booking.id,
+            arrivalDateKey: booking.arrivalDateKey,
+            nights: booking.nights,
+            category: booking.category,
+            roomsRequested: booking.roomsRequested,
+            rateMinor: booking.rateMinor,
+            segmentId: booking.segmentId,
+          },
+          [booking.id],
+        );
+      } catch (error) {
+        if (!(error instanceof ReservationRefusalError)) throw error;
+      }
+    };
+    for (const contract of activeContracts(
+      s.commercial.sales,
+      arrivalDateKey,
+    )) {
+      const rooms = Math.max(1, Math.trunc(contract.expectedRoomNights / 365));
+      addReservation({
+        id: `corporate.${contract.id}.${arrivalDateKey}`,
+        guestId: `account.${contract.id}`,
+        roomsRequested: rooms,
+        rateMinor: contract.negotiatedRateMinor,
+        willingnessMinor: contract.negotiatedRateMinor,
+        channel: "corporate",
+        partySize: rooms,
+        segmentId: contract.segmentId,
+        category: "single",
+        arrivalDateKey,
+        nights: 1,
+        terms: {
+          guaranteed: true,
+          freeCancellationDays: contract.cancellationDaysBeforeArrival,
+          lateChargeBp: contract.cancellationFeeBasisPoints,
+        },
+        atMinutes: s.elapsedMinutes,
+        bookingDateKey: s.calendar.dateKey,
+        ratePlanId: "corporate",
+        commissionBp: 500,
+        depositMinor: 0,
+        specialRequirements: contract.concessions,
+      });
+    }
+    for (const block of s.distribution.groupBlocks.filter(
+      (item) => item.status === "confirmed",
+    )) {
+      const rooms = block.roomsByDate[arrivalDateKey] ?? 0;
+      if (!rooms) continue;
+      addReservation(
+        {
+          id: `group.${block.id}.${arrivalDateKey}`,
+          guestId: `group.${block.id}`,
+          roomsRequested: rooms,
+          rateMinor: block.groupRateMinor,
+          willingnessMinor: block.groupRateMinor,
+          channel: "group",
+          partySize: rooms,
+          segmentId: block.id,
+          category: block.category as RoomCategory,
+          arrivalDateKey,
+          nights: 1,
+          terms: {
+            guaranteed: true,
+            freeCancellationDays: block.cancellationDaysBeforeArrival,
+            lateChargeBp: block.cancellationFeeBasisPoints,
+          },
+          atMinutes: s.elapsedMinutes,
+          bookingDateKey: s.calendar.dateKey,
+          ratePlanId: "group",
+          commissionBp: 600,
+          depositMinor: block.depositMinor,
+          specialRequirements: [],
+        },
+        rooms,
+      );
     }
   }
 
@@ -2764,6 +3245,10 @@ export class GameSimulation implements CommandExecutor {
     this.state.metrics = {
       adrMinor: adrMinor(m.roomRevenueMinor, m.soldRoomNights),
       revParMinor: revParMinor(m.roomRevenueMinor, m.availableRoomNights),
+      gopparMinor: gopparMinor(
+        m.roomRevenueMinor + m.otherRevenueMinor - m.operatingExpenseMinor,
+        m.availableRoomNights,
+      ),
       occupancyBasisPoints: occupancyBasisPoints(
         m.soldRoomNights,
         m.availableRoomNights,
@@ -2921,11 +3406,27 @@ export class GameSimulation implements CommandExecutor {
         : STARTER_HOTEL.defaultRateMinor.double,
       // A rated house is a more attractive one; the rating is already the
       // game's own summary of the product, so it is not re-derived here.
-      appealBp: 9000 + s.classification.stars * 400,
+      appealBp:
+        9000 +
+        s.classification.stars * 400 +
+        this.campaignVisibilityBasisPoints(),
       conferenceSeats: Math.floor(
         s.investedArea.conferenceSqm / STARTER_HOTEL.conferenceSqmPerSeat,
       ),
     };
+  }
+
+  private campaignVisibilityBasisPoints(): number {
+    const running = new Set(
+      this.state.commercial.campaigns
+        .filter((campaign) => campaign.status === "running")
+        .map((campaign) => campaign.id),
+    );
+    const latest = new Map<string, number>();
+    for (const entry of this.state.commercial.campaignAttributionLog)
+      if (running.has(entry.campaignId))
+        latest.set(entry.campaignId, entry.realised);
+    return [...latest.values()].reduce((sum, value) => sum + value, 0);
   }
 
   /** What one post costs in this city this month, in whole Pfennig. */
@@ -2965,6 +3466,49 @@ export class GameSimulation implements CommandExecutor {
       this.streams,
       s.narrative.campaign.inputs.crisisBufferBasisPoints,
     ).stepMonth(s.world);
+    const stormPolicy = s.insurance.policies.find(
+      (policy) => policy.peril === "storm",
+    );
+    if (stormPolicy && s.world.weather.insurable) {
+      const rebuildValueMinor = this.rebuildValueMinor();
+      const exposureMinor = Math.min(
+        stormPolicy.insuredValueMinor,
+        rebuildValueMinor,
+      );
+      const weatherLossMinor = Math.trunc(
+        (exposureMinor * s.world.weather.severityBp) / 10_000,
+      );
+      const insurableLossMinor = weatherInsurancePayout(
+        weatherLossMinor,
+        s.world.weather,
+        10_000,
+        stormPolicy.deductibleMinor,
+      );
+      if (insurableLossMinor > 0) {
+        const claimId = `claim.${s.elapsedMinutes}.storm`;
+        s.insurance = fileClaim(
+          s.insurance,
+          {
+            id: claimId,
+            policyId: stormPolicy.id,
+            perilId: "storm",
+            lossMinor: insurableLossMinor,
+            filedAtMinutes: s.elapsedMinutes,
+            cause: s.world.weather.kind,
+          },
+          this.streams.failures,
+        );
+        this.emit(
+          {
+            type: "INSURANCE_CLAIM_FILED",
+            claimId,
+            policyId: stormPolicy.id,
+            lossMinor: insurableLossMinor,
+          },
+          [claimId, stormPolicy.id],
+        );
+      }
+    }
     s.technologyProjects = s.technologyProjects.map(advanceTechnologyProject);
     for (const project of s.technologyProjects)
       if (
@@ -3722,6 +4266,47 @@ export class GameSimulation implements CommandExecutor {
       );
     s.commercial = { ...s.commercial, loyalty: released.state };
 
+    const elapsedDays = daysInMonth(addDays(s.calendar.dateKey, -1));
+    for (const campaign of [...s.commercial.campaigns]
+      .filter((candidate) => candidate.status === "running")
+      .sort((a, b) => compareIds(a.id, b.id))) {
+      const age =
+        (s.commercial.campaignAgeDays[campaign.id] ?? 0) + elapsedDays;
+      s.commercial.campaignAgeDays = {
+        ...s.commercial.campaignAgeDays,
+        [campaign.id]: age,
+      };
+      const audience = totalRoomNights(s.cityMarket.demand);
+      campaignReach(campaign, audience);
+      const attributed = attributedEffectBasisPoints(campaign, audience, age);
+      const band = campaignUncertaintyBand(
+        Math.min(attributed, campaignEffectBasisPoints(campaign, audience)),
+        2500,
+      );
+      const realised = realisedEffectBasisPoints(band, this.streams.economy);
+      s.commercial.campaignAttributionLog = appendCampaignAttribution(
+        s.commercial.campaignAttributionLog,
+        {
+          campaignId: campaign.id,
+          ...band,
+          realised,
+          atDateKey: s.calendar.dateKey,
+        },
+      );
+      this.emit(
+        {
+          type: "CAMPAIGN_ATTRIBUTION_RECORDED",
+          campaignId: campaign.id,
+          realised,
+        },
+        [campaign.id],
+      );
+    }
+    s.commercial.campaigns = finishExpiredCampaigns(
+      s.commercial.campaigns,
+      s.commercial.campaignAgeDays,
+    );
+
     // The house's standing with guests follows what guests actually got.
     const satisfaction = Math.round(s.guestSatisfaction.score);
     this.moveReputation(
@@ -3761,9 +4346,56 @@ export class GameSimulation implements CommandExecutor {
       .filter((b) => b.category === category && holdsRoomOn(b, dateKey))
       .reduce((rooms, b) => rooms + b.roomsRequested, 0);
     // A conference holds its sleeping rooms out of general sale.
+    const distributed = [
+      ...s.distribution.allotments,
+      ...s.distribution.groupBlocks,
+    ]
+      .filter(
+        (item) =>
+          item.category === category &&
+          !("status" in item && item.status === "released"),
+      )
+      .reduce((sum, item) => sum + (item.roomsByDate[dateKey] ?? 0), 0);
     return Math.max(
       0,
-      total - held - this.eventRoomsBlocked(dateKey, category),
+      sharedAvailableRooms(
+        total,
+        {
+          [dateKey]:
+            held + distributed + this.eventRoomsBlocked(dateKey, category),
+        },
+        [dateKey],
+        s.revenuePolicy.overbookingLimitRooms,
+      ),
+    );
+  }
+
+  private runContractCalendar(): void {
+    const s = this.state;
+    for (const allotment of s.distribution.allotments.filter(
+      (item) => item.releaseDateKey <= s.calendar.dateKey,
+    )) {
+      const rooms = Object.values(allotment.roomsByDate).reduce(
+        (sum, value) => sum + value,
+        0,
+      );
+      this.emit(
+        {
+          type: "ALLOTMENT_RELEASED",
+          allotmentId: allotment.id,
+          rooms,
+          category: allotment.category,
+        },
+        [allotment.id],
+      );
+    }
+    s.distribution.allotments = s.distribution.allotments.filter(
+      (item) => item.releaseDateKey > s.calendar.dateKey,
+    );
+    s.distribution.groupBlocks = s.distribution.groupBlocks.map((block) =>
+      block.releaseDateKey <= s.calendar.dateKey && block.status === "confirmed"
+        ? { ...block, status: "released" as const }
+        : block,
     );
   }
 
@@ -3834,6 +4466,49 @@ export class GameSimulation implements CommandExecutor {
         cause: "alert.insolvent.cause",
         causeValues: { expense: `expense.${accountClass(account)}` },
       });
+    }
+  }
+
+  private rebuildValueMinor(): number {
+    return this.state.assets.reduce(
+      (sum, asset) => sum + asset.replacementMinor,
+      0,
+    );
+  }
+
+  private settleInsuranceClaims(): void {
+    const s = this.state;
+    for (const claim of [...s.insurance.claims].sort((a, b) =>
+      compareIds(a.id, b.id),
+    )) {
+      if (
+        claim.status !== "filed" ||
+        claim.filedAtMinutes + claim.assessmentMinutes > s.elapsedMinutes
+      )
+        continue;
+      s.insurance = settleClaim(s.insurance, claim.id, {
+        atMinutes: s.elapsedMinutes,
+        rebuildValueMinor: this.rebuildValueMinor(),
+      });
+      const settled = s.insurance.claims.find(
+        (candidate) => candidate.id === claim.id,
+      )!;
+      if (settled.settlementMinor > 0)
+        this.earn(
+          settled.settlementMinor,
+          "insuranceSettlement",
+          `insurance settlement ${settled.id}`,
+        );
+      this.emit(
+        {
+          type: "INSURANCE_CLAIM_SETTLED",
+          claimId: settled.id,
+          policyId: settled.policyId,
+          settlementMinor: settled.settlementMinor,
+          status: settled.status as "settled" | "declined",
+        },
+        [settled.id, settled.policyId],
+      );
     }
   }
 

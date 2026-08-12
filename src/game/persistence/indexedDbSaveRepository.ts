@@ -1,4 +1,5 @@
 import { assertCompatible, type SaveEnvelope } from "./saveSchema";
+import { migrateToCurrent } from "./migrateToCurrent";
 
 const STORE = "saves";
 
@@ -60,8 +61,9 @@ export class IndexedDbSaveRepository {
       promisify<SaveEnvelope | undefined>(store.get(slot)),
     );
     if (!found) return null;
-    assertCompatible(found);
-    return found;
+    const current = migrateToCurrent(found);
+    assertCompatible(current);
+    return current;
   }
 
   async listSlots(): Promise<string[]> {

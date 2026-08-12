@@ -1,7 +1,7 @@
 {
-  "saveVersion": 9,
+  "saveVersion": 12,
   "contentVersion": "1991.1",
-  "protocolVersion": 4,
+  "protocolVersion": 6,
   "seed": 4242,
   "initialRngState": {
     "guests": 2654431523,
@@ -12045,13 +12045,13 @@
     {
       "dateKey": "1991-01-01",
       "atMinutes": 0,
-      "stateHash": "370158d7"
+      "stateHash": "cf7de4c6"
     },
     {
       "dateKey": "1991-02-01",
       "atMinutes": 44640,
-      "stateHash": "30aecba9"
+      "stateHash": "bed57e5f"
     }
   ],
-  "finalStateHash": "30aecba9"
+  "finalStateHash": "bed57e5f"
 }

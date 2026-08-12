@@ -21,11 +21,38 @@ export function formatPercentBasisPoints(bp: number, locale: string): string {
 export function formatNumber(value: number, locale: string): string {
   return new Intl.NumberFormat(locale).format(value);
 }
-export function formatGameDate(iso: string, locale: string): string {
+function parseGameDate(iso: string): Date | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
-  if (!match) return iso;
+  if (!match) return null;
+  const year = +match[1];
+  const month = +match[2];
+  const day = +match[3];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+    ? date
+    : null;
+}
+export function formatGameDate(iso: string, locale: string): string {
+  const date = parseGameDate(iso);
+  if (!date) return iso;
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeZone: "UTC",
-  }).format(new Date(Date.UTC(+match[1], +match[2] - 1, +match[3])));
+  }).format(date);
+}
+export function formatGameDateRange(
+  start: string,
+  end: string,
+  locale: string,
+): string {
+  const from = parseGameDate(start);
+  const to = parseGameDate(end);
+  if (!from || !to) return `${start}–${end}`;
+  if (start === end) return formatGameDate(start, locale);
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).formatRange(from, to);
 }

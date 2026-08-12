@@ -157,6 +157,11 @@ describe("acquisitions through the simulation", () => {
     expect(result.availableRoomNights).toBeGreaterThan(0);
     expect(result.soldRoomNights).toBeGreaterThan(0);
     expect(result.roomRevenueMinor).toBeGreaterThan(0);
+    expect(result.qualityStars).toBeGreaterThan(0);
+    expect(Number.isSafeInteger(result.cashNeedMinor)).toBe(true);
+    expect(result.cashNeedMinor).toBeGreaterThanOrEqual(0);
+    expect(Number.isSafeInteger(result.renovationNeedMinor)).toBe(true);
+    expect(result.renovationNeedMinor).toBeGreaterThan(0);
     expect(
       result.roomRevenueMinor +
         result.otherRevenueMinor -
@@ -164,6 +169,12 @@ describe("acquisitions through the simulation", () => {
     ).toBe(result.grossOperatingProfitMinor);
     // The flagship reports too, from its own close rather than a formula.
     expect(s.state.company.hotelResults[s.state.hotel.id]).toBeDefined();
+    expect(s.state.company.hotelResults[s.state.hotel.id].qualityStars).toBe(
+      s.state.classification.stars,
+    );
+    expect(
+      s.state.company.hotelResults[s.state.hotel.id].renovationNeedMinor,
+    ).toBeGreaterThan(0);
   });
 
   it("keeps group cash and the treasury reconciled across a funding transfer", () => {

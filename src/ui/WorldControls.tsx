@@ -68,6 +68,7 @@ export function WorldControls(props: {
       "out of service": "world.elevatorCause.unavailable",
       "queue exceeds car capacity": "world.elevatorCause.overloaded",
       available: "world.elevatorCause.available",
+      "world.elevatorCause.notSimulated": "world.elevatorCause.notSimulated",
     } as Readonly<Record<string, string>>
   )[props.elevator.cause];
   const elevatorCause = elevatorCauseKey

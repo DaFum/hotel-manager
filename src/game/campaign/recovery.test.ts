@@ -33,12 +33,16 @@ function groupOwningTwo() {
     hotelId: SOLD,
     periodKey: "1991-01",
     roomRevenueMinor: 1_000_000,
+    eventRevenueMinor: 0,
     otherRevenueMinor: 0,
     operatingExpenseMinor: 400_000,
     grossOperatingProfitMinor: 600_000,
     occupancyBasisPoints: 6000,
     soldRoomNights: 1_000,
     availableRoomNights: 1_800,
+    qualityStars: 3,
+    cashNeedMinor: 0,
+    renovationNeedMinor: 0,
   };
   c.treasury = openHotelAccount(c.treasury, SOLD, 0);
   c.managers = [

@@ -37,6 +37,7 @@ import { findDevelopment } from "./companyState";
 import {
   DEVELOPMENT_HURDLE_BP,
   FEASIBILITY_UNCERTAINTY_BP,
+  FLAGSHIP_CITY_ID,
   MARKET_GOP_MULTIPLE_BP,
   STARTER_LEGAL_ENTITY,
   STARTER_REGION,
@@ -577,7 +578,7 @@ export function applyCompanyCommand(
       admitHotel(state, ctx, {
         hotelId: target.hotelId,
         name: target.name,
-        cityId: "city.frankfurt.de",
+        cityId: FLAGSHIP_CITY_ID,
         rooms: target.rooms,
         adrMinor: Math.max(
           1,

@@ -167,6 +167,7 @@ export type StayStage = (typeof STAY_STAGES)[number];
 export interface StayEvent {
   stage: StayStage;
   cause: string;
+  values?: Record<string, string | number>;
   /** Satisfaction points, signed. */
   delta: number;
 }

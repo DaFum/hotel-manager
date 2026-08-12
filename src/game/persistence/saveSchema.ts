@@ -43,11 +43,30 @@ function isValidAlert(value: unknown): boolean {
   if (
     typeof alert.id !== "string" ||
     !alert.id ||
-    !["info", "warning", "critical"].includes(String(alert.severity)) ||
+    !["info", "notice", "warning", "critical"].includes(
+      String(alert.severity),
+    ) ||
     typeof alert.title !== "string" ||
     !alert.title.startsWith("alert.") ||
     typeof alert.cause !== "string" ||
-    !alert.cause.startsWith("alert.")
+    !alert.cause.startsWith("alert.") ||
+    typeof alert.category !== "string" ||
+    !alert.category ||
+    typeof alert.groupId !== "string" ||
+    !alert.groupId ||
+    typeof alert.gameTime !== "string" ||
+    !alert.gameTime ||
+    typeof alert.acknowledged !== "boolean" ||
+    !alert.source ||
+    typeof alert.source !== "object" ||
+    typeof (alert.source as Record<string, unknown>).companyId !== "string" ||
+    ((alert.source as Record<string, unknown>).hotelId !== undefined &&
+      typeof (alert.source as Record<string, unknown>).hotelId !== "string") ||
+    ((alert.source as Record<string, unknown>).regionId !== undefined &&
+      typeof (alert.source as Record<string, unknown>).regionId !== "string") ||
+    (alert.actionEntityId !== undefined &&
+      typeof alert.actionEntityId !== "string") ||
+    (alert.delegate !== undefined && typeof alert.delegate !== "string")
   )
     return false;
   if (alert.target !== undefined) {
@@ -112,12 +131,49 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
 
   if (!state.calendar || typeof state.calendar.dateKey !== "string")
     problems.push("the state has no calendar");
-  if (!state.hotel || !Array.isArray(state.hotel.rooms))
+  if (
+    !state.hotel ||
+    typeof state.hotel.cityId !== "string" ||
+    !state.hotel.cityId ||
+    !Array.isArray(state.hotel.rooms)
+  )
     problems.push("the state has no hotel");
   if (!state.finance || !Number.isSafeInteger(state.finance.cashMinor))
     problems.push("cash is not whole Pfennig");
   if (state.finance && !Array.isArray(state.finance.ledger))
     problems.push("the state has no ledger");
+  if (
+    !state.finance?.month ||
+    !Number.isSafeInteger(state.finance.month.eventRevenueMinor) ||
+    !Number.isSafeInteger(state.finance.month.housekeepingLateRoomReleaseCount)
+  )
+    problems.push("the state has no complete monthly finance accumulator");
+  if (
+    !state.monthlyCloseBaseline ||
+    !Number.isSafeInteger(
+      state.monthlyCloseBaseline.previousEventRevenueMinor,
+    ) ||
+    !Number.isSafeInteger(
+      state.monthlyCloseBaseline.previousLateRoomReleaseCount,
+    ) ||
+    !Number.isSafeInteger(
+      state.monthlyCloseBaseline.highWaterMarks?.revenueMinor,
+    ) ||
+    !Number.isSafeInteger(
+      state.monthlyCloseBaseline.highWaterMarks?.operatingProfitMinor,
+    ) ||
+    !Number.isSafeInteger(
+      state.monthlyCloseBaseline.highWaterMarks?.eventRevenueMinor,
+    )
+  )
+    problems.push("the state has no monthly close baseline");
+  if (
+    state.lastMonthlyClose &&
+    (!Array.isArray(state.lastMonthlyClose.whatWentWell) ||
+      !Array.isArray(state.lastMonthlyClose.whatWentBadly) ||
+      !Array.isArray(state.lastMonthlyClose.whatIsChanging))
+  )
+    problems.push("the last monthly close has no briefing contributors");
   if (
     !state.world ||
     !Array.isArray(state.world.technologies) ||
@@ -129,6 +185,22 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   )
     problems.push("the state has no complete world");
   if (
+    !state.cityMarket?.occupancyAttribution ||
+    !Number.isSafeInteger(
+      state.cityMarket.occupancyAttribution.occupancyMovementBp,
+    ) ||
+    !Array.isArray(state.cityMarket.occupancyAttribution.contributors) ||
+    !state.cityMarket.occupancyAttribution.contributors.every(
+      (item) =>
+        item !== null &&
+        typeof item === "object" &&
+        !Array.isArray(item) &&
+        typeof item.factor === "string" &&
+        Number.isSafeInteger(item.weight),
+    )
+  )
+    problems.push("the state has no valid occupancy attribution");
+  if (
     !state.revenuePolicy ||
     !Array.isArray(state.revenuePolicy.ratePlans) ||
     !Array.isArray(state.revenuePolicy.rules)
@@ -138,6 +210,22 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no technology projects");
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
+  if (
+    !state.company?.hotelResults ||
+    typeof state.company.hotelResults !== "object" ||
+    Array.isArray(state.company.hotelResults) ||
+    !Object.values(state.company.hotelResults).every(
+      (result) =>
+        result !== null &&
+        typeof result === "object" &&
+        !Array.isArray(result) &&
+        Number.isSafeInteger(result.qualityStars) &&
+        Number.isSafeInteger(result.eventRevenueMinor) &&
+        Number.isSafeInteger(result.cashNeedMinor) &&
+        Number.isSafeInteger(result.renovationNeedMinor),
+    )
+  )
+    problems.push("the state has incomplete hotel operating results");
   if (!isFnbState(state.fnb)) problems.push("the state has no complete fnb");
   const topFloor = Math.max(
     0,

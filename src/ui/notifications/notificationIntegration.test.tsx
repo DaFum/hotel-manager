@@ -25,6 +25,23 @@ const item: NotificationRecord = {
   message: { key: "alerts.liquidityCritical" },
 };
 describe("NotificationCenter", () => {
+  it.each([
+    ["en-GB" as const, "Notice"],
+    ["de-DE" as const, "Hinweis"],
+  ])(
+    "renders notice with its diamond and localized label in %s",
+    (locale, label) => {
+      render(
+        <NotificationCenter
+          notifications={[{ ...item, severity: "notice" }]}
+          preferences={DEFAULT_PLAYER_PREFERENCES.notifications}
+          locale={locale}
+        />,
+      );
+      expect(screen.getByText("◆")).toBeTruthy();
+      expect(screen.getByText(label)).toBeTruthy();
+    },
+  );
   it("exposes non-audio severity, live state, cause, and action", () => {
     const action = vi.fn();
     render(

@@ -9,6 +9,8 @@ import {
   monthsOpen,
   rampUpDemandFactorBasisPoints,
 } from "../development/rampUp";
+import type { TreasuryState } from "../treasury/treasury";
+import { hotelCashMinor, overdrawnHotels } from "../treasury/treasury";
 
 /**
  * A hotel the group owns but does not run minute by minute. The flagship is
@@ -123,6 +125,18 @@ export function registerManagedHotel(
  */
 export const ANCILLARY_REVENUE_SHARE_BP = 2200;
 
+function assertSafeInteger(value: number, label: string): number {
+  if (!Number.isSafeInteger(value)) throw new Error(`invalid ${label}`);
+  return value;
+}
+
+/** Exact integer basis-point scaling without an unsafe intermediate product. */
+function scaleByBasisPoints(value: number, basisPoints: number): number {
+  const whole = Math.trunc(value / 10_000);
+  const remainder = value % 10_000;
+  return whole * basisPoints + Math.trunc((remainder * basisPoints) / 10_000);
+}
+
 export interface ManagedHotelMonth {
   soldRoomNights: number;
   availableRoomNights: number;
@@ -131,6 +145,65 @@ export interface ManagedHotelMonth {
   operatingExpenseMinor: number;
   grossOperatingProfitMinor: number;
   occupancyBasisPoints: number;
+  cashNeedMinor: number;
+  renovationNeedMinor: number;
+  qualityStars: number;
+}
+
+/** Funding required to absorb a loss and bring the hotel's account back to zero. */
+export function cashNeedForLossMinor(
+  treasury: TreasuryState,
+  hotelId: string,
+  grossOperatingProfitMinor: number,
+): number {
+  if (!Number.isSafeInteger(grossOperatingProfitMinor))
+    throw new Error("invalid gross operating profit");
+  if (grossOperatingProfitMinor >= 0) return 0;
+  const balance = hotelCashMinor(treasury, hotelId);
+  const isOverdrawn = overdrawnHotels(treasury).includes(hotelId);
+  const usableBalance = isOverdrawn ? balance : Math.max(0, balance);
+  return Math.max(0, -grossOperatingProfitMinor - usableBalance);
+}
+
+/** Stateless portfolio estimate: age, scale and weak margins all add need. */
+export function managedRenovationNeedMinor(
+  hotel: ManagedHotelRecord,
+  periodStartDateKey: string,
+): number {
+  assertCount(hotel.rooms, "rooms");
+  assertBasisPoints(hotel.gopMarginBasisPoints, "gop margin");
+  if (hotel.gopMarginBasisPoints > 10_000)
+    throw new Error("invalid gop margin");
+  const ageMonths = monthsOpen(hotel.openedDateKey, periodStartDateKey);
+  const ageYears = Math.trunc(ageMonths / 12);
+  const weakMarginBp = Math.max(0, 3500 - hotel.gopMarginBasisPoints);
+  const perRoomMinor = ageYears * 10_000 + weakMarginBp * 10;
+  const need = hotel.rooms * perRoomMinor;
+  if (!Number.isSafeInteger(need)) throw new Error("invalid renovation need");
+  return need;
+}
+
+/** Coarse aggregate quality: three disclosed trading measures, no fake audit. */
+export function managedQualityStars(input: {
+  gopMarginBasisPoints: number;
+  occupancyBasisPoints: number;
+  adrMinor: number;
+}): number {
+  assertBasisPoints(input.gopMarginBasisPoints, "gop margin");
+  assertBasisPoints(input.occupancyBasisPoints, "occupancy");
+  if (
+    input.gopMarginBasisPoints > 10_000 ||
+    input.occupancyBasisPoints > 10_000
+  )
+    throw new Error("invalid managed quality input");
+  assertNonNegativeMinor(input.adrMinor, "adr");
+  const score =
+    (input.gopMarginBasisPoints >= 1500 ? 1 : 0) +
+    (input.gopMarginBasisPoints >= 3000 ? 1 : 0) +
+    (input.occupancyBasisPoints >= 6000 ? 1 : 0) +
+    (input.adrMinor >= 10_000 ? 1 : 0) +
+    (input.adrMinor >= 18_000 && input.occupancyBasisPoints >= 7500 ? 1 : 0);
+  return Math.max(1, Math.min(5, score));
 }
 
 /**
@@ -140,11 +213,24 @@ export interface ManagedHotelMonth {
  */
 export function managedHotelMonth(
   hotel: ManagedHotelRecord,
-  input: { periodStartDateKey: string; brandUpliftBp: number },
+  input: {
+    periodStartDateKey: string;
+    brandUpliftBp: number;
+    treasury?: TreasuryState;
+  },
 ): ManagedHotelMonth {
+  assertCount(hotel.rooms, "managed hotel rooms");
+  assertNonNegativeMinor(hotel.adrMinor, "managed hotel adr");
+  assertShareBp(hotel.occupancyBasisPoints, "managed hotel occupancy");
+  assertShareBp(hotel.gopMarginBasisPoints, "managed hotel gop margin");
   assertBasisPoints(input.brandUpliftBp, "brand uplift");
   const nights = daysInMonth(input.periodStartDateKey);
-  const availableRoomNights = hotel.rooms * nights;
+  if (hotel.rooms > Math.floor(Number.MAX_SAFE_INTEGER / (nights * 10_000)))
+    throw new Error("invalid available room nights");
+  const availableRoomNights = assertSafeInteger(
+    hotel.rooms * nights,
+    "available room nights",
+  );
   const rampBp = rampUpDemandFactorBasisPoints(
     monthsOpen(hotel.openedDateKey, input.periodStartDateKey),
   );
@@ -155,25 +241,61 @@ export function managedHotelMonth(
         100_000_000,
     ),
   );
-  const soldRoomNights = Math.trunc((availableRoomNights * captureBp) / 10_000);
-  const roomRevenueMinor = soldRoomNights * hotel.adrMinor;
-  const otherRevenueMinor = Math.trunc(
-    (roomRevenueMinor * ANCILLARY_REVENUE_SHARE_BP) / 10_000,
+  const soldRoomNights = assertSafeInteger(
+    scaleByBasisPoints(availableRoomNights, captureBp),
+    "sold room nights",
   );
-  const revenueMinor = roomRevenueMinor + otherRevenueMinor;
-  const grossOperatingProfitMinor = Math.trunc(
-    (revenueMinor * hotel.gopMarginBasisPoints) / 10_000,
+  if (
+    soldRoomNights > 0 &&
+    hotel.adrMinor > Math.floor(Number.MAX_SAFE_INTEGER / soldRoomNights)
+  )
+    throw new Error("invalid room revenue");
+  const roomRevenueMinor = assertSafeInteger(
+    soldRoomNights * hotel.adrMinor,
+    "room revenue",
   );
+  const otherRevenueMinor = assertSafeInteger(
+    scaleByBasisPoints(roomRevenueMinor, ANCILLARY_REVENUE_SHARE_BP),
+    "other revenue",
+  );
+  const revenueMinor = assertSafeInteger(
+    roomRevenueMinor + otherRevenueMinor,
+    "managed hotel revenue",
+  );
+  const grossOperatingProfitMinor = assertSafeInteger(
+    scaleByBasisPoints(revenueMinor, hotel.gopMarginBasisPoints),
+    "gross operating profit",
+  );
+  const occupancyBasisPoints =
+    availableRoomNights === 0
+      ? 0
+      : Math.round((soldRoomNights * 10_000) / availableRoomNights);
   return {
     soldRoomNights,
     availableRoomNights,
     roomRevenueMinor,
     otherRevenueMinor,
-    operatingExpenseMinor: revenueMinor - grossOperatingProfitMinor,
+    operatingExpenseMinor: assertSafeInteger(
+      revenueMinor - grossOperatingProfitMinor,
+      "operating expense",
+    ),
     grossOperatingProfitMinor,
-    occupancyBasisPoints:
-      availableRoomNights === 0
-        ? 0
-        : Math.round((soldRoomNights * 10_000) / availableRoomNights),
+    occupancyBasisPoints,
+    cashNeedMinor: input.treasury
+      ? cashNeedForLossMinor(
+          input.treasury,
+          hotel.hotelId,
+          grossOperatingProfitMinor,
+        )
+      : Math.max(0, -grossOperatingProfitMinor),
+    renovationNeedMinor: managedRenovationNeedMinor(
+      hotel,
+      input.periodStartDateKey,
+    ),
+    qualityStars: managedQualityStars({
+      gopMarginBasisPoints: hotel.gopMarginBasisPoints,
+      occupancyBasisPoints,
+      adrMinor: hotel.adrMinor,
+    }),
   };
 }

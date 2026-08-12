@@ -123,6 +123,11 @@ describe("save policy", () => {
       state: typeof state;
     };
     valid.state.alerts.push({
+      category: "valid-target",
+      groupId: `${valid.state.hotel.id}:valid-target`,
+      source: { companyId: valid.state.company.companyId },
+      gameTime: "1991-01-01:0",
+      acknowledged: false,
       id: "alert.valid-target",
       severity: "warning",
       title: "alert.room.cleaning.title",

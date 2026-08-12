@@ -5,7 +5,7 @@ import {
   type NotificationRecord,
 } from "./notificationPreferences";
 import { translateGame, type GameLocale } from "../../i18n";
-const severityIcon = {
+export const severityIcon = {
   info: "ℹ",
   notice: "◆",
   warning: "⚠",

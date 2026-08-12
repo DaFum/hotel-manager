@@ -11,6 +11,7 @@ import {
   STARTER_HOTEL,
   STARTER_STAFF,
 } from "../content/1991/starterHotel";
+import { FLAGSHIP_CITY_ID } from "../content/1991/company";
 import type { RoomState } from "../rooms/roomState";
 import type { RateGrid } from "../revenue/rates";
 import type { Booking } from "../bookings/bookingTypes";
@@ -30,7 +31,11 @@ import type {
 import type { OperationalSituationDescriptors } from "../building/operationalSituations";
 import { ELEVATOR_TRIP_MINUTES } from "../facilities/mobility";
 import type { Phase as RenovationPhase } from "../renovation/projects";
-import type { MonthlyCloseReport } from "../finance/monthlyClose";
+import type {
+  MonthlyCloseHighWaterMarks,
+  MonthlyCloseReport,
+} from "../finance/monthlyClose";
+import type { AlertSeverity } from "../settings/playerPreferences";
 import type { Classification } from "../classification/quality";
 import { defaultModuleForCategory } from "../content/rooms/modules";
 import { STARTER_PLANT } from "../content/1991/plant";
@@ -152,10 +157,17 @@ export interface EventRecord {
 
 export interface AlertRecord {
   id: string;
-  severity: "info" | "warning" | "critical";
+  severity: AlertSeverity;
   title: AlertLocalizationKey;
   cause: AlertLocalizationKey;
   causeValues?: LocalizationValues;
+  category: string;
+  groupId: string;
+  source: { companyId: string; hotelId?: string; regionId?: string };
+  gameTime: string;
+  actionEntityId?: string;
+  delegate?: string;
+  acknowledged: boolean;
   /** A physical place in the hotel this alert can move the world to. */
   target?: AlertTargetRef;
 }
@@ -182,6 +194,8 @@ export interface MonthAccumulator {
   openingCashMinor: number;
   roomRevenueMinor: number;
   otherRevenueMinor: number;
+  eventRevenueMinor: number;
+  housekeepingLateRoomReleaseCount: number;
   operatingExpenseMinor: number;
   soldRoomNights: number;
   availableRoomNights: number;
@@ -210,7 +224,7 @@ export interface GameState {
    */
   eventJournal: EventJournal;
   calendar: { dateKey: string; minuteOfDay: number };
-  hotel: { id: string; name: string; rooms: RoomRecord[] };
+  hotel: { id: string; name: string; cityId: string; rooms: RoomRecord[] };
   rates: RateGrid;
   reservations: ReservationRecord[];
   stays: StayRecord[];
@@ -299,6 +313,12 @@ export interface GameState {
   renovation: RenovationJob | null;
   alerts: AlertRecord[];
   lastMonthlyClose: MonthlyCloseReport | null;
+  monthlyCloseBaseline: {
+    previousReport: MonthlyCloseReport | null;
+    previousEventRevenueMinor: number;
+    previousLateRoomReleaseCount: number;
+    highWaterMarks: MonthlyCloseHighWaterMarks;
+  };
   metrics: {
     adrMinor: number;
     revParMinor: number;
@@ -366,6 +386,7 @@ export function createInitialGameState(seed: number): GameState {
     hotel: {
       id: STARTER_HOTEL.id,
       name: STARTER_HOTEL.name,
+      cityId: FLAGSHIP_CITY_ID,
       rooms: Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => {
         const category = i < STARTER_HOTEL.singleRooms ? "single" : "double";
         return {
@@ -403,6 +424,8 @@ export function createInitialGameState(seed: number): GameState {
         openingCashMinor: STARTER_HOTEL.startingCashMinor,
         roomRevenueMinor: 0,
         otherRevenueMinor: 0,
+        eventRevenueMinor: 0,
+        housekeepingLateRoomReleaseCount: 0,
         operatingExpenseMinor: 0,
         soldRoomNights: 0,
         // The opening day's capacity; later days are added as they begin.
@@ -448,6 +471,16 @@ export function createInitialGameState(seed: number): GameState {
     renovation: null,
     alerts: [],
     lastMonthlyClose: null,
+    monthlyCloseBaseline: {
+      previousReport: null,
+      previousEventRevenueMinor: 0,
+      previousLateRoomReleaseCount: 0,
+      highWaterMarks: {
+        revenueMinor: 0,
+        operatingProfitMinor: 0,
+        eventRevenueMinor: 0,
+      },
+    },
     metrics: { adrMinor: 0, revParMinor: 0, occupancyBasisPoints: 0 },
     elapsedMinutes: 0,
     rngState: Object.fromEntries(

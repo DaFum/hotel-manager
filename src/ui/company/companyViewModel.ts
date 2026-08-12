@@ -24,6 +24,7 @@ import {
   REPUTATION_DIMENSIONS,
   reputationCauses,
 } from "../../game/reputation/dimensions";
+import { CORE_CONTENT_REGISTRY } from "../../game/content/corePack";
 
 /**
  * Presentation-only projections of the authoritative company snapshot. The
@@ -40,6 +41,17 @@ export function hotelName(state: GameState, hotelId: string): string {
   );
 }
 
+/** City display name from the content record carried by the hotel identity. */
+export function cityName(state: GameState, hotelId: string): string {
+  const cityId =
+    hotelId === state.hotel.id
+      ? state.hotel.cityId
+      : state.company.managedHotels.find((hotel) => hotel.hotelId === hotelId)
+          ?.cityId;
+  if (!cityId || !CORE_CONTENT_REGISTRY.has(cityId)) return cityId ?? "unknown";
+  return translateKey(CORE_CONTENT_REGISTRY.getByKind(cityId, "city").nameKey);
+}
+
 export function portfolioRows(state: GameState): PortfolioHotelRow[] {
   const c = state.company;
   return c.portfolio.hotelIds.map((hotelId) => {
@@ -52,10 +64,14 @@ export function portfolioRows(state: GameState): PortfolioHotelRow[] {
     return {
       id: hotelId,
       name: hotelName(state, hotelId),
+      cityName: cityName(state, hotelId),
+      qualityStars: result?.qualityStars ?? 0,
       occupancyBasisPoints:
         result?.occupancyBasisPoints ??
         (hotelId === state.hotel.id ? state.metrics.occupancyBasisPoints : 0),
       monthlyProfitMinor: result?.grossOperatingProfitMinor ?? 0,
+      cashNeedMinor: result?.cashNeedMinor ?? 0,
+      renovationNeedMinor: result?.renovationNeedMinor ?? 0,
       // The flagship's own alerts are its warnings; a portfolio house warns
       // through the audit it last failed.
       warnings:

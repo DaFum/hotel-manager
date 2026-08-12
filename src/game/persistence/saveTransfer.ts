@@ -1,5 +1,6 @@
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { CORE_CONTENT_PACK } from "../content/corePack";
+import { migrateToCurrent } from "./migrateToCurrent";
 import { CORE_CONTENT_REGISTRY } from "../content/corePack";
 import { validateEnvelope } from "./saveSchema";
 import {
@@ -164,24 +165,23 @@ export async function parseSaveFile(bytes: Uint8Array): Promise<SaveEnvelope> {
     throw new Error(
       `required content pack is unavailable: ${required?.packId ?? "missing"}@${required?.contentVersion ?? "missing"}`,
     );
+  const payload = migrateToCurrent(file.payload);
   if (
-    file.payload.saveVersion !== SAVE_VERSION ||
-    file.payload.protocolVersion !== PROTOCOL_VERSION
+    payload.saveVersion !== SAVE_VERSION ||
+    payload.protocolVersion !== PROTOCOL_VERSION
   )
     throw new Error("save was written by an incompatible build");
-  if (file.payload.contentVersion !== CONTENT_VERSION)
-    throw new Error(
-      `content version ${file.payload.contentVersion} is unavailable`,
-    );
-  const problems = validateEnvelope(file.payload);
+  if (payload.contentVersion !== CONTENT_VERSION)
+    throw new Error(`content version ${payload.contentVersion} is unavailable`);
+  const problems = validateEnvelope(payload);
   if (problems.length)
     throw new Error(`invalid imported save: ${problems.join("; ")}`);
-  const missingContent = validateSaveContentReferences(file.payload.state);
+  const missingContent = validateSaveContentReferences(payload.state);
   if (missingContent.length)
     throw new Error(
       `imported save references missing content: ${missingContent.join(", ")}`,
     );
-  return file.payload;
+  return payload;
 }
 
 export async function importSaveFile(

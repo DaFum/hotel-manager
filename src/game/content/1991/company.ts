@@ -20,6 +20,12 @@ export const STARTER_LEGAL_ENTITY = {
 
 export const STARTER_REGION = "region.de.hessen" as const;
 
+/** The market identity shared by the flagship and aggregate portfolio houses. */
+export const FLAGSHIP_CITY_ID = CORE_CONTENT_REGISTRY.getByKind(
+  "city.frankfurt",
+  "city",
+).id;
+
 /** What the head office costs before it serves anybody. */
 export const HEADQUARTERS = {
   baseMonthlyCostMinor: 1_200_000,

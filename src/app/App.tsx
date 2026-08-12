@@ -3,6 +3,7 @@ import { AccessibilityPreferences } from "../ui/accessibility/AccessibilityPrefe
 import { AudioSettings } from "../ui/settings/AudioSettings";
 import { TutorialCoach } from "../ui/onboarding/TutorialCoach";
 import { NotificationCenter } from "../ui/notifications/NotificationCenter";
+import { NotificationFilters } from "../ui/notifications/NotificationFilters";
 import { ContextHelp } from "../ui/help/ContextHelp";
 import { AudioEngine } from "../audio/audioEngine";
 import { translateGame } from "../i18n";
@@ -23,11 +24,27 @@ import { connectivityIndex } from "../game/transport/network";
 import { TopBar } from "../ui/TopBar";
 import { HotelView } from "../ui/HotelView";
 import { RevenueDashboard } from "../ui/RevenueDashboard";
+import {
+  bookingsOnTheBooksRows,
+  channelMixRows,
+  competitionRows as revenueCompetitionRows,
+  overbookingExposureRow,
+  occupancyDriverRows,
+  pickupRows,
+  rateGridRows,
+  ratePlanRows,
+  revenueMetricsRow,
+} from "../ui/revenueViewModel";
 import { StaffDashboard } from "../ui/StaffDashboard";
+import { workforceView } from "../ui/workforceView";
+import {
+  ManagedHotelSummary,
+  ManagedHotelUnavailable,
+} from "../ui/company/ManagedHotelSummary";
 import { PurchasingDashboard } from "../ui/PurchasingDashboard";
 import { FinanceDashboard } from "../ui/FinanceDashboard";
+import { financeView } from "../ui/finance/financeView";
 import { BuildPanel } from "../ui/BuildPanel";
-import { AlertsPanel } from "../ui/AlertsPanel";
 import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
 import { FnbDashboard } from "../ui/fnb/FnbDashboard";
 import { CommercialSpacesPanel } from "../ui/facilities/CommercialSpacesPanel";
@@ -36,6 +53,16 @@ import { STAFF_ROLES } from "../game/domain/staffRoles";
 import { MonthlyCloseModal } from "../ui/MonthlyCloseModal";
 import { CityDashboard } from "../ui/market/CityDashboard";
 import { CompetitorTable } from "../ui/market/CompetitorTable";
+import {
+  cityActivityView,
+  cityEconomyView,
+  worldConditionsView,
+} from "../ui/market/marketViewModel";
+import {
+  CityActivityPanel,
+  CityEconomyPanel,
+  WorldConditionsPanel,
+} from "../ui/market/MarketPanels";
 import { marketWageMinor } from "../game/labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../game/content/1991/cityMarket";
 import { REPORT_COST_MINOR } from "../game/marketResearch/forecast";
@@ -67,6 +94,36 @@ import { BrandDashboard } from "../ui/company/BrandDashboard";
 import { DevelopmentDashboard } from "../ui/company/DevelopmentDashboard";
 import { ManagerGovernancePanel } from "../ui/company/ManagerGovernancePanel";
 import { CommercialDashboard } from "../ui/company/CommercialDashboard";
+import { GuestsDashboard } from "../ui/guests/GuestsDashboard";
+import {
+  audienceReachView,
+  crmConsentView,
+  salesPipelineView,
+} from "../ui/company/marketingViewModel";
+import {
+  AudienceReachPanel,
+  CrmConsentPanel,
+  SalesPipelinePanel,
+} from "../ui/company/MarketingPanels";
+import {
+  acquisitionsView,
+  headquartersView,
+  treasuryView,
+} from "../ui/company/companyOperationsViewModel";
+import {
+  AcquisitionsPanel,
+  HeadquartersPanel,
+  TreasuryPanel,
+} from "../ui/company/CompanyOperationsPanels";
+import {
+  complaintRows,
+  guestReputationRows,
+  loyaltyRows,
+  receptionQueueRows,
+  repeatGuestRows,
+  reviewRows,
+  satisfactionSummary,
+} from "../ui/guests/guestsViewModel";
 import { CampaignSetup } from "../ui/story/CampaignSetup";
 import { StoryInbox } from "../ui/story/StoryInbox";
 import { ChronicleView } from "../ui/story/ChronicleView";
@@ -82,6 +139,7 @@ import {
   portfolioRows,
   accountRows,
   campaignRows,
+  cityName,
   marketableGuestCount,
   reputationRows,
 } from "../ui/company/companyViewModel";
@@ -111,9 +169,7 @@ export function App() {
   // by January's "Continue".
   const [dismissedClose, setDismissedClose] = useState<string | null>(null);
   const [openAlert, setOpenAlert] = useState<string | null>(null);
-  const [acknowledgedAlerts, setAcknowledgedAlerts] = useState<Set<string>>(
-    () => new Set(),
-  );
+  const [openComplaintId, setOpenComplaintId] = useState<string | null>(null);
   /** Which house the group is currently looking at; the flagship by default. */
   const [openHotel, setOpenHotel] = useState<string | null>(null);
   /** Presentation state: where the player is looking, never a game rule. */
@@ -233,6 +289,11 @@ export function App() {
     BASE_MONTHLY_WAGE_MINOR,
     s.cityMarket.wagePressureBp,
   );
+  const selectedHotelId = openHotel ?? s.hotel.id;
+  const selectedHotel = portfolioRows(s).find(
+    (hotel) => hotel.id === selectedHotelId,
+  );
+  const flagshipSelected = selectedHotelId === s.hotel.id;
 
   const singleRateMinor = getRate(
     s.rates,
@@ -256,6 +317,15 @@ export function App() {
     />
   );
 
+  const selectGuestRoom = (roomId: string) =>
+    setCamera((current) =>
+      focusCamera(current, {
+        id: roomId,
+        ...roomFocusPoint(roomId, s),
+        kind: "room",
+      }),
+    );
+
   const openNotificationTarget = (entityId: string, alertId: string) => {
     setOpenAlert(alertId);
     const alert = s.alerts.find((candidate) => candidate.id === alertId);
@@ -275,37 +345,55 @@ export function App() {
       }),
     );
   };
+  const managedDepartmentFallback = selectedHotel ? (
+    <ManagedHotelUnavailable
+      hotelName={selectedHotel.name}
+      level="department"
+    />
+  ) : null;
 
   const areaContent: Record<ManagementAreaId, ReactNode> = {
     mainView: (
       <>
+        {!flagshipSelected && selectedHotel ? (
+          <ManagedHotelUnavailable
+            hotelName={selectedHotel.name}
+            level="room"
+          />
+        ) : null}
         <HotelView
-          rooms={s.hotel.rooms}
-          facilities={s.facilities}
-          agents={visualAgents(s, camera)}
-          floorByRoomId={s.renderDescriptors.floorByRoomId}
-          positionByEntityId={s.renderDescriptors.positionByEntityId}
-          floorPlan={s.renderDescriptors.floorPlan}
-          closedNavigationIds={s.renderDescriptors.closedNavigationIds}
-          elevator={s.renderDescriptors.elevator}
-          situations={s.renderDescriptors.situations}
+          rooms={flagshipSelected ? s.hotel.rooms : []}
+          facilities={flagshipSelected ? s.facilities : []}
+          agents={flagshipSelected ? visualAgents(s, camera) : []}
+          floorByRoomId={
+            flagshipSelected ? s.renderDescriptors.floorByRoomId : {}
+          }
+          positionByEntityId={
+            flagshipSelected ? s.renderDescriptors.positionByEntityId : {}
+          }
+          floorPlan={
+            flagshipSelected ? s.renderDescriptors.floorPlan : undefined
+          }
+          closedNavigationIds={
+            flagshipSelected ? s.renderDescriptors.closedNavigationIds : []
+          }
+          elevator={flagshipSelected ? s.renderDescriptors.elevator : undefined}
+          situations={
+            flagshipSelected ? s.renderDescriptors.situations : undefined
+          }
           camera={camera}
           minuteOfDay={s.calendar.minuteOfDay}
           focusedEntityId={camera.focusedId}
-          occupantByRoomId={s.renderDescriptors.occupantByRoomId}
+          occupantByRoomId={
+            flagshipSelected ? s.renderDescriptors.occupantByRoomId : {}
+          }
           rateByCategory={rateByCategory(s, STARTER_HOTEL.defaultRateMinor)}
-          renovationPhaseByRoomId={s.renderDescriptors.renovationPhaseByRoomId}
+          renovationPhaseByRoomId={
+            flagshipSelected ? s.renderDescriptors.renovationPhaseByRoomId : {}
+          }
           // Choosing a room anywhere moves the one camera the world uses,
           // so the register and the building never look at different places.
-          onSelect={(roomId) =>
-            setCamera((current) =>
-              focusCamera(current, {
-                id: roomId,
-                ...roomFocusPoint(roomId, s),
-                kind: "room",
-              }),
-            )
-          }
+          onSelect={selectGuestRoom}
           onSelectAgent={(agentId) => {
             const agent = s.renderDescriptors.agents.find(
               (candidate) => candidate.id === agentId,
@@ -332,18 +420,30 @@ export function App() {
         />
         <WorldControls
           camera={camera}
-          floors={[
-            ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
-          ].sort((a, b) => a - b)}
+          floors={
+            flagshipSelected
+              ? [
+                  ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
+                ].sort((a, b) => a - b)
+              : []
+          }
           minuteOfDay={s.calendar.minuteOfDay}
-          elevator={elevatorVisual(s.renderDescriptors.elevator)}
-          problems={worldProblems(s)}
+          elevator={
+            flagshipSelected
+              ? elevatorVisual(s.renderDescriptors.elevator)
+              : {
+                  queue: 0,
+                  waitMinutes: 0,
+                  cause: "world.elevatorCause.notSimulated",
+                }
+          }
+          problems={flagshipSelected ? worldProblems(s) : []}
           onCamera={setCamera}
           locale={preferences.locale}
         />
       </>
     ),
-    hotel: (
+    hotel: flagshipSelected ? (
       <>
         <FacilitiesDashboard rows={s.facilities} />
         <FnbDashboard fnb={s.fnb} locale={preferences.locale} />
@@ -386,12 +486,34 @@ export function App() {
           }
         />
       </>
+    ) : selectedHotel ? (
+      <ManagedHotelSummary hotel={selectedHotel} />
+    ) : null,
+    guests: flagshipSelected ? (
+      <GuestsDashboard
+        locale={preferences.locale}
+        satisfaction={satisfactionSummary(s)}
+        complaints={complaintRows(s)}
+        reviews={reviewRows(s)}
+        reception={receptionQueueRows(s)}
+        loyalty={loyaltyRows(s)}
+        repeatGuests={repeatGuestRows(s)}
+        reputation={guestReputationRows(s)}
+        openComplaintId={openComplaintId}
+        onOpen={(id) =>
+          setOpenComplaintId((current) => (current === id ? null : id))
+        }
+        onSelectRoom={selectGuestRoom}
+      />
+    ) : (
+      managedDepartmentFallback
     ),
-    staff: (
+    staff: flagshipSelected ? (
       <StaffDashboard
-        staff={s.staff}
+        view={workforceView(s)}
         roles={STAFF_ROLES}
         marketWageMinor={cityWageMinor}
+        locale={preferences.locale}
         onHire={(role) =>
           game.send({
             type: "HIRE",
@@ -403,17 +525,28 @@ export function App() {
           })
         }
       />
+    ) : (
+      managedDepartmentFallback
     ),
-    finance: (
+    finance: flagshipSelected ? (
       <>
         <FinanceDashboard
-          cashMinor={s.finance.cashMinor}
-          loanPrincipalMinor={s.loan.principalMinor}
-          monthToDateProfitMinor={
-            s.finance.month.roomRevenueMinor +
-            s.finance.month.otherRevenueMinor -
-            s.finance.month.operatingExpenseMinor
-          }
+          locale={preferences.locale}
+          view={financeView({
+            finance: s.finance,
+            statements: s.statements,
+            loan: s.loan,
+            insurance: s.insurance,
+            lastMonthlyClose: s.lastMonthlyClose,
+            renovation: s.renovation,
+            company: {
+              treasury: s.company.treasury,
+              budgets: s.company.budgets,
+            },
+            hotelId: s.hotel.id,
+            periodKey:
+              s.lastMonthlyClose?.periodKey ?? s.calendar.dateKey.slice(0, 7),
+          })}
         />
         <PurchasingDashboard
           stock={s.stock}
@@ -422,38 +555,73 @@ export function App() {
           }
         />
       </>
+    ) : (
+      managedDepartmentFallback
     ),
-    revenue: (
+    revenue: flagshipSelected ? (
       <>
         <RevenueDashboard
-          adrMinor={s.metrics.adrMinor}
-          revParMinor={s.metrics.revParMinor}
-          occupancyBasisPoints={s.metrics.occupancyBasisPoints}
-          singleRateMinor={singleRateMinor}
-          onSetSingleRate={(rateMinor) =>
+          rates={rateGridRows(s)}
+          bookings={bookingsOnTheBooksRows(s)}
+          metrics={revenueMetricsRow(s)}
+          channels={channelMixRows(s)}
+          pickup={pickupRows(s)}
+          ratePlans={ratePlanRows(s)}
+          overbooking={overbookingExposureRow(s)}
+          competition={revenueCompetitionRows(s)}
+          occupancyDrivers={occupancyDriverRows(s)}
+          locale={preferences.locale}
+          onSetRate={(dateKey, category, rateMinor) =>
             game.send({
               type: "SET_RATE",
-              dateKey: s.calendar.dateKey,
-              category: "single",
+              dateKey,
+              category,
               rateMinor,
             })
           }
         />
         {competitorTable}
       </>
+    ) : (
+      managedDepartmentFallback
     ),
-    marketing: (
-      <CommercialDashboard
-        campaigns={campaignRows(s)}
-        accounts={accountRows(s)}
-        reputation={reputationRows(s)}
-        loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
-        loyaltyMembers={s.commercial.loyalty.members.length}
-        marketableGuests={marketableGuestCount(s)}
-      />
+    marketing: flagshipSelected ? (
+      <>
+        <SalesPipelinePanel
+          view={salesPipelineView(s)}
+          locale={preferences.locale}
+        />
+        <CrmConsentPanel view={crmConsentView(s)} locale={preferences.locale} />
+        <AudienceReachPanel
+          view={audienceReachView(s)}
+          locale={preferences.locale}
+        />
+        <CommercialDashboard
+          campaigns={campaignRows(s)}
+          accounts={accountRows(s)}
+          reputation={reputationRows(s)}
+          loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
+          loyaltyMembers={s.commercial.loyalty.members.length}
+          marketableGuests={marketableGuestCount(s)}
+        />
+      </>
+    ) : (
+      managedDepartmentFallback
     ),
     market: (
       <>
+        <CityEconomyPanel
+          view={cityEconomyView(s)}
+          locale={preferences.locale}
+        />
+        <CityActivityPanel
+          view={cityActivityView(s)}
+          locale={preferences.locale}
+        />
+        <WorldConditionsPanel
+          view={worldConditionsView(s)}
+          locale={preferences.locale}
+        />
         <CityDashboard
           business={s.cityMarket.demand.business}
           leisure={s.cityMarket.demand.leisure}
@@ -471,12 +639,38 @@ export function App() {
     ),
     company: (
       <>
+        <TreasuryPanel
+          view={treasuryView(s)}
+          locale={preferences.locale}
+          onTransfer={(hotelId, amountMinor, direction) =>
+            game.send({
+              type: "TRANSFER_INTERNAL_FUNDING",
+              hotelId,
+              amountMinor,
+              direction,
+            })
+          }
+        />
+        <AcquisitionsPanel
+          view={acquisitionsView(s)}
+          locale={preferences.locale}
+          onDiligence={(targetId, areas) =>
+            game.send({ type: "RUN_DUE_DILIGENCE", targetId, areas })
+          }
+          onAcquire={(targetId, priceMinor) =>
+            game.send({ type: "ACQUIRE_HOTEL", targetId, priceMinor })
+          }
+        />
+        <HeadquartersPanel
+          view={headquartersView(s)}
+          locale={preferences.locale}
+        />
         <PortfolioDashboard
           hotels={portfolioRows(s)}
           onOpenHotel={setOpenHotel}
         />
         <p aria-label="Selected hotel">
-          Viewing: {hotelName(s, openHotel ?? s.hotel.id)}
+          Viewing: {hotelName(s, selectedHotelId)}
         </p>
         <BrandDashboard
           brands={brandRows(s)}
@@ -666,47 +860,57 @@ export function App() {
         notifications={s.alerts.map((alert): NotificationRecord => ({
           id: alert.id,
           type: alert.id,
-          category: alert.id.split(".")[0] || "operations",
+          category: alert.category,
           severity: alert.severity,
-          gameTime: `${s.calendar.dateKey}:${s.calendar.minuteOfDay}`,
-          source: {
-            companyId: s.company.companyId,
-            hotelId: s.hotel.id,
-            regionId: CITY.id,
-          },
+          gameTime: alert.gameTime,
+          source: alert.source,
           causes: [{ key: alert.cause, values: alert.causeValues }],
           read: openAlert === alert.id,
-          acknowledged: acknowledgedAlerts.has(alert.id),
-          groupId: `${s.hotel.id}:${alert.id.split(".")[0]}`,
+          acknowledged: alert.acknowledged,
+          groupId: alert.groupId,
+          delegate: alert.delegate,
           message: { key: alert.title, values: alert.causeValues },
-          actionTarget:
-            alert.target &&
-            resolveEntityPosition(
-              s.renderDescriptors.positionByEntityId,
-              alert.target.entityId,
-            )
-              ? {
-                  label: {
-                    key: "notifications.open",
-                    values: {
-                      title: translateGame(
-                        preferences.locale,
-                        alert.title,
-                        alert.causeValues,
-                      ),
-                    },
+          actionTarget: alert.actionEntityId
+            ? {
+                label: {
+                  key: "notifications.open",
+                  values: {
+                    title: translateGame(
+                      preferences.locale,
+                      alert.title,
+                      alert.causeValues,
+                    ),
                   },
-                  entityId: alert.target.entityId,
-                }
-              : undefined,
+                },
+                entityId: alert.target?.entityId ?? alert.actionEntityId,
+              }
+            : undefined,
         }))}
         preferences={preferences.notifications}
         pauseState={game.pauseStatus}
         onAction={openNotificationTarget}
-        onAcknowledge={(id) =>
-          setAcknowledgedAlerts((current) => new Set(current).add(id))
-        }
+        onAcknowledge={game.acknowledgeAlert}
         locale={preferences.locale}
+      />
+      <NotificationFilters
+        value={preferences.notifications}
+        locale={preferences.locale}
+        categories={[...new Set(s.alerts.map((alert) => alert.category))]}
+        hotels={s.company.portfolio.hotelIds.map((id) => ({
+          id,
+          name: hotelName(s, id),
+        }))}
+        regions={[
+          ...new Set(Object.values(s.company.portfolio.hotelRegion)),
+        ].map((id) => {
+          const hotelId = s.company.portfolio.hotelIds.find(
+            (candidate) => s.company.portfolio.hotelRegion[candidate] === id,
+          );
+          return { id, name: hotelId ? cityName(s, hotelId) : id };
+        })}
+        onChange={(notifications) =>
+          game.setPreferences({ ...preferences, notifications })
+        }
       />
       <SaveTransferPanel />
       <SaveManager
@@ -730,13 +934,8 @@ export function App() {
         }}
         areas={AREA_ORDER.map((id) => ({ id, content: areaContent[id] }))}
       />
-      <AlertsPanel
-        alerts={s.alerts}
-        openAlertId={openAlert}
-        onOpen={setOpenAlert}
-        locale={preferences.locale}
-      />
       <MonthlyCloseModal
+        locale={preferences.locale}
         report={
           s.lastMonthlyClose && s.lastMonthlyClose.periodKey !== dismissedClose
             ? s.lastMonthlyClose

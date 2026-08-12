@@ -77,6 +77,7 @@ export function closeMonth(x: MonthlyCloseInput): MonthlyCloseReport {
 }
 
 export const MONTHLY_BRIEFING_LIMIT = 3;
+export const SUPPLIER_EXPIRY_HORIZON_DAYS = 45;
 
 function rank(items: BriefingItem[]): BriefingItem[] {
   return items
@@ -165,7 +166,7 @@ export function deriveMonthlyBriefing(input: {
       : [],
   );
 
-  const endKey = addDays(input.signals.dateKey, 45);
+  const endKey = addDays(input.signals.dateKey, SUPPLIER_EXPIRY_HORIZON_DAYS);
   const expiring = input.signals.supplierContracts.filter(
     (contract) =>
       contract.validToDateKey > input.signals.dateKey &&
@@ -178,14 +179,17 @@ export function deriveMonthlyBriefing(input: {
   const changing: BriefingItem[] = [];
   if (expiring.length)
     changing.push({
-      labelKey: "finance.monthlyClose.causes.supplierExpiries",
-      values: { count: expiring.length },
+      labelKey: `finance.monthlyClose.causes.supplierExpiries_${expiring.length === 1 ? "one" : "other"}`,
+      values: {
+        count: expiring.length,
+        days: SUPPLIER_EXPIRY_HORIZON_DAYS,
+      },
       magnitude: expiring.length,
       direction: "neutral",
     });
   if (recentCompetitors.length)
     changing.push({
-      labelKey: "finance.monthlyClose.causes.competitorDevelopments",
+      labelKey: `finance.monthlyClose.causes.competitorDevelopments_${recentCompetitors.length === 1 ? "one" : "other"}`,
       values: {
         count: recentCompetitors.length,
         rooms: recentCompetitors.reduce((sum, item) => sum + item.rooms, 0),

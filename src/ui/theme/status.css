@@ -124,14 +124,3 @@
   border-left-color: var(--hm-loss);
   background: var(--hm-loss-wash);
 }
-
-/* Signed figures repeat their meaning with a symbol and word, never hue alone. */
-.hm-root [data-trend="gain"]::before {
-  content: "▲ gain ";
-}
-.hm-root [data-trend="loss"]::before {
-  content: "▼ loss ";
-}
-.hm-root [data-trend="flat"]::before {
-  content: "■ flat ";
-}

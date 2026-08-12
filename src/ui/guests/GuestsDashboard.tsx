@@ -1,4 +1,5 @@
 import "./guests.css";
+import { translateKey } from "../localization";
 
 export interface SatisfactionRow {
   score: number;
@@ -14,7 +15,7 @@ export interface ComplaintRow {
   segment: string;
   stage: string;
   cause: string;
-  why: string;
+  why: { key: string; values: Record<string, string | number> };
   status: "offered" | "accepted" | "refused" | "escalated";
   cost: string;
   handled: boolean;
@@ -138,10 +139,11 @@ export function GuestsDashboard(props: {
                   {open ? (
                     <div aria-live="polite">
                       <p>
-                        {row.stayLabel}; room {row.roomId ?? "unknown room"};
-                        department: {row.stage}; segment: {row.segment}
+                        {translateKey(row.stayLabel)}; room{" "}
+                        {row.roomId ?? "unknown room"}; department: {row.stage};
+                        segment: {row.segment}
                       </p>
-                      <p>{row.why}</p>
+                      <p>{translateKey(row.why.key, row.why.values)}</p>
                     </div>
                   ) : null}
                 </li>
@@ -181,8 +183,8 @@ export function GuestsDashboard(props: {
                   {open ? (
                     <div aria-live="polite">
                       <p>
-                        {row.stayLabel}; room {row.roomId ?? "unknown room"};
-                        department: {row.stage}
+                        {translateKey(row.stayLabel)}; room{" "}
+                        {row.roomId ?? "unknown room"}; department: {row.stage}
                       </p>
                       <ul>
                         {row.reasons.map((reason) => (

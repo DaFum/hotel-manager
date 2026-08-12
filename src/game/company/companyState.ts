@@ -62,6 +62,7 @@ export interface HotelOperatingResult {
   hotelId: string;
   periodKey: string;
   roomRevenueMinor: number;
+  eventRevenueMinor: number;
   otherRevenueMinor: number;
   operatingExpenseMinor: number;
   grossOperatingProfitMinor: number;

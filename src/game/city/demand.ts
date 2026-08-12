@@ -61,11 +61,16 @@ export function occupancyContributors(input: {
     { factor: "eventUplift", weight: input.eventUpliftBp },
   ];
   const explained = named.reduce((sum, item) => sum + item.weight, 0);
+  if (!Number.isSafeInteger(explained))
+    throw new Error("invalid occupancy attribution explained");
+  const remainder = input.occupancyMovementBp - explained;
+  if (!Number.isSafeInteger(remainder))
+    throw new Error("invalid occupancy attribution remainder");
   return [
     ...named,
     {
       factor: "reputationEffect",
-      weight: input.occupancyMovementBp - explained,
+      weight: remainder,
     },
   ];
 }

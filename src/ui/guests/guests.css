@@ -3,6 +3,7 @@
   --guest-paper: #eee6d5;
   --guest-rule: #8c3229;
   --guest-muted: #6a6256;
+
   color: var(--guest-ink);
   background:
     linear-gradient(90deg, rgb(140 50 41 / 7%) 1px, transparent 1px) 0 0 / 28px

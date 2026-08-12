@@ -21,8 +21,8 @@ export function SalesPipelinePanel({
         <ul>
           {view.leads.map((x) => (
             <li key={x.id}>
-              {x.accountName}: {x.stage} — {x.expectedRoomNights}{" "}
-              {t("marketing.sales.nights")}
+              {x.accountName}: {t(`marketing.stage.${x.stage}`)} —{" "}
+              {x.expectedRoomNights} {t("marketing.sales.nights")}
             </li>
           ))}
         </ul>
@@ -35,7 +35,8 @@ export function SalesPipelinePanel({
           {view.contracts.map((x) => (
             <li key={x.id}>
               {x.accountName}: {formatDm(x.negotiatedRateMinor, locale)},{" "}
-              {x.validFromDateKey}–{x.validToDateKey}, {x.renewalIntent}
+              {x.validFromDateKey}–{x.validToDateKey},{" "}
+              {t(`marketing.renewal.${x.renewalIntent}`)}
             </li>
           ))}
         </ul>
@@ -92,7 +93,8 @@ export function AudienceReachPanel({
       <ul>
         {view.media.map((x) => (
           <li key={x.channel}>
-            {x.channel}: {formatBasisPoints(x.reachBp, locale)}
+            {t(`marketing.channel.${x.channel}`)}:{" "}
+            {formatBasisPoints(x.reachBp, locale)}
           </li>
         ))}
       </ul>
@@ -101,7 +103,8 @@ export function AudienceReachPanel({
         <ul>
           {view.campaigns.map((x) => (
             <li key={x.id}>
-              {x.segment} · {x.channel}: {formatBasisPoints(x.lowBp, locale)}–
+              {t(x.segment)} · {t(`marketing.channel.${x.channel}`)}:{" "}
+              {formatBasisPoints(x.lowBp, locale)}–
               {formatBasisPoints(x.highBp, locale)}{" "}
               {t("marketing.audience.plausible")}; {x.influencedBookings}{" "}
               {t("marketing.audience.bookings")}
@@ -116,7 +119,7 @@ export function AudienceReachPanel({
         <ul>
           {view.reputation.map((x) => (
             <li key={`${x.dimension}:${x.scope}`}>
-              {x.dimension} · {x.scope}: {x.score} —{" "}
+              {t(`marketing.dimension.${x.dimension}`)} · {t(x.scope)}:{" "}
               {x.cause ?? t("marketing.audience.noCause")}
             </li>
           ))}

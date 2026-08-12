@@ -16,6 +16,7 @@ describe("FinanceDashboard", () => {
       ...state,
       company: state.company,
       hotelId: state.hotel.id,
+      periodKey: state.calendar.dateKey.slice(0, 7),
     });
     render(<FinanceDashboard view={view} />);
     for (const name of [
@@ -29,7 +30,7 @@ describe("FinanceDashboard", () => {
     ])
       expect(screen.getByRole("region", { name })).toBeTruthy();
     expect(
-      screen.getAllByText("+600,00 DM")[0].getAttribute("data-trend"),
+      screen.getAllByText(/\+DEM.600\.00.*gain/)[0].getAttribute("data-trend"),
     ).toBe("gain");
     expect(
       screen.getByText(/Operating profit fell because wages/),

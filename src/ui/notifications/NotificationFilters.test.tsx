@@ -15,12 +15,12 @@ describe("NotificationFilters", () => {
       <NotificationFilters
         value={value}
         categories={["finance"]}
-        hotelIds={["hotel.1"]}
-        regionIds={["region.1"]}
+        hotels={[{ id: "hotel.1", name: "Hotel One" }]}
+        regions={[{ id: "region.1", name: "Region One" }]}
         onChange={onChange}
       />,
     );
-    for (const label of ["Notice", "finance", "hotel.1", "region.1"])
+    for (const label of ["Notice", "finance", "Hotel One", "Region One"])
       fireEvent.click(screen.getByLabelText(new RegExp(label, "i")));
     expect(onChange.mock.calls.map(([next]) => next)).toEqual([
       { ...value, severities: ["notice"] },
@@ -55,8 +55,8 @@ describe("NotificationFilters", () => {
         value={value}
         locale="de-DE"
         categories={[]}
-        hotelIds={[]}
-        regionIds={[]}
+        hotels={[]}
+        regions={[]}
         onChange={() => {}}
       />,
     );
@@ -89,8 +89,8 @@ describe("NotificationFilters", () => {
           <NotificationFilters
             value={preferences}
             categories={["operations"]}
-            hotelIds={[]}
-            regionIds={[]}
+            hotels={[]}
+            regions={[]}
             onChange={setPreferences}
           />
           <NotificationCenter notifications={items} preferences={preferences} />

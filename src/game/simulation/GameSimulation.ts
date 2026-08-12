@@ -485,7 +485,7 @@ export class GameSimulation implements CommandExecutor {
     try {
       switch (command.type) {
         case "ACKNOWLEDGE_ALERT":
-          return s.alerts.some((alert) => alert.id === command.id)
+          return s.alerts.some((alert) => alert.id === command.alertId)
             ? { ok: true }
             : { ok: false, reason: "unknown alert" };
         case "SET_RATE":
@@ -735,8 +735,13 @@ export class GameSimulation implements CommandExecutor {
     switch (command.type) {
       case "ACKNOWLEDGE_ALERT":
         s.alerts = s.alerts.map((alert) =>
-          alert.id === command.id ? { ...alert, acknowledged: true } : alert,
+          alert.id === command.alertId
+            ? { ...alert, acknowledged: true }
+            : alert,
         );
+        this.emit({ type: "ALERT_ACKNOWLEDGED", alertId: command.alertId }, [
+          command.alertId,
+        ]);
         return;
       case "SET_RATE":
         s.rates = setRate(
@@ -2237,7 +2242,7 @@ export class GameSimulation implements CommandExecutor {
         id: complaintId,
         bookingId,
         stage: "checkIn",
-        cause: "waited too long at reception",
+        cause: "receptionWait",
         severity: "serious",
         raisedAtMinutes: s.elapsedMinutes,
       }),
@@ -2332,10 +2337,8 @@ export class GameSimulation implements CommandExecutor {
     let stay = beginStay({ partyId, bookingId: booking.id, roomId });
     stay = recordStayEvent(stay, {
       stage: "checkIn",
-      cause:
-        waitedMinutes > 0
-          ? `waited ${waitedMinutes} minutes at reception`
-          : "checked in without waiting",
+      cause: waitedMinutes > 0 ? "receptionWait" : "noReceptionWait",
+      ...(waitedMinutes > 0 ? { values: { waitedMinutes } } : {}),
       delta: waitedMinutes > 20 ? -8 : waitedMinutes > 0 ? -2 : 2,
     });
     s.guestRelations = {
@@ -2720,8 +2723,11 @@ export class GameSimulation implements CommandExecutor {
   private refreshAlerts(): void {
     const s = this.state;
     const dirty = s.hotel.rooms.filter((r) => r.state === "VacantDirty").length;
+    const existingHousekeepingAlert = s.alerts.find(
+      (alert) => alert.id === "alert.housekeeping-backlog",
+    );
     s.alerts = s.alerts.filter((a) => a.id !== "alert.housekeeping-backlog");
-    if (dirty > 5)
+    if (dirty > 5) {
       this.pushAlert({
         id: "alert.housekeeping-backlog",
         severity: "warning",
@@ -2730,6 +2736,13 @@ export class GameSimulation implements CommandExecutor {
         causeValues: { rooms: dirty },
         target: { entityId: "facility.housekeeping", kind: "facility" },
       });
+      if (existingHousekeepingAlert?.acknowledged)
+        s.alerts = s.alerts.map((alert) =>
+          alert.id === "alert.housekeeping-backlog"
+            ? { ...alert, acknowledged: true }
+            : alert,
+        );
+    }
     if (s.alerts.length > MAX_ALERTS) {
       // Critical alerts are pushed once and never refreshed, so newer warnings
       // must not evict them.
@@ -3875,7 +3888,9 @@ export class GameSimulation implements CommandExecutor {
       source: {
         companyId: s.company.companyId,
         hotelId,
-        regionId: s.company.portfolio.hotelRegion[hotelId],
+        ...(s.company.portfolio.hotelRegion[hotelId] === undefined
+          ? {}
+          : { regionId: s.company.portfolio.hotelRegion[hotelId] }),
       },
       gameTime: `${s.calendar.dateKey}:${s.calendar.minuteOfDay}`,
       actionEntityId: alert.id,

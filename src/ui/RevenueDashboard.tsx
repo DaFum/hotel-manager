@@ -1,6 +1,6 @@
 import { translateGame, type GameLocale } from "../i18n";
 import "./revenue.css";
-import { formatGameDateRange } from "../i18n/formatters";
+import { formatGameDate, formatGameDateRange } from "../i18n/formatters";
 import { GUEST_SEGMENTS } from "../game/content/1991/guestSegments";
 import { translateKey } from "./localization";
 import { formatBasisPoints, formatDm, formatSignedBasisPoints } from "./money";
@@ -49,27 +49,29 @@ export function RevenueDashboard(props: {
   locale?: GameLocale;
 }) {
   const locale = props.locale ?? "en-GB";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
   const bookingsByDate = new Map(
     props.bookings.map((row) => [row.dateKey, row]),
   );
   const pickupByDate = new Map(props.pickup.map((row) => [row.dateKey, row]));
   const empty = props.rates.length === 0 && props.bookings.length === 0;
   return (
-    <section aria-label="Revenue" className="revenue-board">
+    <section aria-label={t("revenue.ui.title")} className="revenue-board">
       <header className="revenue-board__header">
-        <p>Yield office · forward book</p>
-        <h2>Revenue</h2>
+        <p>{t("revenue.ui.kicker")}</p>
+        <h2>{t("revenue.ui.title")}</h2>
       </header>
       <dl>
-        <dt>ADR</dt>
+        <dt>{t("revenue.ui.adr")}</dt>
         <dd>{formatDm(props.metrics.adrMinor, locale)}</dd>
-        <dt>RevPAR</dt>
+        <dt>{t("revenue.ui.revpar")}</dt>
         <dd>{formatDm(props.metrics.revParMinor, locale)}</dd>
-        <dt>Occupancy</dt>
+        <dt>{t("revenue.ui.occupancy")}</dt>
         <dd>{formatBasisPoints(props.metrics.occupancyBasisPoints, locale)}</dd>
       </dl>
-      <section aria-label="Occupancy drivers">
-        <h3>Why occupancy moved</h3>
+      <section aria-label={t("revenue.ui.driversLabel")}>
+        <h3>{t("revenue.ui.drivers")}</h3>
         {props.occupancyDrivers.length ? (
           <ul>
             {props.occupancyDrivers.map((row) => (
@@ -80,14 +82,14 @@ export function RevenueDashboard(props: {
             ))}
           </ul>
         ) : (
-          <p>No occupancy movement has been attributed yet.</p>
+          <p>{t("revenue.ui.noDrivers")}</p>
         )}
       </section>
 
-      <section aria-label="Revenue timeline">
-        <h3>Rate and demand timeline</h3>
+      <section aria-label={t("revenue.ui.timelineLabel")}>
+        <h3>{t("revenue.ui.timeline")}</h3>
         {empty ? (
-          <p>No rate or booking data is available for this window.</p>
+          <p>{t("revenue.ui.noTimeline")}</p>
         ) : (
           <table>
             <caption>
@@ -97,19 +99,19 @@ export function RevenueDashboard(props: {
                     props.rates.at(-1)!.dateKey,
                     locale,
                   )
-                : "Revenue window"}
+                : t("revenue.ui.window")}
             </caption>
             <thead>
               <tr>
-                <th scope="col">Date</th>
+                <th scope="col">{t("revenue.ui.date")}</th>
                 {props.rates[0]?.cells.map((cell) => (
                   <th scope="col" key={cell.category}>
                     {translateGame(locale, `revenue.category.${cell.category}`)}
                   </th>
                 ))}
-                <th scope="col">On the books</th>
-                <th scope="col">Forecast demand</th>
-                <th scope="col">7-day pickup</th>
+                <th scope="col">{t("revenue.ui.onBooks")}</th>
+                <th scope="col">{t("revenue.ui.forecast")}</th>
+                <th scope="col">{t("revenue.ui.pickup")}</th>
               </tr>
             </thead>
             <tbody>
@@ -118,18 +120,18 @@ export function RevenueDashboard(props: {
                 return (
                   <tr key={row.dateKey} data-date-state={row.state}>
                     <th scope="row">
-                      {row.dateKey} — {row.state}
+                      {formatGameDate(row.dateKey, locale)} —{" "}
+                      {t(`revenue.ui.dateState.${row.state}`)}
                     </th>
                     {row.cells.map((cell) => (
                       <td key={cell.key}>
                         <span>{formatDm(cell.rateMinor, locale)}</span>
                         <button
                           type="button"
-                          aria-label={
-                            row.state === "today" && cell.category === "single"
-                              ? "Set single rate"
-                              : `Raise ${translateGame(locale, `revenue.category.${cell.category}`)} rate on ${row.dateKey}`
-                          }
+                          aria-label={t("revenue.ui.raiseRate", {
+                            category: `revenue.category.${cell.category}`,
+                            date: formatGameDate(row.dateKey, locale),
+                          })}
                           onClick={() =>
                             props.onSetRate(
                               row.dateKey,
@@ -144,15 +146,29 @@ export function RevenueDashboard(props: {
                     ))}
                     <td>
                       {booking
-                        ? `${booking.confirmedRooms}/${booking.capacityRooms} rooms (${formatBasisPoints(booking.occupancyBasisPoints, locale)})`
-                        : "No booking data"}
+                        ? t("revenue.ui.roomsBooked", {
+                            confirmed: booking.confirmedRooms,
+                            capacity: booking.capacityRooms,
+                            occupancy: formatBasisPoints(
+                              booking.occupancyBasisPoints,
+                              locale,
+                            ),
+                          })
+                        : t("revenue.ui.noBookings")}
                     </td>
                     <td>
                       {booking
-                        ? `${booking.forecastLow}–${booking.forecastHigh} room nights`
-                        : "No forecast"}
+                        ? t("revenue.ui.roomNights", {
+                            low: booking.forecastLow,
+                            high: booking.forecastHigh,
+                          })
+                        : t("revenue.ui.noForecast")}
                     </td>
-                    <td>{pickupByDate.get(row.dateKey)?.rooms ?? 0} rooms</td>
+                    <td>
+                      {t("revenue.ui.rooms", {
+                        count: pickupByDate.get(row.dateKey)?.rooms ?? 0,
+                      })}
+                    </td>
                   </tr>
                 );
               })}
@@ -161,8 +177,8 @@ export function RevenueDashboard(props: {
         )}
       </section>
 
-      <section aria-label="Channel mix">
-        <h3>Channel mix</h3>
+      <section aria-label={t("revenue.ui.channelMix")}>
+        <h3>{t("revenue.ui.channelMix")}</h3>
         {props.channels.length ? (
           <table>
             <caption>Confirmed business by channel</caption>
@@ -194,12 +210,12 @@ export function RevenueDashboard(props: {
             </tbody>
           </table>
         ) : (
-          <p>No confirmed bookings contribute to channel mix.</p>
+          <p>{t("revenue.ui.noChannels")}</p>
         )}
       </section>
 
-      <section aria-label="Rate plans">
-        <h3>Rate plans</h3>
+      <section aria-label={t("revenue.ui.ratePlans")}>
+        <h3>{t("revenue.ui.ratePlans")}</h3>
         {props.ratePlans.length ? (
           <table>
             <caption>Current read-only rate plans</caption>
@@ -222,28 +238,37 @@ export function RevenueDashboard(props: {
                       locale,
                     )}
                   </td>
-                  <td>{row.refundable ? "refundable" : "non-refundable"}</td>
+                  <td>
+                    {t(
+                      row.refundable
+                        ? "revenue.ui.refundable"
+                        : "revenue.ui.nonRefundable",
+                    )}
+                  </td>
                   <td>
                     {row.minimumStayNights}–
-                    {row.maximumStayNights ?? "unlimited"} nights
+                    {row.maximumStayNights ?? t("revenue.ui.unlimited")}{" "}
+                    {t("revenue.ui.nights")}
                   </td>
                   <td>
                     {row.closedToArrival
-                      ? "closed to arrival"
-                      : "open to arrival"}
+                      ? t("revenue.ui.closedArrival")
+                      : t("revenue.ui.openArrival")}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p>No rate plans are configured.</p>
+          <p>{t("revenue.ui.noRatePlans")}</p>
         )}
       </section>
 
-      <section aria-label="Overbooking exposure">
-        <h3>Overbooking exposure</h3>
-        <p>Policy limit: {props.overbooking.limitRooms} rooms.</p>
+      <section aria-label={t("revenue.ui.overbooking")}>
+        <h3>{t("revenue.ui.overbooking")}</h3>
+        <p>
+          {t("revenue.ui.policyLimit", { count: props.overbooking.limitRooms })}
+        </p>
         <ul>
           {props.overbooking.dates
             .filter((row) => row.exposureRooms > 0)
@@ -253,13 +278,14 @@ export function RevenueDashboard(props: {
               </li>
             ))}
         </ul>
-        {props.overbooking.dates.every((row) => row.exposureRooms === 0) ? (
-          <p>No date is above physical capacity.</p>
+        {props.overbooking.dates.length > 0 &&
+        props.overbooking.dates.every((row) => row.exposureRooms === 0) ? (
+          <p>{t("revenue.ui.noExposure")}</p>
         ) : null}
       </section>
 
-      <section aria-label="Revenue competition">
-        <h3>Competition</h3>
+      <section aria-label={t("revenue.ui.competitionLabel")}>
+        <h3>{t("revenue.ui.competition")}</h3>
         {props.competition.length ? (
           <table>
             <caption>Comparable city hotels</caption>
@@ -279,13 +305,13 @@ export function RevenueDashboard(props: {
                   <td>{row.rooms}</td>
                   <td>{formatDm(row.rateMinor, locale)}</td>
                   <td>{formatBasisPoints(row.occupancyBasisPoints, locale)}</td>
-                  <td>{row.status}</td>
+                  <td>{t(`revenue.ui.status.${row.status}`)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p>No comparable competitors are trading.</p>
+          <p>{t("revenue.ui.noCompetition")}</p>
         )}
       </section>
     </section>

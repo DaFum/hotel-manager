@@ -9,6 +9,7 @@ describe("portfolio rows", () => {
       hotelId: state.hotel.id,
       periodKey: "1991-01",
       roomRevenueMinor: 1,
+      eventRevenueMinor: 0,
       otherRevenueMinor: 2,
       operatingExpenseMinor: 3,
       grossOperatingProfitMinor: 4,

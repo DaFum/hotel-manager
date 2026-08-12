@@ -12,6 +12,13 @@ describe("notification preferences", () => {
     expect(shouldPauseForAlert("notice", "critical")).toBe(false);
     expect(shouldPauseForAlert("warning", "warning")).toBe(true);
     expect(shouldPauseForAlert("critical", "critical")).toBe(true);
+    expect(shouldPauseForAlert("critical", "never")).toBe(false);
+    expect(
+      shouldPauseForAlert("warning", "warning", "finance", ["finance"]),
+    ).toBe(true);
+    expect(
+      shouldPauseForAlert("critical", "warning", "operations", ["finance"]),
+    ).toBe(false);
   });
   it("groups deterministically but escalates critical items", () => {
     const base = {

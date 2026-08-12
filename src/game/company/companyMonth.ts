@@ -72,6 +72,8 @@ function publishFlagshipResult(
   ctx: CompanyMonthContext,
 ): void {
   const month = state.finance.month;
+  // Event revenue is disclosed separately but remains part of the existing
+  // other-revenue subtotal, so it must not be counted twice here.
   const revenueMinor = month.roomRevenueMinor + month.otherRevenueMinor;
   const grossOperatingProfitMinor = revenueMinor - month.operatingExpenseMinor;
   publishResult(
@@ -80,6 +82,7 @@ function publishFlagshipResult(
       hotelId: state.hotel.id,
       periodKey,
       roomRevenueMinor: month.roomRevenueMinor,
+      eventRevenueMinor: month.eventRevenueMinor,
       otherRevenueMinor: month.otherRevenueMinor,
       operatingExpenseMinor: month.operatingExpenseMinor,
       grossOperatingProfitMinor,
@@ -144,6 +147,7 @@ function tradeManagedHotels(
         hotelId: hotel.hotelId,
         periodKey,
         roomRevenueMinor: month.roomRevenueMinor,
+        eventRevenueMinor: 0,
         otherRevenueMinor: month.otherRevenueMinor,
         operatingExpenseMinor: month.operatingExpenseMinor,
         grossOperatingProfitMinor: month.grossOperatingProfitMinor,

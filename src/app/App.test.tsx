@@ -79,6 +79,7 @@ describe("App", () => {
       hotelId: managedId,
       periodKey: "1991-01",
       roomRevenueMinor: 1_000_000,
+      eventRevenueMinor: 0,
       otherRevenueMinor: 200_000,
       operatingExpenseMinor: 800_000,
       grossOperatingProfitMinor: 400_000,
@@ -241,8 +242,8 @@ describe("App", () => {
       ],
       guests: ["Guests"],
       staff: ["Personal"],
-      finance: ["Finance", "Purchasing"],
-      revenue: ["Revenue", "Competitors"],
+      finance: ["Finanzen", "Purchasing"],
+      revenue: ["Umsatz", "Competitors"],
       marketing: [
         "Vertriebspipeline",
         "CRM und Einwilligung",

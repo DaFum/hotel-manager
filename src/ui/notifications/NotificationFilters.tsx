@@ -4,6 +4,7 @@ import type {
 } from "../../game/settings/playerPreferences";
 import { translateGame, type GameLocale } from "../../i18n";
 import { severityIcon } from "./NotificationCenter";
+import type { ReactNode } from "react";
 
 const SEVERITIES: readonly AlertSeverity[] = [
   "info",
@@ -22,8 +23,8 @@ export function NotificationFilters(props: {
   value: NotificationPreferences;
   locale?: GameLocale;
   categories: readonly string[];
-  hotelIds: readonly string[];
-  regionIds: readonly string[];
+  hotels: readonly { id: string; name: string }[];
+  regions: readonly { id: string; name: string }[];
   onChange: (value: NotificationPreferences) => void;
 }) {
   const locale = props.locale ?? "en-GB";
@@ -33,7 +34,7 @@ export function NotificationFilters(props: {
     items: readonly string[],
     selected: readonly string[],
     update: (next: string[]) => void,
-    label: (item: string) => string = (item) => item,
+    label: (item: string) => ReactNode = (item) => item,
   ) => (
     <fieldset>
       <legend>{t(labelKey)}</legend>
@@ -61,8 +62,14 @@ export function NotificationFilters(props: {
             ...props.value,
             severities: severities as AlertSeverity[],
           }),
-        (severity) =>
-          `${severityIcon[severity as AlertSeverity]} ${t(`notifications.severity.${severity}`)}`,
+        (severity) => (
+          <>
+            <span aria-hidden="true">
+              {severityIcon[severity as AlertSeverity]}
+            </span>{" "}
+            {t(`notifications.severity.${severity}`)}
+          </>
+        ),
       )}
       {checks(
         "notifications.filters.category",
@@ -72,15 +79,20 @@ export function NotificationFilters(props: {
       )}
       {checks(
         "notifications.filters.hotel",
-        props.hotelIds,
+        props.hotels.map((hotel) => hotel.id),
         props.value.hotelIds,
         (hotelIds) => props.onChange({ ...props.value, hotelIds }),
+        (hotelId) =>
+          props.hotels.find((hotel) => hotel.id === hotelId)?.name ?? hotelId,
       )}
       {checks(
         "notifications.filters.region",
-        props.regionIds,
+        props.regions.map((region) => region.id),
         props.value.regionIds,
         (regionIds) => props.onChange({ ...props.value, regionIds }),
+        (regionId) =>
+          props.regions.find((region) => region.id === regionId)?.name ??
+          regionId,
       )}
       <label>
         {t("notifications.filters.delegation")}

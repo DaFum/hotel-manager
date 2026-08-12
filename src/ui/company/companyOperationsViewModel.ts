@@ -12,6 +12,7 @@ import {
   sharedServiceLoad,
 } from "../../game/company/sharedServices";
 import { MARKET_GOP_MULTIPLE_BP } from "../../game/content/1991/company";
+import { hotelName } from "./companyViewModel";
 export function treasuryView(state: GameState) {
   const t = state.company.treasury;
   const currencies = Object.fromEntries(
@@ -22,7 +23,11 @@ export function treasuryView(state: GameState) {
     hqMinor: t.hqMinor,
     consolidatedMinor: consolidatedCashMinor(t),
     accounts: Object.entries(t.hotelCashMinor).map(
-      ([hotelId, balanceMinor]) => ({ hotelId, balanceMinor }),
+      ([hotelId, balanceMinor]) => ({
+        hotelId,
+        hotelName: hotelName(state, hotelId),
+        balanceMinor,
+      }),
     ),
     overdrawn: overdrawnHotels(t),
     exposure: currencyExposureMinor(t, currencies),

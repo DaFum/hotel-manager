@@ -6,6 +6,7 @@ import { createInitialGameState, type GameState } from "./initialState";
 import { SERVICE_INTERVAL_MINUTES } from "../engineering/policy";
 import { reserve } from "../bookings/bookingEngine";
 import { startRenovation } from "../building/renovations";
+import { stateHash } from "../debug/stateHash";
 
 const QUANTA_PER_DAY = 1440 / QUANTUM_MINUTES;
 
@@ -633,22 +634,57 @@ describe("localized alerts", () => {
   });
 
   it("acknowledges an alert through the command boundary", () => {
-    const state = createInitialGameState(101);
-    state.alerts.push({
-      id: "alert.test",
-      severity: "notice",
-      title: "alert.test",
-      cause: "alert.test",
-      category: "test",
-      groupId: `${state.hotel.id}:test`,
-      source: { companyId: state.company.companyId, hotelId: state.hotel.id },
-      gameTime: "1991-01-01:0",
-      acknowledged: false,
+    const run = () => {
+      const state = createInitialGameState(101);
+      state.alerts.push({
+        id: "alert.test",
+        severity: "notice",
+        title: "alert.test",
+        cause: "alert.test",
+        category: "test",
+        groupId: `${state.hotel.id}:test`,
+        source: { companyId: state.company.companyId, hotelId: state.hotel.id },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
+      });
+      const simulation = new GameSimulation(state);
+      simulation.queueCommand({
+        type: "ACKNOWLEDGE_ALERT",
+        alertId: "alert.test",
+      });
+      simulation.applyPendingCommands();
+      return {
+        simulation,
+        hash: stateHash(simulation.state),
+        commands: simulation.state.commandLog,
+        events: simulation.takeDomainEvents(),
+      };
+    };
+    const first = run();
+    const second = run();
+    expect(first.simulation.state.alerts[0].acknowledged).toBe(true);
+    expect(second.hash).toBe(first.hash);
+    expect(second.commands).toEqual(first.commands);
+    expect(second.events).toEqual(first.events);
+  });
+
+  it("preserves acknowledgement while a housekeeping condition remains", () => {
+    const state = createInitialGameState(102);
+    for (const room of state.hotel.rooms.slice(0, 6))
+      room.state = "VacantDirty";
+    const simulation = new GameSimulation(state);
+    simulation.refreshDerivedState();
+    simulation.queueCommand({
+      type: "ACKNOWLEDGE_ALERT",
+      alertId: "alert.housekeeping-backlog",
     });
-    const sim = new GameSimulation(state);
-    sim.queueCommand({ type: "ACKNOWLEDGE_ALERT", id: "alert.test" });
-    sim.applyPendingCommands();
-    expect(sim.state.alerts[0].acknowledged).toBe(true);
+    simulation.applyPendingCommands();
+    simulation.refreshDerivedState();
+    expect(
+      simulation.state.alerts.find(
+        (alert) => alert.id === "alert.housekeeping-backlog",
+      )?.acknowledged,
+    ).toBe(true);
   });
 
   it("leaves an advisory with the player when no manager is assigned", () => {

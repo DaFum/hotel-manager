@@ -33,6 +33,7 @@ function groupOwningTwo() {
     hotelId: SOLD,
     periodKey: "1991-01",
     roomRevenueMinor: 1_000_000,
+    eventRevenueMinor: 0,
     otherRevenueMinor: 0,
     operatingExpenseMinor: 400_000,
     grossOperatingProfitMinor: 600_000,

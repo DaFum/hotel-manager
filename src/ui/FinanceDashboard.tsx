@@ -7,21 +7,27 @@ import {
 } from "./money";
 import "./theme/data.css";
 import "./theme/status.css";
+import { translateGame, type GameLocale } from "../i18n";
 
 function MoneyRow({
   label,
   amount,
   signed = false,
+  locale,
 }: {
   label: string;
   amount: number;
   signed?: boolean;
+  locale: GameLocale;
 }) {
   return (
     <div className="ledger-row">
       <dt>{label}</dt>
       <dd data-trend={signed ? trendForMinor(amount) : undefined}>
-        {signed ? formatSignedDm(amount) : formatDm(amount)}
+        {signed ? formatSignedDm(amount, locale) : formatDm(amount, locale)}
+        {signed
+          ? ` — ${translateGame(locale, `finance.dashboard.trend.${trendForMinor(amount)}`)}`
+          : null}
       </dd>
     </div>
   );
@@ -34,83 +40,115 @@ function MoneyRow({
  * - Constraints: pure props, tabular figures, explicit signs and textual status.
  * - Differentiator: the ledger-derived cost cause sits beside the statements it explains.
  */
-export function FinanceDashboard({ view }: { view: FinanceView }) {
+export function FinanceDashboard({
+  view,
+  locale = "en-GB",
+}: {
+  view: FinanceView;
+  locale?: GameLocale;
+}) {
   const pnl = view.profitAndLoss;
+  const t = (key: string) => translateGame(locale, key);
   return (
-    <div aria-label="Finance">
-      <section aria-label="Profit and loss">
-        <h2>Profit and loss</h2>
+    <div aria-label={t("finance.dashboard.title")}>
+      <section aria-label={t("finance.dashboard.pnl")}>
+        <h2>{t("finance.dashboard.pnl")}</h2>
         <dl>
-          <MoneyRow label="Revenue" amount={pnl.revenueMinor} />
           <MoneyRow
-            label="Operating expense"
-            amount={pnl.operatingExpenseMinor}
+            label={t("finance.dashboard.revenue")}
+            amount={pnl.revenueMinor}
+            locale={locale}
           />
           <MoneyRow
-            label="Operating profit"
+            label={t("finance.dashboard.operatingExpense")}
+            amount={pnl.operatingExpenseMinor}
+            locale={locale}
+          />
+          <MoneyRow
+            label={t("finance.dashboard.operatingProfit")}
             amount={pnl.operatingProfitMinor}
             signed
+            locale={locale}
           />
-          <MoneyRow label="Interest" amount={pnl.interestMinor} />
-          <MoneyRow label="Net profit" amount={pnl.netProfitMinor} signed />
+          <MoneyRow
+            label={t("finance.dashboard.interest")}
+            amount={pnl.interestMinor}
+            locale={locale}
+          />
+          <MoneyRow
+            label={t("finance.dashboard.netProfit")}
+            amount={pnl.netProfitMinor}
+            signed
+            locale={locale}
+          />
         </dl>
       </section>
-      <section aria-label="Cashflow">
-        <h2>Cashflow</h2>
+      <section aria-label={t("finance.dashboard.cashflow")}>
+        <h2>{t("finance.dashboard.cashflow")}</h2>
         <dl>
           <MoneyRow
-            label="Opening cash"
+            label={t("finance.dashboard.openingCash")}
             amount={view.cashFlow.openingCashMinor}
+            locale={locale}
           />
           <MoneyRow
-            label="Operating cash"
+            label={t("finance.dashboard.operatingCash")}
             amount={view.cashFlow.operatingCashMinor}
             signed
+            locale={locale}
           />
           <MoneyRow
-            label="Investing cash"
+            label={t("finance.dashboard.investingCash")}
             amount={view.cashFlow.investingCashMinor}
             signed
+            locale={locale}
           />
           <MoneyRow
-            label="Financing cash"
+            label={t("finance.dashboard.financingCash")}
             amount={view.cashFlow.financingCashMinor}
             signed
+            locale={locale}
           />
           <MoneyRow
-            label="Closing cash"
+            label={t("finance.dashboard.closingCash")}
             amount={view.cashFlow.closingCashMinor}
+            locale={locale}
           />
         </dl>
       </section>
-      <section aria-label="Balance sheet">
-        <h2>Balance sheet</h2>
+      <section aria-label={t("finance.dashboard.balanceSheet")}>
+        <h2>{t("finance.dashboard.balanceSheet")}</h2>
         <dl>
-          <MoneyRow label="Cash" amount={view.balanceSheet.cashMinor} />
           <MoneyRow
-            label="Receivables"
+            label={t("finance.dashboard.cash")}
+            amount={view.balanceSheet.cashMinor}
+            locale={locale}
+          />
+          <MoneyRow
+            label={t("finance.dashboard.receivables")}
             amount={view.balanceSheet.receivablesMinor}
+            locale={locale}
           />
           <MoneyRow
-            label="Net fixed assets"
+            label={t("finance.dashboard.fixedAssets")}
             amount={view.balanceSheet.fixedAssetsNetMinor}
+            locale={locale}
           />
           <MoneyRow
-            label="Total assets"
+            label={t("finance.dashboard.totalAssets")}
             amount={view.balanceSheet.totalAssetsMinor}
+            locale={locale}
           />
           <MoneyRow
-            label="Total liabilities"
+            label={t("finance.dashboard.totalLiabilities")}
             amount={view.balanceSheet.totalLiabilitiesMinor}
+            locale={locale}
           />
         </dl>
-        <p>
-          Equity is not yet available: contributed capital and retained earnings
-          have no verified snapshot source.
-        </p>
+        <p>{t("finance.dashboard.equityUnavailable")}</p>
       </section>
-      <section aria-label="Loans">
-        <h2>Loans</h2>
+      <section aria-label={t("finance.dashboard.loans")}>
+        <h2>{t("finance.dashboard.loans")}</h2>
         {view.loans.length ? (
           <table className="register-table">
             <thead>
@@ -124,13 +162,18 @@ export function FinanceDashboard({ view }: { view: FinanceView }) {
             <tbody>
               {view.loans.map((loan, index) => (
                 <tr key={index}>
-                  <td>{formatDm(loan.principalMinor)}</td>
-                  <td>{formatBasisPoints(loan.annualRateBasisPoints)}</td>
-                  <td>{loan.termMonths} months</td>
+                  <td>{formatDm(loan.principalMinor, locale)}</td>
+                  <td>
+                    {formatBasisPoints(loan.annualRateBasisPoints, locale)}
+                  </td>
+                  <td>
+                    {loan.termMonths} {t("finance.dashboard.months")}
+                  </td>
                   <td>
                     {formatDm(
                       (loan.schedule[0]?.principalMinor ?? 0) +
                         (loan.schedule[0]?.interestMinor ?? 0),
+                      locale,
                     )}
                   </td>
                 </tr>
@@ -138,12 +181,15 @@ export function FinanceDashboard({ view }: { view: FinanceView }) {
             </tbody>
           </table>
         ) : (
-          <p>No loans are outstanding.</p>
+          <p>{t("finance.dashboard.noLoans")}</p>
         )}
       </section>
-      <section aria-label="Investments">
-        <h2>Investments</h2>
-        <p>Capital-account total: {formatDm(view.investments.capexMinor)}</p>
+      <section aria-label={t("finance.dashboard.investments")}>
+        <h2>{t("finance.dashboard.investments")}</h2>
+        <p>
+          {t("finance.dashboard.capex")}:{" "}
+          {formatDm(view.investments.capexMinor, locale)}
+        </p>
         {view.investments.renovation ? (
           <p>
             {view.investments.renovation.id}:{" "}
@@ -151,7 +197,7 @@ export function FinanceDashboard({ view }: { view: FinanceView }) {
             {view.investments.renovation.targetModuleId}
           </p>
         ) : (
-          <p>No investment projects are active.</p>
+          <p>{t("finance.dashboard.noInvestments")}</p>
         )}
         {view.investments.capexVariance ? (
           <p
@@ -159,15 +205,19 @@ export function FinanceDashboard({ view }: { view: FinanceView }) {
               view.investments.capexVariance.favourable ? "gain" : "loss"
             }
           >
-            {formatSignedDm(view.investments.capexVariance.varianceMinor)} —{" "}
+            {formatSignedDm(
+              view.investments.capexVariance.varianceMinor,
+              locale,
+            )}{" "}
+            —{" "}
             {view.investments.capexVariance.favourable
-              ? "within capital budget"
-              : "capital budget overspent"}
+              ? t("finance.dashboard.withinBudget")
+              : t("finance.dashboard.overspent")}
           </p>
         ) : null}
       </section>
-      <section aria-label="Cost analysis">
-        <h2>Cost analysis</h2>
+      <section aria-label={t("finance.dashboard.costAnalysis")}>
+        <h2>{t("finance.dashboard.costAnalysis")}</h2>
         {view.costs.length ? (
           <table className="register-table">
             <thead>
@@ -181,31 +231,35 @@ export function FinanceDashboard({ view }: { view: FinanceView }) {
               {view.costs.map((row) => (
                 <tr key={row.account}>
                   <th>{row.account}</th>
-                  <td>{formatDm(row.amountMinor)}</td>
-                  <td>{formatBasisPoints(row.shareBasisPoints)}</td>
+                  <td>{formatDm(row.amountMinor, locale)}</td>
+                  <td>{formatBasisPoints(row.shareBasisPoints, locale)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         ) : (
-          <p>No operating costs have been posted.</p>
+          <p>{t("finance.dashboard.noCosts")}</p>
         )}
-        <p>{view.costCause}</p>
         <p>
-          This explanation is ledger-level only; it does not follow multi-hop
-          operational causes.
+          {translateGame(locale, view.costCause.key, view.costCause.values)}
         </p>
+        <p>{t("finance.dashboard.causeBoundary")}</p>
       </section>
-      <section aria-label="Insurance">
-        <h2>Insurance</h2>
+      <section aria-label={t("finance.dashboard.insurance")}>
+        <h2>{t("finance.dashboard.insurance")}</h2>
         {view.policies.length ? (
           <>
-            <p>Monthly premium: {formatDm(view.monthlyPremiumMinor)}</p>
+            <p>
+              {t("finance.dashboard.premium")}:{" "}
+              {formatDm(view.monthlyPremiumMinor, locale)}
+            </p>
             <ul>
               {view.policies.map((policy) => (
                 <li key={policy.id}>
-                  {policy.peril}: {formatDm(policy.limitMinor)} limit,{" "}
-                  {formatDm(policy.deductibleMinor)} deductible
+                  {policy.peril}: {formatDm(policy.limitMinor, locale)}{" "}
+                  {t("finance.dashboard.limit")},{" "}
+                  {formatDm(policy.deductibleMinor, locale)}{" "}
+                  {t("finance.dashboard.deductible")}
                 </li>
               ))}
             </ul>
@@ -213,17 +267,19 @@ export function FinanceDashboard({ view }: { view: FinanceView }) {
               <ul>
                 {view.claims.map((claim) => (
                   <li key={claim.id}>
-                    {claim.id}: {claim.status}, loss {formatDm(claim.lossMinor)}
-                    , settlement {formatDm(claim.settlementMinor)}
+                    {claim.id}: {claim.status}, {t("finance.dashboard.loss")}{" "}
+                    {formatDm(claim.lossMinor, locale)},{" "}
+                    {t("finance.dashboard.settlement")}{" "}
+                    {formatDm(claim.settlementMinor, locale)}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p>No insurance claims have been filed.</p>
+              <p>{t("finance.dashboard.noClaims")}</p>
             )}
           </>
         ) : (
-          <p>No insurance policies are in force.</p>
+          <p>{t("finance.dashboard.noPolicies")}</p>
         )}
       </section>
     </div>

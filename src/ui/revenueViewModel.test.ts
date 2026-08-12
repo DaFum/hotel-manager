@@ -66,7 +66,7 @@ describe("revenue view model", () => {
       booking({
         id: "booking.2",
         channel: "ota",
-        roomsRequested: 3,
+        roomsRequested: 200,
         rateMinor: 20_000,
       }),
     ];
@@ -74,11 +74,15 @@ describe("revenue view model", () => {
     expect(channelMixRows(state)).toHaveLength(2);
     expect(
       channelMixRows(state).find((row) => row.channel === "ota"),
-    ).toMatchObject({ rooms: 3, revenueMinor: 120_000 });
+    ).toMatchObject({ rooms: 200, revenueMinor: 8_000_000 });
     expect(
       pickupRows(state).find((row) => row.dateKey === "1991-01-02")!.rooms,
-    ).toBe(5);
-    expect(overbookingExposureRow(state)).toMatchObject({ limitRooms: 2 });
+    ).toBe(202);
+    const exposure = overbookingExposureRow(state);
+    expect(exposure).toMatchObject({ limitRooms: 2 });
+    expect(
+      exposure.dates.find((row) => row.dateKey === "1991-01-02")!.exposureRooms,
+    ).toBe(Math.max(0, 202 - state.hotel.rooms.length));
     state.cityMarket.occupancyAttribution.contributors = [
       { factor: "eventUplift", weight: 100 },
       { factor: "businessDemandChange", weight: -500 },

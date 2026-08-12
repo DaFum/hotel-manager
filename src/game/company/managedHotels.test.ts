@@ -6,6 +6,7 @@ import {
   cashNeedForLossMinor,
   managedQualityStars,
   managedRenovationNeedMinor,
+  managedHotelMonth,
 } from "./managedHotels";
 import { createTreasury, openHotelAccount } from "../treasury/treasury";
 
@@ -167,5 +168,24 @@ describe("managed hotel portfolio signals", () => {
         adrMinor: 20_000,
       }),
     ).toBe(5);
+  });
+
+  it("rejects invalid persisted metrics before monthly arithmetic", () => {
+    const input = {
+      periodStartDateKey: "1991-01-01",
+      brandUpliftBp: 0,
+    };
+    expect(() => managedHotelMonth({ ...hotel, rooms: 1.5 }, input)).toThrow(
+      /rooms/,
+    );
+    expect(() =>
+      managedHotelMonth({ ...hotel, adrMinor: Number.MAX_VALUE }, input),
+    ).toThrow(/adr/);
+    expect(() =>
+      managedHotelMonth({ ...hotel, occupancyBasisPoints: 10_001 }, input),
+    ).toThrow(/occupancy/);
+    expect(() =>
+      managedHotelMonth({ ...hotel, gopMarginBasisPoints: 10_001 }, input),
+    ).toThrow(/gop margin/);
   });
 });

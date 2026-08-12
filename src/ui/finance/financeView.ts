@@ -21,6 +21,7 @@ export type FinanceViewInput = Pick<
 > & {
   company: Pick<GameState["company"], "treasury" | "budgets">;
   hotelId: string;
+  periodKey: string;
 };
 
 export interface FinanceView {
@@ -49,7 +50,7 @@ export interface FinanceView {
     capexVariance: ReturnType<typeof budgetVariance> | null;
   };
   costs: { account: string; amountMinor: number; shareBasisPoints: number }[];
-  costCause: string;
+  costCause: ReturnType<typeof explainCause>;
   policies: GameState["insurance"]["policies"];
   claims: GameState["insurance"]["claims"];
   monthlyPremiumMinor: number;
@@ -81,8 +82,10 @@ export function financeView(input: FinanceViewInput): FinanceView {
         : 0,
     }));
   const budget =
-    input.company.budgets.find((item) => item.hotelId === input.hotelId) ??
-    null;
+    input.company.budgets.find(
+      (item) =>
+        item.hotelId === input.hotelId && item.periodKey === input.periodKey,
+    ) ?? null;
   const fixedAssetsNetMinor =
     input.statements.fixedAssetsMinor -
     input.statements.accumulatedDepreciationMinor;

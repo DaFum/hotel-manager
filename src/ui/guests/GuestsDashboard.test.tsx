@@ -50,7 +50,10 @@ describe("GuestsDashboard", () => {
             segment: "Business",
             stage: "front desk",
             cause: "Long check-in wait",
-            why: "Guest satisfaction fell because Long check-in wait (8%).",
+            why: {
+              key: "explanation.satisfactionDown.drivers",
+              values: { drivers: "Long check-in wait (8%)" },
+            },
             status: "accepted",
             cost: "10,00 DM",
             handled: true,

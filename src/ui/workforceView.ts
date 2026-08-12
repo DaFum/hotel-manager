@@ -51,8 +51,8 @@ export function workforceView(state: GameState): WorkforceView {
     return {
       employeeId: employee.id,
       staffId: employee.staffId,
-      role: staff?.role ?? "unknown",
-      shift: staff?.shift ?? "unknown",
+      role: staff?.role ?? "staff.role.unknown",
+      shift: staff?.shift ?? "staff.shift.unknown",
       monthlyWageMinor:
         staff?.monthlyWageMinor ?? employee.contract.monthlyWageMinor,
       contractKind: employee.contract.kind,
@@ -85,7 +85,7 @@ export function workforceView(state: GameState): WorkforceView {
     housekeeping: {
       demand: housekeeping?.demand ?? 0,
       capacity: housekeeping?.capacity ?? 0,
-      cause: housekeeping?.cause ?? "no housekeeping facility reading",
+      cause: housekeeping?.cause ?? "staff.housekeeping.unavailable",
       carriedMinutes: state.housekeepingMinutes,
       eventOutstandingMinutes: state.eventHousekeepingMinutes,
       eventWorkedMinutes: state.eventHousekeepingWorkedMinutes,

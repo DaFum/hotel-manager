@@ -158,7 +158,9 @@ describe("acquisitions through the simulation", () => {
     expect(result.soldRoomNights).toBeGreaterThan(0);
     expect(result.roomRevenueMinor).toBeGreaterThan(0);
     expect(result.qualityStars).toBeGreaterThan(0);
+    expect(Number.isSafeInteger(result.cashNeedMinor)).toBe(true);
     expect(result.cashNeedMinor).toBeGreaterThanOrEqual(0);
+    expect(Number.isSafeInteger(result.renovationNeedMinor)).toBe(true);
     expect(result.renovationNeedMinor).toBeGreaterThan(0);
     expect(
       result.roomRevenueMinor +

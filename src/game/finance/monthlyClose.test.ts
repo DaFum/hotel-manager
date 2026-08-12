@@ -74,8 +74,8 @@ describe("monthly close", () => {
       }),
     );
     expect(result.whatIsChanging.map((item) => item.labelKey)).toEqual([
-      "finance.monthlyClose.causes.competitorDevelopments",
-      "finance.monthlyClose.causes.supplierExpiries",
+      "finance.monthlyClose.causes.competitorDevelopments_one",
+      "finance.monthlyClose.causes.supplierExpiries_one",
     ]);
   });
 });

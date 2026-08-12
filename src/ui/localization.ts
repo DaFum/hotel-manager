@@ -4,7 +4,7 @@ export type { RenovationPhase };
 
 export const ENGLISH_TEXT = {
   "trend.digital-booking.name": "Digital booking",
-  "macro-credit": "Credit-market pressure",
+  "macro.credit.name": "Credit-market pressure",
   "city.frankfurt.name": "Frankfurt",
   "competitor.strategy.budget": "Budget operator",
   "competitor.strategy.luxury": "Luxury house",
@@ -19,8 +19,24 @@ export const ENGLISH_TEXT = {
   "guest.cause.dirtyRoom": "Room was not ready",
   "guest.cause.brokenAsset": "Equipment failed during the stay",
   "guest.cause.breakfastWait": "Breakfast service was delayed",
-  "guest.cause.waited too long at reception": "Waited too long at reception",
-  "guest.cause.checked in without waiting": "Checked in without waiting",
+  "guest.cause.receptionWait": "Waited {waitedMinutes} minutes at reception",
+  "guest.cause.noReceptionWait": "Checked in without waiting",
+  "guest.unknown.party": "unknown party",
+  "guest.unknown.stay": "unknown stay",
+  "guest.unknown.segment": "unknown guest segment",
+  "explanation.occupancyDown.drivers": "Occupancy fell because {drivers}.",
+  "explanation.occupancyDown.empty":
+    "Occupancy fell for no single dominant reason.",
+  "explanation.occupancyUp.drivers": "Occupancy rose because {drivers}.",
+  "explanation.occupancyUp.empty":
+    "Occupancy rose for no single dominant reason.",
+  "explanation.profitDown.drivers": "Operating profit fell because {drivers}.",
+  "explanation.profitDown.empty":
+    "Operating profit fell for no single dominant reason.",
+  "explanation.satisfactionDown.drivers":
+    "Guest satisfaction fell because {drivers}.",
+  "explanation.satisfactionDown.empty":
+    "Guest satisfaction fell for no single dominant reason.",
   "guest.stage.arrival": "arrival",
   "guest.stage.checkIn": "front desk",
   "guest.stage.room": "room",
@@ -197,8 +213,14 @@ export function translate(key: LocalizationKey): string {
  * sentences, so an unknown one is a content gap: it shows as the key rather
  * than as an empty space, which is what makes the gap findable.
  */
-export function translateKey(key: string): string {
-  return ENGLISH_TEXT[key as LocalizationKey] ?? key;
+export function translateKey(
+  key: string,
+  values: Record<string, string | number> = {},
+): string {
+  const template = ENGLISH_TEXT[key as LocalizationKey] ?? key;
+  return template.replace(/\{([^}]+)\}/g, (_, name: string) =>
+    String(values[name] ?? `{${name}}`),
+  );
 }
 
 export function translateAlertCause(

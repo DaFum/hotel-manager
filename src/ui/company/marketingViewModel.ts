@@ -7,7 +7,6 @@ import {
 } from "../../game/commercial/campaigns";
 import { GUEST_SEGMENTS } from "../../game/content/1991/guestSegments";
 import { MEDIA_CHANNELS, incidentReach } from "../../game/media/mediaLandscape";
-import { translateKey } from "../localization";
 import { addDays } from "../../game/domain/calendar";
 
 export function salesPipelineView(state: GameState) {
@@ -58,11 +57,9 @@ export function audienceReachView(state: GameState) {
       return {
         id: c.id,
         channel: c.channel,
-        segment: GUEST_SEGMENTS.find((s) => s.id === c.targetSegmentId)?.nameKey
-          ? translateKey(
-              GUEST_SEGMENTS.find((s) => s.id === c.targetSegmentId)!.nameKey,
-            )
-          : c.targetSegmentId,
+        segment:
+          GUEST_SEGMENTS.find((s) => s.id === c.targetSegmentId)?.nameKey ??
+          c.targetSegmentId,
         lowBp: band.low,
         highBp: band.high,
         influencedBookings: state.reservations.filter(

@@ -1,4 +1,25 @@
 export const de = {
+  explanation: {
+    occupancyDown: {
+      drivers: "Die Auslastung sank wegen {drivers}.",
+      empty: "Die Auslastung sank ohne einen einzelnen dominanten Grund.",
+    },
+    occupancyUp: {
+      drivers: "Die Auslastung stieg wegen {drivers}.",
+      empty: "Die Auslastung stieg ohne einen einzelnen dominanten Grund.",
+    },
+    profitDown: {
+      drivers: "Das Betriebsergebnis sank wegen {drivers}.",
+      empty: "Das Betriebsergebnis sank ohne einen einzelnen dominanten Grund.",
+    },
+    satisfactionDown: {
+      drivers: "Die Gästezufriedenheit sank wegen {drivers}.",
+      empty:
+        "Die Gästezufriedenheit sank ohne einen einzelnen dominanten Grund.",
+    },
+  },
+  trend: { "digital-booking": { name: "Digitale Buchung" } },
+  macro: { credit: { name: "Druck am Kreditmarkt" } },
   app: {
     main: "Hotelverwaltung",
     telemetry: {
@@ -72,6 +93,7 @@ export const de = {
       unavailable: "außer Betrieb",
       overloaded: "Warteschlange übersteigt die Aufzugskapazität",
       available: "verfügbar",
+      notSimulated: "für dieses verwaltete Hotel nicht simuliert",
     },
   },
   fnb: {
@@ -154,6 +176,53 @@ export const de = {
     campaign: "Kampagne",
   },
   revenue: {
+    ui: {
+      title: "Umsatz",
+      kicker: "Ertragsbüro · Vorausbuchungen",
+      adr: "ADR",
+      revpar: "RevPAR",
+      occupancy: "Auslastung",
+      driversLabel: "Auslastungstreiber",
+      drivers: "Warum sich die Auslastung veränderte",
+      noDrivers: "Noch wurde keine Auslastungsbewegung zugeordnet.",
+      timelineLabel: "Umsatzzeitachse",
+      timeline: "Preis- und Nachfragezeitachse",
+      noTimeline:
+        "Für dieses Zeitfenster liegen keine Preis- oder Buchungsdaten vor.",
+      window: "Umsatzzeitraum",
+      date: "Datum",
+      onBooks: "Buchungsstand",
+      forecast: "Nachfrageprognose",
+      pickup: "7-Tage-Pickup",
+      dateState: { past: "vergangen", today: "heute", future: "zukünftig" },
+      raiseRate: "Preis für {category} am {date} erhöhen",
+      roomsBooked: "{confirmed}/{capacity} Zimmer ({occupancy})",
+      noBookings: "Keine Buchungsdaten",
+      roomNights: "{low}–{high} Zimmernächte",
+      noForecast: "Keine Prognose",
+      rooms: "{count} Zimmer",
+      channelMix: "Vertriebsmix",
+      noChannels: "Keine bestätigten Buchungen tragen zum Vertriebsmix bei.",
+      ratePlans: "Preispläne",
+      refundable: "erstattbar",
+      nonRefundable: "nicht erstattbar",
+      unlimited: "unbegrenzt",
+      nights: "Nächte",
+      closedArrival: "für Anreise geschlossen",
+      openArrival: "für Anreise offen",
+      noRatePlans: "Keine Preispläne konfiguriert.",
+      overbooking: "Überbuchungsrisiko",
+      policyLimit: "Richtliniengrenze: {count} Zimmer.",
+      noExposure: "Kein Datum liegt über der physischen Kapazität.",
+      competitionLabel: "Umsatzwettbewerb",
+      competition: "Wettbewerb",
+      noCompetition: "Keine vergleichbaren Wettbewerber handeln.",
+      status: {
+        operate: "in Betrieb",
+        restructure: "in Restrukturierung",
+        exit: "ausgeschieden",
+      },
+    },
     category: {
       single: "Einzelzimmer",
       double: "Doppelzimmer",
@@ -178,6 +247,23 @@ export const de = {
     },
   },
   staff: {
+    role: {
+      reception: "Rezeption",
+      housekeeping: "Housekeeping",
+      kitchen: "Küche",
+      technician: "Technik",
+      fnb: "Gastronomie",
+      laundry: "Wäscherei",
+      wellness: "Wellness",
+      security: "Sicherheit",
+      unknown: "Unbekannte Rolle",
+    },
+    shift: {
+      morning: "Früh",
+      evening: "Spät",
+      night: "Nacht",
+      unknown: "Unbekannte Schicht",
+    },
     title: "Personal",
     minutes: "Minuten",
     understaffed: "unterbesetzt",
@@ -221,6 +307,7 @@ export const de = {
     },
     housekeeping: {
       title: "Housekeeping-Auslastung",
+      unavailable: "Keine Housekeeping-Auslastung verfügbar.",
       carried: "Übertragener Arbeitssaldo",
       eventOutstanding: "Offene Veranstaltungsarbeit",
       eventWorked: "Heute erledigte Veranstaltungsarbeit",
@@ -282,6 +369,19 @@ export const de = {
       attraction: "Attraktionen",
       investor: "Investoren",
     },
+    eventStatus: {
+      offered: "angeboten",
+      negotiating: "in Verhandlung",
+      confirmed: "bestätigt",
+      cancelled: "storniert",
+      complete: "abgeschlossen",
+    },
+    shockKind: {
+      financial: "Finanzen",
+      supply: "Versorgung",
+      health: "Gesundheit",
+      weather: "Wetter",
+    },
     world: {
       title: "Weltlage",
       macro: "Makroökonomie",
@@ -309,6 +409,38 @@ export const de = {
     },
   },
   marketing: {
+    stage: {
+      lead: "Kontakt",
+      qualified: "Qualifiziert",
+      proposed: "Angebot",
+      won: "Gewonnen",
+      lost: "Verloren",
+    },
+    renewal: {
+      unknown: "Verlängerung offen",
+      renewing: "wird verlängert",
+      leaving: "wird nicht verlängert",
+    },
+    channel: {
+      print: "Print",
+      radio: "Radio",
+      billboard: "Plakat",
+      directMail: "Direktmailing",
+      travelAgent: "Reisebüro",
+      onlineListing: "Online-Verzeichnis",
+      localPress: "Lokale Presse",
+      travelGuides: "Reiseführer",
+      television: "Fernsehen",
+      wordOfMouth: "Mundpropaganda",
+      reviewSites: "Bewertungsportale",
+      socialMedia: "Soziale Medien",
+    },
+    dimension: {
+      brand: "Marke",
+      media: "Medien",
+      channel: "Vertriebskanal",
+    },
+    scope: {},
     sales: {
       title: "Vertriebspipeline",
       leads: "Interessenten",
@@ -337,6 +469,12 @@ export const de = {
       noCause: "keine erfasste Ursache",
       noReputation: "Keine Zielgruppenreputation erfasst.",
     },
+  },
+  segment: {
+    business: { name: "Geschäftsreisende" },
+    corporate: { name: "Firmenkunden" },
+    leisure: { name: "Freizeitreisende" },
+    budget: { name: "Preisbewusste Gäste" },
   },
   companyOps: {
     treasury: {
@@ -516,6 +654,50 @@ export const de = {
   alerts: { liquidityCritical: "Liquidität ist kritisch" },
   events: { guestCheckin: "Gast eingecheckt" },
   finance: {
+    dashboard: {
+      title: "Finanzen",
+      pnl: "Gewinn und Verlust",
+      revenue: "Umsatz",
+      operatingExpense: "Betriebsaufwand",
+      operatingProfit: "Betriebsergebnis",
+      interest: "Zinsen",
+      netProfit: "Nettoergebnis",
+      cashflow: "Cashflow",
+      openingCash: "Anfangsbestand",
+      operatingCash: "Operativer Cashflow",
+      investingCash: "Investitions-Cashflow",
+      financingCash: "Finanzierungs-Cashflow",
+      closingCash: "Endbestand",
+      balanceSheet: "Bilanz",
+      cash: "Zahlungsmittel",
+      receivables: "Forderungen",
+      fixedAssets: "Nettoanlagevermögen",
+      totalAssets: "Summe Aktiva",
+      totalLiabilities: "Summe Verbindlichkeiten",
+      equityUnavailable:
+        "Eigenkapital ist noch nicht verfügbar: Eingezahltes Kapital und Gewinnrücklagen haben keine bestätigte Datenquelle.",
+      loans: "Darlehen",
+      months: "Monate",
+      noLoans: "Keine Darlehen ausstehend.",
+      investments: "Investitionen",
+      capex: "Summe Kapitalkonto",
+      noInvestments: "Keine Investitionsprojekte aktiv.",
+      withinBudget: "im Investitionsbudget",
+      overspent: "Investitionsbudget überschritten",
+      costAnalysis: "Kostenanalyse",
+      noCosts: "Keine Betriebskosten gebucht.",
+      causeBoundary:
+        "Diese Erklärung bleibt auf Ledger-Ebene; mehrstufige operative Ursachen werden nicht verfolgt.",
+      insurance: "Versicherung",
+      premium: "Monatsprämie",
+      limit: "Deckungsgrenze",
+      deductible: "Selbstbehalt",
+      loss: "Schaden",
+      settlement: "Regulierung",
+      noClaims: "Keine Versicherungsansprüche eingereicht.",
+      noPolicies: "Keine Versicherungspolicen aktiv.",
+      trend: { gain: "Gewinn", loss: "Verlust", flat: "unverändert" },
+    },
     monthlyClose: {
       title: "Monatsabschluss {periodKey}",
       whatWentWell: "Was lief gut?",
@@ -550,10 +732,14 @@ export const de = {
           "Das Betriebsergebnis erreichte mit {amountMinor} einen neuen Rekord.",
         eventRevenueMinorRecord:
           "Das Konferenzgeschäft stellte mit {amountMinor} einen neuen Rekord auf.",
-        supplierExpiries:
-          "{count} Liefervertrag bzw. Lieferverträge laufen binnen 45 Tagen aus.",
-        competitorDevelopments:
-          "{count} Wettbewerberentwicklung(en) verändern den Markt ({rooms} Zimmer).",
+        supplierExpiries_one:
+          "{count} Liefervertrag läuft binnen {days} Tagen aus.",
+        supplierExpiries_other:
+          "{count} Lieferverträge laufen binnen {days} Tagen aus.",
+        competitorDevelopments_one:
+          "{count} Wettbewerberentwicklung verändert den Markt ({rooms} Zimmer).",
+        competitorDevelopments_other:
+          "{count} Wettbewerberentwicklungen verändern den Markt ({rooms} Zimmer).",
       },
     },
   },

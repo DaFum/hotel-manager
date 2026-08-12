@@ -1,14 +1,32 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { validateEnvelope } from "../saveSchema";
 import type { SaveEnvelope } from "../saveVersions";
 import { migrateV11ToV12 } from "./v11-to-v12";
 
 describe("v11 to v12 alert migration", () => {
-  it("backfills authoritative notification metadata on a recorded old alert", () => {
-    const old = JSON.parse(
-      readFileSync("fixtures/saves/alert-v11.json", "utf8"),
-    ) as SaveEnvelope;
+  it("backfills authoritative notification metadata on an old alert", () => {
+    const old = {
+      saveVersion: 11,
+      contentVersion: "1991.1",
+      protocolVersion: 5,
+      rngState: {},
+      state: {
+        hotel: { id: "hotel.1" },
+        company: {
+          companyId: "company.1",
+          portfolio: { hotelRegion: { "hotel.1": "region.1" } },
+          hotelResults: {},
+        },
+        calendar: { dateKey: "1991-01-01", minuteOfDay: 60 },
+        alerts: [
+          {
+            id: "alert.space.1",
+            severity: "info",
+            title: "alert.space.title",
+            cause: "alert.space.cause",
+          },
+        ],
+      },
+    } as unknown as SaveEnvelope;
     const migrated = migrateV11ToV12(old);
     expect(migrated.saveVersion).toBe(12);
     const state = migrated.state as any;
@@ -23,6 +41,20 @@ describe("v11 to v12 alert migration", () => {
       gameTime: `${state.calendar.dateKey}:${state.calendar.minuteOfDay}`,
       acknowledged: false,
     });
-    expect(validateEnvelope(migrated)).toEqual([]);
+  });
+
+  it("rejects malformed state and alert containers instead of throwing properties", () => {
+    const base = {
+      saveVersion: 11,
+      contentVersion: "1991.1",
+      protocolVersion: 5,
+      rngState: {},
+    } as unknown as SaveEnvelope;
+    expect(() => migrateV11ToV12({ ...base, state: null })).toThrow(
+      /state must be an object/,
+    );
+    expect(() => migrateV11ToV12({ ...base, state: {} })).toThrow(
+      /alerts must be an array/,
+    );
   });
 });

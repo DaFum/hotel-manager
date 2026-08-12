@@ -9,7 +9,6 @@ import {
   TRANSPORT_MODES,
 } from "../../game/transport/network";
 import { ACTOR_KINDS, scaleByKind } from "../../game/actors/evolution";
-import { translateKey } from "../localization";
 
 export function cityEconomyView(state: GameState) {
   const landPriceMinor = state.cityMarket.landPriceMinor;
@@ -55,12 +54,9 @@ export function worldConditionsView(state: GameState) {
     macro: { ...state.world.macro },
     trends: state.world.trends.map((trend) => ({
       ...trend,
-      name: translateKey(`trend.${trend.id}.name`),
+      name: `trend.${trend.id}.name`,
     })),
-    shocks: state.world.activeShocks.map((shock) => ({
-      ...shock,
-      causes: shock.causes.map(translateKey),
-    })),
+    shocks: state.world.activeShocks.map((shock) => ({ ...shock })),
     weather: { ...state.world.weather },
     commonCurrency: { ...state.world.commonCurrency },
     regulationPressureBp: state.world.regulationPressureBp,

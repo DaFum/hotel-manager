@@ -154,7 +154,7 @@ export class GameClient {
   }
 
   acknowledgeAlert(id: string): string {
-    return this.sendCommand({ type: "ACKNOWLEDGE_ALERT", id });
+    return this.sendCommand({ type: "ACKNOWLEDGE_ALERT", alertId: id });
   }
 
   requestSave(preferences: PlayerPreferences): string {

@@ -20,6 +20,7 @@ describe("finance view", () => {
       ...state,
       company: state.company,
       hotelId: state.hotel.id,
+      periodKey: state.calendar.dateKey.slice(0, 7),
     });
     expect(view.profitAndLoss).toMatchObject({
       revenueMinor: 120_000,
@@ -37,6 +38,9 @@ describe("finance view", () => {
       "wages",
       "utilities",
     ]);
-    expect(view.costCause).toMatch(/wages \(75%\).*utilities \(25%\)/);
+    expect(view.costCause).toMatchObject({
+      key: "explanation.profitDown.drivers",
+      values: { drivers: "wages (75%) and utilities (25%)" },
+    });
   });
 });

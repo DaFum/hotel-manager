@@ -207,6 +207,10 @@ export function managedHotelMonth(
     treasury?: TreasuryState;
   },
 ): ManagedHotelMonth {
+  assertCount(hotel.rooms, "managed hotel rooms");
+  assertNonNegativeMinor(hotel.adrMinor, "managed hotel adr");
+  assertShareBp(hotel.occupancyBasisPoints, "managed hotel occupancy");
+  assertShareBp(hotel.gopMarginBasisPoints, "managed hotel gop margin");
   assertBasisPoints(input.brandUpliftBp, "brand uplift");
   const nights = daysInMonth(input.periodStartDateKey);
   const availableRoomNights = hotel.rooms * nights;

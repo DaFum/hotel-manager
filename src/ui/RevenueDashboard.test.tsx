@@ -91,7 +91,7 @@ describe("RevenueDashboard", () => {
   it("edits one date and category", () => {
     const onSetRate = vi.fn();
     render(<RevenueDashboard {...props} onSetRate={onSetRate} />);
-    fireEvent.click(screen.getByRole("button", { name: /Set single rate/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Raise Single rate/ }));
     expect(onSetRate).toHaveBeenCalledWith("1991-01-01", "single", 10_500);
   });
 

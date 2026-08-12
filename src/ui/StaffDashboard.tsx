@@ -59,8 +59,20 @@ export function StaffDashboard(props: {
             {props.view.rows.map((row) => (
               <tr key={row.employeeId}>
                 <th scope="row">{row.staffId}</th>
-                <td>{row.role}</td>
-                <td>{row.shift}</td>
+                <td>
+                  {t(
+                    row.role.startsWith("staff.")
+                      ? row.role
+                      : `staff.role.${row.role}`,
+                  )}
+                </td>
+                <td>
+                  {t(
+                    row.shift.startsWith("staff.")
+                      ? row.shift
+                      : `staff.shift.${row.shift}`,
+                  )}
+                </td>
                 <td>{t(`staff.contract.${row.contractKind}`)}</td>
                 <td>{t(`staff.status.${row.status}`)}</td>
                 <td>{row.statusCause ?? t("staff.cause.none")}</td>
@@ -87,7 +99,7 @@ export function StaffDashboard(props: {
           <dt>{t("staff.load.capacity")}</dt>
           <dd>{props.view.housekeeping.capacity}</dd>
           <dt>{t("staff.load.cause")}</dt>
-          <dd>{props.view.housekeeping.cause}</dd>
+          <dd>{t(props.view.housekeeping.cause)}</dd>
           <dt>{t("staff.housekeeping.carried")}</dt>
           <dd>
             {props.view.housekeeping.carriedMinutes} {t("staff.minutes")}
@@ -145,20 +157,23 @@ export function StaffDashboard(props: {
           >
             {props.roles.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {t(`staff.role.${item}`)}
               </option>
             ))}
           </select>
         </label>
-        <p aria-label={t("staff.hiring.marketWage")}>
-          {t("staff.hiring.context", {
-            wage: formatDm(props.marketWageMinor, locale),
-            pressure: formatBasisPoints(
-              props.view.wagePressureBasisPoints,
-              locale,
-            ),
-          })}
-        </p>
+        <div role="group" aria-labelledby="staff-market-wage-label">
+          <h4 id="staff-market-wage-label">{t("staff.hiring.marketWage")}</h4>
+          <p>
+            {t("staff.hiring.context", {
+              wage: formatDm(props.marketWageMinor, locale),
+              pressure: formatBasisPoints(
+                props.view.wagePressureBasisPoints,
+                locale,
+              ),
+            })}
+          </p>
+        </div>
         <button type="button" onClick={() => props.onHire(role)}>
           {t("staff.hiring.action")}
         </button>

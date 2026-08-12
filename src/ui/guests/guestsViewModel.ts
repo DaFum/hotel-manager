@@ -26,12 +26,17 @@ import type {
  * tested without a simulation or hidden component logic.
  */
 
-const UNKNOWN_STAY = "unknown stay";
+const UNKNOWN_STAY = "guest.unknown.stay";
 
-function causeText(cause: string): string {
+function causeText(
+  cause: string,
+  values: Record<string, string | number> = {},
+): string {
   if (!cause) return translateKey("guest.cause.unknown");
   const key = cause.startsWith("guest.cause.") ? cause : `guest.cause.${cause}`;
-  return ENGLISH_TEXT[key as LocalizationKey] ? translateKey(key) : cause;
+  return ENGLISH_TEXT[key as LocalizationKey]
+    ? translateKey(key, values)
+    : cause;
 }
 
 function stageText(stage: string): string {
@@ -42,13 +47,13 @@ function stageText(stage: string): string {
 
 function segmentName(segmentId: string | undefined): string {
   const name = GUEST_SEGMENTS.find((segment) => segment.id === segmentId)?.name;
-  return name ? translateKey(name) : "unknown guest segment";
+  return name ? translateKey(name) : "guest.unknown.segment";
 }
 
 export function satisfactionSummary(state: GameState): SatisfactionRow {
   return {
     score: state.guestSatisfaction.score,
-    causes: state.guestSatisfaction.causes.map(causeText),
+    causes: state.guestSatisfaction.causes.map((cause) => causeText(cause)),
   };
 }
 
@@ -65,12 +70,12 @@ export function complaintRows(state: GameState): ComplaintRow[] {
         )
       : undefined;
     const drivers = (stay?.events ?? []).map((event) => ({
-      factor: causeText(event.cause),
+      factor: causeText(event.cause, event.values),
       weight: Math.abs(event.delta),
     }));
     return {
       complaintId: recovery.complaint.id,
-      partyId: stay?.partyId ?? "unknown party",
+      partyId: stay?.partyId ?? "guest.unknown.party",
       bookingId: recovery.complaint.bookingId,
       roomId: stay?.roomId ?? null,
       stayLabel: stay ? `stay ${stay.bookingId}` : UNKNOWN_STAY,
@@ -141,7 +146,7 @@ export function repeatGuestRows(state: GameState): RepeatGuestRow[] {
     guestId: profile.guestId,
     visits: profile.stayHistory.length,
     consent: profile.consent,
-    preferences: profile.preferences.map(translateKey),
+    preferences: profile.preferences.map((key) => translateKey(key)),
   }));
 }
 

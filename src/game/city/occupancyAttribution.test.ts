@@ -3,6 +3,7 @@ import { occupancyContributors } from "./demand";
 import { createInitialGameState } from "../simulation/initialState";
 import { GameSimulation } from "../simulation/GameSimulation";
 import { QUANTUM_MINUTES } from "../simulation/clock";
+import { stateHash } from "../debug/stateHash";
 
 describe("occupancy attribution", () => {
   it("reconciles named integer marginals exactly to occupancy movement", () => {
@@ -40,13 +41,19 @@ describe("occupancy attribution", () => {
       const simulation = new GameSimulation(createInitialGameState(73));
       for (let index = 0; index < (32 * 1440) / QUANTUM_MINUTES; index += 1)
         simulation.advanceQuantum();
-      return simulation.state.cityMarket.occupancyAttribution;
+      return {
+        attribution: simulation.state.cityMarket.occupancyAttribution,
+        hash: stateHash(simulation.state),
+        events: simulation.takeDomainEvents(),
+      };
     };
     const first = run();
     const second = run();
     expect(second).toEqual(first);
-    expect(first.contributors.reduce((sum, row) => sum + row.weight, 0)).toBe(
-      first.occupancyMovementBp,
-    );
+    expect(second.hash).toBe(first.hash);
+    expect(second.events).toEqual(first.events);
+    expect(
+      first.attribution.contributors.reduce((sum, row) => sum + row.weight, 0),
+    ).toBe(first.attribution.occupancyMovementBp);
   }, 30_000);
 });

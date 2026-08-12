@@ -10,18 +10,31 @@ describe("company operations panels", () => {
           hotelCount: 2,
           hqMinor: 100,
           consolidatedMinor: 300,
-          accounts: [{ hotelId: "h1", balanceMinor: 200 }],
+          accounts: [
+            { hotelId: "h1", hotelName: "Hotel One", balanceMinor: 200 },
+          ],
           overdrawn: [],
           exposure: { DEM: 300 },
         }}
         onTransfer={onTransfer}
       />,
     );
-    fireEvent.change(screen.getByLabelText(/h1 transfer amount/i), {
+    const amount = screen.getByLabelText(/hotel one transfer amount/i);
+    expect(
+      screen
+        .getByRole("button", { name: "Fund hotel" })
+        .hasAttribute("disabled"),
+    ).toBe(true);
+    expect(
+      screen.getByText("Enter a positive amount to enable transfer."),
+    ).toBeTruthy();
+    fireEvent.change(amount, {
       target: { value: "500" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Fund hotel" }));
     expect(onTransfer).toHaveBeenCalledWith("h1", 500, "fund");
+    fireEvent.click(screen.getByRole("button", { name: "Sweep to HQ" }));
+    expect(onTransfer).toHaveBeenCalledWith("h1", 500, "sweep");
   });
   it("dispatches diligence and a band midpoint offer", () => {
     const onDiligence = vi.fn(),

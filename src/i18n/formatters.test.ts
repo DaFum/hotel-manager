@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatGameDate,
+  formatGameDateRange,
   formatMinorCurrency,
   formatPercentBasisPoints,
 } from "./formatters";
@@ -11,5 +12,8 @@ describe("locale formatters", () => {
     expect(minor).toBe(12_345);
     expect(formatPercentBasisPoints(7850, "de-DE")).toContain("78");
     expect(formatGameDate("1991-01-01", "en-GB")).toContain("1991");
+    expect(formatGameDateRange("1991-01-01", "1991-01-01", "en-GB")).toBe(
+      formatGameDate("1991-01-01", "en-GB"),
+    );
   });
 });

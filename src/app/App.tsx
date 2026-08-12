@@ -139,6 +139,7 @@ import {
   portfolioRows,
   accountRows,
   campaignRows,
+  cityName,
   marketableGuestCount,
   reputationRows,
 } from "../ui/company/companyViewModel";
@@ -344,6 +345,12 @@ export function App() {
       }),
     );
   };
+  const managedDepartmentFallback = selectedHotel ? (
+    <ManagedHotelUnavailable
+      hotelName={selectedHotel.name}
+      level="department"
+    />
+  ) : null;
 
   const areaContent: Record<ManagementAreaId, ReactNode> = {
     mainView: (
@@ -386,15 +393,7 @@ export function App() {
           }
           // Choosing a room anywhere moves the one camera the world uses,
           // so the register and the building never look at different places.
-          onSelect={(roomId) =>
-            setCamera((current) =>
-              focusCamera(current, {
-                id: roomId,
-                ...roomFocusPoint(roomId, s),
-                kind: "room",
-              }),
-            )
-          }
+          onSelect={selectGuestRoom}
           onSelectAgent={(agentId) => {
             const agent = s.renderDescriptors.agents.find(
               (candidate) => candidate.id === agentId,
@@ -432,7 +431,11 @@ export function App() {
           elevator={
             flagshipSelected
               ? elevatorVisual(s.renderDescriptors.elevator)
-              : { queue: 0, waitMinutes: 0, cause: "not simulated" }
+              : {
+                  queue: 0,
+                  waitMinutes: 0,
+                  cause: "world.elevatorCause.notSimulated",
+                }
           }
           problems={flagshipSelected ? worldProblems(s) : []}
           onCamera={setCamera}
@@ -501,12 +504,9 @@ export function App() {
         }
         onSelectRoom={selectGuestRoom}
       />
-    ) : selectedHotel ? (
-      <ManagedHotelUnavailable
-        hotelName={selectedHotel.name}
-        level="department"
-      />
-    ) : null,
+    ) : (
+      managedDepartmentFallback
+    ),
     staff: flagshipSelected ? (
       <StaffDashboard
         view={workforceView(s)}
@@ -524,15 +524,13 @@ export function App() {
           })
         }
       />
-    ) : selectedHotel ? (
-      <ManagedHotelUnavailable
-        hotelName={selectedHotel.name}
-        level="department"
-      />
-    ) : null,
+    ) : (
+      managedDepartmentFallback
+    ),
     finance: flagshipSelected ? (
       <>
         <FinanceDashboard
+          locale={preferences.locale}
           view={financeView({
             finance: s.finance,
             statements: s.statements,
@@ -545,6 +543,8 @@ export function App() {
               budgets: s.company.budgets,
             },
             hotelId: s.hotel.id,
+            periodKey:
+              s.lastMonthlyClose?.periodKey ?? s.calendar.dateKey.slice(0, 7),
           })}
         />
         <PurchasingDashboard
@@ -554,12 +554,9 @@ export function App() {
           }
         />
       </>
-    ) : selectedHotel ? (
-      <ManagedHotelUnavailable
-        hotelName={selectedHotel.name}
-        level="department"
-      />
-    ) : null,
+    ) : (
+      managedDepartmentFallback
+    ),
     revenue: flagshipSelected ? (
       <>
         <RevenueDashboard
@@ -584,12 +581,9 @@ export function App() {
         />
         {competitorTable}
       </>
-    ) : selectedHotel ? (
-      <ManagedHotelUnavailable
-        hotelName={selectedHotel.name}
-        level="department"
-      />
-    ) : null,
+    ) : (
+      managedDepartmentFallback
+    ),
     marketing: flagshipSelected ? (
       <>
         <SalesPipelinePanel
@@ -610,12 +604,9 @@ export function App() {
           marketableGuests={marketableGuestCount(s)}
         />
       </>
-    ) : selectedHotel ? (
-      <ManagedHotelUnavailable
-        hotelName={selectedHotel.name}
-        level="department"
-      />
-    ) : null,
+    ) : (
+      managedDepartmentFallback
+    ),
     market: (
       <>
         <CityEconomyPanel
@@ -904,8 +895,18 @@ export function App() {
         value={preferences.notifications}
         locale={preferences.locale}
         categories={[...new Set(s.alerts.map((alert) => alert.category))]}
-        hotelIds={[...s.company.portfolio.hotelIds]}
-        regionIds={[...new Set(Object.values(s.company.portfolio.hotelRegion))]}
+        hotels={s.company.portfolio.hotelIds.map((id) => ({
+          id,
+          name: hotelName(s, id),
+        }))}
+        regions={[
+          ...new Set(Object.values(s.company.portfolio.hotelRegion)),
+        ].map((id) => {
+          const hotelId = s.company.portfolio.hotelIds.find(
+            (candidate) => s.company.portfolio.hotelRegion[candidate] === id,
+          );
+          return { id, name: hotelId ? cityName(s, hotelId) : id };
+        })}
         onChange={(notifications) =>
           game.setPreferences({ ...preferences, notifications })
         }

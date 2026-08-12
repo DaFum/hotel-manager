@@ -6,12 +6,10 @@ export interface CauseDriver {
   weight: number;
 }
 
-const HEADLINES: Record<ExplainableChange, string> = {
-  occupancyDown: "Occupancy fell",
-  occupancyUp: "Occupancy rose",
-  profitDown: "Operating profit fell",
-  satisfactionDown: "Guest satisfaction fell",
-};
+export interface CauseExplanation {
+  key: string;
+  values: Record<string, string | number>;
+}
 
 /**
  * Every player-visible number must be explainable, so drivers are ranked by
@@ -20,9 +18,9 @@ const HEADLINES: Record<ExplainableChange, string> = {
 export function explainCause(
   change: ExplainableChange,
   drivers: readonly CauseDriver[],
-): string {
-  const headline = HEADLINES[change];
-  if (drivers.length === 0) return `${headline} for no single dominant reason.`;
+): CauseExplanation {
+  if (drivers.length === 0)
+    return { key: `explanation.${change}.empty`, values: {} };
   // Code-unit order, not localeCompare: authoritative ordering must not depend
   // on the worker's locale.
   const ranked = [...drivers].sort(
@@ -35,5 +33,8 @@ export function explainCause(
     phrases.length === 1
       ? phrases[0]
       : `${phrases.slice(0, -1).join(", ")} and ${phrases[phrases.length - 1]}`;
-  return `${headline} because ${list}.`;
+  return {
+    key: `explanation.${change}.drivers`,
+    values: { drivers: list },
+  };
 }

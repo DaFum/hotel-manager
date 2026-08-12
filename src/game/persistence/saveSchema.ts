@@ -192,7 +192,11 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !Array.isArray(state.cityMarket.occupancyAttribution.contributors) ||
     !state.cityMarket.occupancyAttribution.contributors.every(
       (item) =>
-        typeof item.factor === "string" && Number.isSafeInteger(item.weight),
+        item !== null &&
+        typeof item === "object" &&
+        !Array.isArray(item) &&
+        typeof item.factor === "string" &&
+        Number.isSafeInteger(item.weight),
     )
   )
     problems.push("the state has no valid occupancy attribution");
@@ -210,7 +214,11 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.company?.hotelResults ||
     !Object.values(state.company.hotelResults).every(
       (result) =>
+        result !== null &&
+        typeof result === "object" &&
+        !Array.isArray(result) &&
         Number.isSafeInteger(result.qualityStars) &&
+        Number.isSafeInteger(result.eventRevenueMinor) &&
         Number.isSafeInteger(result.cashNeedMinor) &&
         Number.isSafeInteger(result.renovationNeedMinor),
     )

@@ -356,6 +356,11 @@ export function advanceCityMonth(
   const tradedRoomTotal =
     competitors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
     player.rooms;
+  const competitorRoomsBeforeActions = competitors.reduce(
+    (rooms, competitor) => rooms + competitor.rooms,
+    0,
+  );
+  const marketRateBeforeActions = averageRateMinor(competitors, player);
 
   // --- 1. settle the month every house has just traded -------------------
   for (const c of competitors) {
@@ -492,9 +497,7 @@ export function advanceCityMonth(
     tradedRoomTotal * nightsInMonth,
   );
   const attribution = market.occupancyAttribution;
-  const competitorRooms = competitors.reduce((sum, c) => sum + c.rooms, 0);
   const occupancyMovementBp = cityOccupancyBp - attribution.previousOccupancyBp;
-  const marketRateBeforeActions = averageRateMinor(competitors, player);
   const ownPriceDeltaBp = marketRateBeforeActions
     ? Math.trunc(
         ((player.rateMinor - marketRateBeforeActions) * 10_000) /
@@ -505,7 +508,7 @@ export function advanceCityMonth(
     previousOccupancyBp: cityOccupancyBp,
     occupancyMovementBp,
     previousBusinessDemand: market.demand.business,
-    previousCompetitorRooms: competitorRooms,
+    previousCompetitorRooms: competitorRoomsBeforeActions,
     contributors: occupancyContributors({
       occupancyMovementBp,
       businessDemandChangeBp: attribution.previousBusinessDemand
@@ -517,7 +520,9 @@ export function advanceCityMonth(
         : 0,
       competitorRoomSupplyChangeBp: attribution.previousCompetitorRooms
         ? Math.trunc(
-            ((competitorRooms - attribution.previousCompetitorRooms) * 10_000) /
+            ((competitorRoomsBeforeActions -
+              attribution.previousCompetitorRooms) *
+              10_000) /
               attribution.previousCompetitorRooms,
           )
         : 0,

@@ -62,9 +62,9 @@ describe("guest view model", () => {
       handled: true,
       cause: "Long check-in wait",
     });
-    expect(complaintRows(state)[0].why).toMatch(
-      /Guest satisfaction fell because/,
-    );
+    expect(complaintRows(state)[0].why).toMatchObject({
+      key: "explanation.satisfactionDown.drivers",
+    });
     expect(reviewRows(state)[0]).toMatchObject({
       partyId: "party.1",
       score: 35,
@@ -84,9 +84,9 @@ describe("guest view model", () => {
       }),
     ];
     expect(complaintRows(state)[0]).toMatchObject({
-      partyId: "unknown party",
+      partyId: "guest.unknown.party",
       roomId: null,
-      stayLabel: "unknown stay",
+      stayLabel: "guest.unknown.stay",
     });
   });
 

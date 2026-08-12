@@ -126,6 +126,11 @@ describe("the isometric hotel read off the snapshot", () => {
         severity: "warning",
         title: "alert.room-out-of-service.title",
         cause: "alert.room-out-of-service.cause",
+        category: "room-problem",
+        groupId: `${s.hotel.id}:room-problem`,
+        source: { companyId: s.company.companyId, hotelId: s.hotel.id },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
         target: { entityId: roomId, kind: "room" },
       },
       {
@@ -133,8 +138,13 @@ describe("the isometric hotel read off the snapshot", () => {
         severity: "critical",
         title: "alert.cash-short.title",
         cause: "alert.cash-short.cause",
+        category: "cash",
+        groupId: `${s.hotel.id}:cash`,
+        source: { companyId: s.company.companyId, hotelId: s.hotel.id },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
       },
-    ] as unknown as typeof s.alerts;
+    ];
 
     const [pinned] = worldProblems(s);
     expect(pinned.kind).toBe("room");
@@ -166,8 +176,13 @@ describe("the isometric hotel read off the snapshot", () => {
         severity: "warning",
         title: "alert.room-out-of-service.title",
         cause: `alert.room-out-of-service.cause.${longRoomId}`,
+        category: longRoomId,
+        groupId: `${s.hotel.id}:${longRoomId}`,
+        source: { companyId: s.company.companyId, hotelId: s.hotel.id },
+        gameTime: "1991-01-01:0",
+        acknowledged: false,
       },
-    ] as unknown as typeof s.alerts;
+    ];
 
     expect(worldProblems(s)).toEqual([]);
   });

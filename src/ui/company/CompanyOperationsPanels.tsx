@@ -7,6 +7,7 @@ import type {
   headquartersView,
 } from "./companyOperationsViewModel";
 import type { DueDiligenceArea } from "../../game/ma/dueDiligence";
+import { formatMinorCurrency } from "../../i18n/formatters";
 export function TreasuryPanel({
   view,
   onTransfer,
@@ -21,7 +22,7 @@ export function TreasuryPanel({
   locale?: GameLocale;
 }) {
   const t = (k: string) => translateGame(locale, k);
-  const [amount, setAmount] = useState(0);
+  const [amounts, setAmounts] = useState<Record<string, number>>({});
   return (
     <section aria-label={t("companyOps.treasury.title")}>
       <h2>{t("companyOps.treasury.title")}</h2>
@@ -35,48 +36,60 @@ export function TreasuryPanel({
             {t("companyOps.treasury.hq")}: {formatDm(view.hqMinor, locale)}
           </p>
           <ul>
-            {view.accounts.map((a) => (
-              <li key={a.hotelId}>
-                {a.hotelId}: {formatDm(a.balanceMinor, locale)}{" "}
-                {view.overdrawn.includes(a.hotelId)
-                  ? `— ${t("companyOps.treasury.overdrawn")}`
-                  : ""}
-                <input
-                  aria-label={`${a.hotelId} ${t("companyOps.treasury.amount")}`}
-                  type="number"
-                  min="0"
-                  onChange={(e) => setAmount(Number(e.currentTarget.value))}
-                />
-                <button
-                  disabled={amount <= 0}
-                  aria-describedby={
-                    amount <= 0 ? `${a.hotelId}-reason` : undefined
-                  }
-                  onClick={() => onTransfer(a.hotelId, amount, "fund")}
-                >
-                  {t("companyOps.treasury.fund")}
-                </button>
-                <button
-                  disabled={amount <= 0}
-                  aria-describedby={
-                    amount <= 0 ? `${a.hotelId}-reason` : undefined
-                  }
-                  onClick={() => onTransfer(a.hotelId, amount, "sweep")}
-                >
-                  {t("companyOps.treasury.sweep")}
-                </button>
-                {amount <= 0 ? (
-                  <span id={`${a.hotelId}-reason`}>
-                    {t("companyOps.treasury.enterAmount")}
-                  </span>
-                ) : null}
-              </li>
-            ))}
+            {view.accounts.map((a) => {
+              const amount = amounts[a.hotelId] ?? 0;
+              const validAmount = Number.isFinite(amount) && amount > 0;
+              return (
+                <li key={a.hotelId}>
+                  {a.hotelName}: {formatDm(a.balanceMinor, locale)}{" "}
+                  {view.overdrawn.includes(a.hotelId)
+                    ? `— ${t("companyOps.treasury.overdrawn")}`
+                    : ""}
+                  <input
+                    aria-label={`${a.hotelName} ${t("companyOps.treasury.amount")}`}
+                    type="number"
+                    min="0"
+                    onChange={(e) => {
+                      const next = Number(e.currentTarget.value);
+                      setAmounts((current) => ({
+                        ...current,
+                        [a.hotelId]: Number.isFinite(next) ? next : 0,
+                      }));
+                    }}
+                  />
+                  <button
+                    type="button"
+                    disabled={!validAmount}
+                    aria-describedby={
+                      !validAmount ? `${a.hotelId}-reason` : undefined
+                    }
+                    onClick={() => onTransfer(a.hotelId, amount, "fund")}
+                  >
+                    {t("companyOps.treasury.fund")}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!validAmount}
+                    aria-describedby={
+                      !validAmount ? `${a.hotelId}-reason` : undefined
+                    }
+                    onClick={() => onTransfer(a.hotelId, amount, "sweep")}
+                  >
+                    {t("companyOps.treasury.sweep")}
+                  </button>
+                  {!validAmount ? (
+                    <span id={`${a.hotelId}-reason`}>
+                      {t("companyOps.treasury.enterAmount")}
+                    </span>
+                  ) : null}
+                </li>
+              );
+            })}
           </ul>
           <ul>
             {Object.entries(view.exposure).map(([currency, value]) => (
               <li key={currency}>
-                {currency}: {formatDm(value, locale)}
+                {formatMinorCurrency(value, currency, locale)}
               </li>
             ))}
           </ul>
@@ -133,6 +146,7 @@ export function AcquisitionsPanel({
             </p>
           ))}
           <button
+            type="button"
             onClick={() => onDiligence(x.id, [...x.uncovered])}
             disabled={!x.uncovered.length}
             aria-describedby={
@@ -142,6 +156,7 @@ export function AcquisitionsPanel({
             {t("companyOps.ma.diligence")}
           </button>
           <button
+            type="button"
             onClick={() => onAcquire(x.id, x.offer.midMinor)}
             disabled={x.status !== "available"}
             aria-describedby={

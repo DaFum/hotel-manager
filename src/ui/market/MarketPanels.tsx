@@ -82,7 +82,8 @@ export function CityActivityPanel({
           {view.events.map((e) => (
             <li key={e.id}>
               {e.startDateKey}: {e.guests} {t("market.activity.guests")},{" "}
-              {e.roomsBlocked} {t("market.activity.rooms")} — {e.status}
+              {e.roomsBlocked} {t("market.activity.rooms")} —{" "}
+              {t(`market.eventStatus.${e.status}`)}
             </li>
           ))}
         </ul>
@@ -134,7 +135,7 @@ export function WorldConditionsPanel({
       <ul>
         {view.trends.map((x) => (
           <li key={x.id}>
-            {x.name}: {formatBasisPoints(x.adoptionBp, locale)}
+            {t(x.name)}: {formatBasisPoints(x.adoptionBp, locale)}
           </li>
         ))}
       </ul>
@@ -143,7 +144,8 @@ export function WorldConditionsPanel({
         <ul>
           {view.shocks.map((s) => (
             <li key={s.id}>
-              {s.kind}: {s.causes.join(", ")} —{" "}
+              {t(`market.shockKind.${s.kind}`)}:{" "}
+              {s.causes.map((cause) => t(cause)).join(", ")} —{" "}
               {formatBasisPoints(s.severityBp, locale)}, {s.remainingMonths}{" "}
               {t("market.world.months")}
             </li>

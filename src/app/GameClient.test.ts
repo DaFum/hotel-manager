@@ -60,7 +60,7 @@ describe("GameClient protocol", () => {
       protocolVersion: PROTOCOL_VERSION,
       type: "COMMAND",
       requestId: "req.1",
-      command: { type: "ACKNOWLEDGE_ALERT", id: "alert.1" },
+      command: { type: "ACKNOWLEDGE_ALERT", alertId: "alert.1" },
     });
   });
   it("sends versioned INIT_GAME", () => {

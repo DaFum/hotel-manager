@@ -8,14 +8,19 @@ describe("cause explanations", () => {
         { factor: "rate above segment willingness", weight: 60 },
         { factor: "no walk-in inventory", weight: 40 },
       ]),
-    ).toBe(
-      "Occupancy fell because rate above segment willingness (60%) and no walk-in inventory (40%).",
-    );
+    ).toEqual({
+      key: "explanation.occupancyDown.drivers",
+      values: {
+        drivers:
+          "rate above segment willingness (60%) and no walk-in inventory (40%)",
+      },
+    });
   });
 
   it("falls back to an honest message when no driver is known", () => {
-    expect(explainCause("occupancyDown", [])).toBe(
-      "Occupancy fell for no single dominant reason.",
-    );
+    expect(explainCause("occupancyDown", [])).toEqual({
+      key: "explanation.occupancyDown.empty",
+      values: {},
+    });
   });
 });

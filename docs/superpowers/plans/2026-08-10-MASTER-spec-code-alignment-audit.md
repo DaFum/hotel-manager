@@ -97,3 +97,27 @@ MASTER 40.1 says every hotel of the group remains its own operating unit, and
 MASTER 53 requires a drilldown down to the individual room. Closing that row is
 a state-shape change with a migration, not a wiring task, and it should be
 planned as such rather than attempted alongside the others.
+
+### Row 14 decision and feasibility gate (2026-08-12)
+
+The project-owner decision is to **keep the full MASTER specification**, not
+to redefine the product as one flagship plus permanently aggregate portfolio
+hotels. The collection migration and tiered per-hotel engine therefore remain
+required before release.
+
+`npm run benchmark:multi-hotel` measured the Phase 1 prototype against the
+executable `PERF_BUDGET` on the current container. The workable 60-hotel mix is
+one viewed `full` hotel, four `operational` hotels and 55 `aggregate` hotels.
+The full sample used two independent hotels through the real
+`GameSimulation.advanceQuantum()` loop; operational work used four independent
+real simulations at the hourly cadence; aggregate work used the existing
+`managedHotelMonth` economics and was amortised over the month. The measured
+projected mean was 0.54 ms per global quantum against the 25 ms budget. This is
+a feasibility result, not proof of the Phase 3 integrated loop: Phase 3 must
+retain the same tier cap and rerun the benchmark after its phase gating exists.
+
+The proposed whole `hotels` and `cities` collection sections produced a
+2,182,873-byte delta when one hotel changed, against the 250,000-byte budget.
+Task 4.2 must therefore partition publication to the active hotel plus
+company-level aggregates (or provide equivalently bounded hotel-level delta
+sections); publishing the whole hotel collection on each change is rejected.

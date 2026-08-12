@@ -33,3 +33,20 @@ it("maps a real portfolio to one full, operational player and aggregate rival ti
     "hotel.rival": "aggregate",
   });
 });
+
+it("bounds operational player hotels and aggregates the deterministic remainder", () => {
+  expect(
+    portfolioDetailTiers({
+      viewedHotelId: "hotel.5",
+      playerHotelIds: ["hotel.5", "hotel.4", "hotel.3", "hotel.2", "hotel.1"],
+      competitorHotelIds: [],
+      operationalHotelLimit: 2,
+    }),
+  ).toEqual({
+    "hotel.1": "operational",
+    "hotel.2": "operational",
+    "hotel.3": "aggregate",
+    "hotel.4": "aggregate",
+    "hotel.5": "full",
+  });
+});

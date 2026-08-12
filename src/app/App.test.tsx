@@ -57,6 +57,28 @@ describe("App", () => {
     ).toBeNull();
   });
 
+  it("renders actionTarget for an alert if its target position is resolvable", () => {
+    const snapshot = createInitialGameState(424242);
+    snapshot.alerts = [
+      {
+        id: "alert.resolvable",
+        severity: "warning",
+        title: "alert.test",
+        cause: "alert.test",
+        target: { entityId: "facility.reception", kind: "facility" },
+      },
+    ];
+    vi.mocked(useGameStore).mockReturnValue({ ...gameStore, snapshot });
+    render(<App />);
+
+    const notifications = screen.getByRole("region", {
+      name: "Benachrichtigungszentrale",
+    });
+    expect(
+      within(notifications).getByRole("button", { name: /öffnen/i }),
+    ).toBeTruthy();
+  });
+
   it("opens a notification's alert and moves focus to its semantic room", () => {
     const snapshot = createInitialGameState(424242);
     const room = snapshot.hotel.rooms[12];

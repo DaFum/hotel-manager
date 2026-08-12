@@ -104,6 +104,8 @@ and reviewed evidence where automation cannot prove the claim.
 4. Player and competitor economics reuse shared primitives.
 5. A final E2E is not a substitute for focused system and determinism tests.
 6. This audit establishes plan coverage; it does not claim future implementation exists.
+   Runtime reachability is audited separately in
+   `2026-08-10-MASTER-spec-code-alignment-audit.md`.
 
 ## Plans 01-03 implementation audit status
 

@@ -13,8 +13,6 @@ export default defineConfig({
         launchOptions: chromiumPath ? { executablePath: chromiumPath } : {},
       },
     },
-    { name: "firefox", use: { ...devices["Desktop Firefox"] } },
-    { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   use: { baseURL: "http://127.0.0.1:4173" },
   webServer: {

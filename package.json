@@ -43,6 +43,7 @@
     "@vitejs/plugin-react": "^6.0.5",
     "fake-indexeddb": "^6.2.5",
     "jsdom": "^30.0.1",
+    "playwright": "^1.62.1",
     "prettier": "^3.9.6",
     "tsx": "^4.22.5",
     "typescript": "^7.0.2",

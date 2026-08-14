@@ -1,4 +1,3 @@
-import fs from "fs";
 import { expect, it } from "vitest";
 import { migrateV12ToV13 } from "./v12-to-v13";
 import { createInitialGameState } from "../../simulation/initialState";
@@ -8,13 +7,73 @@ import { validateEnvelope } from "../saveSchema";
 import { DEFAULT_PLAYER_PREFERENCES } from "../../settings/playerPreferences";
 
 it("migrates version 12 distribution and commercial defaults to version 13", () => {
-  const fixtureRaw = fs.readFileSync("fixtures/v12-save.json", "utf-8");
-  const fullFixture = JSON.parse(fixtureRaw);
+  const state: any = createInitialGameState(7);
+  delete state.distribution;
+  delete state.company.groupTargets;
 
   // Create a minimal version 12 fixture omitting fields introduced in version 13
-  const v12Fixture = fullFixture.state;
+  const v12Fixture = {
+    ...state,
+    commercial: {
+      campaigns: [
+        {
+          id: "c1",
+          objective: "awareness",
+          channel: "radio",
+          targetSegmentId: "segment.business",
+          startDateKey: "1991-01-01",
+          durationDays: 30,
+          budgetMinor: 1000,
+          creativeQuality: 5,
+          status: "running",
+        },
+      ],
+      campaignAgeDays: {},
+      campaignAttributionLog: [
+        {
+          campaignId: "c1",
+          low: 10,
+          base: 10,
+          high: 10,
+          realised: 10,
+          atDateKey: "1991-01-01",
+        },
+      ],
+      sales: {
+        leads: [],
+        contracts: [
+          {
+            id: "ct1",
+            accountName: "A",
+            segmentId: "segment.business",
+            negotiatedRateMinor: 1000,
+            expectedRoomNights: 100,
+            concessions: [],
+            validFromDateKey: "1991-01-01",
+            validToDateKey: "1991-12-31",
+          },
+        ],
+      },
+      crm: { preferences: [], stays: [] },
+    },
+    company: {
+      ...state.company,
+      groupTargets: undefined,
+    },
+    revenuePolicy: {
+      ...state.revenuePolicy,
+      managerAttributes: undefined,
+    },
+  };
 
-  const migrated = migrateV12ToV13(fullFixture);
+  const migrated = migrateV12ToV13({
+    saveVersion: 12,
+    contentVersion: CONTENT_VERSION,
+    protocolVersion: PROTOCOL_VERSION,
+    rngState: state.rngState,
+    state: v12Fixture,
+    preferences: DEFAULT_PLAYER_PREFERENCES,
+  });
 
   expect(migrated.saveVersion).toBe(13);
 

@@ -197,11 +197,39 @@ describe("insurance", () => {
         limitMinor: POLICY.insuredValueMinor + 1,
       }),
     ).toThrow(/limit/);
+
+    expect(() => varyPolicy(state, "policy.missing", {})).toThrow(/unknown/);
+    expect(() =>
+      varyPolicy(state, POLICY.id, { deductibleMinor: -1 }),
+    ).toThrow();
+    expect(() =>
+      varyPolicy(state, POLICY.id, { deductibleMinor: 1.5 }),
+    ).toThrow();
+
+    const noOp = varyPolicy(state, POLICY.id, {});
+    expect(noOp).toEqual(state);
   });
 
   it("cancels only a known policy", () => {
     const state = takeOutPolicy(createInsuranceState(), POLICY);
     expect(cancelPolicy(state, POLICY.id).policies).toEqual([]);
+    expect(state.policies).toEqual([POLICY]); // check immutability
     expect(() => cancelPolicy(state, "policy.missing")).toThrow(/unknown/);
+
+    const filedState = fileClaim(
+      state,
+      {
+        id: "claim.1",
+        policyId: POLICY.id,
+        perilId: "fire",
+        cause: "fire",
+        lossMinor: 10_000,
+        filedAtMinutes: 0,
+      },
+      new XorShift32(1),
+    );
+    expect(() => cancelPolicy(filedState, POLICY.id)).toThrow(
+      /unsettled claims/,
+    );
   });
 });

@@ -109,11 +109,15 @@ export function signContract(
 ): SalesState {
   const contract: NegotiatedContract = {
     ...input,
-    blackoutDateKeys: [...(input.blackoutDateKeys ?? [])],
+    concessions: [...input.concessions],
+    blackoutDateKeys: [...(input.blackoutDateKeys ?? [])].sort(),
     paymentTermsDays: input.paymentTermsDays ?? 0,
     cancellationDaysBeforeArrival: input.cancellationDaysBeforeArrival ?? 0,
     cancellationFeeBasisPoints: input.cancellationFeeBasisPoints ?? 0,
   };
+  const uniqueBlackoutDates = new Set(contract.blackoutDateKeys);
+  if (uniqueBlackoutDates.size !== contract.blackoutDateKeys.length)
+    throw new Error("duplicate blackout dates");
   if (state.contracts.some((c) => c.id === contract.id))
     throw new Error(`contract ${contract.id} already exists`);
   assertNonNegativeMinor(contract.negotiatedRateMinor, "negotiated rate");
@@ -153,15 +157,21 @@ export function signContract(
   };
 }
 
-export function activeContracts(
+export function validContractsForDate(
   state: SalesState,
   dateKey: string,
 ): NegotiatedContract[] {
   return state.contracts.filter(
-    (c) =>
-      c.validFromDateKey <= dateKey &&
-      dateKey < c.validToDateKey &&
-      !c.blackoutDateKeys.includes(dateKey),
+    (c) => c.validFromDateKey <= dateKey && dateKey < c.validToDateKey,
+  );
+}
+
+export function activeContracts(
+  state: SalesState,
+  dateKey: string,
+): NegotiatedContract[] {
+  return validContractsForDate(state, dateKey).filter(
+    (c) => !c.blackoutDateKeys.includes(dateKey),
   );
 }
 

@@ -103,7 +103,7 @@ export type GameCommand =
   | {
       type: "ACCEPT_GROUP_CONTRACT";
       blockId: string;
-      category: string;
+      category: RoomCategory;
       roomsByDate: Record<string, number>;
       groupRateMinor: number;
       releaseDateKey: string;
@@ -117,14 +117,14 @@ export type GameCommand =
       type: "ACCEPT_ALLOTMENT";
       allotmentId: string;
       partner: string;
-      category: string;
+      category: RoomCategory;
       roomsByDate: Record<string, number>;
       releaseDateKey: string;
     }
   | {
       type: "SET_CHANNEL_INVENTORY";
       channelId: EvolvingChannel;
-      allowedCategories: string[];
+      allowedCategories: RoomCategory[];
       allowedRatePlanIds: string[];
     }
   | { type: "CLOSE_CHANNEL"; channelId: EvolvingChannel; closed: boolean }

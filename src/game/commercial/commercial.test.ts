@@ -11,7 +11,9 @@ import {
   realisedEffectBasisPoints,
   registerCampaign,
 } from "./campaigns";
+import { appendCampaignAttribution } from "./campaigns";
 import {
+  activeContracts,
   addLead,
   advanceLead,
   committedShareBasisPoints,
@@ -114,10 +116,14 @@ describe("campaigns", () => {
 
   it("quotes the effect as a band and draws the outcome from the economy", () => {
     const band = campaignUncertaintyBand(1_000, 3000);
-    expect(band).toEqual({ low: 700, base: 1_000, high: 1_300 });
+    expect(band).toEqual({
+      lowBasisPoints: 700,
+      baseBasisPoints: 1_000,
+      highBasisPoints: 1_300,
+    });
     const realised = realisedEffectBasisPoints(band, new XorShift32(5));
-    expect(realised).toBeGreaterThanOrEqual(band.low);
-    expect(realised).toBeLessThanOrEqual(band.high);
+    expect(realised).toBeGreaterThanOrEqual(band.lowBasisPoints);
+    expect(realised).toBeLessThanOrEqual(band.highBasisPoints);
     // The same seed gives the same outcome; the uncertainty is modelled, not
     // re-rolled every time somebody looks at it.
     expect(realisedEffectBasisPoints(band, new XorShift32(5))).toBe(realised);
@@ -162,6 +168,38 @@ const CONTRACT = {
 };
 
 describe("the sales pipeline", () => {
+  it("rejects empty region and message in campaign", () => {
+    expect(() =>
+      createCampaign({
+        id: "c1",
+        targetSegmentId: "segment.leisure",
+        channel: "radio",
+        durationDays: 30,
+        budgetMinor: 1000,
+        creativeQuality: 5,
+        objective: "awareness",
+        startDateKey: "1991-01-01",
+        region: "  ",
+        message: "buy now",
+      }),
+    ).toThrow("a campaign needs a region");
+
+    expect(() =>
+      createCampaign({
+        id: "c1",
+        targetSegmentId: "segment.leisure",
+        channel: "radio",
+        durationDays: 30,
+        budgetMinor: 1000,
+        creativeQuality: 5,
+        objective: "awareness",
+        startDateKey: "1991-01-01",
+        region: "national",
+        message: "   ",
+      }),
+    ).toThrow("a campaign needs a message");
+  });
+
   it("moves a lead forward through the pipeline and never back", () => {
     let state = addLead(createSalesState(), {
       id: "lead.hoechst",
@@ -179,6 +217,67 @@ describe("the sales pipeline", () => {
     expect(advanceLead(state, "lead.hoechst", "lost").leads[0].stage).toBe(
       "lost",
     );
+  });
+
+  it("rejects unsorted or duplicate blackoutDateKeys, and applies defaults", () => {
+    const base = {
+      id: "contract.2",
+      accountName: "Company",
+      segmentId: "segment.business",
+      negotiatedRateMinor: 9_000,
+      expectedRoomNights: 900,
+      concessions: [],
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+      renewalIntent: "unknown" as const,
+    };
+    expect(() =>
+      signContract(createSalesState(), {
+        ...base,
+        blackoutDateKeys: ["1991-05-01", "1991-05-01"],
+      }),
+    ).toThrow("duplicate blackout dates");
+
+    const state = signContract(createSalesState(), base);
+    const c = state.contracts[0];
+    expect(c.blackoutDateKeys).toEqual([]);
+    expect(c.paymentTermsDays).toBe(0);
+    expect(c.cancellationDaysBeforeArrival).toBe(0);
+    expect(c.cancellationFeeBasisPoints).toBe(0);
+  });
+
+  it("activeContracts excludes blackout matching dates", () => {
+    const state = signContract(createSalesState(), {
+      ...CONTRACT,
+      blackoutDateKeys: ["1991-05-01", "1991-05-05"],
+    });
+    expect(activeContracts(state, "1991-05-01")).toEqual([]);
+    expect(activeContracts(state, "1991-05-02").length).toBe(1);
+  });
+
+  it("appendCampaignAttribution replaces duplicate entries and enforces limit", () => {
+    const entries = [];
+    for (let i = 0; i < 150; i++) {
+      entries.push({
+        campaignId: "c1",
+        atDateKey: `1991-01-${String(i).padStart(3, "0")}`,
+        lowBasisPoints: 0,
+        baseBasisPoints: 0,
+        highBasisPoints: 0,
+        realisedBasisPoints: 0,
+      });
+    }
+    const state = appendCampaignAttribution(entries, {
+      campaignId: "c1",
+      atDateKey: "1991-01-050", // duplicate update inside the slice limit
+      lowBasisPoints: 10,
+      baseBasisPoints: 10,
+      highBasisPoints: 10,
+      realisedBasisPoints: 10,
+    });
+    expect(state.length).toBe(120);
+    const updated = state.find((e) => e.atDateKey === "1991-01-050");
+    expect(updated?.realisedBasisPoints).toBe(10);
   });
 
   it("refuses to reopen a decided lead", () => {

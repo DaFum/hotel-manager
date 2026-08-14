@@ -68,6 +68,9 @@ export function validateCommercialCommand(
     switch (command.type) {
       case "LAUNCH_CAMPAIGN": {
         const campaign = campaignFor(state, command);
+        if (campaign.budgetMinor > state.finance.cashMinor) {
+          return { ok: false, reason: "insufficient cash" };
+        }
         const adoption = Object.fromEntries(
           state.world.technologies.map((technology) => [
             technology.id,
@@ -313,6 +316,11 @@ export function applyCommercialCommand(
         cancellationFeeBasisPoints: command.cancellationFeeBasisPoints,
         renewalIntent: "unknown",
       });
+      state.commercial.sales = advanceLead(
+        state.commercial.sales,
+        command.leadId,
+        "won",
+      );
       ctx.emit(
         { type: "CORPORATE_ACCOUNT_SIGNED", contractId: command.contractId },
         [command.contractId, command.leadId],

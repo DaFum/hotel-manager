@@ -282,6 +282,9 @@ export function RevenueDashboard(props: {
         </p>
         <button
           type="button"
+          disabled={!props.onSetRevenuePolicy}
+          aria-disabled={!props.onSetRevenuePolicy}
+          title={!props.onSetRevenuePolicy ? t("revenue.ui.disabledExplanation") : undefined}
           onClick={() =>
             props.onSetRevenuePolicy?.({
               overbookingLimitRooms: props.overbooking.recommendedRooms ?? 0,
@@ -292,6 +295,9 @@ export function RevenueDashboard(props: {
         </button>
         <button
           type="button"
+          disabled={!props.onSetRevenuePolicy}
+          aria-disabled={!props.onSetRevenuePolicy}
+          title={!props.onSetRevenuePolicy ? t("revenue.ui.disabledExplanation") : undefined}
           onClick={() =>
             props.onSetRevenuePolicy?.({ managerAuthorityBp: 500 })
           }
@@ -300,6 +306,9 @@ export function RevenueDashboard(props: {
         </button>
         <button
           type="button"
+          disabled={!props.onSetGroupTargets}
+          aria-disabled={!props.onSetGroupTargets}
+          title={!props.onSetGroupTargets ? t("revenue.ui.disabledExplanation") : undefined}
           onClick={() =>
             props.onSetGroupTargets?.({
               gopparMinor: props.metrics.gopparMinor ?? 0,

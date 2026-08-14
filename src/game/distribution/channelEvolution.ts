@@ -53,10 +53,12 @@ export function advanceBookingChannels(
 ): ChannelDefinition[] {
   return channels.filter((channel) => channel.id !== "walkIn");
 }
+import type { RoomCategory } from "../revenue/rates";
+
 export function channelMaySell(
   channel: ChannelDefinition,
   inventory: readonly ChannelInventoryRule[],
-  category: string,
+  category: RoomCategory,
   ratePlanId: string,
 ): boolean {
   const rule = inventory.find(

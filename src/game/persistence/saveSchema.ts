@@ -120,8 +120,41 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (
     !state.distribution ||
     !Array.isArray(state.distribution.allotments) ||
+    !state.distribution.allotments.every(
+      (a: any) =>
+        a &&
+        typeof a.id === "string" &&
+        typeof a.partner === "string" &&
+        typeof a.category === "string" &&
+        a.roomsByDate &&
+        typeof a.roomsByDate === "object" &&
+        typeof a.releaseDateKey === "string",
+    ) ||
     !Array.isArray(state.distribution.groupBlocks) ||
-    !Array.isArray(state.distribution.channelInventory)
+    !state.distribution.groupBlocks.every(
+      (b: any) =>
+        b &&
+        typeof b.id === "string" &&
+        typeof b.category === "string" &&
+        b.roomsByDate &&
+        typeof b.roomsByDate === "object" &&
+        Number.isSafeInteger(b.groupRateMinor) &&
+        typeof b.releaseDateKey === "string" &&
+        Number.isSafeInteger(b.depositMinor) &&
+        Number.isSafeInteger(b.cancellationDaysBeforeArrival) &&
+        Number.isSafeInteger(b.cancellationFeeBasisPoints) &&
+        Number.isSafeInteger(b.paymentTermsDays) &&
+        typeof b.status === "string",
+    ) ||
+    !Array.isArray(state.distribution.channelInventory) ||
+    !state.distribution.channelInventory.every(
+      (c: any) =>
+        c &&
+        typeof c.channelId === "string" &&
+        Array.isArray(c.allowedCategories) &&
+        Array.isArray(c.allowedRatePlanIds) &&
+        typeof c.closed === "boolean",
+    )
   )
     problems.push("the state has no valid distribution section");
   // The state carries the streams the simulation is actually restored from.

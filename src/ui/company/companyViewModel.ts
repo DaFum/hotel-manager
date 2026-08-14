@@ -178,8 +178,8 @@ export function campaignRows(state: GameState): CampaignRow[] {
       targetSegmentId: campaign.targetSegmentId,
       budgetMinor: campaign.budgetMinor,
       status: campaign.status,
-      lowBasisPoints: band.low,
-      highBasisPoints: band.high,
+      lowBasisPoints: band.lowBasisPoints,
+      highBasisPoints: band.highBasisPoints,
       daysUntilAttribution: Math.max(0, ATTRIBUTION_LAG_DAYS - age),
     };
   });

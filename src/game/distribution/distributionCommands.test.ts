@@ -53,17 +53,79 @@ describe("distribution commands", () => {
   it("rejects an allotment above capacity transactionally", () => {
     const simulation = new GameSimulation(createInitialGameState(5));
     const version = simulation.state.stateVersion;
-    expect(
-      submit(simulation, {
-        type: "ACCEPT_ALLOTMENT",
-        allotmentId: "too-big",
-        partner: "Tour AG",
-        category: "single",
-        roomsByDate: { "1991-01-03": 999 },
-        releaseDateKey: "1991-01-02",
-      }).status,
-    ).toBe("rejected");
+    const result = submit(simulation, {
+      type: "ACCEPT_ALLOTMENT",
+      allotmentId: "too-big",
+      partner: "Tour AG",
+      category: "single",
+      roomsByDate: { "1991-01-03": 999 },
+      releaseDateKey: "1991-01-02",
+    });
+    expect(result.status).toBe("rejected");
+    if (result.status === "rejected") {
+      expect(result.reason).toBe("allotment exceeds capacity on 1991-01-03");
+    }
     expect(simulation.state.stateVersion).toBe(version);
     expect(simulation.state.distribution.allotments).toEqual([]);
+  });
+
+  it("accepts a group contract", () => {
+    const simulation = new GameSimulation(createInitialGameState(5));
+    const initialCash = simulation.state.finance.cashMinor;
+    expect(
+      submit(simulation, {
+        type: "ACCEPT_GROUP_CONTRACT",
+        blockId: "block.1",
+        category: "single",
+        roomsByDate: { "1991-01-03": 5 },
+        groupRateMinor: 8000,
+        releaseDateKey: "1991-01-02",
+        depositMinor: 10000,
+        cancellationDaysBeforeArrival: 3,
+        cancellationFeeBasisPoints: 5000,
+        paymentTermsDays: 14,
+      }).status,
+    ).toBe("accepted");
+    expect(simulation.state.finance.cashMinor).toBe(initialCash + 10000);
+    expect(simulation.state.distribution.groupBlocks[0].status).toBe(
+      "confirmed",
+    );
+
+    expect(
+      submit(simulation, {
+        type: "ACCEPT_GROUP_CONTRACT",
+        blockId: "block.1",
+        category: "single",
+        roomsByDate: { "1991-01-03": 5 },
+        groupRateMinor: 8000,
+        releaseDateKey: "1991-01-02",
+        depositMinor: 10000,
+        cancellationDaysBeforeArrival: 3,
+        cancellationFeeBasisPoints: 5000,
+        paymentTermsDays: 14,
+      }).status,
+    ).toBe("rejected");
+  });
+
+  it("declines a group contract", () => {
+    const simulation = new GameSimulation(createInitialGameState(5));
+    expect(
+      submit(simulation, {
+        type: "DECLINE_GROUP_CONTRACT",
+        blockId: "block.2",
+      }).status,
+    ).toBe("accepted");
+    expect(simulation.state.distribution.groupBlocks[0]).toEqual({
+      id: "block.2",
+      category: "single",
+      roomsByDate: {},
+      groupRateMinor: 0,
+      releaseDateKey: simulation.state.calendar.dateKey,
+      depositMinor: 0,
+      cancellationDaysBeforeArrival: 0,
+      cancellationFeeBasisPoints: 0,
+      paymentTermsDays: 0,
+      status: "declined",
+    });
   });
 });

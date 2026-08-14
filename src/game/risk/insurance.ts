@@ -106,6 +106,12 @@ export function cancelPolicy(
 ): InsuranceState {
   if (!state.policies.some((policy) => policy.id === policyId))
     throw new Error(`unknown policy ${policyId}`);
+  if (
+    state.claims.some(
+      (claim) => claim.policyId === policyId && claim.status === "filed",
+    )
+  )
+    throw new Error(`cannot cancel policy ${policyId} with unsettled claims`);
   return {
     ...state,
     policies: state.policies.filter((policy) => policy.id !== policyId),

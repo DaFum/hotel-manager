@@ -135,21 +135,31 @@ export function validateCompanyCommand(
       )
         return no("a budget must be whole non-negative Pfennig");
       return ok;
-    case "SET_GROUP_TARGETS":
+    case "SET_GROUP_TARGETS": {
+      const { targets } = command;
       if (
-        Object.values(command.targets).some(
+        typeof targets.gopparMinor !== "number" ||
+        typeof targets.guestSatisfaction !== "number" ||
+        typeof targets.staffTurnoverBasisPoints !== "number" ||
+        typeof targets.marketShareBasisPoints !== "number" ||
+        typeof targets.brandStandard !== "number"
+      )
+        return no("group targets is missing required fields");
+      if (
+        Object.values(targets).some(
           (value) => !Number.isSafeInteger(value) || value < 0,
         )
       )
         return no("group targets must be whole non-negative values");
       if (
-        command.targets.staffTurnoverBasisPoints > 10_000 ||
-        command.targets.marketShareBasisPoints > 10_000 ||
-        command.targets.guestSatisfaction > 100 ||
-        command.targets.brandStandard > 100
+        targets.staffTurnoverBasisPoints > 10_000 ||
+        targets.marketShareBasisPoints > 10_000 ||
+        targets.guestSatisfaction > 100 ||
+        targets.brandStandard > 100
       )
         return no("group target is out of range");
       return ok;
+    }
     case "SET_MANAGER_AUTHORITY":
       if (!managerForHotel(c.managers, command.hotelId))
         return no("no manager runs that hotel");

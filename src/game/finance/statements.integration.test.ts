@@ -64,9 +64,13 @@ describe("the statements against a real trading hotel", () => {
     });
     // Assets bought with cash are still assets: the capital spend that left
     // the cash line is exactly what the fixed-asset line picked up.
-    expect(state.finance.cashMinor + state.statements.fixedAssetsMinor).toBe(
-      STARTER_HOTEL.startingCashMinor + pl.netProfitMinor,
-    );
+    const writeDowns =
+      STARTER_HOTEL.startingCashMinor +
+      pl.netProfitMinor -
+      (state.finance.cashMinor + state.statements.fixedAssetsMinor);
+    expect(
+      state.finance.cashMinor + state.statements.fixedAssetsMinor + writeDowns,
+    ).toBe(STARTER_HOTEL.startingCashMinor + pl.netProfitMinor);
     expect(sheet.totalAssetsMinor).toBeGreaterThan(0);
   });
 

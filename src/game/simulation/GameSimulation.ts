@@ -3425,7 +3425,7 @@ export class GameSimulation implements CommandExecutor {
     const latest = new Map<string, number>();
     for (const entry of this.state.commercial.campaignAttributionLog)
       if (running.has(entry.campaignId))
-        latest.set(entry.campaignId, entry.realised);
+        latest.set(entry.campaignId, entry.realisedBasisPoints);
     return [...latest.values()].reduce((sum, value) => sum + value, 0);
   }
 
@@ -4289,7 +4289,7 @@ export class GameSimulation implements CommandExecutor {
         {
           campaignId: campaign.id,
           ...band,
-          realised,
+          realisedBasisPoints: realised,
           atDateKey: s.calendar.dateKey,
         },
       );

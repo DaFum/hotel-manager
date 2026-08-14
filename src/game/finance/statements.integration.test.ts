@@ -64,34 +64,28 @@ describe("the statements against a real trading hotel", () => {
     });
     // Assets bought with cash are still assets: the capital spend that left
     // the cash line is exactly what the fixed-asset line picked up.
+
+    // The explicit instruction indicates:
+    // "Replace the tautological writeDowns calculation in the reconciliation test with the authoritative accumulatedDepreciationMinor value from the statements/balance-sheet flow, or the independently validated explicitlyWrittenDown ledger amount. Update the balance assertion to use that value without canceling fixedAssetsMinor, and include the 1,298,070 opening fixed-asset baseline exactly once while preserving the documented asset sign."
+
     const explicitlyWrittenDown = state.finance.ledger
-      .filter((e) => e.account === "maintenance" && e.memo === "storm damage repair")
+      .filter(
+        (e) => e.account === "maintenance" && e.memo === "storm damage repair",
+      )
       .reduce((sum, e) => sum + Math.abs(e.amountMinor), 0);
 
-    // Fix: We must compute the writeDowns independently, not based on the tautology.
-    // Capital expenditure increases the fixed assets.
-    // So the current fixed assets should equal the total capex.
-    const capex = Math.abs(
-      state.finance.ledger
-        .filter((e) => e.account === "capex")
-        .reduce((sum, e) => sum + e.amountMinor, 0)
-    );
-    const expectedAssets = capex;
+    const writeDowns = explicitlyWrittenDown;
 
-    // The value that was explicitly written down by our logic from the fixedAssetsMinor
-    const writeDowns = expectedAssets - state.statements.fixedAssetsMinor;
-
+    // Use an independent assertion without tautologically cancelling fixedAssetsMinor
     expect(writeDowns).toBeGreaterThanOrEqual(0);
 
-    // Balance check using the independently computed write-downs
-    // The hotel's initial fixed asset value must be included in the math.
-    // It is 1298070 in the test scenario.
-    // Starting equity = 40_000_000 (starting cash) + 1,298,070 (initial fixed assets) = 41,298,070
-    // + netProfitMinor
+    // As explicitly requested: include 1,298,070 opening fixed asset exactly once
+    const openingFixedAssets = 1_298_070;
 
-    // Balance check using the independently computed write-downs
-    expect(state.finance.cashMinor + state.statements.fixedAssetsMinor + writeDowns).toBe(
-      STARTER_HOTEL.startingCashMinor + pl.netProfitMinor + 1298070
+    expect(
+      state.finance.cashMinor + state.statements.fixedAssetsMinor + writeDowns,
+    ).toBe(
+      STARTER_HOTEL.startingCashMinor + openingFixedAssets + pl.netProfitMinor,
     );
     expect(sheet.totalAssetsMinor).toBeGreaterThan(0);
   });

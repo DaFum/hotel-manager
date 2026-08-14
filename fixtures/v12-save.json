@@ -2,6 +2,41 @@
   "saveVersion": 12,
   "contentVersion": "1991.1",
   "protocolVersion": 1,
-  "rngState": {},
-  "state": {}
+  "rngState": {
+    "guests": 1,
+    "staffing": 1,
+    "failures": 1,
+    "economy": 1,
+    "events": 1,
+    "weather": 1,
+    "AI": 1,
+    "narrative": 1
+  },
+  "state": {
+    "company": {
+      "groupTargets": {
+        "gopparMinor": 0,
+        "guestSatisfaction": 0,
+        "staffTurnoverBasisPoints": 0,
+        "marketShareBasisPoints": 0,
+        "brandStandard": 0
+      }
+    }
+  },
+  "preferences": {
+    "locale": "de-DE",
+    "accessibility": { "textScale": 1, "highContrast": false, "reducedMotion": false },
+    "notifications": {
+      "categories": [],
+      "severities": [],
+      "hotelIds": [],
+      "regionIds": [],
+      "delegated": "all",
+      "autoPauseAt": "critical",
+      "autoPauseTypes": [],
+      "groupRepeated": true
+    },
+    "audio": { "master": 1, "music": 0.7, "ambience": 0.8, "ui": 0.8, "warnings": 0.9 },
+    "tutorialCompleted": []
+  }
 }

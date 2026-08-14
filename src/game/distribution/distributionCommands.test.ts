@@ -91,20 +91,27 @@ describe("distribution commands", () => {
       "confirmed",
     );
 
-    expect(
-      submit(simulation, {
-        type: "ACCEPT_GROUP_CONTRACT",
-        blockId: "block.1",
-        category: "single",
-        roomsByDate: { "1991-01-03": 5 },
-        groupRateMinor: 8000,
-        releaseDateKey: "1991-01-02",
-        depositMinor: 10000,
-        cancellationDaysBeforeArrival: 3,
-        cancellationFeeBasisPoints: 5000,
-        paymentTermsDays: 14,
-      }).status,
-    ).toBe("rejected");
+    const rejection = simulation.submitCommands([
+      commandEnvelope({
+        commandId: "test.ACCEPT_GROUP_CONTRACT_2",
+        issuedAtMinutes: simulation.state.elapsedMinutes,
+        actor: "player",
+        payload: {
+          type: "ACCEPT_GROUP_CONTRACT",
+          blockId: "block.1",
+          category: "single",
+          roomsByDate: { "1991-01-04": 5 },
+          groupRateMinor: 8000,
+          releaseDateKey: "1991-01-02",
+          depositMinor: 10000,
+          cancellationDaysBeforeArrival: 3,
+          cancellationFeeBasisPoints: 5000,
+          paymentTermsDays: 14,
+        },
+      }),
+    ])[0];
+    expect(rejection.status).toBe("rejected");
+    expect(rejection.reason).toBe("group block already exists");
   });
 
   it("declines a group contract", () => {

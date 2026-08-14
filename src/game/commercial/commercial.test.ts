@@ -219,7 +219,7 @@ describe("the sales pipeline", () => {
     );
   });
 
-  it("rejects unsorted or duplicate blackoutDateKeys, and applies defaults", () => {
+  it("verifies duplicate blackout-date rejection and default application only", () => {
     const base = {
       id: "contract.2",
       accountName: "Company",
@@ -276,8 +276,11 @@ describe("the sales pipeline", () => {
       realisedBasisPoints: 10,
     });
     expect(state.length).toBe(120);
-    const updated = state.find((e) => e.atDateKey === "1991-01-050");
-    expect(updated?.realisedBasisPoints).toBe(10);
+    const updated = state.filter(
+      (e) => e.campaignId === "c1" && e.atDateKey === "1991-01-050",
+    );
+    expect(updated.length).toBe(1);
+    expect(updated[0].realisedBasisPoints).toBe(10);
   });
 
   it("refuses to reopen a decided lead", () => {

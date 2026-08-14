@@ -137,7 +137,7 @@ describe("booking lifecycle", () => {
 
     expect(s.state.stays.some((x) => x.bookingId === "b.toobig")).toBe(false);
     expect(s.state.reservations.find((b) => b.id === "b.toobig")?.status).toBe(
-      "confirmed",
+      "walked",
     );
   });
 

@@ -59,6 +59,32 @@ export function validateDistributionCommand(
       case "ACCEPT_GROUP_CONTRACT":
         validateRooms(state, command.roomsByDate, command.category);
         if (
+          !Number.isSafeInteger(command.groupRateMinor) ||
+          command.groupRateMinor < 0
+        )
+          throw new Error("group rate must be non-negative");
+        if (
+          !Number.isSafeInteger(command.depositMinor) ||
+          command.depositMinor < 0
+        )
+          throw new Error("deposit must be non-negative");
+        if (
+          !Number.isSafeInteger(command.cancellationDaysBeforeArrival) ||
+          command.cancellationDaysBeforeArrival < 0
+        )
+          throw new Error("cancellation days must be non-negative");
+        if (
+          !Number.isSafeInteger(command.cancellationFeeBasisPoints) ||
+          command.cancellationFeeBasisPoints < 0 ||
+          command.cancellationFeeBasisPoints > 10_000
+        )
+          throw new Error("cancellation fee must be 0-10000 basis points");
+        if (
+          !Number.isSafeInteger(command.paymentTermsDays) ||
+          command.paymentTermsDays < 0
+        )
+          throw new Error("payment terms must be non-negative");
+        if (
           state.distribution.groupBlocks.some((b) => b.id === command.blockId)
         )
           throw new Error("group block already exists");
@@ -122,7 +148,7 @@ export function applyDistributionCommand(
           status: "confirmed" as const,
         },
       ].sort((a, b) => (a.id < b.id ? -1 : 1));
-      ctx.spend(command.depositMinor, "groupDeposit", command.blockId);
+      ctx.earn(command.depositMinor, "groupDeposit", command.blockId);
       ctx.emit({ type: "GROUP_CONTRACT_ACCEPTED", blockId: command.blockId }, [
         command.blockId,
       ]);

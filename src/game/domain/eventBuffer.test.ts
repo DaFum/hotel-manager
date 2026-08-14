@@ -505,9 +505,9 @@ describe("domain event buffer", () => {
       contractId: "contract.lead.coverage",
       intent: "renewing",
     });
-    send({ type: "CONFIGURE_LOYALTY", active: false });
     s.state.assets.find((asset) => asset.id === "asset.boiler")!.condition = 0;
     collected.push(...runDays(s, 45));
+    send({ type: "CONFIGURE_LOYALTY", active: false });
     return collected;
   }
 

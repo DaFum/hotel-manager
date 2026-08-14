@@ -200,11 +200,17 @@ export function automaticRate(
   );
   const authority = Math.min(10_000, strategyAuthority);
   const bounded = Math.max(-authority, Math.min(authority, rule.rateChangeBp));
+  if (!Number.isSafeInteger(baseMinor) || baseMinor < 0)
+    throw new Error("baseMinor must be a safe non-negative integer");
+
+  const calculatedRate =
+    (BigInt(baseMinor) * BigInt(10_000 + bounded)) / 10_000n;
+  const rateMinorNum = Number(calculatedRate);
+  if (!Number.isSafeInteger(rateMinorNum))
+    throw new Error("rate calculation overflowed safe integer");
+
   return {
-    rateMinor: Math.max(
-      1,
-      Math.round((baseMinor * (10_000 + bounded)) / 10_000),
-    ),
+    rateMinor: Math.max(1, rateMinorNum),
     causes: [
       `${rule.metric} reached ${metrics[rule.metric] ?? 0}`,
       `bounded authority ${policy.managerAuthorityBp}bp`,

@@ -35,6 +35,9 @@ describe("revenue basics", () => {
   it("calculates GOPPAR in whole minor units", () => {
     expect(gopparMinor(100_000, 24)).toBe(4167);
     expect(gopparMinor(100_000, 0)).toBe(0);
+    expect(() => gopparMinor(100_000, -1)).toThrow();
+    expect(() => gopparMinor(100.5, 10)).toThrow();
+    expect(() => gopparMinor(NaN, 10)).toThrow();
   });
 
   it("brackets the pickup forecast inside available inventory", () => {

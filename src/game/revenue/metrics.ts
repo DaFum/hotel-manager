@@ -18,6 +18,10 @@ export function gopparMinor(
   gopMinor: number,
   availableRoomNights: number,
 ): number {
+  if (!Number.isSafeInteger(gopMinor))
+    throw new Error("gopMinor must be a safe integer");
+  if (!Number.isSafeInteger(availableRoomNights) || availableRoomNights < 0)
+    throw new Error("availableRoomNights must be a non-negative safe integer");
   return availableRoomNights ? Math.round(gopMinor / availableRoomNights) : 0;
 }
 

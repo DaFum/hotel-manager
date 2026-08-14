@@ -1,16 +1,17 @@
+import type { RoomCategory } from "../revenue/rates";
 import type { EvolvingChannel } from "./channelEvolution";
 
 export interface Allotment {
   id: string;
   partner: string;
-  category: string;
+  category: RoomCategory;
   roomsByDate: Record<string, number>;
   releaseDateKey: string;
 }
 
 export interface GroupBlock {
   id: string;
-  category: string;
+  category: RoomCategory;
   roomsByDate: Record<string, number>;
   groupRateMinor: number;
   releaseDateKey: string;
@@ -23,7 +24,7 @@ export interface GroupBlock {
 
 export interface ChannelInventoryRule {
   channelId: EvolvingChannel;
-  allowedCategories: string[];
+  allowedCategories: RoomCategory[];
   allowedRatePlanIds: string[];
   closed: boolean;
 }

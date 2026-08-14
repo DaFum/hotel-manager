@@ -60,8 +60,8 @@ export function audienceReachView(state: GameState) {
         segment:
           GUEST_SEGMENTS.find((s) => s.id === c.targetSegmentId)?.nameKey ??
           c.targetSegmentId,
-        lowBp: band.low,
-        highBp: band.high,
+        lowBp: band.lowBasisPoints,
+        highBp: band.highBasisPoints,
         influencedBookings: state.reservations.filter(
           (booking) =>
             booking.segmentId === c.targetSegmentId &&

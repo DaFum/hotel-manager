@@ -20,10 +20,10 @@ export interface CommercialState {
 
 export interface CampaignAttributionEntry {
   campaignId: string;
-  low: number;
-  base: number;
-  high: number;
-  realised: number;
+  lowBasisPoints: number;
+  baseBasisPoints: number;
+  highBasisPoints: number;
+  realisedBasisPoints: number;
   atDateKey: string;
 }
 

@@ -67,8 +67,10 @@ export function channelAvailable(
 export function createCampaign(input: Omit<Campaign, "status">): Campaign {
   if (!input.id) throw new Error("a campaign id is required");
   if (!input.targetSegmentId) throw new Error("a campaign needs a target");
-  if (!input.region.trim()) throw new Error("a campaign needs a region");
-  if (!input.message.trim()) throw new Error("a campaign needs a message");
+  if (!input.region || !input.region.trim())
+    throw new Error("a campaign needs a region");
+  if (!input.message || !input.message.trim())
+    throw new Error("a campaign needs a message");
   if (!Object.hasOwn(COST_PER_CONTACT_MINOR, input.channel))
     throw new Error("invalid campaign channel");
   if (!Number.isSafeInteger(input.durationDays) || input.durationDays <= 0)
@@ -183,27 +185,31 @@ export function attributedEffectBasisPoints(
 export function campaignUncertaintyBand(
   effectBasisPoints: number,
   uncertaintyBasisPoints: number,
-): { low: number; base: number; high: number } {
+): {
+  lowBasisPoints: number;
+  baseBasisPoints: number;
+  highBasisPoints: number;
+} {
   assertBasisPoints(uncertaintyBasisPoints, "campaign uncertainty");
   const spread = Math.trunc(
     (effectBasisPoints * uncertaintyBasisPoints) / 10_000,
   );
   return {
-    low: Math.max(0, effectBasisPoints - spread),
-    base: effectBasisPoints,
-    high: effectBasisPoints + spread,
+    lowBasisPoints: Math.max(0, effectBasisPoints - spread),
+    baseBasisPoints: effectBasisPoints,
+    highBasisPoints: effectBasisPoints + spread,
   };
 }
 
 /** Where in the band this campaign actually landed; drawn once, at the start. */
 export function realisedEffectBasisPoints(
-  band: { low: number; high: number },
+  band: { lowBasisPoints: number; highBasisPoints: number },
   economy: XorShift32,
 ): number {
-  const spread = band.high - band.low;
+  const spread = band.highBasisPoints - band.lowBasisPoints;
   return spread === 0
-    ? band.low
-    : band.low + (economy.nextUint32() % (spread + 1));
+    ? band.lowBasisPoints
+    : band.lowBasisPoints + (economy.nextUint32() % (spread + 1));
 }
 
 export function registerCampaign(

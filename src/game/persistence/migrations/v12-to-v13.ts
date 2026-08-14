@@ -9,6 +9,19 @@ export function migrateV12ToV13(save: SaveEnvelope): SaveEnvelope {
   state.distribution ??= createDistributionState();
   state.commercial ??= {};
   state.commercial.campaignAttributionLog ??= [];
+  state.commercial.campaignAttributionLog =
+    state.commercial.campaignAttributionLog.map((entry: any) => ({
+      campaignId: entry.campaignId,
+      lowBasisPoints: entry.low ?? entry.lowBasisPoints,
+      baseBasisPoints: entry.base ?? entry.baseBasisPoints,
+      highBasisPoints: entry.high ?? entry.highBasisPoints,
+      realisedBasisPoints: entry.realised ?? entry.realisedBasisPoints,
+      atDateKey: entry.atDateKey,
+    }));
+  for (const campaign of state.commercial.campaigns ?? []) {
+    campaign.region ??= "national";
+    campaign.message ??= "awareness";
+  }
   state.commercial.loyalty ??= { members: [], liabilityMinor: 0 };
   state.commercial.loyalty.active ??= true;
   for (const contract of state.commercial.sales?.contracts ?? []) {
@@ -25,5 +38,13 @@ export function migrateV12ToV13(save: SaveEnvelope): SaveEnvelope {
     brandStandard: 0,
   };
   state.metrics.gopparMinor ??= 0;
+  state.revenuePolicy ??= {};
+  state.revenuePolicy.managerAttributes ??= {
+    PricingStrategy: 50,
+    StayRestriction: 50,
+    ChannelManagement: 50,
+    GroupNegotiation: 50,
+    ContractNegotiation: 50,
+  };
   return { ...save, saveVersion: 13, state };
 }

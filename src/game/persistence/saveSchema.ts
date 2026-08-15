@@ -1,3 +1,5 @@
+import { isRoomCategory } from "../revenue/rates";
+import { CHANNELS } from "../distribution/channelEvolution";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { BASIS_POINTS } from "../domain/money";
 import type { GameState } from "../simulation/initialState";
@@ -159,13 +161,14 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
         Number.isSafeInteger(b.cancellationFeeBasisPoints) &&
         Number.isSafeInteger(b.paymentTermsDays) &&
         typeof b.status === "string" &&
-        ["confirmed", "declined"].includes(b.status),
+        ["held", "confirmed", "declined", "released"].includes(b.status),
     ) ||
     !Array.isArray(state.distribution.channelInventory) ||
     !state.distribution.channelInventory.every(
       (c: any) =>
         c &&
-        isEvolvingChannel(c.channelId) &&
+        typeof c.channelId === "string" &&
+        CHANNELS.some((ch) => ch.id === c.channelId) &&
         Array.isArray(c.allowedCategories) &&
         c.allowedCategories.every((cat: any) => isRoomCategory(cat)) &&
         Array.isArray(c.allowedRatePlanIds) &&

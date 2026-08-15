@@ -115,7 +115,11 @@ export function validateDistributionCommand(
           throw new Error("channel inventory needs categories and rate plans");
         if (!command.allowedCategories.every(isRoomCategory))
           throw new Error("channel inventory must use valid room categories");
-        if (!command.allowedRatePlanIds.every((id) => typeof id === "string" && id.length > 0))
+        if (
+          !command.allowedRatePlanIds.every(
+            (id) => typeof id === "string" && id.length > 0,
+          )
+        )
           throw new Error("channel inventory must use valid rate plan ids");
         break;
       case "CLOSE_CHANNEL":

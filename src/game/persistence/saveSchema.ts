@@ -1,3 +1,5 @@
+import { isRoomCategory } from "../revenue/rates";
+import { CHANNELS } from "../distribution/channelEvolution";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { BASIS_POINTS } from "../domain/money";
 import type { GameState } from "../simulation/initialState";
@@ -125,9 +127,16 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
         a &&
         typeof a.id === "string" &&
         typeof a.partner === "string" &&
-        typeof a.category === "string" &&
+        isRoomCategory(a.category) &&
         a.roomsByDate &&
         typeof a.roomsByDate === "object" &&
+        !Array.isArray(a.roomsByDate) &&
+        Object.entries(a.roomsByDate).every(
+          ([k, v]) =>
+            typeof k === "string" &&
+            Number.isSafeInteger(v) &&
+            (v as number) >= 0,
+        ) &&
         typeof a.releaseDateKey === "string",
     ) ||
     !Array.isArray(state.distribution.groupBlocks) ||
@@ -135,24 +144,35 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
       (b: any) =>
         b &&
         typeof b.id === "string" &&
-        typeof b.category === "string" &&
+        isRoomCategory(b.category) &&
         b.roomsByDate &&
         typeof b.roomsByDate === "object" &&
+        !Array.isArray(b.roomsByDate) &&
+        Object.entries(b.roomsByDate).every(
+          ([k, v]) =>
+            typeof k === "string" &&
+            Number.isSafeInteger(v) &&
+            (v as number) >= 0,
+        ) &&
         Number.isSafeInteger(b.groupRateMinor) &&
         typeof b.releaseDateKey === "string" &&
         Number.isSafeInteger(b.depositMinor) &&
         Number.isSafeInteger(b.cancellationDaysBeforeArrival) &&
         Number.isSafeInteger(b.cancellationFeeBasisPoints) &&
         Number.isSafeInteger(b.paymentTermsDays) &&
-        typeof b.status === "string",
+        typeof b.status === "string" &&
+        ["held", "confirmed", "declined", "released"].includes(b.status),
     ) ||
     !Array.isArray(state.distribution.channelInventory) ||
     !state.distribution.channelInventory.every(
       (c: any) =>
         c &&
         typeof c.channelId === "string" &&
+        CHANNELS.some((ch) => ch.id === c.channelId) &&
         Array.isArray(c.allowedCategories) &&
+        c.allowedCategories.every((cat: any) => isRoomCategory(cat)) &&
         Array.isArray(c.allowedRatePlanIds) &&
+        c.allowedRatePlanIds.every((plan: any) => typeof plan === "string") &&
         typeof c.closed === "boolean",
     )
   )

@@ -9,6 +9,14 @@ export function migrateV12ToV13(save: SaveEnvelope): SaveEnvelope {
   state.distribution ??= createDistributionState();
   state.commercial ??= {};
   state.commercial.campaignAttributionLog ??= [];
+  if (!Array.isArray(state.commercial.campaignAttributionLog))
+    throw new Error("campaignAttributionLog must be an array");
+  if (
+    state.commercial.campaigns !== undefined &&
+    !Array.isArray(state.commercial.campaigns)
+  )
+    throw new Error("campaigns must be an array");
+
   state.commercial.campaignAttributionLog =
     state.commercial.campaignAttributionLog.map((entry: any) => ({
       campaignId: entry.campaignId,

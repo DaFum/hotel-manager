@@ -4,6 +4,8 @@ import { createInitialGameState } from "../../simulation/initialState";
 import { PROTOCOL_VERSION } from "../../domain/protocol";
 import { CONTENT_VERSION } from "../saveVersions";
 import { validateEnvelope } from "../saveSchema";
+import { stateHash } from "../../debug/stateHash";
+
 import { DEFAULT_PLAYER_PREFERENCES } from "../../settings/playerPreferences";
 
 it("migrates version 12 distribution and commercial defaults to version 13", () => {
@@ -70,8 +72,8 @@ it("migrates version 12 distribution and commercial defaults to version 13", () 
     saveVersion: 12,
     contentVersion: CONTENT_VERSION,
     protocolVersion: PROTOCOL_VERSION,
-    rngState: state.rngState,
-    state: v12Fixture,
+    rngState: structuredClone(state.rngState),
+    state: structuredClone(v12Fixture),
     preferences: DEFAULT_PLAYER_PREFERENCES,
   });
 
@@ -126,4 +128,17 @@ it("migrates version 12 distribution and commercial defaults to version 13", () 
   });
 
   expect(validateEnvelope(migrated)).toEqual([]);
+
+  const v12FixtureClone = structuredClone(v12Fixture);
+  const rngStateClone = structuredClone(state.rngState);
+  const migrated2 = migrateV12ToV13({
+    saveVersion: 12,
+    contentVersion: CONTENT_VERSION,
+    protocolVersion: PROTOCOL_VERSION,
+    rngState: rngStateClone,
+    state: v12FixtureClone,
+    preferences: DEFAULT_PLAYER_PREFERENCES,
+  });
+
+  expect(stateHash(migrated.state)).toBe(stateHash(migrated2.state));
 });

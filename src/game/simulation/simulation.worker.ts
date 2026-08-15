@@ -40,10 +40,14 @@ function acceptEnvelope(
 ): { ok: true; state: GameState } | { ok: false; reason: string } {
   if (!value || typeof value !== "object")
     return { ok: false, reason: "save data is not a save envelope" };
-  const envelope = migrateToCurrent(value as SaveEnvelope);
-  const problems = validateEnvelope(envelope);
-  if (problems.length > 0) return { ok: false, reason: problems.join("; ") };
-  return { ok: true, state: envelope.state as GameState };
+  try {
+    const envelope = migrateToCurrent(value as SaveEnvelope);
+    const problems = validateEnvelope(envelope);
+    if (problems.length > 0) return { ok: false, reason: problems.join("; ") };
+    return { ok: true, state: envelope.state as GameState };
+  } catch (error) {
+    return { ok: false, reason: (error as Error).message };
+  }
 }
 
 /** The envelope this build writes, prepared from authoritative state. */

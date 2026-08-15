@@ -144,6 +144,7 @@ export function validateCommercialCommand(
           (item) => item.id === command.leadId,
         );
         if (!lead) throw new Error(`unknown lead ${command.leadId}`);
+        advanceLead(state.commercial.sales, command.leadId, "won");
         signContract(state.commercial.sales, {
           id: command.contractId,
           accountName: lead.accountName,

@@ -184,6 +184,9 @@ export function automaticRate(
   metrics: Readonly<Record<string, number>>,
   policy: RevenuePolicy,
 ): RevenueDecision {
+  if (!Number.isSafeInteger(baseMinor) || baseMinor < 0)
+    throw new Error("baseMinor must be a safe non-negative integer");
+
   const rule = [...policy.rules]
     .sort((a, b) => a.priority - b.priority || compareIds(a.id, b.id))
     .find(
@@ -200,8 +203,6 @@ export function automaticRate(
   );
   const authority = Math.min(10_000, strategyAuthority);
   const bounded = Math.max(-authority, Math.min(authority, rule.rateChangeBp));
-  if (!Number.isSafeInteger(baseMinor) || baseMinor < 0)
-    throw new Error("baseMinor must be a safe non-negative integer");
 
   const calculatedRate =
     (BigInt(baseMinor) * BigInt(10_000 + bounded)) / 10_000n;

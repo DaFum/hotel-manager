@@ -125,7 +125,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
         a &&
         typeof a.id === "string" &&
         typeof a.partner === "string" &&
-        typeof a.category === "string" &&
+        isRoomCategory(a.category) &&
         a.roomsByDate &&
         typeof a.roomsByDate === "object" &&
         !Array.isArray(a.roomsByDate) &&
@@ -142,7 +142,7 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
       (b: any) =>
         b &&
         typeof b.id === "string" &&
-        typeof b.category === "string" &&
+        isRoomCategory(b.category) &&
         b.roomsByDate &&
         typeof b.roomsByDate === "object" &&
         !Array.isArray(b.roomsByDate) &&
@@ -158,15 +158,16 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
         Number.isSafeInteger(b.cancellationDaysBeforeArrival) &&
         Number.isSafeInteger(b.cancellationFeeBasisPoints) &&
         Number.isSafeInteger(b.paymentTermsDays) &&
-        typeof b.status === "string",
+        typeof b.status === "string" &&
+        ["confirmed", "declined"].includes(b.status),
     ) ||
     !Array.isArray(state.distribution.channelInventory) ||
     !state.distribution.channelInventory.every(
       (c: any) =>
         c &&
-        typeof c.channelId === "string" &&
+        isEvolvingChannel(c.channelId) &&
         Array.isArray(c.allowedCategories) &&
-        c.allowedCategories.every((cat: any) => typeof cat === "string") &&
+        c.allowedCategories.every((cat: any) => isRoomCategory(cat)) &&
         Array.isArray(c.allowedRatePlanIds) &&
         c.allowedRatePlanIds.every((plan: any) => typeof plan === "string") &&
         typeof c.closed === "boolean",

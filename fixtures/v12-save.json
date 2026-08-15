@@ -1,7 +1,7 @@
 {
   "saveVersion": 12,
   "contentVersion": "1991.1",
-  "protocolVersion": 1,
+  "protocolVersion": 6,
   "rngState": {
     "guests": 1,
     "staffing": 1,
@@ -13,6 +13,7 @@
     "narrative": 1
   },
   "state": {
+    "metrics": {},
     "company": {
       "groupTargets": {
         "gopparMinor": 0,

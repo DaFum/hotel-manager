@@ -1,5 +1,5 @@
 import type { ExpandableArea } from "../classification/specialization";
-import { isRoomCategory, type RoomCategory } from "../revenue/rates";
+import type { RoomCategory } from "../revenue/rates";
 import type { StaffRole } from "../domain/staffRoles";
 import type { Shift } from "../staff/staffing";
 import type { OperatingModel } from "../ownership/models";
@@ -290,11 +290,6 @@ export function isCommandEnvelope(value: unknown): value is CommandEnvelope {
     (e.actor === "player" || e.actor === "automation") &&
     e.payload &&
     typeof e.payload.type === "string" &&
-    (e.payload.type !== "SET_CHANNEL_INVENTORY" ||
-      ((!("category" in e.payload) ||
-        isRoomCategory((e.payload as any).category)) &&
-        Array.isArray((e.payload as any).allowedCategories) &&
-        (e.payload as any).allowedCategories.every(isRoomCategory))) &&
     (e.expectedStateVersion === undefined ||
       (Number.isSafeInteger(e.expectedStateVersion) &&
         e.expectedStateVersion >= 0)),

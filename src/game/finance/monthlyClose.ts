@@ -7,6 +7,7 @@ import {
 import { addDays } from "../domain/calendar";
 
 export interface MonthlyCloseInput {
+  taxChargeMinor?: number;
   /** The closed month as `YYYY-MM`; identifies the report. */
   periodKey: string;
   openingCashMinor: number;

@@ -4158,6 +4158,7 @@ export class GameSimulation implements CommandExecutor {
       eventRevenueMinor: 0,
       housekeepingLateRoomReleaseCount: 0,
       operatingExpenseMinor: 0,
+      interestMinor: 0,
       soldRoomNights: 0,
       // The first day of the new month is added right after this close.
       availableRoomNights: 0,

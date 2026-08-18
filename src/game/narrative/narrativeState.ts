@@ -24,6 +24,8 @@ export interface AnnualProfitAccumulator {
   year: number;
   /** Accumulated so far this financial year. */
   operatingProfitMinor: number;
+  /** Accumulated interest so far this financial year. */
+  interestMinor: number;
   /** The last year that actually finished; what a "profitable year" means. */
   lastCompletedYearProfitMinor: number;
 }
@@ -60,6 +62,7 @@ export function createNarrativeState(input: {
     annualProfit: {
       year: input.career.year,
       operatingProfitMinor: 0,
+      interestMinor: 0,
       lastCompletedYearProfitMinor: 0,
     },
     rivals: createNamedRivals(),

@@ -89,6 +89,7 @@ export function isValidAnnualProfit(
     isRecord(value) &&
     Number.isSafeInteger(value.year) &&
     Number.isSafeInteger(value.operatingProfitMinor) &&
+    Number.isSafeInteger(value.interestMinor) &&
     Number.isSafeInteger(value.lastCompletedYearProfitMinor)
   );
 }

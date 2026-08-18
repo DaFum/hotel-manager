@@ -11,6 +11,16 @@ export const PLAYER_COMPANY = {
   reportingCurrency: "DEM",
 } as const;
 
+export const JURISDICTION_TAX_RATES_BP: Record<string, number> = {
+  DE: 3000,
+};
+
+export function taxRateForJurisdiction(jurisdiction: string): number {
+  return JURISDICTION_TAX_RATES_BP[jurisdiction] ?? 2000;
+}
+
+export const TAX_PAYMENT_LAG_MONTHS = 6;
+
 export const STARTER_LEGAL_ENTITY = {
   id: "entity.de.1",
   name: "Mainblick Betriebs GmbH",

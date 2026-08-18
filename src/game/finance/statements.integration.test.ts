@@ -57,6 +57,7 @@ describe("the statements against a real trading hotel", () => {
       accumulatedDepreciationMinor:
         state.statements.accumulatedDepreciationMinor,
       payablesMinor: state.finance.payableMinor,
+      taxPayableMinor: 0,
       debtMinor: state.loan.principalMinor,
       contributedCapitalMinor: STARTER_HOTEL.startingCashMinor,
       retainedEarningsMinor:

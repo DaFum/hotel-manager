@@ -16,6 +16,7 @@ export type AccountClass =
   | "borrowing"
   | "equity"
   | "financing"
+  | "tax"
   | "settlement";
 
 /**
@@ -72,6 +73,7 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   loan: "borrowing",
   capital: "equity",
   interest: "financing",
+  tax: "tax",
   // Paying an overdue bill is cash leaving for an expense already recognised.
   // Counting it again would double the cost and inflate interest.
   payables: "settlement",
@@ -90,14 +92,19 @@ export interface ProfitAndLoss {
   operatingExpenseMinor: number;
   operatingProfitMinor: number;
   interestMinor: number;
+  taxMinor: number;
   netProfitMinor: number;
 }
 
 /** Trading only: capital spend buys an asset and belongs nowhere in here. */
-export function profitAndLoss(ledger: readonly LedgerEntry[]): ProfitAndLoss {
+export function profitAndLoss(
+  ledger: readonly LedgerEntry[],
+  outstandingTaxMinor = 0,
+): ProfitAndLoss {
   let revenueMinor = 0;
   let operatingExpenseMinor = 0;
   let interestMinor = 0;
+  let taxPaidMinor = 0;
   for (const entry of ledger)
     switch (accountClass(entry.account)) {
       case "revenue":
@@ -110,6 +117,9 @@ export function profitAndLoss(ledger: readonly LedgerEntry[]): ProfitAndLoss {
       case "financing":
         interestMinor += -entry.amountMinor;
         break;
+      case "tax":
+        taxPaidMinor += -entry.amountMinor;
+        break;
       case "capital":
       case "investing":
       case "borrowing":
@@ -118,12 +128,14 @@ export function profitAndLoss(ledger: readonly LedgerEntry[]): ProfitAndLoss {
         break;
     }
   const operatingProfitMinor = revenueMinor - operatingExpenseMinor;
+  const taxMinor = taxPaidMinor + outstandingTaxMinor;
   return {
     revenueMinor,
     operatingExpenseMinor,
     operatingProfitMinor,
     interestMinor,
-    netProfitMinor: operatingProfitMinor - interestMinor,
+    taxMinor,
+    netProfitMinor: operatingProfitMinor - interestMinor - taxMinor,
   };
 }
 
@@ -161,6 +173,7 @@ export function cashFlowStatement(
       case "equity":
         financingCashMinor += entry.amountMinor;
         break;
+      case "tax":
       default:
         operatingCashMinor += entry.amountMinor;
     }
@@ -183,6 +196,7 @@ export interface BalanceSheetInput {
   fixedAssetsMinor: number;
   accumulatedDepreciationMinor: number;
   payablesMinor: number;
+  taxPayableMinor: number;
   debtMinor: number;
   contributedCapitalMinor: number;
   retainedEarningsMinor: number;
@@ -202,7 +216,7 @@ export function balanceSheet(input: BalanceSheetInput): BalanceSheet {
     input.receivablesMinor +
     input.fixedAssetsMinor -
     input.accumulatedDepreciationMinor;
-  const totalLiabilitiesMinor = input.payablesMinor + input.debtMinor;
+  const totalLiabilitiesMinor = input.payablesMinor + input.taxPayableMinor + input.debtMinor;
   const equityMinor =
     input.contributedCapitalMinor + input.retainedEarningsMinor;
   return {
@@ -343,4 +357,16 @@ export function overdueReceivables(
   dateKey: string,
 ): Receivable[] {
   return statements.receivables.filter((r) => r.dueDateKey <= dateKey);
+}
+
+export function taxChargeMinor(
+  preTaxBaseMinor: number,
+  rateBasisPoints: number,
+): number {
+  if (preTaxBaseMinor <= 0) return 0;
+  if (!Number.isSafeInteger(rateBasisPoints) || rateBasisPoints < 0)
+    throw new Error("invalid tax rate");
+  const quotient = Math.trunc(preTaxBaseMinor / 10_000);
+  const remainder = preTaxBaseMinor % 10_000;
+  return quotient * rateBasisPoints + Math.trunc((remainder * rateBasisPoints) / 10_000);
 }

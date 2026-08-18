@@ -106,6 +106,16 @@ export type DomainEventPayload =
       profitMinor: number;
       occupancyBasisPoints: number;
     }
+  | {
+      type: "TAX_ACCRUED";
+      periodKey: string;
+      amountMinor: number;
+    }
+  | {
+      type: "TAX_PAID";
+      periodKey: string;
+      amountMinor: number;
+    }
   // --- conferences --------------------------------------------------------
   | {
       type: "CONFERENCE_BOOKED";
@@ -256,6 +266,8 @@ export type DomainEventPayload =
 
 export type DomainEventType = DomainEventPayload["type"];
 
+type _CheckEvents = Record<DomainEventType, true>;
+
 /**
  * Every transition the simulation must publish. The coverage test drives a
  * real game and requires each of these to actually appear, so listing a name
@@ -297,6 +309,8 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   SUPPLY_ORDERED: true,
   SUPPLY_DELIVERED: true,
   MONTH_CLOSED: true,
+  TAX_ACCRUED: true,
+  TAX_PAID: true,
   CONFERENCE_BOOKED: true,
   CONFERENCE_COMPLETED: true,
   CITY_MONTH_ADVANCED: true,
@@ -374,6 +388,8 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "SUPPLY_ORDERED",
   "SUPPLY_DELIVERED",
   "MONTH_CLOSED",
+  "TAX_ACCRUED",
+  "TAX_PAID",
   "CONFERENCE_BOOKED",
   "CONFERENCE_COMPLETED",
   "CITY_MONTH_ADVANCED",

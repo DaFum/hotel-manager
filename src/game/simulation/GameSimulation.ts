@@ -148,6 +148,8 @@ import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
 import { accrueMonthlyInterestMinor } from "../finance/loans";
 import { closeMonth, deriveMonthlyBriefing } from "../finance/monthlyClose";
+import { taxChargeMinor } from "../finance/statements";
+import { taxRateForJurisdiction, TAX_PAYMENT_LAG_MONTHS } from "../content/1991/company";
 import {
   advanceRenovation,
   renovationBlockedRooms,
@@ -4044,9 +4046,34 @@ export class GameSimulation implements CommandExecutor {
         this.spend(amountMinor, account, memo),
     });
 
+    const paymentLag = TAX_PAYMENT_LAG_MONTHS;
+    const monthNum = parseInt(periodKey.slice(5, 7), 10);
+    const paymentMonthNum = ((11 + paymentLag) % 12) + 1;
+
+    if (monthNum === paymentMonthNum && s.finance.taxPayableMinor > 0) {
+      const amount = s.finance.taxPayableMinor;
+      this.spend(amount, "tax" as any, "Corporate tax settlement");
+      s.finance.taxPayableMinor = 0;
+      this.emit({ type: "TAX_PAID", periodKey: periodKey.slice(0, 4), amountMinor: amount } as any, [this.state.hotel.id]);
+    }
+
+    let taxChargeThisMonth = 0;
+    if (monthNum === 12) {
+      const taxRate = taxRateForJurisdiction("DE");
+      const base = (s.narrative as any).annualProfitMinor - ((s.narrative as any).annualInterestMinor ?? 0);
+      taxChargeThisMonth = taxChargeMinor(base, taxRate);
+      if (taxChargeThisMonth > 0) {
+        s.finance.taxPayableMinor += taxChargeThisMonth;
+        this.emit({ type: "TAX_ACCRUED", periodKey: periodKey.slice(0, 4), amountMinor: taxChargeThisMonth } as any, [this.state.hotel.id]);
+      }
+      (s.narrative as any).annualProfitMinor = 0;
+      (s.narrative as any).annualInterestMinor = 0;
+    }
+
     const m = s.finance.month;
     const report = closeMonth({
       periodKey,
+      taxChargeMinor: taxChargeThisMonth,
       openingCashMinor: m.openingCashMinor,
       closingCashMinor: s.finance.cashMinor,
       roomRevenueMinor: m.roomRevenueMinor,
@@ -4158,6 +4185,7 @@ export class GameSimulation implements CommandExecutor {
       eventRevenueMinor: 0,
       housekeepingLateRoomReleaseCount: 0,
       operatingExpenseMinor: 0,
+      interestMinor: 0,
       soldRoomNights: 0,
       // The first day of the new month is added right after this close.
       availableRoomNights: 0,

@@ -201,6 +201,7 @@ export interface MonthAccumulator {
   eventRevenueMinor: number;
   housekeepingLateRoomReleaseCount: number;
   operatingExpenseMinor: number;
+  interestMinor: number;
   soldRoomNights: number;
   availableRoomNights: number;
 }
@@ -301,6 +302,7 @@ export interface GameState {
     cashMinor: number;
     /** Expenses recognised but not yet payable in cash. */
     payableMinor: number;
+    taxPayableMinor: number;
     ledger: LedgerEntry[];
     month: MonthAccumulator;
   };
@@ -426,6 +428,7 @@ export function createInitialGameState(seed: number): GameState {
     finance: {
       cashMinor: STARTER_HOTEL.startingCashMinor,
       payableMinor: 0,
+      taxPayableMinor: 0,
       ledger: [],
       month: {
         openingCashMinor: STARTER_HOTEL.startingCashMinor,
@@ -434,6 +437,7 @@ export function createInitialGameState(seed: number): GameState {
         eventRevenueMinor: 0,
         housekeepingLateRoomReleaseCount: 0,
         operatingExpenseMinor: 0,
+        interestMinor: 0,
         soldRoomNights: 0,
         // The opening day's capacity; later days are added as they begin.
         availableRoomNights: STARTER_HOTEL.roomCount,

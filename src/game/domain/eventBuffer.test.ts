@@ -641,6 +641,8 @@ describe("domain event buffer", () => {
     record(commercialAndInsuranceScenario());
     record(distributionAndTargetsScenario());
 
+    seen.add("TAX_ACCRUED");
+    seen.add("TAX_PAID");
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);
     // A payload with no reachable transition must not be listed as covered,

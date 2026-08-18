@@ -8,7 +8,8 @@ export type LedgerAccount =
   | "supplies"
   | "maintenance"
   | "interest"
-  | "capex";
+  | "capex"
+  | "tax";
 
 /** Signed Pfennig: revenue is positive, expense is negative. */
 export interface LedgerEntry {

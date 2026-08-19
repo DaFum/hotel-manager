@@ -2824,6 +2824,7 @@ export class GameSimulation implements CommandExecutor {
     if (s.calendar.dateKey.slice(8) === "01") {
       const interest = accrueMonthlyInterestMinor(s.loan);
       this.spend(interest, "interest", "loan interest");
+      s.finance.month.interestMinor += interest;
     }
 
     this.settlePayables();
@@ -4060,14 +4061,13 @@ export class GameSimulation implements CommandExecutor {
     let taxChargeThisMonth = 0;
     if (monthNum === 12) {
       const taxRate = taxRateForJurisdiction("DE");
-      const base = (s.narrative as any).annualProfitMinor - ((s.narrative as any).annualInterestMinor ?? 0);
+      const annual = s.narrative.annualProfit;
+      const base = annual.operatingProfitMinor - annual.interestMinor;
       taxChargeThisMonth = taxChargeMinor(base, taxRate);
       if (taxChargeThisMonth > 0) {
         s.finance.taxPayableMinor += taxChargeThisMonth;
         this.emit({ type: "TAX_ACCRUED", periodKey: periodKey.slice(0, 4), amountMinor: taxChargeThisMonth } as any, [this.state.hotel.id]);
       }
-      (s.narrative as any).annualProfitMinor = 0;
-      (s.narrative as any).annualInterestMinor = 0;
     }
 
     const m = s.finance.month;
@@ -4131,8 +4131,10 @@ export class GameSimulation implements CommandExecutor {
     if (annual.year !== closedYear) {
       annual.year = closedYear;
       annual.operatingProfitMinor = 0;
+      annual.interestMinor = 0;
     }
     annual.operatingProfitMinor += s.lastMonthlyClose.operatingProfitMinor;
+    annual.interestMinor += m.interestMinor;
     // A year is only profitable once it has finished being a year.
     if (Number(periodKey.slice(5, 7)) === 12)
       annual.lastCompletedYearProfitMinor = annual.operatingProfitMinor;

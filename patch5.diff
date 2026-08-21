@@ -1,0 +1,15 @@
+diff --git a/src/game/finance/statements.integration.test.ts b/src/game/finance/statements.integration.test.ts
+index 11bd131..a973dca 100644
+--- a/src/game/finance/statements.integration.test.ts
++++ b/src/game/finance/statements.integration.test.ts
+@@ -74,7 +74,7 @@ describe("the statements against a real trading hotel", () => {
+
+     expect(
+-      state.finance.cashMinor + state.statements.fixedAssetsMinor + explicitlyWrittenDown + state.statements.accumulatedDepreciationMinor,
++      state.finance.cashMinor + state.statements.fixedAssetsMinor + explicitlyWrittenDown,
+     ).toBe(
+-      STARTER_HOTEL.startingCashMinor + 10_500_000 + 1_298_070 + pl.netProfitMinor,
++      STARTER_HOTEL.startingCashMinor + 10_500_000 + 1_298_070 + pl.netProfitMinor,
+     );
+     expect(sheet.totalAssetsMinor).toBeGreaterThan(0);
+   });

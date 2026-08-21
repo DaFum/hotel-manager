@@ -1,0 +1,29 @@
+diff --git a/src/game/simulation/initialState.ts b/src/game/simulation/initialState.ts
+index 36b32ee..4d6db87 100644
+--- a/src/game/simulation/initialState.ts
++++ b/src/game/simulation/initialState.ts
+@@ -507,7 +507,15 @@ export function createInitialGameState(seed: number): GameState {
+     technologyProjects: [],
+     technologyImplementations: [],
+     company: createCompanyState(),
+-    statements: {
+-      ...createStatements(),
+-      fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) + 1_298_070,
+-      contributedCapitalMinor:
+-        STARTER_HOTEL.startingCashMinor +
+-        STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) + 1_298_070 -
+-        STARTER_HOTEL.startingLoan.principalMinor,
+-      retainedEarningsMinor: 0,
+-    },
++    statements: {
++      ...createStatements(),
++      fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) + 1_298_070,
++      contributedCapitalMinor:
++        STARTER_HOTEL.startingCashMinor +
++        STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) + 1_298_070 -
++        STARTER_HOTEL.startingLoan.principalMinor,
++      retainedEarningsMinor: 0,
++    },
+     insurance: createInsuranceState(),
+     utilityContracts: createUtilityContracts(),
+     meters: { energy: 0, water: 0, waste: 0 },

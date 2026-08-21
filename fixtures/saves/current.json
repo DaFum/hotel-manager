@@ -29640,14 +29640,16 @@
     "statements": {
       "receivables": [],
       "receivablesMinor": 0,
-      "fixedAssetsMinor": 34000000,
+      "fixedAssetsMinor": 44500000,
       "accumulatedDepreciationMinor": 87500,
       "depreciationThisPeriodMinor": 87500,
       "depreciationByAsset": {
         "asset.boiler": 37500,
         "asset.lift": 50000
       },
-      "lastDepreciationPeriodKey": "1991-01"
+      "lastDepreciationPeriodKey": "1991-01",
+      "contributedCapitalMinor": 40500000,
+      "retainedEarningsMinor": 308586
     },
     "insurance": {
       "policies": [],

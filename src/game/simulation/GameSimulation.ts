@@ -2796,12 +2796,14 @@ export class GameSimulation implements CommandExecutor {
           )?.paymentTermsDays ??
           0;
         const id = `receivable.${booking.id}.${s.calendar.dateKey}`;
-        if (!s.statements.receivables.some((item) => item.id === id))
+        if (!s.statements.receivables.some((item) => item.id === id)) {
           s.statements = recogniseReceivable(s.statements, {
             id,
             amountMinor: recognized,
             dueDateKey: addDays(s.calendar.dateKey, paymentTermsDays),
           });
+          s.statements.retainedEarningsMinor += recognized;
+        }
       } else this.earn(recognized, "roomRevenue", stay.roomId);
       this.recordCommercialStay(stay);
       s.finance.month.roomRevenueMinor += recognized;
@@ -4216,6 +4218,7 @@ export class GameSimulation implements CommandExecutor {
         accumulatedMinor: s.statements.depreciationByAsset[asset.id] ?? 0,
       });
       if (amountMinor <= 0) continue;
+      s.statements.retainedEarningsMinor -= amountMinor;
       s.statements = postDepreciation(s.statements, {
         assetId: asset.id,
         amountMinor,
@@ -4453,6 +4456,8 @@ export class GameSimulation implements CommandExecutor {
     if (amountMinor <= 0) return;
     const s = this.state;
     s.finance.cashMinor += amountMinor;
+    if (accountClass(account) === "revenue")
+      s.statements.retainedEarningsMinor += amountMinor;
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,
@@ -4467,6 +4472,13 @@ export class GameSimulation implements CommandExecutor {
     const paid = Math.min(amountMinor, s.finance.cashMinor);
     const unpaid = amountMinor - paid;
     s.finance.cashMinor -= paid;
+
+    const cls = accountClass(account);
+    if (cls === "operating" || cls === "financing")
+      s.statements.retainedEarningsMinor -= amountMinor;
+    else if (cls === "revenue")
+      s.statements.retainedEarningsMinor -= amountMinor; // Contra-revenue in spend
+
     // What the account is decides this, not what it is called: capex buys an
     // asset and an investment buys a stake, and neither is a cost of running
     // the hotel this month. The expense is recognised in full even when cash
@@ -4475,7 +4487,7 @@ export class GameSimulation implements CommandExecutor {
     // reports it as one; counting it here as well would make the close's
     // operating profit disagree with the statement's for the same period, and
     // every result read off `hotelResults` would inherit the lower figure.
-    if (accountClass(account) === "operating")
+    if (cls === "operating")
       s.finance.month.operatingExpenseMinor += amountMinor;
     // Capital spend buys something: the balance sheet has to know it exists.
     if (account === "capex")

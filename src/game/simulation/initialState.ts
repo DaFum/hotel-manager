@@ -507,7 +507,15 @@ export function createInitialGameState(seed: number): GameState {
     technologyProjects: [],
     technologyImplementations: [],
     company: createCompanyState(),
-    statements: createStatements(),
+    statements: {
+      ...createStatements(),
+      fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0),
+      contributedCapitalMinor:
+        STARTER_HOTEL.startingCashMinor +
+        STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) -
+        STARTER_HOTEL.startingLoan.principalMinor,
+      retainedEarningsMinor: 0,
+    },
     insurance: createInsuranceState(),
     utilityContracts: createUtilityContracts(),
     meters: { energy: 0, water: 0, waste: 0 },

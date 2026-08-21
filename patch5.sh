@@ -1,1 +1,0 @@
-sed -i 's/currencyCode: "DEM",/currencyCode: "DEM",\n}\n\nexport const JURISDICTION_TAX_RATES_BP: Record<string, number> = {\n  DE: 3000,\n};\n\nexport function taxRateForJurisdiction(jurisdiction: string): number {\n  return JURISDICTION_TAX_RATES_BP[jurisdiction] ?? 2000;\n}\n\nexport const TAX_PAYMENT_LAG_MONTHS = 6;/' src/game/content/1991/company.ts

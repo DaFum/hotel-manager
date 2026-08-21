@@ -1,2 +1,0 @@
-sed -i 's/fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) + 1_298_070,/fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0),/' src/game/simulation/initialState.ts
-sed -i 's/STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) + 1_298_070 -/STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) -/' src/game/simulation/initialState.ts

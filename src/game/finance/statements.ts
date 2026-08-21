@@ -63,6 +63,8 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   groupDeposit: "operating",
   serviceRecovery: "operating",
   receivableSettlement: "settlement",
+  receivableCollection: "settlement",
+  supplierSettlement: "settlement",
   capex: "capital",
   // A stake bought in a venture and a house sold out of the group are both the
   // group moving capital about, not the hotel trading.
@@ -268,6 +270,8 @@ export interface StatementsState {
   depreciationByAsset: Record<string, number>;
   /** The last period depreciation was posted for; a guard against duplicates. */
   lastDepreciationPeriodKey: string | null;
+  contributedCapitalMinor: number;
+  retainedEarningsMinor: number;
 }
 
 export function createStatements(): StatementsState {
@@ -279,6 +283,8 @@ export function createStatements(): StatementsState {
     depreciationThisPeriodMinor: 0,
     depreciationByAsset: {},
     lastDepreciationPeriodKey: null,
+    contributedCapitalMinor: 0,
+    retainedEarningsMinor: 0,
   };
 }
 

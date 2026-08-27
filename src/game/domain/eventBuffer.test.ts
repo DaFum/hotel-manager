@@ -411,7 +411,9 @@ describe("domain event buffer", () => {
     collected.push(...s.takeDomainEvents());
 
     // Owing more than the account holds is the position the measures exist for.
-    s.state.finance.payableMinor = s.state.finance.cashMinor + 1_000_000;
+    const addedPayable = s.state.finance.cashMinor + 1_000_000;
+    s.state.finance.payableMinor += addedPayable;
+    s.state.statements.retainedEarningsMinor -= addedPayable;
     const measure = submit(s, {
       type: "TAKE_RECOVERY_MEASURE",
       path: "refinance",

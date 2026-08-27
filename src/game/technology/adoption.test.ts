@@ -1,5 +1,9 @@
 import { expect, it } from "vitest";
-import { adoptionCostMinor, advanceTechnologyProject } from "./adoption";
+import {
+  adoptionCostMinor,
+  advanceTechnologyProject,
+  technologyProjectDurationMonths,
+} from "./adoption";
 it("makes mature technology cheaper and completes implementation", () => {
   expect(adoptionCostMinor(10_000_000, 8000)).toBeLessThan(
     adoptionCostMinor(10_000_000, 1000),
@@ -25,7 +29,7 @@ it("makes mature technology cheaper and completes implementation", () => {
   ).toThrow(/remaining project months/);
 });
 
-it("keeps neutral project progress and completes sooner at higher speed", () => {
+it("scales the project duration without losing fractional monthly progress", () => {
   const project = {
     id: "p",
     technologyId: "t",
@@ -33,9 +37,9 @@ it("keeps neutral project progress and completes sooner at higher speed", () => 
     remainingMonths: 2,
     costMinor: 1,
   };
-  expect(advanceTechnologyProject(project, 10_000)).toEqual(
-    advanceTechnologyProject(project),
-  );
-  expect(advanceTechnologyProject(project, 20_000).status).toBe("complete");
-  expect(advanceTechnologyProject(project, 5_000).remainingMonths).toBe(2);
+  expect(advanceTechnologyProject(project).remainingMonths).toBe(1);
+  expect(technologyProjectDurationMonths(6, 5_000)).toBe(12);
+  expect(technologyProjectDurationMonths(6, 9_500)).toBe(7);
+  expect(technologyProjectDurationMonths(6, 10_500)).toBe(6);
+  expect(technologyProjectDurationMonths(6, 20_000)).toBe(3);
 });

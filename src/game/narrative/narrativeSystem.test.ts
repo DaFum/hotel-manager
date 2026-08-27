@@ -96,7 +96,9 @@ describe("the narrative in a running game", () => {
       submit(s, { type: "TAKE_RECOVERY_MEASURE", path: "refinance" }).status,
     ).toBe("rejected");
 
-    s.state.finance.payableMinor = s.state.finance.cashMinor + 1_000_000;
+    const addedPayable = s.state.finance.cashMinor + 1_000_000;
+    s.state.finance.payableMinor += addedPayable;
+    s.state.statements.retainedEarningsMinor -= addedPayable;
     const principalBefore = s.state.loan.principalMinor;
     expect(
       submit(s, { type: "TAKE_RECOVERY_MEASURE", path: "refinance" }).status,
@@ -170,6 +172,7 @@ describe("the narrative in a running game", () => {
         status: "invested",
       },
     ];
+    s.state.statements.fixedAssetsMinor += 2_000_000;
     s.state.world.technologies = s.state.world.technologies.map((t) =>
       t.id === "internet" ? { ...t, adoptionBp: 9000 } : t,
     );

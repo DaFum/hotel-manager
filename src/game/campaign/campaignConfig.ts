@@ -1,4 +1,5 @@
 import { assertBasisPoints, assertMinor } from "../domain/units";
+import { startingCapitalScaledMinor } from "./sandboxEffects";
 
 export type DifficultyId = "beginner" | "standard" | "expert";
 
@@ -128,16 +129,10 @@ export function adjustedStartingCapitalMinor(
     config.inputs.startingCapitalBasisPoints,
     "difficulty starting capital",
   );
-  assertBasisPoints(
-    config.sandbox.startingCapitalBasisPoints,
-    "sandbox starting capital",
-  );
   const afterDifficulty =
     (base * config.inputs.startingCapitalBasisPoints) / 10_000;
   if (!Number.isFinite(afterDifficulty))
     throw new Error("invalid starting capital");
-  const adjusted = Math.trunc(
-    (afterDifficulty * config.sandbox.startingCapitalBasisPoints) / 10_000,
-  );
+  const adjusted = startingCapitalScaledMinor(afterDifficulty, config.sandbox);
   return assertMinor(adjusted, "adjusted starting capital");
 }

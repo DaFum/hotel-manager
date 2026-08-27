@@ -719,9 +719,13 @@ export function App() {
       <>
         <CampaignSetup
           difficulty={s.narrative.campaign.difficulty}
+          sandbox={s.narrative.campaign.sandbox}
           locked={s.elapsedMinutes > 0}
           onDifficulty={(difficulty) =>
             game.send({ type: "SET_CAMPAIGN_DIFFICULTY", difficulty })
+          }
+          onSandbox={(sandbox) =>
+            game.send({ type: "SET_CAMPAIGN_SANDBOX", sandbox })
           }
         />
         <StoryInbox

@@ -153,6 +153,7 @@ import { taxRateForJurisdiction, TAX_PAYMENT_LAG_MONTHS } from "../content/1991/
 import {
   advanceRenovation,
   renovationBlockedRooms,
+  RENOVATION_COST_MINOR,
   startRenovation,
 } from "../building/renovations";
 import { generateFloorPlan, positionMapForPlan } from "../building/floorPlan";
@@ -202,6 +203,10 @@ import {
   adjustedStartingCapitalMinor,
   DIFFICULTY_IDS,
 } from "../campaign/campaignConfig";
+import {
+  accuracyScaledForecastQuality,
+  volatilityScaledCostMinor,
+} from "../campaign/sandboxEffects";
 import {
   refreshCareerOutcome,
   resolveNarrativeChoice,
@@ -644,7 +649,15 @@ export class GameSimulation implements CommandExecutor {
         case "START_RENOVATION": {
           if (s.renovation)
             return { ok: false, reason: "renovation already running" };
-          startRenovation("module.free.1", s.finance.cashMinor);
+          startRenovation(
+            "module.free.1",
+            s.finance.cashMinor,
+            {},
+            volatilityScaledCostMinor(
+              RENOVATION_COST_MINOR,
+              s.narrative.campaign.sandbox,
+            ),
+          );
           return { ok: true };
         }
         case "SET_SPECIALIZATION": {
@@ -711,6 +724,20 @@ export class GameSimulation implements CommandExecutor {
           // first day would make the run unreplayable and the career a lie.
           if (s.elapsedMinutes > 0)
             return { ok: false, reason: "the career has already started" };
+          return { ok: true };
+        case "SET_CAMPAIGN_SANDBOX":
+          if (s.elapsedMinutes > 0)
+            return { ok: false, reason: "the career has already started" };
+          if (
+            Object.values(command.sandbox).some(
+              (value) =>
+                !Number.isSafeInteger(value) || value < 0 || value > 1_000_000,
+            )
+          )
+            return {
+              ok: false,
+              reason: "sandbox values must be whole basis points",
+            };
           return { ok: true };
         case "RESOLVE_NARRATIVE_EVENT":
           return validateNarrativeChoice(s, command.eventId, command.choiceId);
@@ -986,7 +1013,16 @@ export class GameSimulation implements CommandExecutor {
       }
       case "START_RENOVATION": {
         if (s.renovation) throw new Error("renovation already running");
-        const started = startRenovation("module.free.1", s.finance.cashMinor);
+        const renovationCostMinor = volatilityScaledCostMinor(
+          RENOVATION_COST_MINOR,
+          s.narrative.campaign.sandbox,
+        );
+        const started = startRenovation(
+          "module.free.1",
+          s.finance.cashMinor,
+          {},
+          renovationCostMinor,
+        );
         this.spend(
           s.finance.cashMinor - started.cashMinor,
           "capex",
@@ -1053,9 +1089,12 @@ export class GameSimulation implements CommandExecutor {
         );
         s.cityMarket.forecast = forecastBand(
           totalRoomNights(s.cityMarket.demand),
-          adjustedForecastQuality(
-            s.cityMarket.informationQuality,
-            s.narrative.campaign.inputs,
+          accuracyScaledForecastQuality(
+            adjustedForecastQuality(
+              s.cityMarket.informationQuality,
+              s.narrative.campaign.inputs,
+            ),
+            s.narrative.campaign.sandbox,
           ),
         );
         this.emit(
@@ -1141,6 +1180,31 @@ export class GameSimulation implements CommandExecutor {
           },
           [s.company.companyId],
         );
+        return;
+      }
+      case "SET_CAMPAIGN_SANDBOX": {
+        const campaign = createCampaignConfig(s.narrative.campaign.difficulty, {
+          ...s.narrative.campaign.sandbox,
+          ...command.sandbox,
+        });
+        s.narrative.campaign = campaign;
+        const opening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          campaign,
+        );
+        const delta = opening - s.finance.cashMinor;
+        if (delta !== 0) {
+          s.finance.cashMinor += delta;
+          s.finance.month.openingCashMinor = opening;
+          s.finance.ledger = postEntry(s.finance.ledger, {
+            day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+            account: "capital",
+            amountMinor: delta,
+            memo: "opening capital for sandbox",
+          });
+        }
+        syncTreasury(s);
+        refreshCareerOutcome(s);
         return;
       }
       case "RESOLVE_NARRATIVE_EVENT": {
@@ -3465,11 +3529,14 @@ export class GameSimulation implements CommandExecutor {
         economy: this.streams.economy,
         ai: this.streams.AI,
         difficulty: s.narrative.campaign.inputs,
+        sandbox: s.narrative.campaign.sandbox,
       },
     );
     s.world = new WorldSimulation(
       this.streams,
       s.narrative.campaign.inputs.crisisBufferBasisPoints,
+      s.narrative.campaign.sandbox.economicVolatilityBasisPoints,
+      s.narrative.campaign.sandbox.crisisFrequencyBasisPoints,
     ).stepMonth(s.world);
     const stormPolicy = s.insurance.policies.find(
       (policy) => policy.peril === "storm",
@@ -3514,7 +3581,12 @@ export class GameSimulation implements CommandExecutor {
         );
       }
     }
-    s.technologyProjects = s.technologyProjects.map(advanceTechnologyProject);
+    s.technologyProjects = s.technologyProjects.map((project) =>
+      advanceTechnologyProject(
+        project,
+        s.narrative.campaign.sandbox.technologySpeedBasisPoints,
+      ),
+    );
     for (const project of s.technologyProjects)
       if (
         project.status === "complete" &&

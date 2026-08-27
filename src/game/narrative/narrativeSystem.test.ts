@@ -130,6 +130,33 @@ describe("the narrative in a running game", () => {
     ).toBe("rejected");
   });
 
+  it("lets sandbox settings be chosen once and preserves them through reload", () => {
+    const s = game();
+    expect(
+      submit(s, {
+        type: "SET_CAMPAIGN_SANDBOX",
+        sandbox: {
+          technologySpeedBasisPoints: 20_000,
+          informationAccuracyBasisPoints: 5_000,
+        },
+      }).status,
+    ).toBe("accepted");
+    expect(s.state.narrative.campaign.sandbox.technologySpeedBasisPoints).toBe(
+      20_000,
+    );
+    const reloaded = new GameSimulation(s.snapshot());
+    expect(reloaded.state.narrative.campaign.sandbox).toEqual(
+      s.state.narrative.campaign.sandbox,
+    );
+    runDays(reloaded, 1);
+    expect(
+      submit(reloaded, {
+        type: "SET_CAMPAIGN_SANDBOX",
+        sandbox: { technologySpeedBasisPoints: 10_000 },
+      }).status,
+    ).toBe("rejected");
+  });
+
   it("answers an old bet from how far the technology it backed actually went", () => {
     const s = game();
     runDays(s, 2);

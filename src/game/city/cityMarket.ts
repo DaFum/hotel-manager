@@ -48,11 +48,16 @@ import {
   MAX_MONTHLY_MOVE_BP,
 } from "../property/market";
 import { vacancies, wagePressureBp } from "../labor/market";
-import type { DifficultyInputs } from "../campaign/campaignConfig";
+import type {
+  DifficultyInputs,
+  SandboxOptions,
+} from "../campaign/campaignConfig";
 import {
+  adjustedForecastQuality,
   aggressionAdjustedUndercutBp,
   scarcityAdjustedPressureBp,
 } from "../campaign/difficultyEffects";
+import { accuracyScaledForecastQuality } from "../campaign/sandboxEffects";
 import {
   applyRouteChange,
   connectivityIndex,
@@ -341,7 +346,13 @@ export function advanceCityMonth(
      */
     difficulty?: Pick<
       DifficultyInputs,
-      "laborScarcityBasisPoints" | "competitorAggressionBasisPoints"
+      | "laborScarcityBasisPoints"
+      | "competitorAggressionBasisPoints"
+      | "forecastAccuracyBasisPoints"
+    >;
+    sandbox?: Pick<
+      SandboxOptions,
+      "competitorAggressionBasisPoints" | "informationAccuracyBasisPoints"
     >;
   },
 ): CompetitorRecord[] {
@@ -473,6 +484,7 @@ export function advanceCityMonth(
       observedMarketRateMinor: observed,
       strategy: c.strategy,
       occupancyBp: c.occupancyBp,
+      aggressionBp: input.sandbox?.competitorAggressionBasisPoints,
     });
     // No house can ask more than the city's guests will pay, however dear the
     // market looks: a better product raises that ceiling, it does not remove
@@ -592,7 +604,15 @@ export function advanceCityMonth(
   );
   market.forecast = forecastBand(
     totalRoomNights(market.demand),
-    market.informationQuality,
+    accuracyScaledForecastQuality(
+      adjustedForecastQuality(
+        market.informationQuality,
+        input.difficulty ?? { forecastAccuracyBasisPoints: 10_000 },
+      ),
+      input.sandbox ?? {
+        informationAccuracyBasisPoints: 10_000,
+      },
+    ),
   );
 
   // --- 7. who else wants in ----------------------------------------------
@@ -605,7 +625,15 @@ export function advanceCityMonth(
         landPriceMinor: market.landPriceMinor,
       }),
     }) && input.ai.nextUint32() % 10000 < ENTRY_CHANCE_BP;
-  if (wantsIn) survivors.push(newEntrant(market, input.ai, marketRate));
+  if (wantsIn)
+    survivors.push(
+      newEntrant(
+        market,
+        input.ai,
+        marketRate,
+        input.sandbox?.competitorAggressionBasisPoints,
+      ),
+    );
 
   market.soldRoomNights = 0;
   return survivors;
@@ -638,6 +666,7 @@ function newEntrant(
   market: CityMarketState,
   ai: RollSource,
   marketRateMinor: number,
+  aggressionBp?: number,
 ): CompetitorRecord {
   const strategies = [
     "budget",
@@ -664,6 +693,7 @@ function newEntrant(
       observedMarketRateMinor: marketRateMinor,
       strategy,
       occupancyBp: 7000,
+      aggressionBp,
     }),
     appealBp: 10000,
     cashMinor: Math.round(capital / 10),

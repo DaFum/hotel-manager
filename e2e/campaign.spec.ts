@@ -43,3 +43,16 @@ test("starts the career on the difficulty the player chose, then locks it", asyn
   await page.getByRole("button", { name: /pause/i }).click();
   await expect(difficulty).toHaveValue("expert");
 });
+
+test("edits disclosed sandbox levers before the career and locks them afterward", async ({
+  page,
+}) => {
+  await page.goto("/?seed=424242&renderer=off");
+  await openManagementArea(page, "campaign");
+  const speed = page.getByLabel("Technology speed");
+  await expect(speed).toHaveValue("10000");
+  await speed.fill("15000");
+  await expect(speed).toHaveValue("15000");
+  await page.getByRole("button", { name: "16x", exact: true }).click();
+  await expect(speed).toBeDisabled();
+});

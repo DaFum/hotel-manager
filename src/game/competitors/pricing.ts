@@ -1,5 +1,6 @@
 import { MAX_RATE_MINOR, MIN_RATE_MINOR } from "../revenue/rates";
 import { strategyProfile, type Strategy } from "./strategies";
+import { aggressionScaledDiscountBp } from "../campaign/sandboxEffects";
 
 /**
  * Competitor pricing and the split of the city's room nights. There is one
@@ -19,6 +20,7 @@ export function competitorRateMinor(i: {
   strategy: Strategy;
   /** Its own occupancy, in basis points. */
   occupancyBp: number;
+  aggressionBp?: number;
 }): number {
   if (
     !Number.isSafeInteger(i.observedMarketRateMinor) ||
@@ -28,16 +30,20 @@ export function competitorRateMinor(i: {
   if (!Number.isFinite(i.occupancyBp) || i.occupancyBp < 0)
     throw new Error("invalid occupancy");
   const profile = strategyProfile(i.strategy);
+  const discountAppetiteBp = aggressionScaledDiscountBp(
+    profile.discountAppetiteBp,
+    { competitorAggressionBasisPoints: i.aggressionBp ?? 10_000 },
+  );
 
   let adjustmentBp = 0;
   if (i.occupancyBp < SOFT_OCCUPANCY_BP)
     adjustmentBp = -Math.round(
-      (profile.discountAppetiteBp * (SOFT_OCCUPANCY_BP - i.occupancyBp)) /
+      (discountAppetiteBp * (SOFT_OCCUPANCY_BP - i.occupancyBp)) /
         SOFT_OCCUPANCY_BP,
     );
   else if (i.occupancyBp > TIGHT_OCCUPANCY_BP)
     adjustmentBp = Math.round(
-      (profile.discountAppetiteBp *
+      (discountAppetiteBp *
         Math.min(10000, i.occupancyBp - TIGHT_OCCUPANCY_BP)) /
         (2 * (10000 - TIGHT_OCCUPANCY_BP)),
     );

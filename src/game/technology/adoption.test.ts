@@ -24,3 +24,18 @@ it("makes mature technology cheaper and completes implementation", () => {
     }),
   ).toThrow(/remaining project months/);
 });
+
+it("keeps neutral project progress and completes sooner at higher speed", () => {
+  const project = {
+    id: "p",
+    technologyId: "t",
+    status: "implementing" as const,
+    remainingMonths: 2,
+    costMinor: 1,
+  };
+  expect(advanceTechnologyProject(project, 10_000)).toEqual(
+    advanceTechnologyProject(project),
+  );
+  expect(advanceTechnologyProject(project, 20_000).status).toBe("complete");
+  expect(advanceTechnologyProject(project, 5_000).remainingMonths).toBe(2);
+});

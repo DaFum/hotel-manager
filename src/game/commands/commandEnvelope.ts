@@ -6,7 +6,7 @@ import type { OperatingModel } from "../ownership/models";
 import type { DueDiligenceArea } from "../ma/dueDiligence";
 import type { OpeningChecklistItem } from "../development/preOpening";
 import type { ManagerAuthority } from "../management/managerAuthority";
-import type { DifficultyId } from "../campaign/campaignConfig";
+import type { DifficultyId, SandboxOptions } from "../campaign/campaignConfig";
 import type { RecoveryPath } from "../campaign/careerOutcome";
 import type { InsurancePolicy } from "../risk/insurance";
 import type { RevenuePolicyChange } from "../revenue/revenuePolicy";
@@ -184,6 +184,7 @@ export type GameCommand =
   | { type: "RUN_DUE_DILIGENCE"; targetId: string; areas: DueDiligenceArea[] }
   | { type: "ACQUIRE_HOTEL"; targetId: string; priceMinor: number }
   | { type: "SET_CAMPAIGN_DIFFICULTY"; difficulty: DifficultyId }
+  | { type: "SET_CAMPAIGN_SANDBOX"; sandbox: Partial<SandboxOptions> }
   | { type: "RESOLVE_NARRATIVE_EVENT"; eventId: string; choiceId: string }
   | { type: "TAKE_RECOVERY_MEASURE"; path: RecoveryPath }
   | { type: "CONTINUE_ENDLESS_CAREER" };

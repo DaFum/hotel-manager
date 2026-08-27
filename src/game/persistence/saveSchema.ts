@@ -304,6 +304,12 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     )
   )
     problems.push("the state has incomplete hotel operating results");
+  if (
+    !Number.isSafeInteger(state.company?.investorStakeBasisPoints) ||
+    (state.company?.investorStakeBasisPoints ?? -1) < 0 ||
+    (state.company?.investorStakeBasisPoints ?? 10_001) > 4_900
+  )
+    problems.push("the state has an invalid investor stake");
   if (!isFnbState(state.fnb)) problems.push("the state has no complete fnb");
   const topFloor = Math.max(
     0,

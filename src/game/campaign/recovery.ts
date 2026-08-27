@@ -14,7 +14,6 @@ import { applyReputationEvent } from "../reputation/dimensions";
 import { MARKET_GOP_MULTIPLE_BP } from "../content/1991/company";
 import { createOperatingContract } from "../ownership/models";
 import { headquartersMonthlyCostMinor } from "../company/sharedServices";
-import { resetBudgetPeriod } from "../company/budgets";
 import { isInsolvent, MAX_TERM_MONTHS, restructure } from "../finance/debt";
 import { balanceSheet, overdueReceivables } from "../finance/statements";
 
@@ -37,7 +36,20 @@ const LEASEBACK_ANNUAL_RENT_BASIS_POINTS = 900;
 
 /** Cash less unpaid obligations: what the company could actually settle. */
 export function netLiquidityMinor(state: GameState): number {
-  return state.finance.cashMinor - state.finance.payableMinor;
+  const supplierPayablesMinor = state.finance.supplierInvoices.reduce(
+    (sum, invoice) => sum + invoice.amountMinor,
+    0,
+  );
+  const collectibleMinor = overdueReceivables(
+    state.statements,
+    state.calendar.dateKey,
+  ).reduce((sum, receivable) => sum + receivable.amountMinor, 0);
+  return (
+    state.finance.cashMinor +
+    collectibleMinor -
+    state.finance.payableMinor -
+    supplierPayablesMinor
+  );
 }
 
 export function creditHeadroomMinor(state: GameState): number {
@@ -85,11 +97,8 @@ export function exitableCityIds(state: GameState): string[] {
 
 export function headquartersCanRestructure(state: GameState): boolean {
   return (
-    headquartersMonthlyCostMinor({
-      hotelCount: state.company.portfolio.hotelIds.length,
-      baseMinor: state.company.headquarters.baseMonthlyCostMinor,
-      perHotelMinor: state.company.headquarters.perHotelMonthlyCostMinor,
-    }) > HEADQUARTERS_COST_FLOOR_MINOR
+    state.company.headquarters.baseMonthlyCostMinor >
+    HEADQUARTERS_COST_FLOOR_MINOR
   );
 }
 
@@ -151,8 +160,7 @@ export function careerFacts(state: GameState): CareerFacts {
     state.calendar.dateKey,
   ).reduce((sum, receivable) => sum + receivable.amountMinor, 0);
   return {
-    netLiquidityMinor:
-      state.finance.cashMinor + collectibleMinor - payablesMinor,
+    netLiquidityMinor: netLiquidityMinor(state),
     insolvent: isInsolvent({
       cashMinor: state.finance.cashMinor + collectibleMinor,
       payablesMinor,
@@ -372,15 +380,14 @@ export function applyRecoveryPath(
               10_000,
           ),
       );
-      state.company.budgets = state.company.budgets.map((budget) =>
-        resetBudgetPeriod(budget, budget.periodKey, {
-          operatingBudgetMinor: Math.trunc(
-            (budget.operatingBudgetMinor *
-              (10_000 - RESTRUCTURE_SAVING_BASIS_POINTS)) /
-              10_000,
-          ),
-        }),
-      );
+      state.company.budgets = state.company.budgets.map((budget) => ({
+        ...budget,
+        operatingBudgetMinor: Math.trunc(
+          (budget.operatingBudgetMinor *
+            (10_000 - RESTRUCTURE_SAVING_BASIS_POINTS)) /
+            10_000,
+        ),
+      }));
       const recurringSaving = before - monthlyCost();
       ctx.spend(
         REORGANIZATION_COST_MINOR,

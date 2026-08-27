@@ -146,7 +146,8 @@ import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
-import { accrueMonthlyInterestMinor } from "../finance/loans";
+import { accrueMonthlyInterestMinor, repayLoan } from "../finance/loans";
+import { debtSchedule } from "../finance/debt";
 import { closeMonth, deriveMonthlyBriefing } from "../finance/monthlyClose";
 import { taxChargeMinor } from "../finance/statements";
 import {
@@ -220,6 +221,7 @@ import { WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
   advanceTechnologyProject,
+  technologyProjectDurationMonths,
 } from "../technology/adoption";
 import {
   advanceBookingChannels,
@@ -957,6 +959,18 @@ export class GameSimulation implements CommandExecutor {
         );
         s.finance.month.operatingExpenseMinor += costMinor;
         s.statements.retainedEarningsMinor -= costMinor;
+        s.finance.ledger = postEntry(s.finance.ledger, {
+          day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+          account: "supplies",
+          amountMinor: -costMinor,
+          memo: `supplies accrued from ${supplier.id}`,
+        });
+        s.finance.ledger = postEntry(s.finance.ledger, {
+          day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+          account: "supplierAccrual",
+          amountMinor: costMinor,
+          memo: `supplier payable from ${supplier.id}`,
+        });
         s.finance.supplierInvoices.push({
           id: `supplier-invoice.${this.causingCommandId ?? command.type}.${s.calendar.dateKey}`,
           amountMinor: costMinor,
@@ -1128,7 +1142,10 @@ export class GameSimulation implements CommandExecutor {
           id: projectId,
           technologyId: command.technologyId,
           status: "planned",
-          remainingMonths: 6,
+          remainingMonths: technologyProjectDurationMonths(
+            6,
+            s.narrative.campaign.sandbox.technologySpeedBasisPoints,
+          ),
           costMinor,
         });
         this.emit(
@@ -1143,6 +1160,10 @@ export class GameSimulation implements CommandExecutor {
         return;
       }
       case "SET_CAMPAIGN_DIFFICULTY": {
+        const previousOpening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          s.narrative.campaign,
+        );
         const campaign = createCampaignConfig(
           command.difficulty,
           s.narrative.campaign.sandbox,
@@ -1156,13 +1177,10 @@ export class GameSimulation implements CommandExecutor {
         );
         // Posted, not assigned: the opening balance is the ledger's business
         // too, and cash that appears beside it is cash that cannot be audited.
-        const delta = opening - s.finance.cashMinor;
+        const delta = opening - previousOpening;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
-          // The month's opening balance is what the close measures the cash
-          // movement against; leaving it behind would report a delta the
-          // hotel never traded.
-          s.finance.month.openingCashMinor = opening;
+          s.statements.contributedCapitalMinor += delta;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
             account: "capital",
@@ -1191,6 +1209,10 @@ export class GameSimulation implements CommandExecutor {
         return;
       }
       case "SET_CAMPAIGN_SANDBOX": {
+        const previousOpening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          s.narrative.campaign,
+        );
         const campaign = createCampaignConfig(s.narrative.campaign.difficulty, {
           ...s.narrative.campaign.sandbox,
           ...command.sandbox,
@@ -1200,10 +1222,10 @@ export class GameSimulation implements CommandExecutor {
           STARTER_HOTEL.startingCashMinor,
           campaign,
         );
-        const delta = opening - s.finance.cashMinor;
+        const delta = opening - previousOpening;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
-          s.finance.month.openingCashMinor = opening;
+          s.statements.contributedCapitalMinor += delta;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
             account: "capital",
@@ -2906,6 +2928,12 @@ export class GameSimulation implements CommandExecutor {
       const interest = accrueMonthlyInterestMinor(s.loan);
       this.spend(interest, "interest", "loan interest");
       s.finance.month.interestMinor += interest;
+      if (s.loan.principalMinor > 0) {
+        const principal = debtSchedule(s.loan)[0].principalMinor;
+        this.spend(principal, "loanPrincipal", "scheduled loan principal");
+        s.loan = repayLoan(s.loan, principal);
+        s.loan.termMonths = Math.max(1, s.loan.termMonths - 1);
+      }
     }
 
     this.settlePayables();
@@ -3593,10 +3621,7 @@ export class GameSimulation implements CommandExecutor {
       }
     }
     s.technologyProjects = s.technologyProjects.map((project) =>
-      advanceTechnologyProject(
-        project,
-        s.narrative.campaign.sandbox.technologySpeedBasisPoints,
-      ),
+      advanceTechnologyProject(project),
     );
     for (const project of s.technologyProjects)
       if (
@@ -4617,12 +4642,23 @@ export class GameSimulation implements CommandExecutor {
       dueDateKey,
     });
     s.statements.retainedEarningsMinor += amountMinor;
+    s.finance.ledger = postEntry(s.finance.ledger, {
+      day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+      account,
+      amountMinor,
+      memo,
+    });
+    s.finance.ledger = postEntry(s.finance.ledger, {
+      day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+      account: "receivableAccrual",
+      amountMinor: -amountMinor,
+      memo: `receivable for ${memo}`,
+    });
     if (account === "roomRevenue")
       s.finance.month.roomRevenueMinor += amountMinor;
     else {
       s.finance.month.otherRevenueMinor += amountMinor;
     }
-    void memo;
   }
 
   private settleReceivablesDue(dateKey: string): void {
@@ -4679,7 +4715,7 @@ export class GameSimulation implements CommandExecutor {
     if (cls === "operating")
       s.finance.month.operatingExpenseMinor += amountMinor;
     // Capital spend buys something: the balance sheet has to know it exists.
-    if (account === "capex")
+    if (account === "capex" || account === "investment")
       s.statements = capitaliseAsset(s.statements, amountMinor);
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),

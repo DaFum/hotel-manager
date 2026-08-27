@@ -249,6 +249,8 @@ function resolveDueOpportunities(
       });
       opportunity.status = "resolved";
       opportunity.companyValueMultiplierBasisPoints = multiplier;
+      state.statements.fixedAssetsMinor -= opportunity.investedMinor;
+      state.statements.retainedEarningsMinor += outcome;
       // The stake was paid when the bet was taken; only the return moves now.
       if (outcome + opportunity.investedMinor > 0)
         ctx.earn(

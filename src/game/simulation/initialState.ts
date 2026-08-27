@@ -196,6 +196,7 @@ export interface RoomOccupantRef {
 
 export interface MonthAccumulator {
   openingCashMinor: number;
+  openingLedgerIndex: number;
   roomRevenueMinor: number;
   otherRevenueMinor: number;
   eventRevenueMinor: number;
@@ -304,6 +305,7 @@ export interface GameState {
     payableMinor: number;
     taxPayableMinor: number;
     ledger: LedgerEntry[];
+    supplierInvoices: { id: string; amountMinor: number; dueDateKey: string }[];
     month: MonthAccumulator;
   };
   /**
@@ -430,8 +432,10 @@ export function createInitialGameState(seed: number): GameState {
       payableMinor: 0,
       taxPayableMinor: 0,
       ledger: [],
+      supplierInvoices: [],
       month: {
         openingCashMinor: STARTER_HOTEL.startingCashMinor,
+        openingLedgerIndex: 0,
         roomRevenueMinor: 0,
         otherRevenueMinor: 0,
         eventRevenueMinor: 0,

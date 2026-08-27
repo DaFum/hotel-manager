@@ -15,7 +15,8 @@ import { MARKET_GOP_MULTIPLE_BP } from "../content/1991/company";
 import { createOperatingContract } from "../ownership/models";
 import { headquartersMonthlyCostMinor } from "../company/sharedServices";
 import { resetBudgetPeriod } from "../company/budgets";
-import { MAX_TERM_MONTHS, restructure } from "../finance/debt";
+import { isInsolvent, MAX_TERM_MONTHS, restructure } from "../finance/debt";
+import { balanceSheet, overdueReceivables } from "../finance/statements";
 
 /**
  * The bank's total exposure to the company. Borrowing is bounded, which is
@@ -129,8 +130,34 @@ export function reducibleEmployeeIds(state: GameState): string[] {
 
 /** The position the career reading is taken from, read from real state. */
 export function careerFacts(state: GameState): CareerFacts {
+  const supplierPayablesMinor = state.finance.supplierInvoices.reduce(
+    (sum, invoice) => sum + invoice.amountMinor,
+    0,
+  );
+  const payablesMinor = state.finance.payableMinor + supplierPayablesMinor;
+  const equityMinor = balanceSheet({
+    cashMinor: state.finance.cashMinor,
+    receivablesMinor: state.statements.receivablesMinor,
+    fixedAssetsMinor: state.statements.fixedAssetsMinor,
+    accumulatedDepreciationMinor: state.statements.accumulatedDepreciationMinor,
+    payablesMinor,
+    taxPayableMinor: state.finance.taxPayableMinor,
+    debtMinor: state.loan.principalMinor,
+    contributedCapitalMinor: state.statements.contributedCapitalMinor,
+    retainedEarningsMinor: state.statements.retainedEarningsMinor,
+  }).equityMinor;
+  const collectibleMinor = overdueReceivables(
+    state.statements,
+    state.calendar.dateKey,
+  ).reduce((sum, receivable) => sum + receivable.amountMinor, 0);
   return {
-    netLiquidityMinor: netLiquidityMinor(state),
+    netLiquidityMinor:
+      state.finance.cashMinor + collectibleMinor - payablesMinor,
+    insolvent: isInsolvent({
+      cashMinor: state.finance.cashMinor + collectibleMinor,
+      payablesMinor,
+      equityMinor,
+    }),
     creditHeadroomMinor: creditHeadroomMinor(state),
     assetSaleAvailable: leasebackableIds(state).length > 0,
     marketExitAvailable: exitableCityIds(state).length > 0,

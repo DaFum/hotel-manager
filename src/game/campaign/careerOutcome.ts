@@ -54,6 +54,8 @@ export interface CareerFacts {
    * reading taken from the balance alone would never see distress at all.
    */
   netLiquidityMinor: number;
+  /** Balance-sheet insolvency: obligations exceed liquidity and equity is negative. */
+  insolvent?: boolean;
   /** Undrawn credit the bank would still advance. */
   creditHeadroomMinor: number;
   assetSaleAvailable: boolean;
@@ -91,12 +93,12 @@ export function assessCareerOutcome(input: CareerFacts): CareerOutcomeState {
   if (input.reducibleStaffCount > 0) paths.push("staff-reduction");
   if (input.turnaroundAvailable) paths.push("turnaround");
 
-  const distress =
-    input.netLiquidityMinor >= 0
-      ? "healthy"
-      : paths.length > 0
-        ? "recoverable"
-        : "terminal";
+  const distressed = input.insolvent === true || input.netLiquidityMinor < 0;
+  const distress = !distressed
+    ? "healthy"
+    : paths.length > 0
+      ? "recoverable"
+      : "terminal";
   const continueEndless = input.continueEndless === true;
   return {
     distress,

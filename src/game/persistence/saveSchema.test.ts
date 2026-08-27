@@ -36,6 +36,7 @@ it("validates held and released block statuses", () => {
       hotel: { id: "h1", cityId: "c1", rooms: [] },
       company: {
         companyId: "c1",
+        investorStakeBasisPoints: 0,
         portfolio: { hotelRegion: { h1: "r1" }, hotelIds: ["h1"] },
         legalEntities: [],
         brands: [],

@@ -12,5 +12,6 @@ export const SupplierSchema = z.object({
   unitCostMinor: MinorCurrencySchema.nonnegative(),
   leadTimeMinutes: MinutesSchema,
   minimumQuantity: z.number().int().positive(),
+  paymentTermsDays: z.number().int().nonnegative(),
 });
 export type SupplierContent = z.infer<typeof SupplierSchema>;

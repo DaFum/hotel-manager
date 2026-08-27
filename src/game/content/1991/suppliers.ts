@@ -6,6 +6,7 @@ export interface Supplier {
   unitPriceMinor: number;
   leadMinutes: number;
   minimumQuantity: number;
+  paymentTermsDays: number;
 }
 export const SUPPLIERS: readonly Supplier[] = [
   ...CORE_CONTENT_REGISTRY.allByKind("supplier"),
@@ -18,6 +19,7 @@ export const SUPPLIERS: readonly Supplier[] = [
     unitPriceMinor: entry.unitCostMinor,
     leadMinutes: entry.leadTimeMinutes,
     minimumQuantity: entry.minimumQuantity,
+    paymentTermsDays: entry.paymentTermsDays,
   }));
 export function supplierForSku(sku: string): Supplier {
   const found = SUPPLIERS.find((supplier) => supplier.sku === sku);

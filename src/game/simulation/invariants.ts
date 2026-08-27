@@ -2,6 +2,7 @@ import type { GameState } from "./initialState";
 import { balanceMinor } from "../finance/ledger";
 import { STARTER_HOTEL } from "../content/1991/starterHotel";
 import { consolidatedCashMinor } from "../treasury/treasury";
+import { balanceSheet } from "../finance/statements";
 
 /**
  * Invariants are checked after every quantum so a determinism break surfaces
@@ -88,6 +89,24 @@ export function assertInvariants(state: GameState): void {
     STARTER_HOTEL.startingCashMinor + balanceMinor(state.finance.ledger)
   )
     throw new Error("cash has drifted from the ledger");
+
+  const supplierPayablesMinor = state.finance.supplierInvoices.reduce(
+    (sum, invoice) => sum + invoice.amountMinor,
+    0,
+  );
+  const sheet = balanceSheet({
+    cashMinor: cash,
+    receivablesMinor: state.statements.receivablesMinor,
+    fixedAssetsMinor: state.statements.fixedAssetsMinor,
+    accumulatedDepreciationMinor: state.statements.accumulatedDepreciationMinor,
+    payablesMinor: state.finance.payableMinor + supplierPayablesMinor,
+    taxPayableMinor: state.finance.taxPayableMinor,
+    debtMinor: state.loan.principalMinor,
+    contributedCapitalMinor: state.statements.contributedCapitalMinor,
+    retainedEarningsMinor: state.statements.retainedEarningsMinor,
+  });
+  if (!sheet.balances)
+    throw new Error("the balance sheet equation does not balance");
 
   const ids = new Set<string>();
   for (const room of state.hotel.rooms) {

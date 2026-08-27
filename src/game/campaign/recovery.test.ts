@@ -16,6 +16,7 @@ import {
 } from "../treasury/treasury";
 import { monthlyOwnershipPostings } from "../ownership/models";
 import { valueCompany } from "../ma/valuation";
+import { debtSchedule } from "../finance/debt";
 
 const SOLD = "hotel.offenbach.1";
 
@@ -302,6 +303,30 @@ describe("distress recovery measures", () => {
     expectCashReconciled(state);
   });
 
+  it("preserves used capex and stops offering restructuring at the base floor", () => {
+    const state = distressedGroup();
+    state.company.budgets[0].capexSpentMinor = 123_456;
+    const { ctx } = recordingContext(state);
+    applyRecoveryPath(state, "restructure", ctx);
+    expect(state.company.budgets[0].capexSpentMinor).toBe(123_456);
+
+    state.company.headquarters.baseMonthlyCostMinor =
+      HEADQUARTERS_COST_FLOOR_MINOR;
+    expect(validateRecoveryPath(state, "restructure")).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it("uses supplier invoices in the same distress test used by validation", () => {
+    const state = groupOwningTwo();
+    state.finance.supplierInvoices.push({
+      id: "supplier-invoice.overdue",
+      amountMinor: state.finance.cashMinor + 1,
+      dueDateKey: state.calendar.dateKey,
+    });
+    expect(validateRecoveryPath(state, "refinance")).toEqual({ ok: true });
+  });
+
   it("injects equity with exact dilution and respects the majority cap", () => {
     const state = distressedGroup();
     const valuation = valueCompany(state);
@@ -326,6 +351,7 @@ describe("distress recovery measures", () => {
   it("reschedules debt and pays its advisory fee through context", () => {
     const state = distressedGroup();
     const before = state.loan;
+    const paymentBefore = debtSchedule(before)[0].principalMinor;
     const { calls, ctx } = recordingContext(state);
     applyRecoveryPath(state, "turnaround", ctx);
 
@@ -333,6 +359,9 @@ describe("distress recovery measures", () => {
     expect(state.loan.termMonths).toBeGreaterThan(before.termMonths);
     expect(state.loan.annualRateBasisPoints).toBeGreaterThan(
       before.annualRateBasisPoints,
+    );
+    expect(debtSchedule(state.loan)[0].principalMinor).toBeLessThan(
+      paymentBefore,
     );
     expect(calls).toEqual([
       { kind: "spend", amountMinor: 250_000, account: "supplies" },

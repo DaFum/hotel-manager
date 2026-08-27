@@ -388,6 +388,7 @@
       "unitCostMinor": 500,
       "leadTimeMinutes": 1440,
       "minimumQuantity": 50,
+      "paymentTermsDays": 30,
       "simulationOrder": 0
     },
     "supplier.baecker-sachs": {
@@ -400,6 +401,7 @@
       "unitCostMinor": 450,
       "leadTimeMinutes": 720,
       "minimumQuantity": 60,
+      "paymentTermsDays": 14,
       "simulationOrder": 1
     },
     "supplier.waeschehaus-offenbach": {
@@ -412,6 +414,7 @@
       "unitCostMinor": 900,
       "leadTimeMinutes": 2880,
       "minimumQuantity": 100,
+      "paymentTermsDays": 30,
       "simulationOrder": 2
     },
     "hotel.rival.hof": {

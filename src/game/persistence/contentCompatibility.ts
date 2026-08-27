@@ -24,7 +24,9 @@ export function compatibility(
 
 /**
  * A content migration changes definitions and version metadata, not historical
- * authoritative values already copied into a running campaign.
+ * authoritative values already copied into a running campaign. Supplier
+ * payment terms therefore apply to new orders; existing pending orders keep
+ * their persisted delivery and settlement state.
  */
 export function migrateContentVersion<T extends { contentVersion: string }>(
   value: T,

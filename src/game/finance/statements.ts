@@ -57,7 +57,7 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   franchiseRoyalty: "operating",
   portfolioOperating: "operating",
   insurancePremium: "operating",
-  insuranceSettlement: "settlement",
+  insuranceSettlement: "revenue",
   campaignSpend: "operating",
   loyaltyBenefit: "operating",
   groupDeposit: "operating",
@@ -73,12 +73,15 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   // Principal drawn from the bank is money owed, not money earned; the cost of
   // having borrowed it is the interest, and that is a financing cost.
   loan: "borrowing",
+  loanPrincipal: "borrowing",
   capital: "equity",
   interest: "financing",
   tax: "tax",
   // Paying an overdue bill is cash leaving for an expense already recognised.
   // Counting it again would double the cost and inflate interest.
   payables: "settlement",
+  supplierAccrual: "settlement",
+  receivableAccrual: "settlement",
 };
 
 export function accountClass(account: string): AccountClass {
@@ -218,7 +221,8 @@ export function balanceSheet(input: BalanceSheetInput): BalanceSheet {
     input.receivablesMinor +
     input.fixedAssetsMinor -
     input.accumulatedDepreciationMinor;
-  const totalLiabilitiesMinor = input.payablesMinor + input.taxPayableMinor + input.debtMinor;
+  const totalLiabilitiesMinor =
+    input.payablesMinor + input.taxPayableMinor + input.debtMinor;
   const equityMinor =
     input.contributedCapitalMinor + input.retainedEarningsMinor;
   return {
@@ -374,5 +378,8 @@ export function taxChargeMinor(
     throw new Error("invalid tax rate");
   const quotient = Math.trunc(preTaxBaseMinor / 10_000);
   const remainder = preTaxBaseMinor % 10_000;
-  return quotient * rateBasisPoints + Math.trunc((remainder * rateBasisPoints) / 10_000);
+  return (
+    quotient * rateBasisPoints +
+    Math.trunc((remainder * rateBasisPoints) / 10_000)
+  );
 }

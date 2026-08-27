@@ -146,10 +146,14 @@ import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
-import { accrueMonthlyInterestMinor } from "../finance/loans";
+import { accrueMonthlyInterestMinor, repayLoan } from "../finance/loans";
+import { debtSchedule } from "../finance/debt";
 import { closeMonth, deriveMonthlyBriefing } from "../finance/monthlyClose";
 import { taxChargeMinor } from "../finance/statements";
-import { taxRateForJurisdiction, TAX_PAYMENT_LAG_MONTHS } from "../content/1991/company";
+import {
+  taxRateForJurisdiction,
+  TAX_PAYMENT_LAG_MONTHS,
+} from "../content/1991/company";
 import {
   advanceRenovation,
   renovationBlockedRooms,
@@ -217,6 +221,7 @@ import { WorldSimulation } from "../world/WorldSimulation";
 import {
   adoptionCostMinor,
   advanceTechnologyProject,
+  technologyProjectDurationMonths,
 } from "../technology/adoption";
 import {
   advanceBookingChannels,
@@ -306,6 +311,8 @@ import {
 } from "../campaign/difficultyEffects";
 import {
   accountClass,
+  balanceSheet,
+  cashFlowStatement,
   capitaliseAsset,
   depreciationMinor,
   postDepreciation,
@@ -939,8 +946,9 @@ export class GameSimulation implements CommandExecutor {
           throw new Error(
             `minimum order is ${supplier.minimumQuantity} ${supplier.sku}`,
           );
+        const costMinor = command.quantity * supplier.unitPriceMinor;
         const result = placeOrder(
-          { cashMinor: s.finance.cashMinor, nowMinutes: s.elapsedMinutes },
+          { cashMinor: costMinor, nowMinutes: s.elapsedMinutes },
           {
             supplierId: supplier.id,
             sku: supplier.sku,
@@ -949,18 +957,32 @@ export class GameSimulation implements CommandExecutor {
             leadMinutes: supplier.leadMinutes,
           },
         );
-        this.spend(
-          s.finance.cashMinor - result.cashMinor,
-          command.sku === FNB_SERVICE_STOCK_SKU ? "foodCost" : "supplies",
-          `${command.quantity} ${command.sku}`,
-        );
+        s.finance.month.operatingExpenseMinor += costMinor;
+        s.statements.retainedEarningsMinor -= costMinor;
+        s.finance.ledger = postEntry(s.finance.ledger, {
+          day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+          account: "supplies",
+          amountMinor: -costMinor,
+          memo: `supplies accrued from ${supplier.id}`,
+        });
+        s.finance.ledger = postEntry(s.finance.ledger, {
+          day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+          account: "supplierAccrual",
+          amountMinor: costMinor,
+          memo: `supplier payable from ${supplier.id}`,
+        });
+        s.finance.supplierInvoices.push({
+          id: `supplier-invoice.${this.causingCommandId ?? command.type}.${s.calendar.dateKey}`,
+          amountMinor: costMinor,
+          dueDateKey: addDays(s.calendar.dateKey, supplier.paymentTermsDays),
+        });
         s.pendingOrders.push(result.order);
         this.emit(
           {
             type: "SUPPLY_ORDERED",
             sku: command.sku,
             quantity: command.quantity,
-            costMinor: s.finance.cashMinor - result.cashMinor,
+            costMinor,
           },
           [supplier.id, command.sku],
         );
@@ -1120,7 +1142,10 @@ export class GameSimulation implements CommandExecutor {
           id: projectId,
           technologyId: command.technologyId,
           status: "planned",
-          remainingMonths: 6,
+          remainingMonths: technologyProjectDurationMonths(
+            6,
+            s.narrative.campaign.sandbox.technologySpeedBasisPoints,
+          ),
           costMinor,
         });
         this.emit(
@@ -1135,6 +1160,10 @@ export class GameSimulation implements CommandExecutor {
         return;
       }
       case "SET_CAMPAIGN_DIFFICULTY": {
+        const previousOpening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          s.narrative.campaign,
+        );
         const campaign = createCampaignConfig(
           command.difficulty,
           s.narrative.campaign.sandbox,
@@ -1148,13 +1177,10 @@ export class GameSimulation implements CommandExecutor {
         );
         // Posted, not assigned: the opening balance is the ledger's business
         // too, and cash that appears beside it is cash that cannot be audited.
-        const delta = opening - s.finance.cashMinor;
+        const delta = opening - previousOpening;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
-          // The month's opening balance is what the close measures the cash
-          // movement against; leaving it behind would report a delta the
-          // hotel never traded.
-          s.finance.month.openingCashMinor = opening;
+          s.statements.contributedCapitalMinor += delta;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
             account: "capital",
@@ -1183,6 +1209,10 @@ export class GameSimulation implements CommandExecutor {
         return;
       }
       case "SET_CAMPAIGN_SANDBOX": {
+        const previousOpening = adjustedStartingCapitalMinor(
+          STARTER_HOTEL.startingCashMinor,
+          s.narrative.campaign,
+        );
         const campaign = createCampaignConfig(s.narrative.campaign.difficulty, {
           ...s.narrative.campaign.sandbox,
           ...command.sandbox,
@@ -1192,10 +1222,10 @@ export class GameSimulation implements CommandExecutor {
           STARTER_HOTEL.startingCashMinor,
           campaign,
         );
-        const delta = opening - s.finance.cashMinor;
+        const delta = opening - previousOpening;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
-          s.finance.month.openingCashMinor = opening;
+          s.statements.contributedCapitalMinor += delta;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
             account: "capital",
@@ -2846,7 +2876,12 @@ export class GameSimulation implements CommandExecutor {
         stay.rateMinor,
         booking?.commissionBp ?? 0,
       );
-      if (booking?.channel === "corporate" || booking?.channel === "group") {
+      if (
+        booking &&
+        ["corporate", "group", "travelAgency", "ota", "allotment"].includes(
+          booking.channel,
+        )
+      ) {
         const contract =
           booking.channel === "corporate"
             ? activeContracts(s.commercial.sales, booking.arrivalDateKey).find(
@@ -2860,17 +2895,19 @@ export class GameSimulation implements CommandExecutor {
           )?.paymentTermsDays ??
           0;
         const id = `receivable.${booking.id}.${s.calendar.dateKey}`;
-        if (!s.statements.receivables.some((item) => item.id === id)) {
-          s.statements = recogniseReceivable(s.statements, {
+        if (!s.statements.receivables.some((item) => item.id === id))
+          this.recogniseRevenueOnTerms(
+            recognized,
+            "roomRevenue",
+            stay.roomId,
+            addDays(s.calendar.dateKey, paymentTermsDays || 14),
             id,
-            amountMinor: recognized,
-            dueDateKey: addDays(s.calendar.dateKey, paymentTermsDays),
-          });
-          s.statements.retainedEarningsMinor += recognized;
-        }
-      } else this.earn(recognized, "roomRevenue", stay.roomId);
+          );
+      } else {
+        this.earn(recognized, "roomRevenue", stay.roomId);
+        s.finance.month.roomRevenueMinor += recognized;
+      }
       this.recordCommercialStay(stay);
-      s.finance.month.roomRevenueMinor += recognized;
       s.finance.month.soldRoomNights += 1;
       // The city closes on the same occupied nights as the hotel ledger. An
       // accepted booking is not a sale until the guest actually stays.
@@ -2891,24 +2928,26 @@ export class GameSimulation implements CommandExecutor {
       const interest = accrueMonthlyInterestMinor(s.loan);
       this.spend(interest, "interest", "loan interest");
       s.finance.month.interestMinor += interest;
+      if (s.loan.principalMinor > 0) {
+        const principal = debtSchedule(s.loan)[0].principalMinor;
+        this.spend(principal, "loanPrincipal", "scheduled loan principal");
+        s.loan = repayLoan(s.loan, principal);
+        s.loan.termMonths = Math.max(1, s.loan.termMonths - 1);
+      }
     }
 
     this.settlePayables();
+    this.settleSupplierInvoicesDue(s.calendar.dateKey);
     this.settleInsuranceClaims();
     this.runContractCalendar();
-    for (const receivable of overdueReceivables(
-      s.statements,
-      s.calendar.dateKey,
-    )) {
-      s.statements = settleReceivable(s.statements, receivable.id);
-      this.earn(receivable.amountMinor, "receivableSettlement", receivable.id);
-    }
+    this.settleReceivablesDue(s.calendar.dateKey);
     if (this.monthRolled) {
       this.closeMonth();
       s.finance.ledger = compactLedgerHistory(
         s.finance.ledger,
         Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       );
+      s.finance.month.openingLedgerIndex = s.finance.ledger.length;
     }
     s.finance.month.availableRoomNights += s.hotel.rooms.length;
   }
@@ -3582,10 +3621,7 @@ export class GameSimulation implements CommandExecutor {
       }
     }
     s.technologyProjects = s.technologyProjects.map((project) =>
-      advanceTechnologyProject(
-        project,
-        s.narrative.campaign.sandbox.technologySpeedBasisPoints,
-      ),
+      advanceTechnologyProject(project),
     );
     for (const project of s.technologyProjects)
       if (
@@ -3743,8 +3779,13 @@ export class GameSimulation implements CommandExecutor {
           departures: event.roomsBlocked,
           serviceRuns: 0,
         });
-        this.earn(event.valueMinor, "eventRevenue", `conference ${event.id}`);
-        s.finance.month.otherRevenueMinor += event.valueMinor;
+        this.recogniseRevenueOnTerms(
+          event.valueMinor,
+          "eventRevenue",
+          `conference ${event.id}`,
+          addDays(s.calendar.dateKey, 30),
+          `receivable.${event.id}.${s.calendar.dateKey}`,
+        );
         s.finance.month.eventRevenueMinor += event.valueMinor;
         this.emit(
           {
@@ -4119,6 +4160,14 @@ export class GameSimulation implements CommandExecutor {
         this.earn(amountMinor, account, memo),
       spend: (amountMinor, account, memo) =>
         this.spend(amountMinor, account, memo),
+      recogniseRevenueOnTerms: (amountMinor, account, memo, dueDateKey, id) =>
+        this.recogniseRevenueOnTerms(
+          amountMinor,
+          account,
+          memo,
+          dueDateKey,
+          id,
+        ),
     });
 
     const paymentLag = TAX_PAYMENT_LAG_MONTHS;
@@ -4129,7 +4178,14 @@ export class GameSimulation implements CommandExecutor {
       const amount = s.finance.taxPayableMinor;
       this.spend(amount, "tax" as any, "Corporate tax settlement");
       s.finance.taxPayableMinor = 0;
-      this.emit({ type: "TAX_PAID", periodKey: periodKey.slice(0, 4), amountMinor: amount } as any, [this.state.hotel.id]);
+      this.emit(
+        {
+          type: "TAX_PAID",
+          periodKey: periodKey.slice(0, 4),
+          amountMinor: amount,
+        } as any,
+        [this.state.hotel.id],
+      );
     }
 
     let taxChargeThisMonth = 0;
@@ -4140,7 +4196,15 @@ export class GameSimulation implements CommandExecutor {
       taxChargeThisMonth = taxChargeMinor(base, taxRate);
       if (taxChargeThisMonth > 0) {
         s.finance.taxPayableMinor += taxChargeThisMonth;
-        this.emit({ type: "TAX_ACCRUED", periodKey: periodKey.slice(0, 4), amountMinor: taxChargeThisMonth } as any, [this.state.hotel.id]);
+        s.statements.retainedEarningsMinor -= taxChargeThisMonth;
+        this.emit(
+          {
+            type: "TAX_ACCRUED",
+            periodKey: periodKey.slice(0, 4),
+            amountMinor: taxChargeThisMonth,
+          } as any,
+          [this.state.hotel.id],
+        );
       }
     }
 
@@ -4171,7 +4235,29 @@ export class GameSimulation implements CommandExecutor {
         competitors: s.competitors,
       },
     });
-    s.lastMonthlyClose = { ...report, ...briefing };
+    const monthLedger = s.finance.ledger.slice(m.openingLedgerIndex);
+    const supplierPayablesMinor = s.finance.supplierInvoices.reduce(
+      (sum, invoice) => sum + invoice.amountMinor,
+      0,
+    );
+    s.lastMonthlyClose = {
+      ...report,
+      ...briefing,
+      cashFlowStatement: cashFlowStatement(monthLedger, {
+        openingCashMinor: m.openingCashMinor,
+      }),
+      balanceSheet: balanceSheet({
+        cashMinor: s.finance.cashMinor,
+        receivablesMinor: s.statements.receivablesMinor,
+        fixedAssetsMinor: s.statements.fixedAssetsMinor,
+        accumulatedDepreciationMinor: s.statements.accumulatedDepreciationMinor,
+        payablesMinor: s.finance.payableMinor + supplierPayablesMinor,
+        taxPayableMinor: s.finance.taxPayableMinor,
+        debtMinor: s.loan.principalMinor,
+        contributedCapitalMinor: s.statements.contributedCapitalMinor,
+        retainedEarningsMinor: s.statements.retainedEarningsMinor,
+      }),
+    };
     s.monthlyCloseBaseline = {
       previousReport: s.lastMonthlyClose,
       previousEventRevenueMinor: m.eventRevenueMinor,
@@ -4256,6 +4342,7 @@ export class GameSimulation implements CommandExecutor {
     );
     s.finance.month = {
       openingCashMinor: s.finance.cashMinor,
+      openingLedgerIndex: s.finance.ledger.length,
       roomRevenueMinor: 0,
       otherRevenueMinor: 0,
       eventRevenueMinor: 0,
@@ -4530,12 +4617,78 @@ export class GameSimulation implements CommandExecutor {
     s.finance.cashMinor += amountMinor;
     if (accountClass(account) === "revenue")
       s.statements.retainedEarningsMinor += amountMinor;
+    else if (accountClass(account) === "equity")
+      s.statements.contributedCapitalMinor += amountMinor;
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,
       amountMinor,
       memo,
     });
+  }
+
+  private recogniseRevenueOnTerms(
+    amountMinor: number,
+    account: string,
+    memo: string,
+    dueDateKey: string,
+    id = `receivable.${account}.${this.state.calendar.dateKey}`,
+  ): void {
+    if (amountMinor <= 0) return;
+    const s = this.state;
+    s.statements = recogniseReceivable(s.statements, {
+      id,
+      amountMinor,
+      dueDateKey,
+    });
+    s.statements.retainedEarningsMinor += amountMinor;
+    s.finance.ledger = postEntry(s.finance.ledger, {
+      day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+      account,
+      amountMinor,
+      memo,
+    });
+    s.finance.ledger = postEntry(s.finance.ledger, {
+      day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+      account: "receivableAccrual",
+      amountMinor: -amountMinor,
+      memo: `receivable for ${memo}`,
+    });
+    if (account === "roomRevenue")
+      s.finance.month.roomRevenueMinor += amountMinor;
+    else {
+      s.finance.month.otherRevenueMinor += amountMinor;
+    }
+  }
+
+  private settleReceivablesDue(dateKey: string): void {
+    for (const receivable of overdueReceivables(
+      this.state.statements,
+      dateKey,
+    )) {
+      this.earn(receivable.amountMinor, "receivableCollection", receivable.id);
+      this.state.statements = settleReceivable(
+        this.state.statements,
+        receivable.id,
+      );
+    }
+  }
+
+  private settleSupplierInvoicesDue(dateKey: string): void {
+    const due = this.state.finance.supplierInvoices.filter(
+      (invoice) => invoice.dueDateKey <= dateKey,
+    );
+    for (const invoice of due)
+      this.spend(
+        invoice.amountMinor,
+        "supplierSettlement",
+        `supplier invoice ${invoice.id}`,
+      );
+    const dueIds = new Set(due.map((invoice) => invoice.id));
+    this.state.finance.supplierInvoices =
+      this.state.finance.supplierInvoices.filter(
+        (invoice) => !dueIds.has(invoice.id),
+      );
   }
 
   private spend(amountMinor: number, account: string, memo: string): void {
@@ -4562,7 +4715,7 @@ export class GameSimulation implements CommandExecutor {
     if (cls === "operating")
       s.finance.month.operatingExpenseMinor += amountMinor;
     // Capital spend buys something: the balance sheet has to know it exists.
-    if (account === "capex")
+    if (account === "capex" || account === "investment")
       s.statements = capitaliseAsset(s.statements, amountMinor);
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),

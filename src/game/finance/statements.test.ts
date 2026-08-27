@@ -40,6 +40,7 @@ describe("financial statements", () => {
     expect(isCapitalAccount("wages")).toBe(false);
     expect(ACCOUNT_CLASSES.capex).toBe("capital");
     expect(ACCOUNT_CLASSES.foodCost).toBe("operating");
+    expect(ACCOUNT_CLASSES.insuranceSettlement).toBe("revenue");
   });
 
   it("shows the same period as cash, where the capital spend does appear", () => {
@@ -55,6 +56,24 @@ describe("financial statements", () => {
     expect(cash.closingCashMinor - cash.openingCashMinor).toBe(
       cash.operatingCashMinor + cash.investingCashMinor,
     );
+  });
+
+  it("reports principal repayments as financing cash flow", () => {
+    const cash = cashFlowStatement(
+      [
+        {
+          day: 1,
+          account: "loanPrincipal",
+          amountMinor: -100_000,
+          memo: "scheduled principal",
+        },
+      ],
+      { openingCashMinor: 1_000_000 },
+    );
+
+    expect(cash.operatingCashMinor).toBe(0);
+    expect(cash.financingCashMinor).toBe(-100_000);
+    expect(cash.closingCashMinor).toBe(900_000);
   });
 
   it("balances assets against liabilities and equity", () => {

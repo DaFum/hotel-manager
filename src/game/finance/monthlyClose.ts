@@ -5,6 +5,7 @@ import {
   gopparMinor,
 } from "../revenue/metrics";
 import { addDays } from "../domain/calendar";
+import type { BalanceSheet, CashFlowStatement } from "./statements";
 
 export interface MonthlyCloseInput {
   taxChargeMinor?: number;
@@ -48,6 +49,8 @@ export interface MonthlyBriefingSignals {
 }
 
 export interface MonthlyCloseReport extends MonthlyCloseInput {
+  cashFlowStatement?: CashFlowStatement;
+  balanceSheet?: BalanceSheet;
   revenueMinor: number;
   operatingProfitMinor: number;
   cashDeltaMinor: number;

@@ -1,5 +1,5 @@
 {
-  "saveVersion": 14,
+  "saveVersion": 16,
   "contentVersion": "1991.1",
   "protocolVersion": 6,
   "seed": 4242,
@@ -1236,7 +1236,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.2.ORDER_SUPPLIES"
     },
@@ -1595,7 +1595,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.3.ORDER_SUPPLIES"
     },
@@ -2122,7 +2122,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.4.ORDER_SUPPLIES"
     },
@@ -2455,7 +2455,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.5.ORDER_SUPPLIES"
     },
@@ -3108,7 +3108,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.6.ORDER_SUPPLIES"
     },
@@ -3976,7 +3976,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.7.ORDER_SUPPLIES"
     },
@@ -4233,7 +4233,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.8.ORDER_SUPPLIES"
     },
@@ -4674,7 +4674,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.9.ORDER_SUPPLIES"
     },
@@ -5161,7 +5161,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.10.ORDER_SUPPLIES"
     },
@@ -5666,7 +5666,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.11.ORDER_SUPPLIES"
     },
@@ -6777,7 +6777,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.12.ORDER_SUPPLIES"
     },
@@ -7222,7 +7222,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.13.ORDER_SUPPLIES"
     },
@@ -8010,7 +8010,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.14.ORDER_SUPPLIES"
     },
@@ -8253,7 +8253,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.15.ORDER_SUPPLIES"
     },
@@ -8850,7 +8850,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.16.ORDER_SUPPLIES"
     },
@@ -9647,7 +9647,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.17.ORDER_SUPPLIES"
     },
@@ -10281,7 +10281,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.18.ORDER_SUPPLIES"
     },
@@ -10782,7 +10782,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.19.ORDER_SUPPLIES"
     },
@@ -11653,7 +11653,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.20.ORDER_SUPPLIES"
     },
@@ -12284,7 +12284,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.21.ORDER_SUPPLIES"
     },
@@ -12803,7 +12803,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.22.ORDER_SUPPLIES"
     },
@@ -13458,7 +13458,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.23.ORDER_SUPPLIES"
     },
@@ -13799,7 +13799,7 @@
         "type": "SUPPLY_ORDERED",
         "sku": "breakfast-portion",
         "quantity": 60,
-        "costMinor": 0
+        "costMinor": 27000
       },
       "causedBy": "cmd.24.ORDER_SUPPLIES"
     },
@@ -14289,13 +14289,13 @@
     {
       "dateKey": "1991-01-01",
       "atMinutes": 0,
-      "stateHash": "459dbcab"
+      "stateHash": "58a0f6b4"
     },
     {
       "dateKey": "1991-02-01",
       "atMinutes": 44640,
-      "stateHash": "5d5f44eb"
+      "stateHash": "b5f390c3"
     }
   ],
-  "finalStateHash": "5d5f44eb"
+  "finalStateHash": "b5f390c3"
 }

@@ -22,22 +22,27 @@ export function adoptionCostMinor(baseMinor: number, marketBp: number): number {
 }
 export function advanceTechnologyProject(
   project: TechnologyProject,
-  speedBp = 10_000,
 ): TechnologyProject {
   if (
     !Number.isSafeInteger(project.remainingMonths) ||
     project.remainingMonths < 0
   )
     throw new Error("remaining project months must be whole and non-negative");
-  const remainingMonths = Math.max(
-    0,
-    project.remainingMonths -
-      speedScaledProgressMonths(1, { technologySpeedBasisPoints: speedBp }),
-  );
+  const remainingMonths = Math.max(0, project.remainingMonths - 1);
   return {
     ...project,
     remainingMonths,
     status: remainingMonths === 0 ? "complete" : "implementing",
   };
 }
-import { speedScaledProgressMonths } from "../campaign/sandboxEffects";
+
+export function technologyProjectDurationMonths(
+  baseMonths: number,
+  speedBasisPoints: number,
+): number {
+  if (!Number.isSafeInteger(baseMonths) || baseMonths <= 0)
+    throw new Error("project duration must be a positive whole number");
+  if (!Number.isSafeInteger(speedBasisPoints) || speedBasisPoints <= 0)
+    throw new Error("technology speed must be positive whole basis points");
+  return Math.ceil((baseMonths * 10_000) / speedBasisPoints);
+}

@@ -9,8 +9,13 @@ import {
 const facts = (over: Partial<CareerFacts> = {}): CareerFacts => ({
   netLiquidityMinor: -1,
   creditHeadroomMinor: 0,
+  assetSaleAvailable: false,
+  marketExitAvailable: false,
+  restructureAvailable: false,
+  investorAvailable: false,
   sellableHotelCount: 1,
   reducibleStaffCount: 0,
+  turnaroundAvailable: false,
   year: 2026,
   ...over,
 });
@@ -29,11 +34,24 @@ describe("career outcomes", () => {
       assessCareerOutcome(
         facts({
           creditHeadroomMinor: 500_000,
+          assetSaleAvailable: true,
+          marketExitAvailable: true,
+          restructureAvailable: true,
+          investorAvailable: true,
           sellableHotelCount: 0,
           reducibleStaffCount: 3,
+          turnaroundAvailable: true,
         }),
       ).availableRecoveryPaths,
-    ).toEqual(["refinance", "staff-reduction"]);
+    ).toEqual([
+      "refinance",
+      "asset-sale",
+      "market-exit",
+      "restructure",
+      "investor",
+      "staff-reduction",
+      "turnaround",
+    ]);
   });
 
   it("closes the company only when no measure is left", () => {

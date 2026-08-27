@@ -22,8 +22,13 @@ export type RecoveryPath =
 
 export const MODELLED_RECOVERY_PATHS = [
   "refinance",
+  "asset-sale",
+  "market-exit",
+  "restructure",
+  "investor",
   "sell-hotel",
   "staff-reduction",
+  "turnaround",
 ] as const satisfies readonly RecoveryPath[];
 
 export interface CareerOutcomeState {
@@ -51,10 +56,15 @@ export interface CareerFacts {
   netLiquidityMinor: number;
   /** Undrawn credit the bank would still advance. */
   creditHeadroomMinor: number;
+  assetSaleAvailable: boolean;
+  marketExitAvailable: boolean;
+  restructureAvailable: boolean;
+  investorAvailable: boolean;
   /** Hotels that could be sold while the company keeps operating one. */
   sellableHotelCount: number;
   /** Positions that could be cut without closing the house. */
   reducibleStaffCount: number;
+  turnaroundAvailable: boolean;
   year: number;
   /**
    * Whether the player has already chosen to keep going. It is their decision
@@ -73,8 +83,13 @@ export function assessCareerOutcome(input: CareerFacts): CareerOutcomeState {
 
   const paths: RecoveryPath[] = [];
   if (input.creditHeadroomMinor > 0) paths.push("refinance");
+  if (input.assetSaleAvailable) paths.push("asset-sale");
+  if (input.marketExitAvailable) paths.push("market-exit");
+  if (input.restructureAvailable) paths.push("restructure");
+  if (input.investorAvailable) paths.push("investor");
   if (input.sellableHotelCount > 0) paths.push("sell-hotel");
   if (input.reducibleStaffCount > 0) paths.push("staff-reduction");
+  if (input.turnaroundAvailable) paths.push("turnaround");
 
   const distress =
     input.netLiquidityMinor >= 0

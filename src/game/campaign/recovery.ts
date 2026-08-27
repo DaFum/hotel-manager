@@ -7,11 +7,15 @@ import { drawLoan } from "../finance/loans";
 import { dismiss } from "../staff/employeeLifecycle";
 import { removeHotelFromPortfolio } from "../company/portfolio";
 import { closeHotelAccount } from "../treasury/treasury";
-import { valueHotel } from "../ma/valuation";
+import { valueCompany, valueHotel } from "../ma/valuation";
 import { financingAccessBonusBasisPoints } from "../prestige/prestige";
 import { consequencesForClosure } from "../narrative/choiceConsequences";
 import { applyReputationEvent } from "../reputation/dimensions";
 import { MARKET_GOP_MULTIPLE_BP } from "../content/1991/company";
+import { createOperatingContract } from "../ownership/models";
+import { headquartersMonthlyCostMinor } from "../company/sharedServices";
+import { resetBudgetPeriod } from "../company/budgets";
+import { MAX_TERM_MONTHS, restructure } from "../finance/debt";
 
 /**
  * The bank's total exposure to the company. Borrowing is bounded, which is
@@ -21,6 +25,14 @@ export const CREDIT_LINE_MINOR = 15_000_000;
 
 /** A house has to keep somebody on each job it still runs. */
 const MINIMUM_PER_ROLE = 1;
+export const HEADQUARTERS_COST_FLOOR_MINOR = 300_000;
+export const RESTRUCTURE_SAVING_BASIS_POINTS = 2_500;
+export const REORGANIZATION_COST_MINOR = 500_000;
+export const INVESTOR_STAKE_CAP_BASIS_POINTS = 4_900;
+export const TURNAROUND_EXTRA_MONTHS = 60;
+export const TURNAROUND_PENALTY_BASIS_POINTS = 150;
+export const TURNAROUND_ADVISORY_FEE_MINOR = 250_000;
+const LEASEBACK_ANNUAL_RENT_BASIS_POINTS = 900;
 
 /** Cash less unpaid obligations: what the company could actually settle. */
 export function netLiquidityMinor(state: GameState): number {
@@ -36,6 +48,65 @@ export function sellableHotelIds(state: GameState): string[] {
   return state.company.portfolio.hotelIds
     .filter((id) => id !== state.hotel.id)
     .sort(compareIds);
+}
+
+export function leasebackableIds(state: GameState): string[] {
+  return state.company.portfolio.hotelIds
+    .filter(
+      (id) =>
+        id !== state.hotel.id &&
+        state.company.operatingModels[id]?.kind === "owned" &&
+        disposalProceedsMinor(state, id) > 0,
+    )
+    .sort(compareIds);
+}
+
+export function hotelsInCity(state: GameState, cityId: string): string[] {
+  return state.company.managedHotels
+    .filter((hotel) => hotel.cityId === cityId)
+    .map((hotel) => hotel.hotelId)
+    .filter((hotelId) => state.company.portfolio.hotelIds.includes(hotelId))
+    .sort(compareIds);
+}
+
+export function exitableCityIds(state: GameState): string[] {
+  return [...new Set(state.company.managedHotels.map((hotel) => hotel.cityId))]
+    .filter((cityId) => {
+      const ids = hotelsInCity(state, cityId);
+      return (
+        ids.length > 0 &&
+        !ids.includes(state.hotel.id) &&
+        ids.some((id) => disposalProceedsMinor(state, id) > 0)
+      );
+    })
+    .sort(compareIds);
+}
+
+export function headquartersCanRestructure(state: GameState): boolean {
+  return (
+    headquartersMonthlyCostMinor({
+      hotelCount: state.company.portfolio.hotelIds.length,
+      baseMinor: state.company.headquarters.baseMonthlyCostMinor,
+      perHotelMinor: state.company.headquarters.perHotelMonthlyCostMinor,
+    }) > HEADQUARTERS_COST_FLOOR_MINOR
+  );
+}
+
+export function remainingInvestorCapacityMinor(state: GameState): number {
+  const companyValueMinor = valueCompany(state);
+  const remainingBasisPoints = Math.max(
+    0,
+    INVESTOR_STAKE_CAP_BASIS_POINTS - state.company.investorStakeBasisPoints,
+  );
+  return companyValueMinor > 0
+    ? Math.trunc((companyValueMinor * remainingBasisPoints) / 10_000)
+    : 0;
+}
+
+export function hasReschedulableLoan(state: GameState): boolean {
+  return (
+    state.loan.principalMinor > 0 && state.loan.termMonths < MAX_TERM_MONTHS
+  );
 }
 
 /** Everybody above the minimum roster, in stable id order so cuts replay. */
@@ -61,8 +132,13 @@ export function careerFacts(state: GameState): CareerFacts {
   return {
     netLiquidityMinor: netLiquidityMinor(state),
     creditHeadroomMinor: creditHeadroomMinor(state),
+    assetSaleAvailable: leasebackableIds(state).length > 0,
+    marketExitAvailable: exitableCityIds(state).length > 0,
+    restructureAvailable: headquartersCanRestructure(state),
+    investorAvailable: remainingInvestorCapacityMinor(state) > 0,
     sellableHotelCount: saleableForCashIds(state).length,
     reducibleStaffCount: reducibleEmployeeIds(state).length,
+    turnaroundAvailable: hasReschedulableLoan(state),
     year: Number(state.calendar.dateKey.slice(0, 4)),
   };
 }
@@ -122,6 +198,20 @@ export function validateRecoveryPath(
     return { ok: false, reason: "the company is not in distress" };
   if (path === "refinance" && creditHeadroomMinor(state) <= 0)
     return { ok: false, reason: "the credit line is exhausted" };
+  if (path === "asset-sale" && leasebackableIds(state).length === 0)
+    return {
+      ok: false,
+      reason: "no owned non-flagship hotel can be leased back",
+    };
+  if (path === "market-exit" && exitableCityIds(state).length === 0)
+    return { ok: false, reason: "no city can be exited" };
+  if (path === "restructure" && !headquartersCanRestructure(state))
+    return {
+      ok: false,
+      reason: "headquarters overhead is already at the floor",
+    };
+  if (path === "investor" && remainingInvestorCapacityMinor(state) <= 0)
+    return { ok: false, reason: "investor capacity is exhausted" };
   if (path === "sell-hotel" && saleableForCashIds(state).length === 0)
     return {
       ok: false,
@@ -130,6 +220,8 @@ export function validateRecoveryPath(
     };
   if (path === "staff-reduction" && reducibleEmployeeIds(state).length === 0)
     return { ok: false, reason: "the roster is already minimal" };
+  if (path === "turnaround" && !hasReschedulableLoan(state))
+    return { ok: false, reason: "no loan can be rescheduled" };
   return { ok: true };
 }
 
@@ -190,6 +282,108 @@ export function applyRecoveryPath(
       ctx.earn(proceeds, "disposal", `sale of ${hotelId}`);
       return { measure: path, amountMinor: proceeds };
     }
+    case "asset-sale": {
+      const hotelId = leasebackableIds(state)[0];
+      const proceeds = disposalProceedsMinor(state, hotelId);
+      state.company.operatingModels[hotelId] = createOperatingContract({
+        kind: "lease",
+        monthlyRentMinor: Math.trunc(
+          (proceeds * LEASEBACK_ANNUAL_RENT_BASIS_POINTS) / 120_000,
+        ),
+      });
+      ctx.earn(proceeds, "disposal", `sale and leaseback of ${hotelId}`);
+      return { measure: path, amountMinor: proceeds };
+    }
+    case "market-exit": {
+      const annualizedGop = (cityId: string) =>
+        hotelsInCity(state, cityId).reduce(
+          (total, id) =>
+            total +
+            (state.company.hotelResults[id]?.grossOperatingProfitMinor ?? 0) *
+              12,
+          0,
+        );
+      const cityId = exitableCityIds(state).sort(
+        (a, b) => annualizedGop(a) - annualizedGop(b) || compareIds(a, b),
+      )[0];
+      const hotelIds = hotelsInCity(state, cityId);
+      const total = hotelIds.reduce(
+        (sum, id) => sum + disposalProceedsMinor(state, id),
+        0,
+      );
+      for (const hotelId of hotelIds) {
+        state.reputation = applyReputationEvent(state.reputation, {
+          dimension: "group",
+          scopeId: state.company.companyId,
+          delta: -2,
+          cause: `closure of ${hotelId} in ${cityId}`,
+          atMinutes: state.elapsedMinutes,
+        });
+        retireHotelFromCompany(state, hotelId);
+      }
+      state.company.developments = state.company.developments.filter(
+        (development) => development.cityId !== cityId,
+      );
+      ctx.earn(total, "disposal", `market exit from ${cityId}`);
+      return { measure: path, amountMinor: total };
+    }
+    case "restructure": {
+      const headquarters = state.company.headquarters;
+      const monthlyCost = () =>
+        headquartersMonthlyCostMinor({
+          hotelCount: state.company.portfolio.hotelIds.length,
+          baseMinor: headquarters.baseMonthlyCostMinor,
+          perHotelMinor: headquarters.perHotelMonthlyCostMinor,
+        });
+      const before = monthlyCost();
+      headquarters.baseMonthlyCostMinor = Math.max(
+        HEADQUARTERS_COST_FLOOR_MINOR,
+        headquarters.baseMonthlyCostMinor -
+          Math.trunc(
+            (headquarters.baseMonthlyCostMinor *
+              RESTRUCTURE_SAVING_BASIS_POINTS) /
+              10_000,
+          ),
+      );
+      state.company.budgets = state.company.budgets.map((budget) =>
+        resetBudgetPeriod(budget, budget.periodKey, {
+          operatingBudgetMinor: Math.trunc(
+            (budget.operatingBudgetMinor *
+              (10_000 - RESTRUCTURE_SAVING_BASIS_POINTS)) /
+              10_000,
+          ),
+        }),
+      );
+      const recurringSaving = before - monthlyCost();
+      ctx.spend(
+        REORGANIZATION_COST_MINOR,
+        "supplies",
+        "headquarters reorganization",
+      );
+      return { measure: path, amountMinor: recurringSaving };
+    }
+    case "investor": {
+      const companyValueMinor = valueCompany(state);
+      const injection = Math.min(
+        Math.abs(netLiquidityMinor(state)),
+        remainingInvestorCapacityMinor(state),
+      );
+      const stake = Math.min(
+        INVESTOR_STAKE_CAP_BASIS_POINTS -
+          state.company.investorStakeBasisPoints,
+        Math.max(1, Math.trunc((injection * 10_000) / companyValueMinor)),
+      );
+      state.company.investorStakeBasisPoints += stake;
+      state.reputation = applyReputationEvent(state.reputation, {
+        dimension: "group",
+        scopeId: state.company.companyId,
+        delta: -2,
+        cause: "diluting equity injection",
+        atMinutes: state.elapsedMinutes,
+      });
+      ctx.earn(injection, "capital", "equity injection");
+      return { measure: path, amountMinor: injection };
+    }
     case "staff-reduction": {
       const id = reducibleEmployeeIds(state)[0];
       const staffId = state.workforce.employees.find(
@@ -210,6 +404,28 @@ export function applyRecoveryPath(
       if (severanceMinor > 0)
         ctx.spend(severanceMinor, "wages", `severance for ${id}`);
       return { measure: path, amountMinor: severanceMinor };
+    }
+    case "turnaround": {
+      state.loan = restructure(state.loan, {
+        extraMonths: Math.min(
+          TURNAROUND_EXTRA_MONTHS,
+          MAX_TERM_MONTHS - state.loan.termMonths,
+        ),
+        penaltyBasisPoints: TURNAROUND_PENALTY_BASIS_POINTS,
+      });
+      state.reputation = applyReputationEvent(state.reputation, {
+        dimension: "group",
+        scopeId: state.company.companyId,
+        delta: -2,
+        cause: "debt turnaround",
+        atMinutes: state.elapsedMinutes,
+      });
+      ctx.spend(
+        TURNAROUND_ADVISORY_FEE_MINOR,
+        "supplies",
+        "turnaround advisory fee",
+      );
+      return { measure: path, amountMinor: TURNAROUND_ADVISORY_FEE_MINOR };
     }
     default:
       throw new Error(`${path} is not modelled yet`);

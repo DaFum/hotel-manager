@@ -3,7 +3,7 @@ import { migrateToCurrent } from "./migrateToCurrent";
 import { PROTOCOL_VERSION } from "../domain/protocol";
 import { CONTENT_VERSION } from "./saveVersions";
 
-it("migrates a minimal v11 save envelope all the way to v13", () => {
+it("migrates a minimal v11 save envelope all the way to the current version", () => {
   const v11Fixture = {
     saveVersion: 11,
     contentVersion: CONTENT_VERSION,
@@ -40,7 +40,7 @@ it("migrates a minimal v11 save envelope all the way to v13", () => {
 
   const migrated = migrateToCurrent(v11Fixture as any);
 
-  expect(migrated.saveVersion).toBe(13);
+  expect(migrated.saveVersion).toBe(15);
   expect(migrated.protocolVersion).toBe(PROTOCOL_VERSION);
 
   const mState = migrated.state as any;
@@ -57,4 +57,5 @@ it("migrates a minimal v11 save envelope all the way to v13", () => {
     marketShareBasisPoints: 0,
     brandStandard: 0,
   });
+  expect(mState.company.investorStakeBasisPoints).toBe(0);
 });

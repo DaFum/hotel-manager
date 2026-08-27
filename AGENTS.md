@@ -174,10 +174,9 @@ preserves running authoritative values through an explicit compatibility hook.
 Player save transfer is a checksummed, size-bounded envelope validated before an
 atomic sync-provider-neutral repository write.
 
-Plan 06 named scope this build does not model, and the difference must be
-stated rather than implied. Of the eight MASTER 4.5 recovery measures, this
-build implements three — `refinance`, `sell-hotel` and `staff-reduction` — and
-refuses the other five at the command boundary.
+All eight MASTER 4.5 recovery measures are modelled: `refinance`, `asset-sale`,
+`market-exit`, `restructure`, `investor`, `sell-hotel`, `staff-reduction` and
+`turnaround`.
 
 ### Where a difficulty lands
 

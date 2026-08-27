@@ -1,5 +1,5 @@
 {
-  "saveVersion": 14,
+  "saveVersion": 15,
   "contentVersion": "1991.1",
   "protocolVersion": 6,
   "rngState": {
@@ -29635,6 +29635,7 @@
         "marketShareBasisPoints": 0,
         "brandStandard": 0
       },
+      "investorStakeBasisPoints": 0,
       "sequence": 1
     },
     "statements": {

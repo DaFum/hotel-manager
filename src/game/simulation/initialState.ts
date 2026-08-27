@@ -509,7 +509,10 @@ export function createInitialGameState(seed: number): GameState {
     company: createCompanyState(),
     statements: {
       ...createStatements(),
-      fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0),
+      fixedAssetsMinor: STARTER_PLANT.reduce(
+        (sum, a) => sum + a.replacementMinor,
+        0,
+      ),
       contributedCapitalMinor:
         STARTER_HOTEL.startingCashMinor +
         STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) -
@@ -549,8 +552,13 @@ export function createInitialGameState(seed: number): GameState {
           0,
           CREDIT_LINE_MINOR - STARTER_HOTEL.startingLoan.principalMinor,
         ),
+        assetSaleAvailable: false,
+        marketExitAvailable: false,
+        restructureAvailable: true,
+        investorAvailable: false,
         sellableHotelCount: 0,
         reducibleStaffCount: 0,
+        turnaroundAvailable: true,
         year: Number(CITY.startDateKey.slice(0, 4)),
       },
     }),

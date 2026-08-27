@@ -107,6 +107,8 @@ export interface CompanyState {
   /** The latest published result per hotel, by hotel id. */
   hotelResults: Record<string, HotelOperatingResult>;
   groupTargets: GroupTargets;
+  /** Outside equity ownership accumulated through distress injections. */
+  investorStakeBasisPoints: number;
   /** Monotonic counter for ids the company layer mints for itself. */
   sequence: number;
 }
@@ -191,6 +193,7 @@ export function createCompanyState(): CompanyState {
       marketShareBasisPoints: 0,
       brandStandard: 0,
     },
+    investorStakeBasisPoints: 0,
     sequence: 0,
   };
 }

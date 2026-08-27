@@ -35,12 +35,14 @@ export function startRenovation(
   moduleId: string,
   cashMinor: number,
   options: { targetModuleId?: string; affected?: string[] } = {},
+  costMinor = RENOVATION_COST_MINOR,
 ): { cashMinor: number; job: RenovationJob } {
   assertNonNegativeMinor(cashMinor, "cash");
-  if (cashMinor < RENOVATION_COST_MINOR) throw new Error("insufficient cash");
+  assertNonNegativeMinor(costMinor, "renovation cost");
+  if (cashMinor < costMinor) throw new Error("insufficient cash");
   const targetModuleId = options.targetModuleId ?? "room.standard.double";
   return {
-    cashMinor: cashMinor - RENOVATION_COST_MINOR,
+    cashMinor: cashMinor - costMinor,
     job: {
       id: `reno.${moduleId}`,
       moduleId,

@@ -4,6 +4,10 @@ import { advanceCommonCurrency } from "../currency/paths";
 import { advanceMacro, type MacroState } from "./macro";
 import { crisisRiskBp } from "./crises";
 import { bufferedCrisisRiskBp } from "../campaign/difficultyEffects";
+import {
+  frequencyScaledCrisisRiskBp,
+  volatilityScaledRange,
+} from "../campaign/sandboxEffects";
 import { maybeCreateShock, type WorldShock } from "./shocks";
 import { generateWeather, type WeatherOutcome } from "./climate";
 import { canEmerge } from "../technology/graph";
@@ -112,6 +116,8 @@ export class WorldSimulation {
   constructor(
     private readonly streams: RngStreams,
     private readonly crisisBufferBp = 10_000,
+    private readonly economicVolatilityBp = 10_000,
+    private readonly crisisFrequencyBp = 10_000,
   ) {}
   stepMonth(state: WorldState): WorldState {
     const next = structuredClone(state);
@@ -131,10 +137,42 @@ export class WorldSimulation {
     next.yearsAdvanced++;
     next.lastStepOrder = [...worldStepOrder];
     next.macro = advanceMacro(next.macro, {
-      inflationBp: 200 + (this.streams.economy.nextUint32() % 500),
-      interestBp: 500 + (this.streams.economy.nextUint32() % 800),
-      unemploymentBp: 400 + (this.streams.economy.nextUint32() % 500),
-      growthBp: -100 + (this.streams.economy.nextUint32() % 500),
+      inflationBp:
+        200 +
+        (this.streams.economy.nextUint32() %
+          Math.max(
+            1,
+            volatilityScaledRange(500, {
+              economicVolatilityBasisPoints: this.economicVolatilityBp,
+            }),
+          )),
+      interestBp:
+        500 +
+        (this.streams.economy.nextUint32() %
+          Math.max(
+            1,
+            volatilityScaledRange(800, {
+              economicVolatilityBasisPoints: this.economicVolatilityBp,
+            }),
+          )),
+      unemploymentBp:
+        400 +
+        (this.streams.economy.nextUint32() %
+          Math.max(
+            1,
+            volatilityScaledRange(500, {
+              economicVolatilityBasisPoints: this.economicVolatilityBp,
+            }),
+          )),
+      growthBp:
+        -100 +
+        (this.streams.economy.nextUint32() %
+          Math.max(
+            1,
+            volatilityScaledRange(500, {
+              economicVolatilityBasisPoints: this.economicVolatilityBp,
+            }),
+          )),
     });
     next.regulationPressureBp = Math.min(
       10_000,
@@ -186,9 +224,12 @@ export class WorldSimulation {
       ),
       { crisisBufferBasisPoints: this.crisisBufferBp },
     );
+    const frequencyRisk = frequencyScaledCrisisRiskBp(risk, {
+      crisisFrequencyBasisPoints: this.crisisFrequencyBp,
+    });
     const shock = maybeCreateShock(
       next.yearsAdvanced,
-      risk,
+      frequencyRisk,
       this.streams.events.nextUint32() % 10_000,
       "financial",
       ["macro.credit.name"],

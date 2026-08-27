@@ -28,7 +28,7 @@ const NEUTRAL_BP = 10_000;
  * Scales a value by a lever, truncating toward zero so a whole number stays
  * whole and a replay stays reproducible.
  */
-function scaled(value: number, bp: number, label: string): number {
+export function scaled(value: number, bp: number, label: string): number {
   assertBasisPoints(bp, label);
   return Math.trunc((value * bp) / NEUTRAL_BP);
 }
@@ -38,7 +38,11 @@ function scaled(value: number, bp: number, label: string): number {
  * a crisis buffer both work this way — more of them means less of what they
  * protect against.
  */
-function inverselyScaled(value: number, bp: number, label: string): number {
+export function inverselyScaled(
+  value: number,
+  bp: number,
+  label: string,
+): number {
   assertBasisPoints(bp, label);
   if (bp === 0) throw new Error(`invalid ${label}`);
   return Math.trunc((value * NEUTRAL_BP) / bp);

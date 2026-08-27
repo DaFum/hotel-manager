@@ -1,5 +1,6 @@
 import type { GameState } from "../simulation/initialState";
 import { assistedCostMinor } from "../campaign/difficultyEffects";
+import { volatilityScaledUncertaintyBp } from "../campaign/sandboxEffects";
 import type { GameCommand } from "../commands/commandEnvelope";
 import type { DomainEventPayload } from "../domain/events";
 import { addDays } from "../domain/calendar";
@@ -202,7 +203,7 @@ export function validateCompanyCommand(
         return no("a development needs whole rooms");
       let feasibility;
       try {
-        feasibility = studyFor(command);
+        feasibility = studyFor(state, command);
       } catch (error) {
         return no((error as Error).message);
       }
@@ -307,13 +308,17 @@ export function developmentHotelId(developmentId: string): string {
 }
 
 function studyFor(
+  state: GameState,
   command: Extract<GameCommand, { type: "START_DEVELOPMENT" }>,
 ) {
   return calculateFeasibility({
     expectedAdrMinor: command.expectedAdrMinor,
     rooms: command.rooms,
     occupancyBasisPoints: command.occupancyBasisPoints,
-    uncertaintyBasisPoints: FEASIBILITY_UNCERTAINTY_BP,
+    uncertaintyBasisPoints: volatilityScaledUncertaintyBp(
+      FEASIBILITY_UNCERTAINTY_BP,
+      state.narrative.campaign.sandbox,
+    ),
     investmentMinor: command.investmentMinor,
     gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
   });
@@ -480,7 +485,7 @@ export function applyCompanyCommand(
           rooms: command.rooms,
           occupancyBasisPoints: command.occupancyBasisPoints,
           investmentMinor: command.investmentMinor,
-          feasibility: studyFor(command),
+          feasibility: studyFor(state, command),
           preOpening: createPreOpening(
             command.developmentId,
             command.targetOpenDateKey,

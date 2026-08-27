@@ -174,11 +174,9 @@ preserves running authoritative values through an explicit compatibility hook.
 Player save transfer is a checksummed, size-bounded envelope validated before an
 atomic sync-provider-neutral repository write.
 
-Plan 06 named scope this build does not model, and the difference must be
-stated rather than implied. Of the eight MASTER 4.5 recovery measures, this
-build implements three — `refinance`, `sell-hotel` and `staff-reduction` — and
-refuses the other five at the command boundary. Sandbox options are configured,
-validated and persisted, but nothing in the UI edits them.
+All eight MASTER 4.5 recovery measures are modelled: `refinance`, `asset-sale`,
+`market-exit`, `restructure`, `investor`, `sell-hotel`, `staff-reduction` and
+`turnaround`.
 
 ### Where a difficulty lands
 
@@ -203,6 +201,21 @@ for a competitor: a harder game is a harder city, never an opponent that
 cheats. Everything except the two financial levers lives in
 `src/game/campaign/difficultyEffects.ts`, so each one can be traced from the
 preset to the system it pulls.
+
+### Where a sandbox option lands
+
+Sandbox options are disclosed, editable before the career starts, frozen with
+the campaign, and consumed through `src/game/campaign/sandboxEffects.ts`.
+
+| Lever                               | Where it applies                                       |
+| ----------------------------------- | ------------------------------------------------------ |
+| `economicVolatilityBasisPoints`     | yearly macro target roll widths                        |
+| `crisisFrequencyBasisPoints`        | crisis risk before the shock roll                      |
+| `competitorAggressionBasisPoints`   | competitors' discount appetite                         |
+| `startingCapitalBasisPoints`        | opening capital posted through the ledger              |
+| `technologySpeedBasisPoints`        | monthly technology-project progress                    |
+| `constructionVolatilityBasisPoints` | renovation cost and development feasibility bands      |
+| `informationAccuracyBasisPoints`    | forecast quality before a market-research band is made |
 
 ### Plan 06: the campaign above the company
 

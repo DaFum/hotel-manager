@@ -200,10 +200,28 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     problems.push("the state has no hotel");
   if (!state.finance || !Number.isSafeInteger(state.finance.cashMinor))
     problems.push("cash is not whole Pfennig");
+  if (
+    !state.statements ||
+    !Number.isSafeInteger(state.statements.contributedCapitalMinor) ||
+    !Number.isSafeInteger(state.statements.retainedEarningsMinor)
+  )
+    problems.push("the state has no valid equity balances");
+  if (
+    !Array.isArray(state.finance?.supplierInvoices) ||
+    !state.finance.supplierInvoices.every(
+      (invoice) =>
+        typeof invoice.id === "string" &&
+        Number.isSafeInteger(invoice.amountMinor) &&
+        invoice.amountMinor >= 0 &&
+        typeof invoice.dueDateKey === "string",
+    )
+  )
+    problems.push("the state has no valid supplier invoices");
   if (state.finance && !Array.isArray(state.finance.ledger))
     problems.push("the state has no ledger");
   if (
     !state.finance?.month ||
+    !Number.isSafeInteger(state.finance.month.openingLedgerIndex) ||
     !Number.isSafeInteger(state.finance.month.eventRevenueMinor) ||
     !Number.isSafeInteger(state.finance.month.housekeepingLateRoomReleaseCount)
   )
@@ -286,6 +304,12 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     )
   )
     problems.push("the state has incomplete hotel operating results");
+  if (
+    !Number.isSafeInteger(state.company?.investorStakeBasisPoints) ||
+    (state.company?.investorStakeBasisPoints ?? -1) < 0 ||
+    (state.company?.investorStakeBasisPoints ?? 10_001) > 4_900
+  )
+    problems.push("the state has an invalid investor stake");
   if (!isFnbState(state.fnb)) problems.push("the state has no complete fnb");
   const topFloor = Math.max(
     0,

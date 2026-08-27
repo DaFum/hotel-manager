@@ -25,6 +25,15 @@ describe("renovations", () => {
     );
   });
 
+  it("accepts a neutral or volatility-scaled construction cost", () => {
+    expect(
+      startRenovation("module.free.1", 10_000_000, {}, 6_000_000).cashMinor,
+    ).toBe(4_000_000);
+    expect(
+      startRenovation("module.free.1", 12_000_000, {}, 12_000_000).cashMinor,
+    ).toBe(0);
+  });
+
   it("opens two rooms only after the full lifecycle is signed off", () => {
     expect(runFor(RENOVATION_MINUTES - 60).roomsAdded).toBe(0);
     expect(runFor(RENOVATION_MINUTES).roomsAdded).toBe(2);

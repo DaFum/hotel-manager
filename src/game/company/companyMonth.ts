@@ -28,6 +28,7 @@ import { consolidatedCashMinor } from "../treasury/treasury";
 import { projectCostMinor } from "../renovation/projects";
 import { gopparMinor, occupancyBasisPoints } from "../revenue/metrics";
 import { assertBasisPoints, assertNonNegativeMinor } from "../domain/units";
+import { addDays } from "../domain/calendar";
 
 /** What putting one failed brand standard right is reckoned to cost. */
 export const REMEDIATION_COST_PER_FAILURE_MINOR = 1_500_000;
@@ -37,6 +38,13 @@ export interface CompanyMonthContext {
   emit(payload: DomainEventPayload, entities: readonly string[]): void;
   earn(amountMinor: number, account: string, memo: string): void;
   spend(amountMinor: number, account: string, memo: string): void;
+  recogniseRevenueOnTerms(
+    amountMinor: number,
+    account: string,
+    memo: string,
+    dueDateKey: string,
+    id: string,
+  ): void;
 }
 
 /**
@@ -230,10 +238,12 @@ function chargeOwnershipContracts(
           `${posting.memo} ${hotelId}`,
         );
       else
-        ctx.earn(
+        ctx.recogniseRevenueOnTerms(
           posting.amountMinor,
           posting.account,
           `${posting.memo} ${hotelId}`,
+          addDays(state.calendar.dateKey, 30),
+          `receivable.${posting.account}.${hotelId}.${state.calendar.dateKey}`,
         );
   }
 }

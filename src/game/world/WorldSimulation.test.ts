@@ -52,3 +52,28 @@ it("gates diffusion on prerequisites and obsoletes replaced technology", () => {
       ?.adoptionBp,
   ).toBe(0);
 });
+
+it("keeps neutral sandbox world behavior, changes non-neutral outcomes, and remains deterministic", () => {
+  const base = createWorldState();
+  const neutral = new WorldSimulation(
+    createRngStreams(91),
+    10_000,
+    10_000,
+    10_000,
+  ).stepYear(base);
+  expect(neutral).toEqual(
+    new WorldSimulation(createRngStreams(91)).stepYear(base),
+  );
+  const volatile = new WorldSimulation(
+    createRngStreams(91),
+    10_000,
+    20_000,
+    20_000,
+  ).stepYear(base);
+  expect(volatile.macro).not.toEqual(neutral.macro);
+  expect(volatile).toEqual(
+    new WorldSimulation(createRngStreams(91), 10_000, 20_000, 20_000).stepYear(
+      base,
+    ),
+  );
+});

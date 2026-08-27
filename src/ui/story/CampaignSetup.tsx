@@ -13,13 +13,17 @@ import { translate, translateKey } from "../localization";
  */
 export function CampaignSetup({
   difficulty,
+  sandbox,
   locked = false,
   onDifficulty,
+  onSandbox,
 }: {
   difficulty: DifficultyId;
+  sandbox?: SandboxOptions;
   /** True once the career has started; difficulty is part of the run. */
   locked?: boolean;
   onDifficulty?: (difficulty: DifficultyId) => void;
+  onSandbox?: (sandbox: CampaignSandboxDraft) => void;
 }) {
   const inputs = DIFFICULTY_PRESETS[difficulty];
   return (
@@ -51,6 +55,44 @@ export function CampaignSetup({
         </li>
         <li>{translate("campaign.fairness")}</li>
       </ul>
+      {sandbox ? (
+        <fieldset>
+          <legend>{translate("campaign.sandbox")}</legend>
+          {(
+            [
+              "economicVolatilityBasisPoints",
+              "crisisFrequencyBasisPoints",
+              "competitorAggressionBasisPoints",
+              "startingCapitalBasisPoints",
+              "technologySpeedBasisPoints",
+              "constructionVolatilityBasisPoints",
+              "informationAccuracyBasisPoints",
+            ] as const
+          ).map((lever) => {
+            const label = translateKey(`campaign.sandbox.${lever}`);
+            return (
+              <label key={lever}>
+                {label} {sandbox[lever]} bp
+                <input
+                  aria-label={label}
+                  type="range"
+                  min="0"
+                  max="20000"
+                  step="500"
+                  value={sandbox[lever]}
+                  disabled={locked || !onSandbox}
+                  onChange={(event) =>
+                    onSandbox?.({
+                      ...sandbox,
+                      [lever]: Number(event.currentTarget.value),
+                    })
+                  }
+                />
+              </label>
+            );
+          })}
+        </fieldset>
+      ) : null}
     </section>
   );
 }

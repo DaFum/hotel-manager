@@ -96,7 +96,9 @@ describe("the narrative in a running game", () => {
       submit(s, { type: "TAKE_RECOVERY_MEASURE", path: "refinance" }).status,
     ).toBe("rejected");
 
-    s.state.finance.payableMinor = s.state.finance.cashMinor + 1_000_000;
+    const addedPayable = s.state.finance.cashMinor + 1_000_000;
+    s.state.finance.payableMinor += addedPayable;
+    s.state.statements.retainedEarningsMinor -= addedPayable;
     const principalBefore = s.state.loan.principalMinor;
     expect(
       submit(s, { type: "TAKE_RECOVERY_MEASURE", path: "refinance" }).status,
@@ -123,10 +125,40 @@ describe("the narrative in a running game", () => {
     expect(s.state.loan.annualRateBasisPoints).toBe(1170);
     expect(s.state.narrative.campaign.difficulty).toBe("expert");
 
-    runDays(s, 1);
+    runDays(s, 32);
+    expect(s.state.lastMonthlyClose?.cashFlowStatement?.closingCashMinor).toBe(
+      s.state.lastMonthlyClose?.closingCashMinor,
+    );
     expect(
       submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "beginner" })
         .status,
+    ).toBe("rejected");
+  });
+
+  it("lets sandbox settings be chosen once and preserves them through reload", () => {
+    const s = game();
+    expect(
+      submit(s, {
+        type: "SET_CAMPAIGN_SANDBOX",
+        sandbox: {
+          technologySpeedBasisPoints: 20_000,
+          informationAccuracyBasisPoints: 5_000,
+        },
+      }).status,
+    ).toBe("accepted");
+    expect(s.state.narrative.campaign.sandbox.technologySpeedBasisPoints).toBe(
+      20_000,
+    );
+    const reloaded = new GameSimulation(s.snapshot());
+    expect(reloaded.state.narrative.campaign.sandbox).toEqual(
+      s.state.narrative.campaign.sandbox,
+    );
+    runDays(reloaded, 1);
+    expect(
+      submit(reloaded, {
+        type: "SET_CAMPAIGN_SANDBOX",
+        sandbox: { technologySpeedBasisPoints: 10_000 },
+      }).status,
     ).toBe("rejected");
   });
 
@@ -143,6 +175,8 @@ describe("the narrative in a running game", () => {
         status: "invested",
       },
     ];
+    s.state.statements.fixedAssetsMinor += 2_000_000;
+    s.state.statements.contributedCapitalMinor += 2_000_000;
     s.state.world.technologies = s.state.world.technologies.map((t) =>
       t.id === "internet" ? { ...t, adoptionBp: 9000 } : t,
     );

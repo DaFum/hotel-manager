@@ -3,6 +3,8 @@ import {
   assertMinor,
   assertNonNegativeMinor,
 } from "../domain/units";
+import type { GameState } from "../simulation/initialState";
+import { MARKET_GOP_MULTIPLE_BP } from "../content/1991/company";
 
 /**
  * What a hotel is worth to a buyer. Enterprise value is what the business
@@ -39,6 +41,23 @@ export function valueHotel(input: HotelValuationInput): HotelValuation {
     equityValueMinor:
       enterpriseValueMinor - input.renovationNeedMinor - input.debtAssumedMinor,
   };
+}
+
+/** The group's equity value: operating earnings less outstanding debt. */
+export function valueCompany(state: GameState): number {
+  const annualGopMinor = Object.values(state.company.hotelResults).reduce(
+    (total, result) => total + result.grossOperatingProfitMinor * 12,
+    0,
+  );
+  return Math.max(
+    0,
+    valueHotel({
+      annualGopMinor,
+      multipleBasisPoints: MARKET_GOP_MULTIPLE_BP,
+      renovationNeedMinor: 0,
+      debtAssumedMinor: state.loan.principalMinor,
+    }).equityValueMinor,
+  );
 }
 
 /**

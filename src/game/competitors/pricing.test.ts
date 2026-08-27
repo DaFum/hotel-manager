@@ -33,6 +33,20 @@ it("discounts into a soft house and holds firm in a full one", () => {
   expect(soft).toBeLessThan(full);
 });
 
+it("keeps neutral aggression unchanged and makes higher aggression discount further", () => {
+  const input = {
+    observedMarketRateMinor: 20000,
+    strategy: "aggressive" as const,
+    occupancyBp: 3000,
+  };
+  expect(competitorRateMinor({ ...input, aggressionBp: 10_000 })).toBe(
+    competitorRateMinor(input),
+  );
+  expect(competitorRateMinor({ ...input, aggressionBp: 20_000 })).toBeLessThan(
+    competitorRateMinor(input),
+  );
+});
+
 it("keeps every rival rate inside the same bounds the player is held to", () => {
   for (const market of [MIN_RATE_MINOR, 20000, MAX_RATE_MINOR])
     for (const occupancyBp of [0, 5000, 10000]) {

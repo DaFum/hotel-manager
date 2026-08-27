@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "../simulation/initialState";
-import { retireHotelFromCompany } from "./recovery";
+import {
+  applyRecoveryPath,
+  HEADQUARTERS_COST_FLOOR_MINOR,
+  INVESTOR_STAKE_CAP_BASIS_POINTS,
+  retireHotelFromCompany,
+  validateRecoveryPath,
+} from "./recovery";
 import { createHotelBudget } from "../company/budgets";
 import { createManagerAuthority } from "../management/managerAuthority";
 import {
@@ -8,6 +14,9 @@ import {
   consolidatedCashMinor,
   openHotelAccount,
 } from "../treasury/treasury";
+import { monthlyOwnershipPostings } from "../ownership/models";
+import { valueCompany } from "../ma/valuation";
+import { debtSchedule } from "../finance/debt";
 
 const SOLD = "hotel.offenbach.1";
 
@@ -96,6 +105,43 @@ function groupOwningTwo() {
   return state;
 }
 
+function distressedGroup() {
+  const state = groupOwningTwo();
+  state.finance.payableMinor = state.finance.cashMinor + 1_000_000;
+  return state;
+}
+
+function recordingContext(state: ReturnType<typeof createInitialGameState>) {
+  const calls: {
+    kind: "earn" | "spend";
+    amountMinor: number;
+    account: string;
+  }[] = [];
+  return {
+    calls,
+    ctx: {
+      earn(amountMinor: number, account: string) {
+        calls.push({ kind: "earn", amountMinor, account });
+        state.finance.cashMinor += amountMinor;
+        state.company.treasury.hqMinor += amountMinor;
+      },
+      spend(amountMinor: number, account: string) {
+        calls.push({ kind: "spend", amountMinor, account });
+        state.finance.cashMinor -= amountMinor;
+        state.company.treasury.hqMinor -= amountMinor;
+      },
+    },
+  };
+}
+
+function expectCashReconciled(
+  state: ReturnType<typeof createInitialGameState>,
+) {
+  expect(consolidatedCashMinor(state.company.treasury)).toBe(
+    state.finance.cashMinor,
+  );
+}
+
 describe("retiring a hotel from the company", () => {
   it("closes every record that only existed because the group owned it", () => {
     const state = groupOwningTwo();
@@ -152,5 +198,174 @@ describe("retiring a hotel from the company", () => {
       /not in the portfolio/,
     );
     expect(consolidatedCashMinor(state.company.treasury)).toBe(cash);
+  });
+});
+
+describe("distress recovery measures", () => {
+  it("refuses each exhausted resource with a specific reason", () => {
+    const state = createInitialGameState(7);
+    state.finance.payableMinor = state.finance.cashMinor + 1;
+    state.company.headquarters.baseMonthlyCostMinor =
+      HEADQUARTERS_COST_FLOOR_MINOR;
+    state.company.headquarters.perHotelMonthlyCostMinor = 0;
+    state.company.investorStakeBasisPoints = INVESTOR_STAKE_CAP_BASIS_POINTS;
+    state.loan = { ...state.loan, principalMinor: 0, termMonths: 600 };
+
+    expect(validateRecoveryPath(state, "asset-sale")).toEqual({
+      ok: false,
+      reason: "no owned non-flagship hotel can be leased back",
+    });
+    expect(validateRecoveryPath(state, "market-exit")).toEqual({
+      ok: false,
+      reason: "no city can be exited",
+    });
+    expect(validateRecoveryPath(state, "restructure")).toEqual({
+      ok: false,
+      reason: "headquarters overhead is already at the floor",
+    });
+    expect(validateRecoveryPath(state, "investor")).toEqual({
+      ok: false,
+      reason: "investor capacity is exhausted",
+    });
+    expect(validateRecoveryPath(state, "turnaround")).toEqual({
+      ok: false,
+      reason: "no loan can be rescheduled",
+    });
+  });
+
+  it("leases back the first eligible asset and creates recurring rent", () => {
+    const state = distressedGroup();
+    const { calls, ctx } = recordingContext(state);
+    const cashBefore = state.finance.cashMinor;
+    const result = applyRecoveryPath(state, "asset-sale", ctx);
+
+    expect(state.company.operatingModels[SOLD]).toMatchObject({
+      kind: "lease",
+    });
+    expect(
+      monthlyOwnershipPostings(state.company.operatingModels[SOLD], 0),
+    ).toEqual([
+      expect.objectContaining({
+        account: "leaseRent",
+        amountMinor: expect.any(Number),
+      }),
+    ]);
+    expect(calls).toEqual([
+      { kind: "earn", amountMinor: result.amountMinor, account: "disposal" },
+    ]);
+    expect(state.finance.cashMinor).toBe(cashBefore + result.amountMinor);
+    expectCashReconciled(state);
+  });
+
+  it("exits only the weakest target city and cancels its developments", () => {
+    const state = distressedGroup();
+    const OTHER = "hotel.munich.1";
+    state.company.portfolio.hotelIds.push(OTHER);
+    state.company.managedHotels.push({
+      ...state.company.managedHotels[0],
+      hotelId: OTHER,
+      cityId: "city.munich.de",
+    });
+    state.company.hotelResults[OTHER] = {
+      ...state.company.hotelResults[SOLD],
+      hotelId: OTHER,
+      grossOperatingProfitMinor: 900_000,
+    };
+    state.company.operatingModels[OTHER] = { kind: "owned" };
+    state.company.treasury = openHotelAccount(state.company.treasury, OTHER, 0);
+    state.company.developments = [
+      { id: "dev.exit", cityId: "city.frankfurt.de" } as any,
+      { id: "dev.keep", cityId: "city.munich.de" } as any,
+    ];
+    const { calls, ctx } = recordingContext(state);
+    applyRecoveryPath(state, "market-exit", ctx);
+
+    expect(state.company.portfolio.hotelIds).not.toContain(SOLD);
+    expect(state.company.portfolio.hotelIds).toContain(OTHER);
+    expect(state.company.developments.map((d) => d.id)).toEqual(["dev.keep"]);
+    expect(calls).toHaveLength(1);
+    expect(calls[0]).toMatchObject({ kind: "earn", account: "disposal" });
+    expectCashReconciled(state);
+  });
+
+  it("reduces headquarters cost and pays reorganization through context", () => {
+    const state = distressedGroup();
+    const before = state.company.headquarters.baseMonthlyCostMinor;
+    const { calls, ctx } = recordingContext(state);
+    applyRecoveryPath(state, "restructure", ctx);
+
+    expect(state.company.headquarters.baseMonthlyCostMinor).toBeLessThan(
+      before,
+    );
+    expect(calls).toEqual([
+      { kind: "spend", amountMinor: 500_000, account: "supplies" },
+    ]);
+    expectCashReconciled(state);
+  });
+
+  it("preserves used capex and stops offering restructuring at the base floor", () => {
+    const state = distressedGroup();
+    state.company.budgets[0].capexSpentMinor = 123_456;
+    const { ctx } = recordingContext(state);
+    applyRecoveryPath(state, "restructure", ctx);
+    expect(state.company.budgets[0].capexSpentMinor).toBe(123_456);
+
+    state.company.headquarters.baseMonthlyCostMinor =
+      HEADQUARTERS_COST_FLOOR_MINOR;
+    expect(validateRecoveryPath(state, "restructure")).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it("uses supplier invoices in the same distress test used by validation", () => {
+    const state = groupOwningTwo();
+    state.finance.supplierInvoices.push({
+      id: "supplier-invoice.overdue",
+      amountMinor: state.finance.cashMinor + 1,
+      dueDateKey: state.calendar.dateKey,
+    });
+    expect(validateRecoveryPath(state, "refinance")).toEqual({ ok: true });
+  });
+
+  it("injects equity with exact dilution and respects the majority cap", () => {
+    const state = distressedGroup();
+    const valuation = valueCompany(state);
+    const { calls, ctx } = recordingContext(state);
+    const result = applyRecoveryPath(state, "investor", ctx);
+    const expectedStake = Math.trunc((result.amountMinor * 10_000) / valuation);
+
+    expect(state.company.investorStakeBasisPoints).toBe(expectedStake);
+    expect(calls).toEqual([
+      { kind: "earn", amountMinor: result.amountMinor, account: "capital" },
+    ]);
+    expectCashReconciled(state);
+
+    const capped = distressedGroup();
+    capped.company.investorStakeBasisPoints = INVESTOR_STAKE_CAP_BASIS_POINTS;
+    expect(validateRecoveryPath(capped, "investor")).toEqual({
+      ok: false,
+      reason: "investor capacity is exhausted",
+    });
+  });
+
+  it("reschedules debt and pays its advisory fee through context", () => {
+    const state = distressedGroup();
+    const before = state.loan;
+    const paymentBefore = debtSchedule(before)[0].principalMinor;
+    const { calls, ctx } = recordingContext(state);
+    applyRecoveryPath(state, "turnaround", ctx);
+
+    expect(state.loan.principalMinor).toBe(before.principalMinor);
+    expect(state.loan.termMonths).toBeGreaterThan(before.termMonths);
+    expect(state.loan.annualRateBasisPoints).toBeGreaterThan(
+      before.annualRateBasisPoints,
+    );
+    expect(debtSchedule(state.loan)[0].principalMinor).toBeLessThan(
+      paymentBefore,
+    );
+    expect(calls).toEqual([
+      { kind: "spend", amountMinor: 250_000, account: "supplies" },
+    ]);
+    expectCashReconciled(state);
   });
 });

@@ -196,6 +196,7 @@ export interface RoomOccupantRef {
 
 export interface MonthAccumulator {
   openingCashMinor: number;
+  openingLedgerIndex: number;
   roomRevenueMinor: number;
   otherRevenueMinor: number;
   eventRevenueMinor: number;
@@ -304,6 +305,7 @@ export interface GameState {
     payableMinor: number;
     taxPayableMinor: number;
     ledger: LedgerEntry[];
+    supplierInvoices: { id: string; amountMinor: number; dueDateKey: string }[];
     month: MonthAccumulator;
   };
   /**
@@ -430,8 +432,10 @@ export function createInitialGameState(seed: number): GameState {
       payableMinor: 0,
       taxPayableMinor: 0,
       ledger: [],
+      supplierInvoices: [],
       month: {
         openingCashMinor: STARTER_HOTEL.startingCashMinor,
+        openingLedgerIndex: 0,
         roomRevenueMinor: 0,
         otherRevenueMinor: 0,
         eventRevenueMinor: 0,
@@ -509,7 +513,10 @@ export function createInitialGameState(seed: number): GameState {
     company: createCompanyState(),
     statements: {
       ...createStatements(),
-      fixedAssetsMinor: STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0),
+      fixedAssetsMinor: STARTER_PLANT.reduce(
+        (sum, a) => sum + a.replacementMinor,
+        0,
+      ),
       contributedCapitalMinor:
         STARTER_HOTEL.startingCashMinor +
         STARTER_PLANT.reduce((sum, a) => sum + a.replacementMinor, 0) -
@@ -549,8 +556,13 @@ export function createInitialGameState(seed: number): GameState {
           0,
           CREDIT_LINE_MINOR - STARTER_HOTEL.startingLoan.principalMinor,
         ),
+        assetSaleAvailable: false,
+        marketExitAvailable: false,
+        restructureAvailable: true,
+        investorAvailable: false,
         sellableHotelCount: 0,
         reducibleStaffCount: 0,
+        turnaroundAvailable: true,
         year: Number(CITY.startDateKey.slice(0, 4)),
       },
     }),

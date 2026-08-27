@@ -35,3 +35,14 @@ export function advanceTechnologyProject(
     status: remainingMonths === 0 ? "complete" : "implementing",
   };
 }
+
+export function technologyProjectDurationMonths(
+  baseMonths: number,
+  speedBasisPoints: number,
+): number {
+  if (!Number.isSafeInteger(baseMonths) || baseMonths <= 0)
+    throw new Error("project duration must be a positive whole number");
+  if (!Number.isSafeInteger(speedBasisPoints) || speedBasisPoints <= 0)
+    throw new Error("technology speed must be positive whole basis points");
+  return Math.ceil((baseMonths * 10_000) / speedBasisPoints);
+}

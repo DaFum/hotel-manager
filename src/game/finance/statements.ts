@@ -57,7 +57,7 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   franchiseRoyalty: "operating",
   portfolioOperating: "operating",
   insurancePremium: "operating",
-  insuranceSettlement: "settlement",
+  insuranceSettlement: "revenue",
   campaignSpend: "operating",
   loyaltyBenefit: "operating",
   groupDeposit: "operating",
@@ -73,7 +73,7 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   // Principal drawn from the bank is money owed, not money earned; the cost of
   // having borrowed it is the interest, and that is a financing cost.
   loan: "borrowing",
-  loanPrincipal: "settlement",
+  loanPrincipal: "borrowing",
   capital: "equity",
   interest: "financing",
   tax: "tax",

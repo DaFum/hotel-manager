@@ -125,7 +125,10 @@ describe("the narrative in a running game", () => {
     expect(s.state.loan.annualRateBasisPoints).toBe(1170);
     expect(s.state.narrative.campaign.difficulty).toBe("expert");
 
-    runDays(s, 1);
+    runDays(s, 32);
+    expect(s.state.lastMonthlyClose?.cashFlowStatement?.closingCashMinor).toBe(
+      s.state.lastMonthlyClose?.closingCashMinor,
+    );
     expect(
       submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "beginner" })
         .status,
@@ -173,6 +176,7 @@ describe("the narrative in a running game", () => {
       },
     ];
     s.state.statements.fixedAssetsMinor += 2_000_000;
+    s.state.statements.contributedCapitalMinor += 2_000_000;
     s.state.world.technologies = s.state.world.technologies.map((t) =>
       t.id === "internet" ? { ...t, adoptionBp: 9000 } : t,
     );

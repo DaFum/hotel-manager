@@ -1180,10 +1180,6 @@ export class GameSimulation implements CommandExecutor {
         const delta = opening - previousOpening;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
-          // The month's opening balance is what the close measures the cash
-          // movement against; leaving it behind would report a delta the
-          // hotel never traded.
-          s.finance.month.openingCashMinor += delta;
           s.statements.contributedCapitalMinor += delta;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
@@ -1229,7 +1225,6 @@ export class GameSimulation implements CommandExecutor {
         const delta = opening - previousOpening;
         if (delta !== 0) {
           s.finance.cashMinor += delta;
-          s.finance.month.openingCashMinor += delta;
           s.statements.contributedCapitalMinor += delta;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),

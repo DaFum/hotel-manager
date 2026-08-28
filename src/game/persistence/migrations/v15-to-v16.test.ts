@@ -7,6 +7,7 @@ describe("v15 to v16 migration", () => {
     const state: any = createInitialGameState(91);
     delete state.finance.supplierInvoices;
     delete state.finance.month.openingLedgerIndex;
+    const hotelSnapshot = structuredClone(state.hotel);
     const migrated = migrateV15ToV16({
       saveVersion: 15,
       contentVersion: "1991.1",
@@ -20,6 +21,6 @@ describe("v15 to v16 migration", () => {
     expect(
       (migrated.state as any).finance.month.openingLedgerIndex,
     ).toBe((migrated.state as any).finance.ledger.length);
-    expect((migrated.state as any).hotel).toEqual(state.hotel);
+    expect((migrated.state as any).hotel).toEqual(hotelSnapshot);
   });
 });

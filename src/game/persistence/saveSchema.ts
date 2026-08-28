@@ -210,6 +210,8 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !Array.isArray(state.finance?.supplierInvoices) ||
     !state.finance.supplierInvoices.every(
       (invoice) =>
+        invoice !== null &&
+        typeof invoice === "object" &&
         typeof invoice.id === "string" &&
         Number.isSafeInteger(invoice.amountMinor) &&
         invoice.amountMinor >= 0 &&
@@ -222,6 +224,9 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (
     !state.finance?.month ||
     !Number.isSafeInteger(state.finance.month.openingLedgerIndex) ||
+    !Array.isArray(state.finance.ledger) ||
+    state.finance.month.openingLedgerIndex < 0 ||
+    state.finance.month.openingLedgerIndex > state.finance.ledger.length ||
     !Number.isSafeInteger(state.finance.month.eventRevenueMinor) ||
     !Number.isSafeInteger(state.finance.month.housekeepingLateRoomReleaseCount)
   )

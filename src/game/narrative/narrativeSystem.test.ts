@@ -126,8 +126,10 @@ describe("the narrative in a running game", () => {
     expect(s.state.narrative.campaign.difficulty).toBe("expert");
 
     runDays(s, 32);
-    expect(s.state.lastMonthlyClose?.cashFlowStatement?.closingCashMinor).toBe(
-      s.state.lastMonthlyClose?.closingCashMinor,
+    expect(s.state.lastMonthlyClose).toBeDefined();
+    expect(s.state.lastMonthlyClose!.cashFlowStatement).toBeDefined();
+    expect(s.state.lastMonthlyClose!.cashFlowStatement.closingCashMinor).toBe(
+      s.state.lastMonthlyClose!.closingCashMinor,
     );
     expect(
       submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "beginner" })

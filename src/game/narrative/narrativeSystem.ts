@@ -22,6 +22,7 @@ import {
   aggressionAdjustedUndercutBp,
   firesNarrativeEvent,
 } from "../campaign/difficultyEffects";
+import { disposeInvestmentAsset } from "../finance/statements";
 
 export interface NarrativeContext {
   emit(payload: DomainEventPayload, entities: readonly string[]): void;
@@ -249,8 +250,10 @@ function resolveDueOpportunities(
       });
       opportunity.status = "resolved";
       opportunity.companyValueMultiplierBasisPoints = multiplier;
-      state.statements.fixedAssetsMinor -= opportunity.investedMinor;
-      state.statements.retainedEarningsMinor += outcome;
+      state.statements = disposeInvestmentAsset(state.statements, {
+        investedMinor: opportunity.investedMinor,
+        outcomeMinor: outcome,
+      });
       // The stake was paid when the bet was taken; only the return moves now.
       if (outcome + opportunity.investedMinor > 0)
         ctx.earn(

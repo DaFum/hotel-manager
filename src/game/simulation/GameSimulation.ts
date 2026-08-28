@@ -736,9 +736,12 @@ export class GameSimulation implements CommandExecutor {
           if (s.elapsedMinutes > 0)
             return { ok: false, reason: "the career has already started" };
           if (
-            Object.values(command.sandbox).some(
-              (value) =>
-                !Number.isSafeInteger(value) || value < 0 || value > 1_000_000,
+            Object.entries(command.sandbox).some(
+              ([key, value]) =>
+                value !== undefined &&
+                (!Number.isSafeInteger(value) ||
+                  value > 1_000_000 ||
+                  (key === "technologySpeedBasisPoints" ? value < 1 : value < 0)),
             )
           )
             return {
@@ -4675,20 +4678,36 @@ export class GameSimulation implements CommandExecutor {
   }
 
   private settleSupplierInvoicesDue(dateKey: string): void {
-    const due = this.state.finance.supplierInvoices.filter(
+    const s = this.state;
+    const due = s.finance.supplierInvoices.filter(
       (invoice) => invoice.dueDateKey <= dateKey,
     );
-    for (const invoice of due)
-      this.spend(
-        invoice.amountMinor,
-        "supplierSettlement",
-        `supplier invoice ${invoice.id}`,
-      );
-    const dueIds = new Set(due.map((invoice) => invoice.id));
-    this.state.finance.supplierInvoices =
-      this.state.finance.supplierInvoices.filter(
-        (invoice) => !dueIds.has(invoice.id),
-      );
+    for (const invoice of due) {
+      if (invoice.amountMinor <= 0) continue;
+      const paid = Math.min(invoice.amountMinor, s.finance.cashMinor);
+      if (paid > 0) {
+        s.finance.cashMinor -= paid;
+        invoice.amountMinor -= paid;
+        s.finance.ledger = postEntry(s.finance.ledger, {
+          day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+          account: "supplierSettlement",
+          amountMinor: -paid,
+          memo: `supplier invoice ${invoice.id}`,
+        });
+      }
+      if (invoice.amountMinor > 0) {
+        this.pushAlert({
+          id: "alert.insolvent",
+          severity: "critical",
+          title: "alert.insolvent.title",
+          cause: "alert.insolvent.cause",
+          causeValues: { expense: "expense.operating" },
+        });
+      }
+    }
+    s.finance.supplierInvoices = s.finance.supplierInvoices.filter(
+      (invoice) => invoice.amountMinor > 0,
+    );
   }
 
   private spend(amountMinor: number, account: string, memo: string): void {

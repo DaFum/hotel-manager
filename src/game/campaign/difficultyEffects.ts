@@ -30,6 +30,9 @@ const NEUTRAL_BP = 10_000;
  */
 export function scaled(value: number, bp: number, label: string): number {
   assertBasisPoints(bp, label);
+  if (Number.isSafeInteger(value)) {
+    return Number((BigInt(value) * BigInt(bp)) / BigInt(NEUTRAL_BP));
+  }
   return Math.trunc((value * bp) / NEUTRAL_BP);
 }
 

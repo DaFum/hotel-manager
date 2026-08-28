@@ -14,14 +14,14 @@
 .hm-main > :is(section, aside),
 .hm-panel {
   position: relative;
-  padding: var(--hm-space-4) var(--hm-space-5);
+  padding: var(--hm-space-5) var(--hm-space-6);
   border: 1px solid var(--hm-rule);
   border-left: var(--hm-rail) solid var(--hm-rule-strong);
-  border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
+  border-radius: var(--hm-radius);
   background: linear-gradient(
     180deg,
     var(--hm-surface-raised),
-    var(--hm-surface) 45%
+    var(--hm-surface) 50%
   );
   box-shadow: var(--hm-shadow-panel);
   transition:
@@ -45,8 +45,8 @@
   position: relative;
   margin-bottom: var(--hm-space-4);
   padding-bottom: var(--hm-space-2);
-  border-bottom: 1px solid var(--hm-rule);
-  color: var(--hm-ink);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  color: var(--hm-ink-bright);
 }
 
 .hm-main > :is(section, aside) > h2::after,
@@ -55,7 +55,7 @@
   position: absolute;
   bottom: -1px;
   left: 0;
-  width: 3rem;
+  width: 3.5rem;
   height: 2px;
   background: var(--hm-signal);
   box-shadow: 0 0 8px var(--hm-signal-wash);
@@ -65,6 +65,7 @@
 .hm-panel > h3 {
   margin-top: var(--hm-space-4);
   margin-bottom: var(--hm-space-2);
+  color: var(--hm-ink-bright);
 }
 
 /*
@@ -97,9 +98,7 @@
 }
 
 /*
- * Articles are single records — an alert, a story, a rival's move. They sit
- * inside a panel as ruled entries, separated by hairlines rather than boxed,
- * the way lines of a register are separated.
+ * Articles are single records — an alert, a story, a rival's move.
  */
 .hm-main > :is(section, aside) article,
 .hm-panel article {
@@ -138,13 +137,14 @@
 .hm-canvas {
   position: relative;
   overflow: hidden;
-  /* The building needs room to be a building; below this it reads as a strip. */
-  min-height: 22rem;
-  margin-bottom: var(--hm-space-4);
-  border: 1px solid var(--hm-rule);
+  min-height: 24rem;
+  margin-bottom: var(--hm-space-5);
+  border: 1px solid var(--hm-rule-strong);
+  border-radius: var(--hm-radius);
   background:
     radial-gradient(70% 60% at 50% 0%, var(--hm-atmosphere), transparent 70%),
     var(--hm-surface-sunken);
+  box-shadow: var(--hm-shadow-drop), inset 0 0 20px rgb(0 0 0 / 50%);
 }
 
 .hm-canvas canvas {
@@ -152,12 +152,72 @@
   max-width: 100%;
 }
 
-/*
- * With no renderer — a headless run, a machine without WebGL, or ?renderer=off
- * — the frame holds nothing, and an empty lit box would read as a scene that
- * failed to load. It stands down instead and lets the room register, which is
- * the accessible source of truth anyway, take the space.
- */
 .hm-canvas:empty {
   display: none;
+}
+
+/* --- Hotel View Structured Card Grid ----------------------------------- */
+
+.hm-hotel-view__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--hm-space-4);
+  margin-top: var(--hm-space-4);
+}
+
+.hm-card {
+  padding: var(--hm-space-4);
+  border: 1px solid var(--hm-rule-strong);
+  border-left: 3px solid var(--hm-signal);
+  border-radius: var(--hm-radius);
+  background: var(--hm-surface-sunken);
+  box-shadow: var(--hm-shadow-panel);
+}
+
+.hm-card h3 {
+  margin-top: 0;
+  margin-bottom: var(--hm-space-3);
+  font-family: var(--hm-font-display);
+  font-size: var(--hm-text-base);
+  color: var(--hm-ink-bright);
+}
+
+.hm-card h4 {
+  margin-top: var(--hm-space-3);
+  margin-bottom: var(--hm-space-2);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-signal);
+}
+
+.hm-card__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.hm-card__list li {
+  margin: 0;
+}
+
+.hm-card__status-msg {
+  margin-top: var(--hm-space-3);
+  padding: var(--hm-space-2) var(--hm-space-3);
+  border: 1px solid var(--hm-rule);
+  border-radius: var(--hm-radius);
+  background: var(--hm-surface);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  color: var(--hm-signal-bright);
+}
+
+.hm-card__subdetail {
+  margin-top: var(--hm-space-4);
+  padding-top: var(--hm-space-3);
+  border-top: 1px solid var(--hm-rule);
 }

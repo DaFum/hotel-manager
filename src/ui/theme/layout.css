@@ -9,19 +9,15 @@
 
 .hm-shell {
   display: grid;
-  grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
+  grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr);
   align-items: start;
   min-height: 100vh;
   height: 100vh;
+  background-color: var(--hm-ground);
 }
 
 /* --- The department rail ------------------------------------------------ */
 
-/*
- * The rail owns the first column for the full height of the floor, and every
- * department panel is dealt into the same cell beside it. Only one panel is
- * ever without [hidden], so they never contend for the space.
- */
 .hm-shell__nav {
   grid-column: 1;
   grid-row: 1 / -1;
@@ -29,33 +25,29 @@
   top: 0;
   z-index: var(--hm-z-chrome);
   align-self: stretch;
-  padding: var(--hm-space-7) 0 var(--hm-space-6);
-  border-right: 1px solid var(--hm-rule);
+  padding: var(--hm-space-6) 0 var(--hm-space-6);
+  border-right: 1px solid var(--hm-rule-strong);
   height: 100vh;
   overflow-y: auto;
   background:
     linear-gradient(
       180deg,
-      var(--hm-surface-sunken),
-      var(--hm-ground-deep) 70%
-    ),
-    var(--hm-ground);
-  box-shadow: 1px 0 0 var(--hm-shadow-rail);
+      var(--hm-ground-deep),
+      var(--hm-surface-sunken) 60%,
+      var(--hm-ground-deep)
+    );
+  box-shadow: 2px 0 12px rgb(0 0 0 / 40%);
 }
 
-/*
- * The house plate. An operations binder is labelled on its spine; so is this
- * one. Set in the display face, rotated out of the reading axis, it is the one
- * piece of pure signage in the interface.
- */
 .hm-shell__plate {
   display: block;
-  padding: 0 var(--hm-space-4) var(--hm-space-5);
+  padding: 0 var(--hm-space-4) var(--hm-space-4);
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-ink-faint);
+  color: var(--hm-signal-bright);
+  font-weight: 700;
 }
 
 .hm-shell__plate::before {
@@ -65,11 +57,13 @@
   height: var(--hm-rail);
   margin-bottom: var(--hm-space-3);
   background: var(--hm-signal);
+  box-shadow: 0 0 8px var(--hm-signal-wash);
 }
 
 .hm-shell__nav [role="tablist"] {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 /* --- The working surface ------------------------------------------------ */
@@ -78,48 +72,43 @@
   grid-column: 2;
   grid-row: 1;
   min-width: 0;
-  padding: var(--hm-space-6) var(--hm-space-6) var(--hm-space-7);
+  padding: var(--hm-space-5) var(--hm-space-6) var(--hm-space-7);
 }
 
 .hm-shell__panel[hidden] {
   display: none;
 }
 
-/*
- * A department whose surface has not been built yet is an empty floor, not a
- * broken one. Its name is set alone in the middle of the space, quiet and
- * plainly unfinished, rather than left as a stray heading at the top corner.
- */
 .hm-shell__panel > h2:only-child {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 50vh;
   padding: var(--hm-space-6);
-  border: 1px dashed var(--hm-rule);
+  border: 1px dashed var(--hm-rule-strong);
+  border-radius: var(--hm-radius-lg);
   font-size: var(--hm-text-2xl);
   color: var(--hm-ink-faint);
+  background: var(--hm-surface-sunken);
 }
 
 .hm-main {
   display: flex;
   flex-direction: column;
   gap: var(--hm-space-5);
-  max-width: 78rem;
+  max-width: 84rem;
   min-width: 0;
+  margin: 0 auto;
 }
 
-/*
- * The masthead breaks the content grid on purpose: the hotel's name is the one
- * element allowed to run past the left edge of everything under it, so the eye
- * has a fixed point to return to after reading a dense table.
- */
 .hm-main > h1 {
   position: relative;
   margin-left: -0.06em;
   padding-bottom: var(--hm-space-4);
-  border-bottom: 1px solid var(--hm-rule);
-  color: var(--hm-ink);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  color: var(--hm-ink-bright);
+  font-family: var(--hm-font-display);
+  letter-spacing: -0.01em;
 }
 
 .hm-main > h1::after {
@@ -128,34 +117,27 @@
   bottom: -1px;
   left: 0;
   width: 7rem;
-  height: 2px;
+  height: 3px;
   background: var(--hm-signal);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
-/*
- * The telemetry line: three live regions the player should be able to consult
- * without ever being interrupted by them. Set small, monospaced and quiet,
- * across one row, the way a status strip sits under a terminal.
- */
 .hm-telemetry {
   display: flex;
   flex-wrap: wrap;
   gap: var(--hm-space-2) var(--hm-space-5);
-  padding: var(--hm-space-2) var(--hm-space-3);
-  border: 1px solid var(--hm-rule-faint);
-  border-left: var(--hm-rail) solid var(--hm-rule-strong);
+  padding: var(--hm-space-3) var(--hm-space-4);
+  border: 1px solid var(--hm-rule);
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  border-radius: var(--hm-radius);
   background: var(--hm-surface-sunken);
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
   letter-spacing: 0.04em;
-  color: var(--hm-ink-faint);
+  color: var(--hm-ink-dim);
+  box-shadow: var(--hm-shadow-drop);
 }
 
-/*
- * An error in the status region is the loudest thing on the surface. The mark
- * is drawn, not written: this is a live region, and generated text would be
- * read out to a screen reader as though the simulation had said it.
- */
 .hm-telemetry__status:not(:empty) {
   padding-left: var(--hm-space-3);
   border-left: var(--hm-rail) solid var(--hm-loss);
@@ -163,11 +145,6 @@
   font-weight: 600;
 }
 
-/*
- * Before the floor exists: the loading screen and the worker-recovery screen.
- * Both are the same moment — the hotel is not running — so both get the same
- * treatment: the masthead alone in the middle of an empty building.
- */
 .hm-boot {
   display: flex;
   flex-direction: column;
@@ -200,7 +177,7 @@
     grid-row: 1;
     padding: var(--hm-space-3) 0 0;
     border-right: 0;
-    border-bottom: 1px solid var(--hm-rule);
+    border-bottom: 1px solid var(--hm-rule-strong);
     min-height: auto;
     height: auto;
     overflow-y: visible;

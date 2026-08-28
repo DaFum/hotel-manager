@@ -48,40 +48,40 @@ test.describe("Visual Verification Screenshot Suite", () => {
 
   test("capture screenshots for UI overlays, panels, and settings", async ({ page }) => {
     // 1. Settings & Accessibility Controls section
-    const settingsSection = page.locator("section", {
-      hasText: "Presentation",
+    const settingsSection = page.getByRole("region", {
+      name: /Presentation settings/i,
     });
-    if (await settingsSection.isVisible()) {
-      await settingsSection.screenshot({
-        path: path.join(SCREENSHOT_DIR, "overlay-01-settings.png"),
-      });
-    }
+    await expect(settingsSection).toBeVisible();
+    await settingsSection.screenshot({
+      path: path.join(SCREENSHOT_DIR, "overlay-01-settings.png"),
+    });
 
     // 2. Save Manager section
-    const saveManager = page.locator(".save-manager");
-    if (await saveManager.isVisible()) {
-      await saveManager.screenshot({
-        path: path.join(SCREENSHOT_DIR, "overlay-02-save-manager.png"),
-      });
-    }
+    const saveManager = page.getByRole("region", {
+      name: /Saved games/i,
+    });
+    await expect(saveManager).toBeVisible();
+    await saveManager.screenshot({
+      path: path.join(SCREENSHOT_DIR, "overlay-02-save-manager.png"),
+    });
 
-    // 3. TopBar and Telemetry
-    const topBar = page.getByRole("banner");
-    if (await topBar.isVisible()) {
-      await topBar.screenshot({
-        path: path.join(SCREENSHOT_DIR, "overlay-03-topbar.png"),
-      });
-    }
+    // 3. TopBar / Status Bar
+    const topBar = page.getByRole("region", {
+      name: /Status bar/i,
+    });
+    await expect(topBar).toBeVisible();
+    await topBar.screenshot({
+      path: path.join(SCREENSHOT_DIR, "overlay-03-topbar.png"),
+    });
 
     // 4. Notification Center
     const notificationCenter = page.getByRole("region", {
       name: /Notification center|Alerts/i,
     });
-    if (await notificationCenter.isVisible()) {
-      await notificationCenter.screenshot({
-        path: path.join(SCREENSHOT_DIR, "overlay-04-notification-center.png"),
-      });
-    }
+    await expect(notificationCenter).toBeVisible();
+    await notificationCenter.screenshot({
+      path: path.join(SCREENSHOT_DIR, "overlay-04-notification-center.png"),
+    });
 
     // 5. Full view initial state
     await page.screenshot({

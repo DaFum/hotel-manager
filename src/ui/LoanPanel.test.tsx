@@ -84,6 +84,54 @@ describe("LoanPanel", () => {
     expect(screen.getByText(/Borrowing Capacity/i)).toBeTruthy();
   });
 
+  it("caps proposed collateral preview to availableCollateralMinor", () => {
+    const dummyInputs = {
+      operatingCashFlowMinor: 100_000,
+      totalOutstandingMinor: 10_000_00,
+      cashMinor: 50_000_00,
+      equityMinor: 100_000_00,
+      hotelCount: 1,
+      reputationScore: 50,
+      totalCollateralValueMinor: 0,
+      paymentHistory: {
+        onTimePayments: 0,
+        missedPayments: 0,
+        consecutiveMissedPayments: 0,
+      },
+      macroInterestBp: 300,
+      creditSpreadMultiplierBp: 10000,
+    };
+
+    const onTakeLoan = vi.fn();
+
+    render(
+      <LoanPanel
+        offeredRateBp={600}
+        borrowingCapacityMinor={100000000}
+        creditStandingScore={50}
+        totalDebtMinor={1000000}
+        loans={[]}
+        onTakeLoan={onTakeLoan}
+        onRepayLoan={() => {}}
+        creditStandingInputs={dummyInputs}
+        availableCollateralMinor={100_000_00}
+      />,
+    );
+
+    const collateralInput = screen.getByLabelText(/Declared Collateral/i);
+    // Enter collateral DM 500,000 (which is 50,000,000 Pfennig, exceeding 100,000 DM cap)
+    fireEvent.change(collateralInput, { target: { value: "500000" } });
+
+    const form = collateralInput.closest("form")!;
+    fireEvent.submit(form);
+
+    expect(onTakeLoan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collateralValueMinor: 100_000_00,
+      }),
+    );
+  });
+
   it("localizes loan controls in German (de-DE)", () => {
     render(
       <LoanPanel

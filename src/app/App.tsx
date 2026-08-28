@@ -551,6 +551,15 @@ export function App() {
             periodKey:
               s.lastMonthlyClose?.periodKey ?? s.calendar.dateKey.slice(0, 7),
           })}
+          availableCollateralMinor={Math.max(
+            0,
+            (s.statements?.fixedAssetsMinor ??
+              s.assets.reduce((sum, a) => sum + a.replacementMinor, 0)) -
+              (s.loans ?? (s.loan ? [s.loan] : [])).reduce(
+                (sum, l) => sum + l.collateralValueMinor,
+                0,
+              ),
+          )}
           creditStandingInputs={{
             operatingCashFlowMinor:
               s.finance.month.roomRevenueMinor +

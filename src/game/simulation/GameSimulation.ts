@@ -4697,11 +4697,18 @@ export class GameSimulation implements CommandExecutor {
             0,
             s.finance.payableMinor - block.depositMinor,
           );
+          s.statements.retainedEarningsMinor += block.depositMinor;
           s.finance.ledger = postEntry(s.finance.ledger, {
             day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
             account: "groupDeposit",
             amountMinor: -block.depositMinor,
-            memo: `settled group deposit liability ${block.id}`,
+            memo: `cleared group deposit liability ${block.id}`,
+          });
+          s.finance.ledger = postEntry(s.finance.ledger, {
+            day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+            account: "otherRevenue",
+            amountMinor: block.depositMinor,
+            memo: `reclassified group deposit revenue ${block.id}`,
           });
         }
         return { ...block, status: "released" as const };

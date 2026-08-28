@@ -25,6 +25,7 @@ export interface LoanPanelProps {
   isPending?: boolean;
   locale?: GameLocale;
   creditStandingInputs?: CreditStandingInputs;
+  availableCollateralMinor?: number;
 }
 
 export function LoanPanel({
@@ -38,12 +39,17 @@ export function LoanPanel({
   isPending = false,
   locale = "en-GB",
   creditStandingInputs,
+  availableCollateralMinor,
 }: LoanPanelProps) {
   const t = (key: string, values?: Record<string, string | number>) =>
     translateGame(locale, key, values);
 
   const [proposedCollateralDm, setProposedCollateralDm] = useState(0);
-  const proposedCollateralMinor = proposedCollateralDm * 100;
+  const rawProposedCollateralMinor = proposedCollateralDm * 100;
+  const proposedCollateralMinor =
+    availableCollateralMinor !== undefined
+      ? Math.min(rawProposedCollateralMinor, Math.max(0, availableCollateralMinor))
+      : rawProposedCollateralMinor;
 
   const dynamicStanding = creditStandingInputs
     ? calculateCreditStanding({

@@ -67,6 +67,7 @@ export function FinanceDashboard({
   locale = "en-GB",
   creditStanding,
   creditStandingInputs,
+  availableCollateralMinor,
   onTakeLoan,
   onRepayLoan,
   isPending = false,
@@ -79,6 +80,7 @@ export function FinanceDashboard({
     borrowingCapacityMinor: number;
   };
   creditStandingInputs?: CreditStandingInputs;
+  availableCollateralMinor?: number;
   onTakeLoan?: (params: {
     principalMinor: number;
     amortisation: Loan["amortisation"];
@@ -106,6 +108,7 @@ export function FinanceDashboard({
         isPending={isPending}
         locale={locale}
         creditStandingInputs={creditStandingInputs}
+        availableCollateralMinor={availableCollateralMinor}
       />
       <section aria-label={t("finance.dashboard.pnl")}>
         <h2>{t("finance.dashboard.pnl")}</h2>

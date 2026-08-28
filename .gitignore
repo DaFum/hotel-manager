@@ -147,6 +147,7 @@ vite.config.ts.timestamp-*
 /playwright-report/
 /blob-report/
 /artifacts/
+/screenshots/
 
 # local agent settings
 .claude/

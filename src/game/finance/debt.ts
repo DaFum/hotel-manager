@@ -29,9 +29,10 @@ export interface DebtInstalment {
 export const MAX_LOAN_TERM_MONTHS = MAX_TERM_MONTHS;
 
 /**
- * Straight-line amortisation of principal with interest on the balance
- * outstanding. Integer arithmetic throughout; the last instalment absorbs the
- * remainder so the schedule always closes at exactly nothing.
+ * Amortisation of principal with interest on the balance outstanding.
+ * Supports "linear", "annuity", and "bullet" profiles.
+ * Integer arithmetic throughout; the last instalment absorbs the remainder so
+ * the schedule always closes at exactly zero.
  */
 export function debtSchedule(loan: Loan): DebtInstalment[] {
   assertNonNegativeMinor(loan.principalMinor, "loan principal");
@@ -43,25 +44,82 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
   )
     throw new Error("invalid loan term");
 
-  const perMonth = Math.trunc(loan.principalMinor / loan.termMonths);
   const schedule: DebtInstalment[] = [];
   let outstanding = loan.principalMinor;
-  for (let month = 1; month <= loan.termMonths; month += 1) {
-    const interestMinor = roundedRateMinor(
-      outstanding,
-      loan.annualRateBasisPoints,
-    );
-    const principalMinor =
-      month === loan.termMonths ? outstanding : Math.min(perMonth, outstanding);
-    schedule.push({
-      month,
-      openingPrincipalMinor: outstanding,
-      interestMinor,
-      principalMinor,
-      closingPrincipalMinor: outstanding - principalMinor,
-    });
-    outstanding -= principalMinor;
+
+  if (loan.amortisation === "bullet") {
+    for (let month = 1; month <= loan.termMonths; month += 1) {
+      const interestMinor = roundedRateMinor(
+        outstanding,
+        loan.annualRateBasisPoints,
+      );
+      const principalMinor = month === loan.termMonths ? outstanding : 0;
+      schedule.push({
+        month,
+        openingPrincipalMinor: outstanding,
+        interestMinor,
+        principalMinor,
+        closingPrincipalMinor: outstanding - principalMinor,
+      });
+      outstanding -= principalMinor;
+    }
+  } else if (loan.amortisation === "annuity") {
+    const rateMonthly = loan.annualRateBasisPoints / 10000 / 12;
+    let targetInstalment = 0;
+    if (rateMonthly > 0) {
+      const compound = Math.pow(1 + rateMonthly, loan.termMonths);
+      targetInstalment = Math.round(
+        (loan.principalMinor * (rateMonthly * compound)) / (compound - 1),
+      );
+    } else {
+      targetInstalment = Math.trunc(loan.principalMinor / loan.termMonths);
+    }
+
+    for (let month = 1; month <= loan.termMonths; month += 1) {
+      const interestMinor = roundedRateMinor(
+        outstanding,
+        loan.annualRateBasisPoints,
+      );
+      let principalMinor = 0;
+      if (month === loan.termMonths) {
+        principalMinor = outstanding;
+      } else {
+        const calculatedPrincipal = Math.max(0, targetInstalment - interestMinor);
+        principalMinor = Math.min(calculatedPrincipal, outstanding);
+      }
+
+      schedule.push({
+        month,
+        openingPrincipalMinor: outstanding,
+        interestMinor,
+        principalMinor,
+        closingPrincipalMinor: outstanding - principalMinor,
+      });
+      outstanding -= principalMinor;
+    }
+  } else {
+    // Default / "linear": straight-line equal principal per month
+    const perMonth = Math.trunc(loan.principalMinor / loan.termMonths);
+    for (let month = 1; month <= loan.termMonths; month += 1) {
+      const interestMinor = roundedRateMinor(
+        outstanding,
+        loan.annualRateBasisPoints,
+      );
+      const principalMinor =
+        month === loan.termMonths
+          ? outstanding
+          : Math.min(perMonth, outstanding);
+      schedule.push({
+        month,
+        openingPrincipalMinor: outstanding,
+        interestMinor,
+        principalMinor,
+        closingPrincipalMinor: outstanding - principalMinor,
+      });
+      outstanding -= principalMinor;
+    }
   }
+
   return schedule;
 }
 
@@ -123,9 +181,6 @@ export function restructure(
     throw new Error("a restructuring must add extra months");
   const penalty = terms.penaltyBasisPoints ?? 0;
   assertBasisPoints(penalty, "restructuring penalty");
-  // The rate the borrower ends up paying is what has to be valid, not just
-  // the penalty that was added to it, and the same goes for the term the
-  // extra months add up to.
   const annualRateBasisPoints = assertBasisPoints(
     loan.annualRateBasisPoints + penalty,
     "restructured rate",
@@ -135,7 +190,7 @@ export function restructure(
   if (termMonths > MAX_LOAN_TERM_MONTHS)
     throw new Error("loan term exceeds maximum");
   return {
-    principalMinor: loan.principalMinor,
+    ...loan,
     annualRateBasisPoints,
     termMonths,
   };

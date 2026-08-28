@@ -715,6 +715,24 @@ export const de = {
   },
   alerts: { liquidityCritical: "Liquidität ist kritisch" },
   events: { guestCheckin: "Gast eingecheckt" },
+  loans: {
+    panel: {
+      title: "Darlehen & Kreditaufnahme",
+      creditStanding: "Kreditwürdigkeit",
+      offeredRate: "Angebotener Zinssatz",
+      borrowingCapacity: "Kreditspielraum",
+      totalOutstanding: "Gesamte ausstehende Schulden",
+      takeLoan: "Neues Darlehen aufnehmen",
+      principal: "Nennbetrag (DM)",
+      termMonths: "Laufzeit (Monate)",
+      amortisation: "Tilgungsprofil",
+      rateType: "Zinstyp",
+      collateral: "Sicherheiten (DM)",
+      drawLoan: "Darlehen aufnehmen",
+      activeLoans: "Aktive Darlehen",
+      repayFull: "Vollständig tilgen",
+    },
+  },
   finance: {
     dashboard: {
       title: "Finanzen",

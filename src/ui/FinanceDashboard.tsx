@@ -70,6 +70,12 @@ export function FinanceDashboard({
   const t = (key: string) => translateGame(locale, key);
   return (
     <div aria-label={t("finance.dashboard.title")}>
+      <section aria-label={t("loans.panel.title")}>
+        <h2>{t("loans.panel.title")}</h2>
+        <p>
+          {t("loans.panel.totalOutstanding")}: {formatDm(view.balanceSheet.debtMinor, locale)}
+        </p>
+      </section>
       <section aria-label={t("finance.dashboard.pnl")}>
         <h2>{t("finance.dashboard.pnl")}</h2>
         <dl>

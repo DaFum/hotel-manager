@@ -210,7 +210,8 @@ describe("distress recovery measures", () => {
       HEADQUARTERS_COST_FLOOR_MINOR;
     state.company.headquarters.perHotelMonthlyCostMinor = 0;
     state.company.investorStakeBasisPoints = INVESTOR_STAKE_CAP_BASIS_POINTS;
-    state.loan = { ...state.loan, principalMinor: 0, termMonths: 600 };
+    state.loans = [{ ...state.loans[0], principalMinor: 0, termMonths: 600 }];
+    state.loan = state.loans[0];
 
     expect(validateRecoveryPath(state, "asset-sale")).toEqual({
       ok: false,
@@ -351,17 +352,19 @@ describe("distress recovery measures", () => {
 
   it("reschedules debt and pays its advisory fee through context", () => {
     const state = distressedGroup();
-    const before = state.loan;
+    if (state.loans?.[0]) state.loans[0].amortisation = "linear";
+    const before = state.loans[0] ?? state.loan!;
     const paymentBefore = debtSchedule(before)[0].principalMinor;
     const { calls, ctx } = recordingContext(state);
     applyRecoveryPath(state, "turnaround", ctx);
 
-    expect(state.loan.principalMinor).toBe(before.principalMinor);
-    expect(state.loan.termMonths).toBeGreaterThan(before.termMonths);
-    expect(state.loan.annualRateBasisPoints).toBeGreaterThan(
+    const after = state.loans[0] ?? state.loan!;
+    expect(after.principalMinor).toBe(before.principalMinor);
+    expect(after.termMonths).toBeGreaterThan(before.termMonths);
+    expect(after.annualRateBasisPoints).toBeGreaterThan(
       before.annualRateBasisPoints,
     );
-    expect(debtSchedule(state.loan)[0].principalMinor).toBeLessThan(
+    expect(debtSchedule(after)[0].principalMinor).toBeLessThan(
       paymentBefore,
     );
     expect(calls).toEqual([

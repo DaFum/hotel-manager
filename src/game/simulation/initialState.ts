@@ -16,7 +16,7 @@ import type { RoomState } from "../rooms/roomState";
 import type { RateGrid } from "../revenue/rates";
 import type { Booking } from "../bookings/bookingTypes";
 import type { LedgerEntry } from "../finance/ledger";
-import type { Loan } from "../finance/loans";
+import { drawLoan, type Loan } from "../finance/loans";
 import type { Asset } from "../maintenance/maintenance";
 import type { RenovationJob } from "../building/renovations";
 import {
@@ -306,6 +306,11 @@ export interface GameState {
     taxPayableMinor: number;
     ledger: LedgerEntry[];
     supplierInvoices: { id: string; amountMinor: number; dueDateKey: string }[];
+    paymentHistory: {
+      onTimePayments: number;
+      missedPayments: number;
+      consecutiveMissedPayments: number;
+    };
     month: MonthAccumulator;
   };
   /**
@@ -317,7 +322,9 @@ export interface GameState {
   housekeepingMinutes: number;
   /** Fractional reception throughput carried between quanta, in parties. */
   receptionCapacity: number;
-  loan: Loan;
+  loans: Loan[];
+  /** @deprecated Kept for legacy compatibility if accessed during migration */
+  loan?: Loan;
   renovation: RenovationJob | null;
   alerts: AlertRecord[];
   lastMonthlyClose: MonthlyCloseReport | null;
@@ -433,6 +440,11 @@ export function createInitialGameState(seed: number): GameState {
       taxPayableMinor: 0,
       ledger: [],
       supplierInvoices: [],
+      paymentHistory: {
+        onTimePayments: 0,
+        missedPayments: 0,
+        consecutiveMissedPayments: 0,
+      },
       month: {
         openingCashMinor: STARTER_HOTEL.startingCashMinor,
         openingLedgerIndex: 0,
@@ -447,7 +459,14 @@ export function createInitialGameState(seed: number): GameState {
         availableRoomNights: STARTER_HOTEL.roomCount,
       },
     },
-    loan: { ...STARTER_HOTEL.startingLoan },
+    loans: [
+      drawLoan(
+        STARTER_HOTEL.startingLoan.principalMinor,
+        STARTER_HOTEL.startingLoan.annualRateBasisPoints,
+        STARTER_HOTEL.startingLoan.termMonths,
+        { id: "loan.starter", amortisation: "bullet", rateType: "fixed", spreadBasisPoints: 0, startMonthIndex: 0, collateralValueMinor: 0 },
+      ),
+    ],
     facilities: [],
     fnb: createFnbState(),
     utilities: createUtilityState(),

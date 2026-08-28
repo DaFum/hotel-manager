@@ -104,6 +104,8 @@ export function assertInvariants(state: GameState): void {
     (sum, invoice) => sum + invoice.amountMinor,
     0,
   );
+  const loans = state.loans ?? (state.loan ? [state.loan] : []);
+  const totalDebt = loans.reduce((sum, l) => sum + l.principalMinor, 0);
   const sheet = balanceSheet({
     cashMinor: cash,
     receivablesMinor: state.statements.receivablesMinor,
@@ -111,7 +113,7 @@ export function assertInvariants(state: GameState): void {
     accumulatedDepreciationMinor: state.statements.accumulatedDepreciationMinor,
     payablesMinor: state.finance.payableMinor + supplierPayablesMinor,
     taxPayableMinor: state.finance.taxPayableMinor,
-    debtMinor: state.loan.principalMinor,
+    debtMinor: totalDebt,
     contributedCapitalMinor: state.statements.contributedCapitalMinor,
     retainedEarningsMinor: state.statements.retainedEarningsMinor,
   });

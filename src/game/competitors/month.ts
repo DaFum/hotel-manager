@@ -68,9 +68,15 @@ export function competitorMonth(
   const interestMinor =
     house.debtMinor > 0
       ? accrueMonthlyInterestMinor({
+          id: "competitor.loan",
           principalMinor: house.debtMinor,
           annualRateBasisPoints: COMPETITOR_DEBT_RATE_BP,
           termMonths: 240,
+          amortisation: "bullet",
+          rateType: "fixed",
+          spreadBasisPoints: 0,
+          startMonthIndex: 0,
+          collateralValueMinor: 0,
         })
       : 0;
   for (const [label, value] of [

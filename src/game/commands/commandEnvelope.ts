@@ -187,7 +187,17 @@ export type GameCommand =
   | { type: "SET_CAMPAIGN_SANDBOX"; sandbox: Partial<SandboxOptions> }
   | { type: "RESOLVE_NARRATIVE_EVENT"; eventId: string; choiceId: string }
   | { type: "TAKE_RECOVERY_MEASURE"; path: RecoveryPath }
-  | { type: "CONTINUE_ENDLESS_CAREER" };
+  | { type: "CONTINUE_ENDLESS_CAREER" }
+  // --- loans and financing -----------------------------------------------
+  | {
+      type: "TAKE_LOAN";
+      principalMinor: number;
+      amortisation: import("../finance/loans").LoanAmortisation;
+      rateType: import("../finance/loans").LoanRateType;
+      termMonths: number;
+      collateralValueMinor?: number;
+    }
+  | { type: "REPAY_LOAN"; loanId: string; amountMinor: number };
 
 export type CommandType = GameCommand["type"];
 

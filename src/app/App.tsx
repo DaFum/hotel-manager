@@ -535,6 +535,7 @@ export function App() {
           view={financeView({
             finance: s.finance,
             statements: s.statements,
+            loans: s.loans,
             loan: s.loan,
             insurance: s.insurance,
             lastMonthlyClose: s.lastMonthlyClose,

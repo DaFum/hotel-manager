@@ -146,7 +146,7 @@ import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
-import { accrueMonthlyInterestMinor, repayLoan } from "../finance/loans";
+import { accrueMonthlyInterestMinor, drawLoan, repayLoan } from "../finance/loans";
 import { debtSchedule } from "../finance/debt";
 import { closeMonth, deriveMonthlyBriefing } from "../finance/monthlyClose";
 import { taxChargeMinor } from "../finance/statements";
@@ -1191,14 +1191,25 @@ export class GameSimulation implements CommandExecutor {
             memo: `opening capital at ${campaign.difficulty}`,
           });
         }
-        s.loan = {
-          ...s.loan,
-          annualRateBasisPoints: Math.trunc(
-            (STARTER_HOTEL.startingLoan.annualRateBasisPoints *
-              campaign.inputs.creditSpreadBasisPoints) /
-              10_000,
-          ),
-        };
+        if (s.loans && s.loans.length > 0) {
+          s.loans[0] = {
+            ...s.loans[0],
+            annualRateBasisPoints: Math.trunc(
+              (STARTER_HOTEL.startingLoan.annualRateBasisPoints *
+                campaign.inputs.creditSpreadBasisPoints) /
+                10_000,
+            ),
+          };
+        } else if (s.loan) {
+          s.loan = {
+            ...s.loan,
+            annualRateBasisPoints: Math.trunc(
+              (STARTER_HOTEL.startingLoan.annualRateBasisPoints *
+                campaign.inputs.creditSpreadBasisPoints) /
+                10_000,
+            ),
+          };
+        }
         syncTreasury(s);
         refreshCareerOutcome(s);
         this.emit(
@@ -1309,6 +1320,8 @@ export class GameSimulation implements CommandExecutor {
           emit: (payload, entities) => this.emit(payload, entities),
           spend: (amountMinor, account, memo) =>
             this.spend(amountMinor, account, memo),
+          earn: (amountMinor, account, memo) =>
+            this.earn(amountMinor, account, memo),
         });
         // Group cash moved; the treasury has to say so in the same breath.
         syncTreasury(s);
@@ -2928,14 +2941,70 @@ export class GameSimulation implements CommandExecutor {
     this.spend(dailyWages, "wages", "daily payroll");
 
     if (s.calendar.dateKey.slice(8) === "01") {
-      const interest = accrueMonthlyInterestMinor(s.loan);
-      this.spend(interest, "interest", "loan interest");
-      s.finance.month.interestMinor += interest;
-      if (s.loan.principalMinor > 0) {
-        const principal = debtSchedule(s.loan)[0].principalMinor;
-        this.spend(principal, "loanPrincipal", "scheduled loan principal");
-        s.loan = repayLoan(s.loan, principal);
-        s.loan.termMonths = Math.max(1, s.loan.termMonths - 1);
+      const activeLoans = s.loans ?? (s.loan ? [s.loan] : []);
+      const currentMonthIndex = Math.floor(s.elapsedMinutes / (30 * 1440));
+      const remainingActiveLoans: typeof activeLoans = [];
+
+      for (const loan of activeLoans) {
+        let activeLoan = loan;
+        if (activeLoan.rateType === "variable") {
+          const newRate = Math.max(
+            0,
+            s.world.macro.interestBp + activeLoan.spreadBasisPoints,
+          );
+          const elapsed = Math.max(0, currentMonthIndex - activeLoan.startMonthIndex);
+          const remainingTerm = Math.max(1, activeLoan.termMonths - elapsed);
+          activeLoan = drawLoan(
+            activeLoan.principalMinor,
+            newRate,
+            remainingTerm,
+            {
+              id: activeLoan.id,
+              amortisation: activeLoan.amortisation,
+              rateType: activeLoan.rateType,
+              spreadBasisPoints: activeLoan.spreadBasisPoints,
+              startMonthIndex: currentMonthIndex,
+              collateralValueMinor: activeLoan.collateralValueMinor,
+            },
+          );
+        }
+
+        const schedule = debtSchedule(activeLoan);
+        const monthsElapsed = Math.max(0, currentMonthIndex - activeLoan.startMonthIndex);
+        const instalmentIndex = Math.min(monthsElapsed, schedule.length - 1);
+        const instalment = schedule[instalmentIndex] ?? {
+          interestMinor: accrueMonthlyInterestMinor(activeLoan),
+          principalMinor: 0,
+        };
+
+        const interest = instalment.interestMinor;
+        const principal = instalment.principalMinor;
+        const totalDue = interest + principal;
+
+        if (s.finance.cashMinor >= totalDue) {
+          s.finance.paymentHistory.onTimePayments += 1;
+          s.finance.paymentHistory.consecutiveMissedPayments = 0;
+        } else {
+          s.finance.paymentHistory.missedPayments += 1;
+          s.finance.paymentHistory.consecutiveMissedPayments += 1;
+        }
+
+        this.spend(interest, "interest", `loan interest ${activeLoan.id}`);
+        s.finance.month.interestMinor += interest;
+
+        if (principal > 0) {
+          this.spend(principal, "loanPrincipal", `scheduled loan principal ${activeLoan.id}`);
+          activeLoan = repayLoan(activeLoan, principal);
+        }
+
+        if (activeLoan.principalMinor > 0) {
+          remainingActiveLoans.push(activeLoan);
+        }
+      }
+
+      s.loans = remainingActiveLoans;
+      if (s.loan) {
+        s.loan = remainingActiveLoans[0] ?? repayLoan(s.loan, s.loan.principalMinor);
       }
     }
 
@@ -4256,7 +4325,10 @@ export class GameSimulation implements CommandExecutor {
         accumulatedDepreciationMinor: s.statements.accumulatedDepreciationMinor,
         payablesMinor: s.finance.payableMinor + supplierPayablesMinor,
         taxPayableMinor: s.finance.taxPayableMinor,
-        debtMinor: s.loan.principalMinor,
+        debtMinor: (s.loans ?? (s.loan ? [s.loan] : [])).reduce(
+          (sum, l) => sum + l.principalMinor,
+          0,
+        ),
         contributedCapitalMinor: s.statements.contributedCapitalMinor,
         retainedEarningsMinor: s.statements.retainedEarningsMinor,
       }),

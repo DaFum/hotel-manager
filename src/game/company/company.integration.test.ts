@@ -38,6 +38,7 @@ describe("acquisitions through the simulation", () => {
     s.state.finance.ledger = [
       { day: 0, account: "capex", amountMinor: -39_000_000, memo: "setup" },
     ];
+    s.state.statements.fixedAssetsMinor += 39_000_000;
     // The group only ever holds the cash the hotel holds; a fixture that
     // moves one without the other is not a state the game can reach.
     s.state.company.treasury.hqMinor = 1_000_000;

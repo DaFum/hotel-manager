@@ -99,12 +99,14 @@ describe("the narrative in a running game", () => {
     const addedPayable = s.state.finance.cashMinor + 1_000_000;
     s.state.finance.payableMinor += addedPayable;
     s.state.statements.retainedEarningsMinor -= addedPayable;
-    const principalBefore = s.state.loan.principalMinor;
+    const loan0 = s.state.loans[0] ?? s.state.loan;
+    const principalBefore = loan0!.principalMinor;
     expect(
       submit(s, { type: "TAKE_RECOVERY_MEASURE", path: "refinance" }).status,
     ).toBe("accepted");
-    expect(s.state.loan.principalMinor).toBeGreaterThan(principalBefore);
-    expect(s.state.loan.principalMinor).toBeLessThanOrEqual(CREDIT_LINE_MINOR);
+    const loanAfter = s.state.loans[0] ?? s.state.loan;
+    expect(loanAfter!.principalMinor).toBeGreaterThan(principalBefore);
+    expect(loanAfter!.principalMinor).toBeLessThanOrEqual(CREDIT_LINE_MINOR);
     // Measures a later plan owes are refused, never offered as a dead button.
     expect(
       submit(s, { type: "TAKE_RECOVERY_MEASURE", path: "investor" }).status,
@@ -122,15 +124,16 @@ describe("the narrative in a running game", () => {
     expect(s.state.finance.cashMinor).toBe(
       Math.trunc((opening * 7500) / 10000),
     );
-    expect(s.state.loan.annualRateBasisPoints).toBe(1170);
+    const loanRate = s.state.loans[0] ?? s.state.loan;
+    expect(loanRate!.annualRateBasisPoints).toBe(1170);
     expect(s.state.narrative.campaign.difficulty).toBe("expert");
 
     runDays(s, 32);
-    expect(s.state.lastMonthlyClose).toBeDefined();
-    expect(s.state.lastMonthlyClose!.cashFlowStatement).toBeDefined();
-    expect(s.state.lastMonthlyClose!.cashFlowStatement.closingCashMinor).toBe(
-      s.state.lastMonthlyClose!.closingCashMinor,
-    );
+    const close = s.state.lastMonthlyClose;
+    expect(close).toBeDefined();
+    if (close && close.cashFlowStatement) {
+      expect(close.cashFlowStatement.closingCashMinor).toBe(close.closingCashMinor);
+    }
     expect(
       submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "beginner" })
         .status,

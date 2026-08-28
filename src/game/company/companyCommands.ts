@@ -44,6 +44,9 @@ import {
   STARTER_REGION,
   UNDERWRITING_GOP_MARGIN_BP,
 } from "../content/1991/company";
+import { calculateCreditStanding } from "../finance/creditStanding";
+import { drawLoan, repayLoan } from "../finance/loans";
+import { reputationFor } from "../reputation/dimensions";
 
 /** Command types this module owns; everything else belongs to the hotel. */
 const COMPANY_COMMAND_TYPES = [
@@ -60,6 +63,8 @@ const COMPANY_COMMAND_TYPES = [
   "OPEN_DEVELOPMENT",
   "RUN_DUE_DILIGENCE",
   "ACQUIRE_HOTEL",
+  "TAKE_LOAN",
+  "REPAY_LOAN",
 ] as const;
 
 export type CompanyCommand = Extract<
@@ -91,6 +96,7 @@ export type Verdict = { ok: true } | { ok: false; reason: string };
 export interface CompanyCommandContext {
   emit(payload: DomainEventPayload, entities: readonly string[]): void;
   spend(amountMinor: number, account: string, memo: string): void;
+  earn(amountMinor: number, account: string, memo: string): void;
 }
 
 const ok: Verdict = { ok: true };
@@ -271,6 +277,66 @@ export function validateCompanyCommand(
         return no("the offer is below what the seller will accept");
       if (state.finance.cashMinor < command.priceMinor)
         return no("insufficient cash");
+      return ok;
+    }
+    case "TAKE_LOAN": {
+      if (!Number.isSafeInteger(command.principalMinor) || command.principalMinor <= 0)
+        return no("requested principal must be a positive safe integer");
+      if (!Number.isSafeInteger(command.termMonths) || command.termMonths <= 0)
+        return no("term months must be a positive safe integer");
+      if (!["annuity", "linear", "bullet"].includes(command.amortisation))
+        return no("invalid amortisation profile");
+      if (!["fixed", "variable"].includes(command.rateType))
+        return no("invalid rate type");
+      if (
+        command.collateralValueMinor !== undefined &&
+        (!Number.isSafeInteger(command.collateralValueMinor) ||
+          command.collateralValueMinor < 0)
+      )
+        return no("collateral value must be a non-negative safe integer");
+
+      const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
+      const totalOutstanding = existingLoans.reduce(
+        (sum, l) => sum + l.principalMinor,
+        0,
+      );
+      const totalCollateral =
+        existingLoans.reduce((sum, l) => sum + l.collateralValueMinor, 0) +
+        (command.collateralValueMinor ?? 0);
+
+      const standing = calculateCreditStanding({
+        operatingCashFlowMinor:
+          state.finance.month.roomRevenueMinor +
+          state.finance.month.otherRevenueMinor -
+          state.finance.month.operatingExpenseMinor,
+        totalOutstandingMinor: totalOutstanding,
+        cashMinor: state.finance.cashMinor,
+        equityMinor:
+          (state.statements?.contributedCapitalMinor ?? 0) +
+          (state.statements?.retainedEarningsMinor ?? 0),
+        hotelCount: state.company.portfolio.hotelIds.length || 1,
+        reputationScore: reputationFor(state.reputation, "group", state.company.companyId).score,
+        totalCollateralValueMinor: totalCollateral,
+        paymentHistory: state.finance.paymentHistory,
+        macroInterestBp: state.world.macro.interestBp,
+        financingAccessBonusBp: state.narrative?.campaign?.inputs?.creditSpreadBasisPoints,
+      });
+
+      if (totalOutstanding + command.principalMinor > standing.borrowingLimitMinor)
+        return no("requested loan exceeds company borrowing limit");
+
+      return ok;
+    }
+    case "REPAY_LOAN": {
+      const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
+      const targetLoan = existingLoans.find((l) => l.id === command.loanId);
+      if (!targetLoan) return no("unknown loan id");
+      if (!Number.isSafeInteger(command.amountMinor) || command.amountMinor <= 0)
+        return no("repayment amount must be a positive safe integer");
+      if (command.amountMinor > targetLoan.principalMinor)
+        return no("repayment amount exceeds loan outstanding principal");
+      if (state.finance.cashMinor < command.amountMinor)
+        return no("insufficient cash for loan repayment");
       return ok;
     }
   }
@@ -638,6 +704,102 @@ export function applyCompanyCommand(
           priceMinor: command.priceMinor,
         },
         [command.targetId, target.hotelId],
+      );
+      return;
+    }
+    case "TAKE_LOAN": {
+      const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
+      const totalOutstanding = existingLoans.reduce(
+        (sum, l) => sum + l.principalMinor,
+        0,
+      );
+      const totalCollateral =
+        existingLoans.reduce((sum, l) => sum + l.collateralValueMinor, 0) +
+        (command.collateralValueMinor ?? 0);
+
+      const standing = calculateCreditStanding({
+        operatingCashFlowMinor:
+          state.finance.month.roomRevenueMinor +
+          state.finance.month.otherRevenueMinor -
+          state.finance.month.operatingExpenseMinor,
+        totalOutstandingMinor: totalOutstanding,
+        cashMinor: state.finance.cashMinor,
+        equityMinor:
+          (state.statements?.contributedCapitalMinor ?? 0) +
+          (state.statements?.retainedEarningsMinor ?? 0),
+        hotelCount: state.company.portfolio.hotelIds.length || 1,
+        reputationScore: reputationFor(state.reputation, "group", state.company.companyId).score,
+        totalCollateralValueMinor: totalCollateral,
+        paymentHistory: state.finance.paymentHistory,
+        macroInterestBp: state.world.macro.interestBp,
+        financingAccessBonusBp: state.narrative?.campaign?.inputs?.creditSpreadBasisPoints,
+      });
+
+      const offeredRate = standing.offeredRateBp;
+      const spreadBasisPoints = standing.spreadBp;
+      const loanId = `loan.${state.commandSequence}.${existingLoans.length + 1}`;
+
+      const newLoan = drawLoan(
+        command.principalMinor,
+        offeredRate,
+        command.termMonths,
+        {
+          id: loanId,
+          amortisation: command.amortisation,
+          rateType: command.rateType,
+          spreadBasisPoints: command.rateType === "variable" ? spreadBasisPoints : 0,
+          startMonthIndex: Math.floor(state.elapsedMinutes / (30 * 1440)),
+          collateralValueMinor: command.collateralValueMinor ?? 0,
+        },
+      );
+
+      if (state.loans) {
+        state.loans.push(newLoan);
+      } else {
+        state.loan = newLoan;
+      }
+
+      ctx.earn(command.principalMinor, "loan", `drawn loan ${loanId}`);
+      ctx.emit(
+        {
+          type: "LOAN_TAKEN",
+          loanId,
+          principalMinor: command.principalMinor,
+          annualRateBasisPoints: offeredRate,
+          amortisation: command.amortisation,
+          rateType: command.rateType,
+        },
+        [loanId],
+      );
+      return;
+    }
+    case "REPAY_LOAN": {
+      const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
+      const targetLoan = existingLoans.find((l) => l.id === command.loanId);
+      if (!targetLoan) throw new Error("unknown loan id");
+
+      const updatedLoan = repayLoan(targetLoan, command.amountMinor);
+      if (state.loans) {
+        if (updatedLoan.principalMinor === 0) {
+          state.loans = state.loans.filter((l) => l.id !== command.loanId);
+        } else {
+          state.loans = state.loans.map((l) =>
+            l.id === command.loanId ? updatedLoan : l,
+          );
+        }
+      } else {
+        state.loan = updatedLoan;
+      }
+
+      ctx.spend(command.amountMinor, "loan", `repaid loan ${command.loanId}`);
+      ctx.emit(
+        {
+          type: "LOAN_REPAID",
+          loanId: command.loanId,
+          amountMinor: command.amountMinor,
+          remainingPrincipalMinor: updatedLoan.principalMinor,
+        },
+        [command.loanId],
       );
       return;
     }

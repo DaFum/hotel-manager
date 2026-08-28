@@ -702,6 +702,24 @@ export const en = {
   },
   alerts: { liquidityCritical: "Liquidity is critical" },
   events: { guestCheckin: "Guest checked in" },
+  loans: {
+    panel: {
+      title: "Loans & Borrowing",
+      creditStanding: "Credit Standing Score",
+      offeredRate: "Offered Rate",
+      borrowingCapacity: "Borrowing Capacity",
+      totalOutstanding: "Total Outstanding Debt",
+      takeLoan: "Take New Loan",
+      principal: "Principal (DM)",
+      termMonths: "Term (Months)",
+      amortisation: "Amortisation Profile",
+      rateType: "Rate Type",
+      collateral: "Declared Collateral (DM)",
+      drawLoan: "Draw Loan",
+      activeLoans: "Active Loan Facility",
+      repayFull: "Repay Full",
+    },
+  },
   finance: {
     dashboard: {
       title: "Finance",

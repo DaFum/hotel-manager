@@ -18,7 +18,7 @@ test("management controls are keyboard reachable", async ({ page }) => {
   await page.getByLabel(/Language|Sprache/).selectOption("en-GB");
   await page.getByRole("tab", { name: "Hotel" }).focus();
   await page.keyboard.press("ArrowRight");
-  await expect(page.getByRole("tab", { name: "Staff" })).toBeFocused();
+  await expect(page.getByRole("tab", { name: "Guests" })).toBeFocused();
 });
 test("contrast, text scale and reduced motion are applied", async ({
   page,

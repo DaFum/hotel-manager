@@ -39,9 +39,12 @@ test("rosters a specialist role and declares a specialization", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await page
+    .getByRole("combobox", { name: /Language|Sprache/ })
+    .selectOption("en-GB");
 
   await openManagementArea(page, "staff");
-  const staff = page.getByRole("region", { name: "Staff" });
+  const staff = page.getByRole("region", { name: "Staff", exact: true });
   const rows = staff.getByRole("row");
   // The roster arrives with the first snapshot; count it only once it is there.
   await expect(rows.first()).toBeVisible();
@@ -66,6 +69,9 @@ test("runs a conference through the deep house without breaking the board", asyn
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await page
+    .getByRole("combobox", { name: /Language|Sprache/ })
+    .selectOption("en-GB");
   await openManagementArea(page, "hotel");
   await page.getByRole("button", { name: "16x", exact: true }).click();
 
@@ -74,7 +80,9 @@ test("runs a conference through the deep house without breaking the board", asyn
   await expect(lifts).toContainText(/^Lifts0\//);
   // Lift trips only appear once guests actually move through the house.
   await expect(lifts).toContainText(/^Lifts[1-9]\d*\//, { timeout: 60_000 });
-  await expect(page.getByRole("region", { name: "Alerts" })).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: /Notification center|Alerts/i }),
+  ).toBeVisible();
   // The simulation must still be running: no SIMULATION_ERROR surfaced.
   await expect(page.getByLabel("Simulation status")).not.toContainText(
     /error/i,

@@ -5,6 +5,9 @@ test("operates the hotel while company and campaign state remain responsive", as
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await page
+    .getByRole("combobox", { name: /Language|Sprache/ })
+    .selectOption("en-GB");
   await openManagementArea(page, "campaign");
   const campaign = page.getByRole("region", { name: "Campaign setup" });
   const chronicle = page.getByRole("region", { name: "Company chronicle" });
@@ -12,15 +15,21 @@ test("operates the hotel while company and campaign state remain responsive", as
   await expect(chronicle).toContainText("No milestones recorded yet");
 
   await openManagementArea(page, "revenue");
-  const singleRate = page
-    .getByRole("region", { name: "Revenue" })
-    .locator("dd")
-    .last();
-  const rateBefore = await singleRate.textContent();
-  await page.getByRole("button", { name: /set single rate/i }).click();
+  const singleRateCell = page
+    .getByRole("region", { name: "Revenue", exact: true })
+    .locator("td")
+    .filter({
+      has: page.getByRole("button", { name: /Raise Single rate on/i }),
+    })
+    .first();
+  const rateBefore = await singleRateCell.innerText();
+  await page
+    .getByRole("button", { name: /Raise Single rate on/i })
+    .first()
+    .click();
   await expect(page.getByLabel("Command status")).toContainText("accepted");
   // Accepted is what the worker said; the published rate is what it did.
-  await expect(singleRate).not.toHaveText(rateBefore ?? "");
+  await expect(singleRateCell).not.toHaveText(rateBefore);
   await openManagementArea(page, "company");
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await page

@@ -90,6 +90,16 @@ export function assertInvariants(state: GameState): void {
   )
     throw new Error("cash has drifted from the ledger");
 
+  for (const invoice of state.finance.supplierInvoices) {
+    if (
+      !invoice ||
+      !Number.isSafeInteger(invoice.amountMinor) ||
+      invoice.amountMinor < 0
+    )
+      throw new Error(
+        `supplier invoice ${invoice?.id ?? "unknown"} has an invalid amount`,
+      );
+  }
   const supplierPayablesMinor = state.finance.supplierInvoices.reduce(
     (sum, invoice) => sum + invoice.amountMinor,
     0,

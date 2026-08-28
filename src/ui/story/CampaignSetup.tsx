@@ -76,7 +76,7 @@ export function CampaignSetup({
                 <input
                   aria-label={label}
                   type="range"
-                  min="0"
+                  min={lever === "technologySpeedBasisPoints" ? "1" : "0"}
                   max="20000"
                   step="500"
                   value={sandbox[lever]}

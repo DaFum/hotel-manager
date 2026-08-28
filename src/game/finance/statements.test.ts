@@ -158,9 +158,15 @@ describe("financial statements", () => {
 describe("debt, collateral and insolvency", () => {
   it("splits each instalment into interest and principal", () => {
     const schedule = debtSchedule({
+      id: "test.loan",
       principalMinor: 12_000_000,
       annualRateBasisPoints: 900,
       termMonths: 12,
+      amortisation: "linear",
+      rateType: "fixed",
+      spreadBasisPoints: 0,
+      startMonthIndex: 0,
+      collateralValueMinor: 0,
     });
     expect(schedule).toHaveLength(12);
     expect(schedule[0].interestMinor).toBe(90_000);
@@ -176,17 +182,29 @@ describe("debt, collateral and insolvency", () => {
   it("rejects debt interest and restructured terms outside safe bounds", () => {
     expect(() =>
       debtSchedule({
+        id: "test.loan",
         principalMinor: Number.MAX_SAFE_INTEGER,
         annualRateBasisPoints: 1_000_000,
         termMonths: 1,
+        amortisation: "linear",
+        rateType: "fixed",
+        spreadBasisPoints: 0,
+        startMonthIndex: 0,
+        collateralValueMinor: 0,
       }),
     ).toThrow(/interest/);
     expect(() =>
       restructure(
         {
+          id: "test.loan",
           principalMinor: 1,
           annualRateBasisPoints: 100,
           termMonths: MAX_LOAN_TERM_MONTHS,
+          amortisation: "linear",
+          rateType: "fixed",
+          spreadBasisPoints: 0,
+          startMonthIndex: 0,
+          collateralValueMinor: 0,
         },
         { extraMonths: 1 },
       ),
@@ -194,24 +212,33 @@ describe("debt, collateral and insolvency", () => {
   });
 
   it("never restructures into a loan that cannot be scheduled", () => {
-    // Extending a thirty-year loan by twenty-five years used to be accepted
-    // against a 1200-month bound while debtSchedule refused anything over 600,
-    // leaving a loan nobody could draw up a payment plan for.
     expect(() =>
       restructure(
         {
+          id: "test.loan",
           principalMinor: 1_000_000,
           annualRateBasisPoints: 800,
           termMonths: 360,
+          amortisation: "linear",
+          rateType: "fixed",
+          spreadBasisPoints: 0,
+          startMonthIndex: 0,
+          collateralValueMinor: 0,
         },
         { extraMonths: 300 },
       ),
     ).toThrow(/term exceeds maximum/);
     const extended = restructure(
       {
+        id: "test.loan",
         principalMinor: 1_000_000,
         annualRateBasisPoints: 800,
         termMonths: 360,
+        amortisation: "linear",
+        rateType: "fixed",
+        spreadBasisPoints: 0,
+        startMonthIndex: 0,
+        collateralValueMinor: 0,
       },
       { extraMonths: 120 },
     );
@@ -239,9 +266,15 @@ describe("debt, collateral and insolvency", () => {
 
   it("restructures by extending the term rather than forgiving the debt", () => {
     const before = {
+      id: "test.loan",
       principalMinor: 12_000_000,
       annualRateBasisPoints: 900,
       termMonths: 12,
+      amortisation: "linear" as const,
+      rateType: "fixed" as const,
+      spreadBasisPoints: 0,
+      startMonthIndex: 0,
+      collateralValueMinor: 0,
     };
     const after = restructure(before, {
       extraMonths: 12,
@@ -255,9 +288,15 @@ describe("debt, collateral and insolvency", () => {
 
   it("says how much of a loan the collateral actually covers", () => {
     const schedule = debtSchedule({
+      id: "test.loan",
       principalMinor: 10_000_000,
       annualRateBasisPoints: 900,
       termMonths: 10,
+      amortisation: "linear",
+      rateType: "fixed",
+      spreadBasisPoints: 0,
+      startMonthIndex: 0,
+      collateralValueMinor: 0,
     });
     expect(schedule[0].openingPrincipalMinor).toBe(10_000_000);
   });

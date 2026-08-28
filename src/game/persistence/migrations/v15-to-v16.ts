@@ -4,7 +4,8 @@ import type { SaveEnvelope } from "../saveVersions";
 export function migrateV15ToV16(save: SaveEnvelope): SaveEnvelope {
   if (save.saveVersion !== 15) return save;
   const state = structuredClone(save.state) as any;
-  if (!state?.finance || !state.statements || !state.loan)
+  const loan = state.loans?.[0] ?? state.loan;
+  if (!state?.finance || !state.statements || !loan)
     throw new Error("save state must contain finance, statements, and loan");
   const retainedEarningsMinor = state.statements.retainedEarningsMinor ?? 0;
   const contributedCapitalMinor =
@@ -15,7 +16,7 @@ export function migrateV15ToV16(save: SaveEnvelope): SaveEnvelope {
       state.statements.accumulatedDepreciationMinor -
       state.finance.payableMinor -
       (state.finance.taxPayableMinor ?? 0) -
-      state.loan.principalMinor -
+      loan.principalMinor -
       retainedEarningsMinor;
   state.statements = {
     contributedCapitalMinor,

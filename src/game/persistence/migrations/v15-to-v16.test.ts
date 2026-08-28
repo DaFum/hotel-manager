@@ -18,9 +18,9 @@ describe("v15 to v16 migration", () => {
 
     expect(migrated.saveVersion).toBe(16);
     expect((migrated.state as any).finance.supplierInvoices).toEqual([]);
-    expect(
-      (migrated.state as any).finance.month.openingLedgerIndex,
-    ).toBe((migrated.state as any).finance.ledger.length);
+    expect((migrated.state as any).finance.month.openingLedgerIndex).toBe(
+      (migrated.state as any).finance.ledger.length,
+    );
     expect((migrated.state as any).hotel).toEqual(hotelSnapshot);
   });
 });

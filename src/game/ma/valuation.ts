@@ -49,13 +49,15 @@ export function valueCompany(state: GameState): number {
     (total, result) => total + result.grossOperatingProfitMinor * 12,
     0,
   );
+  const loans = state.loans ?? (state.loan ? [state.loan] : []);
+  const totalDebt = loans.reduce((sum, l) => sum + l.principalMinor, 0);
   return Math.max(
     0,
     valueHotel({
       annualGopMinor,
       multipleBasisPoints: MARKET_GOP_MULTIPLE_BP,
       renovationNeedMinor: 0,
-      debtAssumedMinor: state.loan.principalMinor,
+      debtAssumedMinor: totalDebt,
     }).equityValueMinor,
   );
 }

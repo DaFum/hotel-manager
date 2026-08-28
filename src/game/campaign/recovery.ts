@@ -53,7 +53,9 @@ export function netLiquidityMinor(state: GameState): number {
 }
 
 export function creditHeadroomMinor(state: GameState): number {
-  return Math.max(0, CREDIT_LINE_MINOR - state.loan.principalMinor);
+  const loans = state.loans ?? (state.loan ? [state.loan] : []);
+  const totalPrincipal = loans.reduce((sum, l) => sum + l.principalMinor, 0);
+  return Math.max(0, CREDIT_LINE_MINOR - totalPrincipal);
 }
 
 /** Hotels the company could sell and still be a hotel company afterwards. */
@@ -114,8 +116,9 @@ export function remainingInvestorCapacityMinor(state: GameState): number {
 }
 
 export function hasReschedulableLoan(state: GameState): boolean {
-  return (
-    state.loan.principalMinor > 0 && state.loan.termMonths < MAX_TERM_MONTHS
+  const loans = state.loans ?? (state.loan ? [state.loan] : []);
+  return loans.some(
+    (l) => l.principalMinor > 0 && l.termMonths < MAX_TERM_MONTHS,
   );
 }
 
@@ -144,6 +147,8 @@ export function careerFacts(state: GameState): CareerFacts {
     0,
   );
   const payablesMinor = state.finance.payableMinor + supplierPayablesMinor;
+  const loans = state.loans ?? (state.loan ? [state.loan] : []);
+  const totalDebtMinor = loans.reduce((sum, l) => sum + l.principalMinor, 0);
   const equityMinor = balanceSheet({
     cashMinor: state.finance.cashMinor,
     receivablesMinor: state.statements.receivablesMinor,
@@ -151,7 +156,7 @@ export function careerFacts(state: GameState): CareerFacts {
     accumulatedDepreciationMinor: state.statements.accumulatedDepreciationMinor,
     payablesMinor,
     taxPayableMinor: state.finance.taxPayableMinor,
-    debtMinor: state.loan.principalMinor,
+    debtMinor: totalDebtMinor,
     contributedCapitalMinor: state.statements.contributedCapitalMinor,
     retainedEarningsMinor: state.statements.retainedEarningsMinor,
   }).equityMinor;
@@ -279,16 +284,33 @@ export function applyRecoveryPath(
       const needed = Math.abs(netLiquidityMinor(state));
       const drawn = Math.min(creditHeadroomMinor(state), needed);
       assertNonNegativeMinor(drawn, "refinancing draw");
-      // Standing with the bank shows up here and nowhere else: a respected
-      // operator borrows cheaper, but prestige never becomes cash by itself.
       const spreadRelief = financingAccessBonusBasisPoints(
         state.narrative.prestige.company,
       );
-      state.loan = drawLoan(
-        state.loan.principalMinor + drawn,
-        Math.max(0, state.loan.annualRateBasisPoints + 200 - spreadRelief),
-        Math.max(1, state.loan.termMonths),
-      );
+      if (state.loans && state.loans.length > 0) {
+        state.loans[0] = drawLoan(
+          state.loans[0].principalMinor + drawn,
+          Math.max(
+            0,
+            state.loans[0].annualRateBasisPoints + 200 - spreadRelief,
+          ),
+          Math.max(1, state.loans[0].termMonths),
+          {
+            id: state.loans[0].id,
+            amortisation: state.loans[0].amortisation,
+            rateType: state.loans[0].rateType,
+            spreadBasisPoints: state.loans[0].spreadBasisPoints,
+            startMonthIndex: state.loans[0].startMonthIndex,
+            collateralValueMinor: state.loans[0].collateralValueMinor,
+          },
+        );
+      } else if (state.loan) {
+        state.loan = drawLoan(
+          state.loan.principalMinor + drawn,
+          Math.max(0, state.loan.annualRateBasisPoints + 200 - spreadRelief),
+          Math.max(1, state.loan.termMonths),
+        );
+      }
       ctx.earn(drawn, "loan", "refinancing draw");
       return { measure: path, amountMinor: drawn };
     }
@@ -440,13 +462,27 @@ export function applyRecoveryPath(
       return { measure: path, amountMinor: severanceMinor };
     }
     case "turnaround": {
-      state.loan = restructure(state.loan, {
-        extraMonths: Math.min(
-          TURNAROUND_EXTRA_MONTHS,
-          MAX_TERM_MONTHS - state.loan.termMonths,
-        ),
-        penaltyBasisPoints: TURNAROUND_PENALTY_BASIS_POINTS,
-      });
+      const loans = state.loans ?? (state.loan ? [state.loan] : []);
+      const targetLoan =
+        loans.find(
+          (l) => l.principalMinor > 0 && l.termMonths < MAX_TERM_MONTHS,
+        ) ?? loans[0];
+      if (targetLoan) {
+        const restructured = restructure(targetLoan, {
+          extraMonths: Math.min(
+            TURNAROUND_EXTRA_MONTHS,
+            MAX_TERM_MONTHS - targetLoan.termMonths,
+          ),
+          penaltyBasisPoints: TURNAROUND_PENALTY_BASIS_POINTS,
+        });
+        if (state.loans) {
+          state.loans = state.loans.map((l) =>
+            l.id === targetLoan.id ? restructured : l,
+          );
+        } else {
+          state.loan = restructured;
+        }
+      }
       state.reputation = applyReputationEvent(state.reputation, {
         dimension: "group",
         scopeId: state.company.companyId,

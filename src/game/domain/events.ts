@@ -262,7 +262,22 @@ export type DomainEventPayload =
       difficulty: string;
       openingCapitalDeltaMinor: number;
     }
-  | { type: "ENDLESS_CAREER_CONTINUED"; dateKey: string };
+  | { type: "ENDLESS_CAREER_CONTINUED"; dateKey: string }
+  // --- loans and financing -----------------------------------------------
+  | {
+      type: "LOAN_TAKEN";
+      loanId: string;
+      principalMinor: number;
+      annualRateBasisPoints: number;
+      amortisation: string;
+      rateType: string;
+    }
+  | {
+      type: "LOAN_REPAID";
+      loanId: string;
+      amountMinor: number;
+      remainingPrincipalMinor: number;
+    };
 
 export type DomainEventType = DomainEventPayload["type"];
 
@@ -354,6 +369,8 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   RECOVERY_MEASURE_TAKEN: true,
   CAMPAIGN_DIFFICULTY_SET: true,
   ENDLESS_CAREER_CONTINUED: true,
+  LOAN_TAKEN: true,
+  LOAN_REPAID: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -433,6 +450,8 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "RECOVERY_MEASURE_TAKEN",
   "CAMPAIGN_DIFFICULTY_SET",
   "ENDLESS_CAREER_CONTINUED",
+  "LOAN_TAKEN",
+  "LOAN_REPAID",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

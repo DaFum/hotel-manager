@@ -151,9 +151,10 @@ describe("city and competitor systems", () => {
       // rate, product and conference space — is untouched.
       const windfall = 25_000_000;
       state.finance.cashMinor += windfall;
+      state.statements.contributedCapitalMinor += windfall;
       state.finance.ledger.push({
         day: 0,
-        account: "ownerCapital",
+        account: "capital",
         amountMinor: windfall,
         memo: "an injection the market never hears about",
       });

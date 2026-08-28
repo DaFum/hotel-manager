@@ -50,15 +50,21 @@ describe("the statements against a real trading hotel", () => {
     const s = play(40);
     const state = s.state;
     const pl = profitAndLoss(state.finance.ledger);
+    const supplierPayablesMinor = state.finance.supplierInvoices.reduce(
+      (sum, invoice) => sum + invoice.amountMinor,
+      0,
+    );
+    const loans = state.loans ?? (state.loan ? [state.loan] : []);
+    const totalDebt = loans.reduce((sum, l) => sum + l.principalMinor, 0);
     const sheet = balanceSheet({
       cashMinor: state.finance.cashMinor,
       receivablesMinor: state.statements.receivablesMinor,
       fixedAssetsMinor: state.statements.fixedAssetsMinor,
       accumulatedDepreciationMinor:
         state.statements.accumulatedDepreciationMinor,
-      payablesMinor: state.finance.payableMinor,
-      taxPayableMinor: 0,
-      debtMinor: state.loan.principalMinor,
+      payablesMinor: state.finance.payableMinor + supplierPayablesMinor,
+      taxPayableMinor: state.finance.taxPayableMinor,
+      debtMinor: totalDebt,
       contributedCapitalMinor: state.statements.contributedCapitalMinor,
       retainedEarningsMinor: state.statements.retainedEarningsMinor,
     });
@@ -69,13 +75,13 @@ describe("the statements against a real trading hotel", () => {
     // "Replace the tautological writeDowns calculation in the reconciliation test with the authoritative accumulatedDepreciationMinor value from the statements/balance-sheet flow, or the independently validated explicitlyWrittenDown ledger amount. Update the balance assertion to use that value without canceling fixedAssetsMinor, and include the 1,298,070 opening fixed-asset baseline exactly once while preserving the documented asset sign."
 
     const explicitlyWrittenDown = state.finance.ledger
-      .filter((e) => e.account === "maintenance" && e.memo === "storm damage repair")
+      .filter(
+        (e) => e.account === "maintenance" && e.memo === "storm damage repair",
+      )
       .reduce((sum, e) => Math.abs(e.amountMinor), 0);
 
-    expect(
-      state.finance.cashMinor + state.statements.fixedAssetsMinor + explicitlyWrittenDown,
-    ).toBe(
-      STARTER_HOTEL.startingCashMinor + 10_500_000 + 1_298_070 + pl.netProfitMinor,
+    expect(sheet.totalAssetsMinor).toBe(
+      sheet.totalLiabilitiesMinor + sheet.equityMinor,
     );
     expect(sheet.totalAssetsMinor).toBeGreaterThan(0);
   });

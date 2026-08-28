@@ -1,4 +1,5 @@
 import type { GameState } from "../../game/simulation/initialState";
+import type { Loan } from "../../game/finance/loans";
 import {
   profitAndLoss,
   cashFlowStatement,
@@ -14,11 +15,12 @@ export type FinanceViewInput = Pick<
   GameState,
   | "finance"
   | "statements"
-  | "loan"
+  | "loans"
   | "insurance"
   | "lastMonthlyClose"
   | "renovation"
 > & {
+  loan?: GameState["loan"];
   company: Pick<GameState["company"], "treasury" | "budgets">;
   hotelId: string;
   periodKey: string;
@@ -38,12 +40,7 @@ export interface FinanceView {
     equityMinor: null;
     equityAvailable: false;
   };
-  loans: {
-    principalMinor: number;
-    annualRateBasisPoints: number;
-    termMonths: number;
-    schedule: ReturnType<typeof debtSchedule>;
-  }[];
+  loans: (Loan & { schedule: ReturnType<typeof debtSchedule> })[];
   investments: {
     capexMinor: number;
     renovation: null | { id: string; phase: string; targetModuleId: string };
@@ -103,16 +100,22 @@ export function financeView(input: FinanceViewInput): FinanceView {
         input.statements.receivablesMinor +
         fixedAssetsNetMinor,
       payablesMinor: input.finance.payableMinor,
-      debtMinor: input.loan.principalMinor,
+      debtMinor: (input.loans ?? (input.loan ? [input.loan] : [])).reduce(
+        (sum, l) => sum + l.principalMinor,
+        0,
+      ),
       totalLiabilitiesMinor:
-        input.finance.payableMinor + input.loan.principalMinor,
+        input.finance.payableMinor +
+        (input.loans ?? (input.loan ? [input.loan] : [])).reduce(
+          (sum, l) => sum + l.principalMinor,
+          0,
+        ),
       equityMinor: null,
       equityAvailable: false,
     },
-    loans:
-      input.loan.principalMinor > 0
-        ? [{ ...input.loan, schedule: debtSchedule(input.loan) }]
-        : [],
+    loans: (input.loans ?? (input.loan ? [input.loan] : []))
+      .filter((loan) => loan.principalMinor > 0)
+      .map((loan) => ({ ...loan, schedule: debtSchedule(loan) })),
     investments: {
       capexMinor: Math.max(0, -totalForAccountMinor(ledger, "capex")),
       renovation: input.renovation

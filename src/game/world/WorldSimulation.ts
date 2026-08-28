@@ -228,14 +228,10 @@ export class WorldSimulation {
       crisisFrequencyBasisPoints: this.crisisFrequencyBp,
     });
     const shock =
-      (this.streams.events.nextUint32() % 10_000) < frequencyRisk
-        ? maybeCreateShock(
-            next.yearsAdvanced,
-            risk,
-            0,
-            "financial",
-            ["macro.credit.name"],
-          )
+      this.streams.events.nextUint32() % 10_000 < frequencyRisk
+        ? maybeCreateShock(next.yearsAdvanced, risk, 0, "financial", [
+            "macro.credit.name",
+          ])
         : null;
     if (shock) next.activeShocks.push(shock);
     next.commonCurrency = advanceCommonCurrency({

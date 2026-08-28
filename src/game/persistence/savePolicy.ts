@@ -104,6 +104,8 @@ export function autosaveReason(
 const MAJOR_ACTIONS: readonly CommandType[] = [
   "START_RENOVATION",
   "EXPAND_FACILITY",
+  "TAKE_LOAN",
+  "REPAY_LOAN",
 ];
 
 export function isMajorAction(type: CommandType): boolean {

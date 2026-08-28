@@ -201,6 +201,42 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (!state.finance || !Number.isSafeInteger(state.finance.cashMinor))
     problems.push("cash is not whole Pfennig");
   if (
+    !state.finance?.paymentHistory ||
+    !Number.isSafeInteger(state.finance.paymentHistory.onTimePayments) ||
+    state.finance.paymentHistory.onTimePayments < 0 ||
+    !Number.isSafeInteger(state.finance.paymentHistory.missedPayments) ||
+    state.finance.paymentHistory.missedPayments < 0 ||
+    !Number.isSafeInteger(
+      state.finance.paymentHistory.consecutiveMissedPayments,
+    ) ||
+    state.finance.paymentHistory.consecutiveMissedPayments < 0
+  )
+    problems.push("the state has no valid payment history");
+  if (
+    !Array.isArray(state.loans) ||
+    !state.loans.every(
+      (loan) =>
+        loan !== null &&
+        typeof loan === "object" &&
+        typeof loan.id === "string" &&
+        Number.isSafeInteger(loan.principalMinor) &&
+        loan.principalMinor >= 0 &&
+        Number.isSafeInteger(loan.annualRateBasisPoints) &&
+        loan.annualRateBasisPoints >= 0 &&
+        Number.isSafeInteger(loan.termMonths) &&
+        loan.termMonths > 0 &&
+        ["annuity", "linear", "bullet"].includes(loan.amortisation) &&
+        ["fixed", "variable"].includes(loan.rateType) &&
+        Number.isSafeInteger(loan.spreadBasisPoints) &&
+        loan.spreadBasisPoints >= 0 &&
+        Number.isSafeInteger(loan.startMonthIndex) &&
+        loan.startMonthIndex >= 0 &&
+        Number.isSafeInteger(loan.collateralValueMinor) &&
+        loan.collateralValueMinor >= 0,
+    )
+  )
+    problems.push("the state has malformed loans collection");
+  if (
     !state.statements ||
     !Number.isSafeInteger(state.statements.contributedCapitalMinor) ||
     !Number.isSafeInteger(state.statements.retainedEarningsMinor)

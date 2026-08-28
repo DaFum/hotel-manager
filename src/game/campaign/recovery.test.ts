@@ -14,6 +14,7 @@ import {
   consolidatedCashMinor,
   openHotelAccount,
 } from "../treasury/treasury";
+import { syncTreasury } from "../company/companyMonth";
 import { monthlyOwnershipPostings } from "../ownership/models";
 import { valueCompany } from "../ma/valuation";
 import { debtSchedule } from "../finance/debt";
@@ -123,12 +124,12 @@ function recordingContext(state: ReturnType<typeof createInitialGameState>) {
       earn(amountMinor: number, account: string) {
         calls.push({ kind: "earn", amountMinor, account });
         state.finance.cashMinor += amountMinor;
-        state.company.treasury.hqMinor += amountMinor;
+        syncTreasury(state);
       },
       spend(amountMinor: number, account: string) {
         calls.push({ kind: "spend", amountMinor, account });
         state.finance.cashMinor -= amountMinor;
-        state.company.treasury.hqMinor -= amountMinor;
+        syncTreasury(state);
       },
     },
   };

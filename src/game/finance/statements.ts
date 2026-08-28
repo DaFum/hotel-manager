@@ -361,6 +361,20 @@ export function capitaliseAsset(
   };
 }
 
+/** Posts asset disposal and gain/loss on investment/asset disposal. */
+export function disposeInvestmentAsset(
+  statements: StatementsState,
+  input: { investedMinor: number; outcomeMinor: number },
+): StatementsState {
+  assertNonNegativeMinor(input.investedMinor, "invested asset");
+  return {
+    ...statements,
+    fixedAssetsMinor: statements.fixedAssetsMinor - input.investedMinor,
+    retainedEarningsMinor:
+      statements.retainedEarningsMinor + input.outcomeMinor,
+  };
+}
+
 /** Receivables that have fallen due on or before a date, in stable order. */
 export function overdueReceivables(
   statements: StatementsState,

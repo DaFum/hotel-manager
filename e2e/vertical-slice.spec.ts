@@ -52,7 +52,7 @@ test("operate the 1991 hotel through one monthly close and save load", async ({
   await openManagementArea(page, "revenue");
   await expect(
     page.getByRole("region", { name: "Revenue", exact: true }),
-  ).toContainText(/ADR/);
+  ).toContainText(/ADR.*[1-9]/);
 
   await expect(statusBar(page)).toContainText(/DM/);
 });

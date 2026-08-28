@@ -731,6 +731,23 @@ export const de = {
       drawLoan: "Darlehen aufnehmen",
       activeLoans: "Aktive Darlehen",
       repayFull: "Vollständig tilgen",
+      amortisationOption: {
+        annuity: "Annuität",
+        linear: "Ratentilgung",
+        bullet: "Endfällig",
+      },
+      rateTypeOption: {
+        fixed: "Fest",
+        variable: "Variabel",
+      },
+      table: {
+        id: "ID",
+        principal: "Nennbetrag",
+        rate: "Zinssatz",
+        profile: "Profil",
+        rateType: "Zinstyp",
+        repay: "Tilgung",
+      },
     },
   },
   finance: {

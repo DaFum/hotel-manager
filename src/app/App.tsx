@@ -533,6 +533,7 @@ export function App() {
     finance: flagshipSelected ? (
       <>
         <FinanceDashboard
+          isPending={game.commandStatus === "pending"}
           locale={preferences.locale}
           view={financeView({
             finance: s.finance,
@@ -550,6 +551,33 @@ export function App() {
             periodKey:
               s.lastMonthlyClose?.periodKey ?? s.calendar.dateKey.slice(0, 7),
           })}
+          creditStandingInputs={{
+            operatingCashFlowMinor:
+              s.finance.month.roomRevenueMinor +
+              s.finance.month.otherRevenueMinor -
+              s.finance.month.operatingExpenseMinor,
+            totalOutstandingMinor: (s.loans ?? (s.loan ? [s.loan] : [])).reduce(
+              (sum, l) => sum + l.principalMinor,
+              0,
+            ),
+            cashMinor: s.finance.cashMinor,
+            equityMinor:
+              (s.statements?.contributedCapitalMinor ?? 0) +
+              (s.statements?.retainedEarningsMinor ?? 0),
+            hotelCount: s.company.portfolio.hotelIds.length || 1,
+            reputationScore: reputationFor(
+              s.reputation,
+              "group",
+              s.company.companyId,
+            ).score,
+            totalCollateralValueMinor: (
+              s.loans ?? (s.loan ? [s.loan] : [])
+            ).reduce((sum, l) => sum + l.collateralValueMinor, 0),
+            paymentHistory: s.finance.paymentHistory,
+            macroInterestBp: s.world.macro.interestBp,
+            creditSpreadMultiplierBp:
+              s.narrative?.campaign?.inputs?.creditSpreadBasisPoints ?? 10_000,
+          }}
           creditStanding={(() => {
             const standing = calculateCreditStanding({
               operatingCashFlowMinor:

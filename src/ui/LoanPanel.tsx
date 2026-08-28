@@ -1,4 +1,9 @@
+import { useState } from "react";
 import type { Loan } from "../game/finance/loans";
+import {
+  calculateCreditStanding,
+  type CreditStandingInputs,
+} from "../game/finance/creditStanding";
 import { formatBasisPoints, formatDm } from "./money";
 import type { GameLocale } from "../i18n";
 import { translateGame } from "../i18n";
@@ -19,6 +24,7 @@ export interface LoanPanelProps {
   onRepayLoan: (loanId: string, amountMinor: number) => void;
   isPending?: boolean;
   locale?: GameLocale;
+  creditStandingInputs?: CreditStandingInputs;
 }
 
 export function LoanPanel({
@@ -31,9 +37,27 @@ export function LoanPanel({
   onRepayLoan,
   isPending = false,
   locale = "en-GB",
+  creditStandingInputs,
 }: LoanPanelProps) {
   const t = (key: string, values?: Record<string, string | number>) =>
     translateGame(locale, key, values);
+
+  const [proposedCollateralDm, setProposedCollateralDm] = useState(0);
+  const proposedCollateralMinor = proposedCollateralDm * 100;
+
+  const dynamicStanding = creditStandingInputs
+    ? calculateCreditStanding({
+        ...creditStandingInputs,
+        totalCollateralValueMinor:
+          creditStandingInputs.totalCollateralValueMinor +
+          proposedCollateralMinor,
+      })
+    : null;
+
+  const displayScore = dynamicStanding?.score ?? creditStandingScore;
+  const displayOfferedRateBp = dynamicStanding?.offeredRateBp ?? offeredRateBp;
+  const displayBorrowingCapacityMinor =
+    dynamicStanding?.borrowingLimitMinor ?? borrowingCapacityMinor;
 
   return (
     <section aria-label={t("loans.panel.title")}>
@@ -44,23 +68,23 @@ export function LoanPanel({
             <dt>{t("loans.panel.creditStanding")}</dt>
             <dd
               data-trend={
-                creditStandingScore >= 70
+                displayScore >= 70
                   ? "gain"
-                  : creditStandingScore < 40
+                  : displayScore < 40
                     ? "loss"
                     : "flat"
               }
             >
-              {creditStandingScore} / 100
+              {displayScore} / 100
             </dd>
           </div>
           <div>
             <dt>{t("loans.panel.offeredRate")}</dt>
-            <dd>{formatBasisPoints(offeredRateBp, locale)}</dd>
+            <dd>{formatBasisPoints(displayOfferedRateBp, locale)}</dd>
           </div>
           <div>
             <dt>{t("loans.panel.borrowingCapacity")}</dt>
-            <dd>{formatDm(borrowingCapacityMinor, locale)}</dd>
+            <dd>{formatDm(displayBorrowingCapacityMinor, locale)}</dd>
           </div>
           <div>
             <dt>{t("loans.panel.totalOutstanding")}</dt>
@@ -89,11 +113,7 @@ export function LoanPanel({
             const rateType = (
               form.elements.namedItem("rateType") as HTMLSelectElement
             ).value as Loan["rateType"];
-            const collateralValueMinor =
-              Number(
-                (form.elements.namedItem("collateral") as HTMLInputElement)
-                  .value || 0,
-              ) * 100;
+            const collateralValueMinor = proposedCollateralMinor;
 
             onTakeLoan({
               principalMinor,
@@ -140,9 +160,15 @@ export function LoanPanel({
                 defaultValue="bullet"
                 disabled={isPending}
               >
-                <option value="annuity">Annuity</option>
-                <option value="linear">Linear</option>
-                <option value="bullet">Bullet</option>
+                <option value="annuity">
+                  {t("loans.panel.amortisationOption.annuity")}
+                </option>
+                <option value="linear">
+                  {t("loans.panel.amortisationOption.linear")}
+                </option>
+                <option value="bullet">
+                  {t("loans.panel.amortisationOption.bullet")}
+                </option>
               </select>
             </label>
           </div>
@@ -150,8 +176,12 @@ export function LoanPanel({
             <label>
               {t("loans.panel.rateType")}
               <select name="rateType" defaultValue="fixed" disabled={isPending}>
-                <option value="fixed">Fixed</option>
-                <option value="variable">Variable</option>
+                <option value="fixed">
+                  {t("loans.panel.rateTypeOption.fixed")}
+                </option>
+                <option value="variable">
+                  {t("loans.panel.rateTypeOption.variable")}
+                </option>
               </select>
             </label>
           </div>
@@ -162,7 +192,12 @@ export function LoanPanel({
                 name="collateral"
                 type="number"
                 min="0"
-                defaultValue="0"
+                value={proposedCollateralDm}
+                onChange={(e) =>
+                  setProposedCollateralDm(
+                    Math.max(0, Number(e.target.value) || 0),
+                  )
+                }
                 disabled={isPending}
               />
             </label>
@@ -179,12 +214,12 @@ export function LoanPanel({
           <table className="register-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Principal</th>
-                <th>Rate</th>
-                <th>Profile</th>
-                <th>Rate Type</th>
-                <th>Repay</th>
+                <th>{t("loans.panel.table.id")}</th>
+                <th>{t("loans.panel.table.principal")}</th>
+                <th>{t("loans.panel.table.rate")}</th>
+                <th>{t("loans.panel.table.profile")}</th>
+                <th>{t("loans.panel.table.rateType")}</th>
+                <th>{t("loans.panel.table.repay")}</th>
               </tr>
             </thead>
             <tbody>
@@ -195,8 +230,10 @@ export function LoanPanel({
                   <td>
                     {formatBasisPoints(loan.annualRateBasisPoints, locale)}
                   </td>
-                  <td>{loan.amortisation}</td>
-                  <td>{loan.rateType}</td>
+                  <td>
+                    {t(`loans.panel.amortisationOption.${loan.amortisation}`)}
+                  </td>
+                  <td>{t(`loans.panel.rateTypeOption.${loan.rateType}`)}</td>
                   <td>
                     <button
                       type="button"

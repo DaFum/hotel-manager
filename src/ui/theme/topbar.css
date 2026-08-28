@@ -170,6 +170,17 @@
   font-size: var(--hm-text-base);
   font-weight: 600;
   text-align: left;
+  color: var(--hm-ink-bright);
+}
+
+.hm-root .hm-topbar__vitals dd[data-trend="gain"] {
+  color: var(--hm-gain);
+  font-weight: 700;
+}
+
+.hm-root .hm-topbar__vitals dd[data-trend="loss"] {
+  color: var(--hm-loss);
+  font-weight: 700;
 }
 
 @media (width <= 60rem) {

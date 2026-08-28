@@ -76,171 +76,183 @@ export function WorldControls(props: {
     : props.elevator.cause;
 
   return (
-    <section aria-label="World controls">
+    <section aria-label="World controls" className="world-controls">
       <h2>World</h2>
-      <p role="status" aria-label="View state">
+      <p role="status" aria-label="View state" className="world-controls__status">
         Floor {camera.floor}, {camera.cutaway ? "cut away" : "whole building"},{" "}
         zoom {camera.zoom.toFixed(1)} showing {detail}, {light} light
       </p>
 
-      <h3>Move</h3>
-      <button
-        type="button"
-        aria-label="Pan left"
-        onClick={() => props.onCamera(panCamera(camera, { x: -64, y: 0 }))}
-      >
-        Pan left
-      </button>
-      <button
-        type="button"
-        aria-label="Pan right"
-        onClick={() => props.onCamera(panCamera(camera, { x: 64, y: 0 }))}
-      >
-        Pan right
-      </button>
-      <div className="world-controls__zoom">
-        <button
-          className="world-controls__zoom-in"
-          type="button"
-          aria-label="Zoom in"
-          disabled={camera.zoom >= MAX_ZOOM}
-          onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
-        >
-          Zoom in
-        </button>
-        <button
-          className="world-controls__zoom-out"
-          type="button"
-          aria-label="Zoom out"
-          disabled={camera.zoom <= MIN_ZOOM}
-          onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
-        >
-          Zoom out
-        </button>
+      <div className="world-controls__group">
+        <h3>Move</h3>
+        <div className="world-controls__actions">
+          <button
+            type="button"
+            aria-label="Pan left"
+            onClick={() => props.onCamera(panCamera(camera, { x: -64, y: 0 }))}
+          >
+            Pan left
+          </button>
+          <button
+            type="button"
+            aria-label="Pan right"
+            onClick={() => props.onCamera(panCamera(camera, { x: 64, y: 0 }))}
+          >
+            Pan right
+          </button>
+          <div className="world-controls__zoom">
+            <button
+              className="world-controls__zoom-in"
+              type="button"
+              aria-label="Zoom in"
+              disabled={camera.zoom >= MAX_ZOOM}
+              onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
+            >
+              Zoom in
+            </button>
+            <button
+              className="world-controls__zoom-out"
+              type="button"
+              aria-label="Zoom out"
+              disabled={camera.zoom <= MIN_ZOOM}
+              onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
+            >
+              Zoom out
+            </button>
+          </div>
+        </div>
       </div>
 
-      <h3>Floors</h3>
-      <ul>
-        {props.floors.map((floor) => (
-          <li key={floor}>
-            <button
-              type="button"
-              aria-label={`Show floor ${floor}`}
-              aria-pressed={camera.floor === floor}
-              onClick={() =>
-                props.onCamera(selectFloor(camera, floor, camera.cutaway))
-              }
-            >
-              Floor {floor}
-              {visibleFloor(floor, camera) ? " (visible)" : " (hidden)"}
-            </button>
-          </li>
-        ))}
-      </ul>
-      <button
-        type="button"
-        aria-label="Toggle cutaway"
-        aria-pressed={camera.cutaway}
-        onClick={() =>
-          props.onCamera(selectFloor(camera, camera.floor, !camera.cutaway))
-        }
-      >
-        {camera.cutaway ? "Show whole building" : "Cut away above this floor"}
-      </button>
-
-      <h3>{translateGame(locale, "world.layers")}</h3>
-      <button
-        type="button"
-        aria-label={translateGame(
-          locale,
-          camera.showServiceAreas
-            ? "world.hideServiceAreas"
-            : "world.showServiceAreas",
-        )}
-        aria-pressed={camera.showServiceAreas}
-        onClick={() => props.onCamera(toggleServiceAreas(camera))}
-      >
-        {translateGame(
-          locale,
-          camera.showServiceAreas
-            ? "world.hideServiceAreas"
-            : "world.showServiceAreas",
-        )}
-      </button>
-
-      <h3>{translateGame(locale, "world.lifts")}</h3>
-      <p
-        role="status"
-        aria-label={translateGame(locale, "world.elevatorState")}
-      >
-        {translateGame(locale, "world.elevatorSummary", {
-          queue: props.elevator.queue,
-          minutes: props.elevator.waitMinutes,
-          cause: elevatorCause,
-        })}
-      </p>
-      {(props.elevator.cars?.length ?? 0) > 0 ? (
-        <ul>
-          {props.elevator.cars?.map((car) => (
-            <li key={car.id} data-entity-id={car.id}>
-              {translateGame(locale, "world.liftCar", {
-                id: car.id,
-                floor: car.currentFloor,
-                direction: `world.direction.${car.direction}`,
-                status: car.failed
-                  ? "world.carStatus.failed"
-                  : "world.carStatus.ready",
-                waiting: car.waitingGuestIds.length,
-              })}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
-      <h3>Problems</h3>
-      {props.problems.length === 0 ? (
-        <p>Nothing needs attention.</p>
-      ) : (
-        <ul>
-          {props.problems.map((problem) => (
-            <li key={problem.id}>
+      <div className="world-controls__group">
+        <h3>Floors</h3>
+        <ul className="world-controls__floors-list">
+          {props.floors.map((floor) => (
+            <li key={floor}>
               <button
                 type="button"
-                aria-label={translateGame(locale, "world.goToProblem", {
-                  title: translateGame(
-                    locale,
-                    problem.title,
-                    problem.causeValues,
-                  ),
-                  cause: translateGame(
-                    locale,
-                    problem.cause,
-                    problem.causeValues,
-                  ),
-                })}
-                // Where the camera is, not a toggle the player switched on.
-                aria-current={
-                  camera.focusedId === problem.entityId ? true : undefined
-                }
+                aria-label={`Show floor ${floor}`}
+                aria-pressed={camera.floor === floor}
                 onClick={() =>
-                  props.onCamera(
-                    focusCamera(camera, {
-                      id: problem.entityId,
-                      x: problem.x,
-                      y: problem.y,
-                      floor: problem.floor,
-                      kind: problem.kind,
-                    }),
-                  )
+                  props.onCamera(selectFloor(camera, floor, camera.cutaway))
                 }
               >
-                {translateGame(locale, problem.title, problem.causeValues)} —{" "}
-                {translateGame(locale, problem.cause, problem.causeValues)}
+                Floor {floor}
+                {visibleFloor(floor, camera) ? " (visible)" : " (hidden)"}
               </button>
             </li>
           ))}
         </ul>
-      )}
+        <button
+          type="button"
+          aria-label="Toggle cutaway"
+          aria-pressed={camera.cutaway}
+          onClick={() =>
+            props.onCamera(selectFloor(camera, camera.floor, !camera.cutaway))
+          }
+        >
+          {camera.cutaway ? "Show whole building" : "Cut away above this floor"}
+        </button>
+      </div>
+
+      <div className="world-controls__group">
+        <h3>{translateGame(locale, "world.layers")}</h3>
+        <button
+          type="button"
+          aria-label={translateGame(
+            locale,
+            camera.showServiceAreas
+              ? "world.hideServiceAreas"
+              : "world.showServiceAreas",
+          )}
+          aria-pressed={camera.showServiceAreas}
+          onClick={() => props.onCamera(toggleServiceAreas(camera))}
+        >
+          {translateGame(
+            locale,
+            camera.showServiceAreas
+              ? "world.hideServiceAreas"
+              : "world.showServiceAreas",
+          )}
+        </button>
+      </div>
+
+      <div className="world-controls__group">
+        <h3>{translateGame(locale, "world.lifts")}</h3>
+        <p
+          role="status"
+          aria-label={translateGame(locale, "world.elevatorState")}
+          className="world-controls__substatus"
+        >
+          {translateGame(locale, "world.elevatorSummary", {
+            queue: props.elevator.queue,
+            minutes: props.elevator.waitMinutes,
+            cause: elevatorCause,
+          })}
+        </p>
+        {(props.elevator.cars?.length ?? 0) > 0 ? (
+          <ul className="world-controls__lifts-list">
+            {props.elevator.cars?.map((car) => (
+              <li key={car.id} data-entity-id={car.id}>
+                {translateGame(locale, "world.liftCar", {
+                  id: car.id,
+                  floor: car.currentFloor,
+                  direction: `world.direction.${car.direction}`,
+                  status: car.failed
+                    ? "world.carStatus.failed"
+                    : "world.carStatus.ready",
+                  waiting: car.waitingGuestIds.length,
+                })}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
+
+      <div className="world-controls__group">
+        <h3>Problems</h3>
+        {props.problems.length === 0 ? (
+          <p className="world-controls__empty">Nothing needs attention.</p>
+        ) : (
+          <ul className="world-controls__problems-list">
+            {props.problems.map((problem) => (
+              <li key={problem.id}>
+                <button
+                  type="button"
+                  aria-label={translateGame(locale, "world.goToProblem", {
+                    title: translateGame(
+                      locale,
+                      problem.title,
+                      problem.causeValues,
+                    ),
+                    cause: translateGame(
+                      locale,
+                      problem.cause,
+                      problem.causeValues,
+                    ),
+                  })}
+                  aria-current={
+                    camera.focusedId === problem.entityId ? true : undefined
+                  }
+                  onClick={() =>
+                    props.onCamera(
+                      focusCamera(camera, {
+                        id: problem.entityId,
+                        x: problem.x,
+                        y: problem.y,
+                        floor: problem.floor,
+                        kind: problem.kind,
+                      }),
+                    )
+                  }
+                >
+                  {translateGame(locale, problem.title, problem.causeValues)} —{" "}
+                  {translateGame(locale, problem.cause, problem.causeValues)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }

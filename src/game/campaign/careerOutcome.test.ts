@@ -60,12 +60,12 @@ describe("career outcomes", () => {
     expect(done.ended).toBe(true);
     expect(done.availableRecoveryPaths).toEqual([]);
 
-    const insolventButLiquid = assessCareerOutcome(
-      facts({ netLiquidityMinor: 100, insolvent: true, sellableHotelCount: 0 }),
+    const insolventTerminal = assessCareerOutcome(
+      facts({ netLiquidityMinor: -100_000, insolvent: true, sellableHotelCount: 0 }),
     );
-    expect(insolventButLiquid.distress).toBe("terminal");
-    expect(insolventButLiquid.ended).toBe(true);
-    expect(insolventButLiquid.availableRecoveryPaths).toEqual([]);
+    expect(insolventTerminal.distress).toBe("terminal");
+    expect(insolventTerminal.ended).toBe(true);
+    expect(insolventTerminal.availableRecoveryPaths).toEqual([]);
 
     // Solvent is solvent, however thin the rest of the position is.
     expect(

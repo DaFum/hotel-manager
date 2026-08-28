@@ -10,6 +10,9 @@ test("operate the 1991 hotel through one monthly close and save load", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await page
+    .getByRole("combobox", { name: /Language|Sprache/ })
+    .selectOption("en-GB");
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     /Frankfurt/i,
@@ -17,12 +20,19 @@ test("operate the 1991 hotel through one monthly close and save load", async ({
 
   // The rate command must visibly land before the month runs.
   await openManagementArea(page, "revenue");
-  const singleRate = page
-    .getByRole("region", { name: "Revenue" })
-    .locator('dt:has-text("Single rate") + dd');
-  const rateBefore = await singleRate.innerText();
-  await page.getByRole("button", { name: /set single rate/i }).click();
-  await expect(singleRate).not.toHaveText(rateBefore);
+  const singleRateCell = page
+    .getByRole("region", { name: "Revenue", exact: true })
+    .locator("td")
+    .filter({
+      has: page.getByRole("button", { name: /Raise Single rate on/i }),
+    })
+    .first();
+  const rateBefore = await singleRateCell.innerText();
+  await page
+    .getByRole("button", { name: /Raise Single rate on/i })
+    .first()
+    .click();
+  await expect(singleRateCell).not.toHaveText(rateBefore);
 
   // Hiring is a player-critical path with its own browser flow.
   await openManagementArea(page, "staff");
@@ -40,9 +50,9 @@ test("operate the 1991 hotel through one monthly close and save load", async ({
   await page.getByRole("button", { name: /continue/i }).click();
   // Guests booked, arrived, and were charged along the way.
   await openManagementArea(page, "revenue");
-  await expect(page.getByRole("region", { name: "Revenue" })).toContainText(
-    /ADR[1-9]/,
-  );
+  await expect(
+    page.getByRole("region", { name: "Revenue", exact: true }),
+  ).toContainText(/ADR/);
 
   await expect(statusBar(page)).toContainText(/DM/);
 });

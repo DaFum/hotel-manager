@@ -15,6 +15,7 @@ export interface CreditStandingInputs {
   };
   macroInterestBp: number;
   financingAccessBonusBp?: number;
+  creditSpreadMultiplierBp?: number;
 }
 
 export interface CreditStandingResult {
@@ -35,8 +36,13 @@ export function calculateCreditStanding(
   else if (inputs.operatingCashFlowMinor < 0) score -= 15;
 
   // Leverage factor (debt over equity / cash)
-  const baseAssets = Math.max(1, inputs.cashMinor + Math.max(0, inputs.equityMinor));
-  const leverageBp = Math.trunc((inputs.totalOutstandingMinor * 10_000) / baseAssets);
+  const baseAssets = Math.max(
+    1,
+    inputs.cashMinor + Math.max(0, inputs.equityMinor),
+  );
+  const leverageBp = Math.trunc(
+    (inputs.totalOutstandingMinor * 10_000) / baseAssets,
+  );
   if (leverageBp === 0) score += 15;
   else if (leverageBp < 3000) score += 10;
   else if (leverageBp < 6000) score += 0;
@@ -61,7 +67,10 @@ export function calculateCreditStanding(
   else if (coverageBp < 5000) score -= 10;
 
   // Payment history factor
-  if (inputs.paymentHistory.missedPayments === 0 && inputs.paymentHistory.onTimePayments > 0) {
+  if (
+    inputs.paymentHistory.missedPayments === 0 &&
+    inputs.paymentHistory.onTimePayments > 0
+  ) {
     score += Math.min(15, inputs.paymentHistory.onTimePayments * 2);
   } else {
     score -= inputs.paymentHistory.missedPayments * 5;
@@ -72,18 +81,27 @@ export function calculateCreditStanding(
 
   // Derived spread (higher standing = lower spread)
   // Spread ranges from 100bp (score 100) to 1000bp (score 0)
-  const baseSpreadBp = Math.round(1000 - (score * 9));
+  const baseSpreadBp = Math.round(1000 - score * 9);
+  const creditSpreadMultiplierBp = inputs.creditSpreadMultiplierBp ?? 10_000;
   const financingRelief = inputs.financingAccessBonusBp ?? 0;
-  const spreadBp = Math.max(0, baseSpreadBp - financingRelief);
+  const spreadBp = Math.max(
+    0,
+    Math.round((baseSpreadBp * creditSpreadMultiplierBp) / 10_000) -
+      financingRelief,
+  );
   const offeredRateBp = Math.max(0, inputs.macroInterestBp + spreadBp);
 
   // Borrowing limit (total-debt ceiling for the company)
   // Base borrowing capacity driven by score and equity/cash/collateral
   const borrowingCapacityBase = Math.max(
     1_000_000,
-    inputs.cashMinor * 3 + Math.max(0, inputs.equityMinor) * 2 + inputs.totalCollateralValueMinor,
+    inputs.cashMinor * 3 +
+      Math.max(0, inputs.equityMinor) * 2 +
+      inputs.totalCollateralValueMinor,
   );
-  const borrowingLimitMinor = Math.round((borrowingCapacityBase * (score + 20)) / 100);
+  const borrowingLimitMinor = Math.round(
+    (borrowingCapacityBase * (score + 20)) / 100,
+  );
 
   return {
     score,

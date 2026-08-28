@@ -34,7 +34,8 @@ export const ACCEPTANCE_REGISTRY = [
         implementationPath: "src/game/company/companyCommands.ts",
         evidence: {
           path: "src/game/company/companyCommands.test.ts",
-          assertion: "validates and applies TAKE_LOAN and REPAY_LOAN transactionally",
+          assertion:
+            "validates and applies TAKE_LOAN and REPAY_LOAN transactionally",
         },
       },
     ],

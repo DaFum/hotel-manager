@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInitialGameState } from "../../simulation/initialState";
 import { PROTOCOL_VERSION } from "../../domain/protocol";
-import {
-  CONTENT_VERSION,
-  type SaveEnvelope,
-} from "../saveVersions";
+import { CONTENT_VERSION, type SaveEnvelope } from "../saveVersions";
 import { migrateV16ToV17 } from "./v16-to-v17";
 import { validateEnvelope } from "../saveSchema";
 
@@ -28,8 +25,18 @@ describe("v16-to-v17 save migration", () => {
       },
       preferences: {
         locale: "en-GB",
-        audio: { master: 100, music: 100, ambience: 100, ui: 100, warnings: 100 },
-        accessibility: { textScale: 1, highContrast: false, reducedMotion: false },
+        audio: {
+          master: 100,
+          music: 100,
+          ambience: 100,
+          ui: 100,
+          warnings: 100,
+        },
+        accessibility: {
+          textScale: 1,
+          highContrast: false,
+          reducedMotion: false,
+        },
         notifications: {
           categories: [],
           severities: ["info", "notice", "warning", "critical"],

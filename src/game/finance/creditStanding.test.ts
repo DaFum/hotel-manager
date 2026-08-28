@@ -38,7 +38,11 @@ describe("credit standing calculations", () => {
       hotelCount: 1,
       reputationScore: 50,
       totalCollateralValueMinor: 0,
-      paymentHistory: { onTimePayments: 5, missedPayments: 0, consecutiveMissedPayments: 0 },
+      paymentHistory: {
+        onTimePayments: 5,
+        missedPayments: 0,
+        consecutiveMissedPayments: 0,
+      },
       macroInterestBp: 300,
     });
 
@@ -50,12 +54,18 @@ describe("credit standing calculations", () => {
       hotelCount: 1,
       reputationScore: 30,
       totalCollateralValueMinor: 0,
-      paymentHistory: { onTimePayments: 0, missedPayments: 3, consecutiveMissedPayments: 2 },
+      paymentHistory: {
+        onTimePayments: 0,
+        missedPayments: 3,
+        consecutiveMissedPayments: 2,
+      },
       macroInterestBp: 300,
     });
 
     expect(penalized.score).toBeLessThan(clean.score);
     expect(penalized.offeredRateBp).toBeGreaterThan(clean.offeredRateBp);
-    expect(penalized.borrowingLimitMinor).toBeLessThan(clean.borrowingLimitMinor);
+    expect(penalized.borrowingLimitMinor).toBeLessThan(
+      clean.borrowingLimitMinor,
+    );
   });
 });

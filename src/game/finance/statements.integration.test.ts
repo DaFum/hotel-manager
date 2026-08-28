@@ -75,7 +75,9 @@ describe("the statements against a real trading hotel", () => {
     // "Replace the tautological writeDowns calculation in the reconciliation test with the authoritative accumulatedDepreciationMinor value from the statements/balance-sheet flow, or the independently validated explicitlyWrittenDown ledger amount. Update the balance assertion to use that value without canceling fixedAssetsMinor, and include the 1,298,070 opening fixed-asset baseline exactly once while preserving the documented asset sign."
 
     const explicitlyWrittenDown = state.finance.ledger
-      .filter((e) => e.account === "maintenance" && e.memo === "storm damage repair")
+      .filter(
+        (e) => e.account === "maintenance" && e.memo === "storm damage repair",
+      )
       .reduce((sum, e) => Math.abs(e.amountMinor), 0);
 
     expect(sheet.totalAssetsMinor).toBe(

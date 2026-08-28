@@ -28,6 +28,40 @@ export interface DebtInstalment {
  */
 export const MAX_LOAN_TERM_MONTHS = MAX_TERM_MONTHS;
 
+function gcdBigInt(a: bigint, b: bigint): bigint {
+  while (b !== 0n) {
+    const t = b;
+    b = a % b;
+    a = t;
+  }
+  return a;
+}
+
+function annuityTargetInstalment(
+  principalMinor: number,
+  annualRateBasisPoints: number,
+  termMonths: number,
+): number {
+  if (annualRateBasisPoints <= 0) {
+    return Math.trunc(principalMinor / termMonths);
+  }
+  const rNum = BigInt(annualRateBasisPoints);
+  const rDen = 120000n;
+  const n0 = rDen + rNum;
+  const d0 = rDen;
+  const g = gcdBigInt(n0, d0);
+  const n = n0 / g;
+  const d = d0 / g;
+  const exponent = BigInt(termMonths);
+  const nPow = n ** exponent;
+  const dPow = d ** exponent;
+  const p = BigInt(principalMinor);
+
+  const num = p * rNum * nPow;
+  const den = rDen * (nPow - dPow);
+  return Number((num + den / 2n) / den);
+}
+
 /**
  * Amortisation of principal with interest on the balance outstanding.
  * Supports "linear", "annuity", and "bullet" profiles.
@@ -64,16 +98,11 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
       outstanding -= principalMinor;
     }
   } else if (loan.amortisation === "annuity") {
-    const rateMonthly = loan.annualRateBasisPoints / 10000 / 12;
-    let targetInstalment = 0;
-    if (rateMonthly > 0) {
-      const compound = Math.pow(1 + rateMonthly, loan.termMonths);
-      targetInstalment = Math.round(
-        (loan.principalMinor * (rateMonthly * compound)) / (compound - 1),
-      );
-    } else {
-      targetInstalment = Math.trunc(loan.principalMinor / loan.termMonths);
-    }
+    const targetInstalment = annuityTargetInstalment(
+      loan.principalMinor,
+      loan.annualRateBasisPoints,
+      loan.termMonths,
+    );
 
     for (let month = 1; month <= loan.termMonths; month += 1) {
       const interestMinor = roundedRateMinor(
@@ -84,7 +113,10 @@ export function debtSchedule(loan: Loan): DebtInstalment[] {
       if (month === loan.termMonths) {
         principalMinor = outstanding;
       } else {
-        const calculatedPrincipal = Math.max(0, targetInstalment - interestMinor);
+        const calculatedPrincipal = Math.max(
+          0,
+          targetInstalment - interestMinor,
+        );
         principalMinor = Math.min(calculatedPrincipal, outstanding);
       }
 

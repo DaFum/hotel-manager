@@ -61,7 +61,11 @@ describe("career outcomes", () => {
     expect(done.availableRecoveryPaths).toEqual([]);
 
     const insolventTerminal = assessCareerOutcome(
-      facts({ netLiquidityMinor: -100_000, insolvent: true, sellableHotelCount: 0 }),
+      facts({
+        netLiquidityMinor: -100_000,
+        insolvent: true,
+        sellableHotelCount: 0,
+      }),
     );
     expect(insolventTerminal.distress).toBe("terminal");
     expect(insolventTerminal.ended).toBe(true);

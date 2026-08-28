@@ -44,6 +44,8 @@ import {
 import { PurchasingDashboard } from "../ui/PurchasingDashboard";
 import { FinanceDashboard } from "../ui/FinanceDashboard";
 import { financeView } from "../ui/finance/financeView";
+import { calculateCreditStanding } from "../game/finance/creditStanding";
+import { reputationFor } from "../game/reputation/dimensions";
 import { BuildPanel } from "../ui/BuildPanel";
 import { FacilitiesDashboard } from "../ui/facilities/FacilitiesDashboard";
 import { FnbDashboard } from "../ui/fnb/FnbDashboard";
@@ -548,6 +550,44 @@ export function App() {
             periodKey:
               s.lastMonthlyClose?.periodKey ?? s.calendar.dateKey.slice(0, 7),
           })}
+          creditStanding={(() => {
+            const standing = calculateCreditStanding({
+              operatingCashFlowMinor:
+                s.finance.month.roomRevenueMinor +
+                s.finance.month.otherRevenueMinor -
+                s.finance.month.operatingExpenseMinor,
+              totalOutstandingMinor: (
+                s.loans ?? (s.loan ? [s.loan] : [])
+              ).reduce((sum, l) => sum + l.principalMinor, 0),
+              cashMinor: s.finance.cashMinor,
+              equityMinor:
+                (s.statements?.contributedCapitalMinor ?? 0) +
+                (s.statements?.retainedEarningsMinor ?? 0),
+              hotelCount: s.company.portfolio.hotelIds.length || 1,
+              reputationScore: reputationFor(
+                s.reputation,
+                "group",
+                s.company.companyId,
+              ).score,
+              totalCollateralValueMinor: (
+                s.loans ?? (s.loan ? [s.loan] : [])
+              ).reduce((sum, l) => sum + l.collateralValueMinor, 0),
+              paymentHistory: s.finance.paymentHistory,
+              macroInterestBp: s.world.macro.interestBp,
+              creditSpreadMultiplierBp:
+                s.narrative?.campaign?.inputs?.creditSpreadBasisPoints ??
+                10_000,
+            });
+            return {
+              score: standing.score,
+              offeredRateBp: standing.offeredRateBp,
+              borrowingCapacityMinor: standing.borrowingLimitMinor,
+            };
+          })()}
+          onTakeLoan={(params) => game.send({ type: "TAKE_LOAN", ...params })}
+          onRepayLoan={(loanId, amountMinor) =>
+            game.send({ type: "REPAY_LOAN", loanId, amountMinor })
+          }
         />
         <PurchasingDashboard
           stock={s.stock}

@@ -7,7 +7,8 @@ import { FinanceDashboard } from "./FinanceDashboard";
 describe("FinanceDashboard", () => {
   it("renders every controlling section, signed cues and empty states", () => {
     const state = createInitialGameState(2);
-    if (state.loans && state.loans.length > 0) state.loans[0].principalMinor = 0;
+    if (state.loans && state.loans.length > 0)
+      state.loans[0].principalMinor = 0;
     if (state.loan) state.loan.principalMinor = 0;
     state.finance.ledger = [
       { day: 1, account: "roomRevenue", amountMinor: 100_000, memo: "rooms" },
@@ -24,7 +25,7 @@ describe("FinanceDashboard", () => {
       "Profit and loss",
       "Cashflow",
       "Balance sheet",
-      "Loans",
+      "Loans & Borrowing",
       "Investments",
       "Cost analysis",
       "Insurance",

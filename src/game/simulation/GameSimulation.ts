@@ -146,7 +146,11 @@ import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
-import { accrueMonthlyInterestMinor, drawLoan, repayLoan } from "../finance/loans";
+import {
+  accrueMonthlyInterestMinor,
+  drawLoan,
+  repayLoan,
+} from "../finance/loans";
 import { debtSchedule } from "../finance/debt";
 import { closeMonth, deriveMonthlyBriefing } from "../finance/monthlyClose";
 import { taxChargeMinor } from "../finance/statements";
@@ -741,7 +745,9 @@ export class GameSimulation implements CommandExecutor {
                 value !== undefined &&
                 (!Number.isSafeInteger(value) ||
                   value > 1_000_000 ||
-                  (key === "technologySpeedBasisPoints" ? value < 1 : value < 0)),
+                  (key === "technologySpeedBasisPoints"
+                    ? value < 1
+                    : value < 0)),
             )
           )
             return {
@@ -2942,18 +2948,27 @@ export class GameSimulation implements CommandExecutor {
 
     if (s.calendar.dateKey.slice(8) === "01") {
       const activeLoans = s.loans ?? (s.loan ? [s.loan] : []);
-      const currentMonthIndex = Math.floor(s.elapsedMinutes / (30 * 1440));
+      const year = Number(s.calendar.dateKey.slice(0, 4));
+      const month = Number(s.calendar.dateKey.slice(5, 7));
+      const currentMonthIndex = (year - 1991) * 12 + (month - 1);
       const remainingActiveLoans: typeof activeLoans = [];
 
       for (const loan of activeLoans) {
         let activeLoan = loan;
+        const elapsedMonths = Math.max(
+          0,
+          currentMonthIndex - activeLoan.startMonthIndex,
+        );
+        const remainingTerm = Math.max(
+          1,
+          activeLoan.termMonths - elapsedMonths,
+        );
+
         if (activeLoan.rateType === "variable") {
           const newRate = Math.max(
             0,
             s.world.macro.interestBp + activeLoan.spreadBasisPoints,
           );
-          const elapsed = Math.max(0, currentMonthIndex - activeLoan.startMonthIndex);
-          const remainingTerm = Math.max(1, activeLoan.termMonths - elapsed);
           activeLoan = drawLoan(
             activeLoan.principalMinor,
             newRate,
@@ -2969,17 +2984,18 @@ export class GameSimulation implements CommandExecutor {
           );
         }
 
-        const schedule = debtSchedule(activeLoan);
-        const monthsElapsed = Math.max(0, currentMonthIndex - activeLoan.startMonthIndex);
-        const instalmentIndex = Math.min(monthsElapsed, schedule.length - 1);
-        const instalment = schedule[instalmentIndex] ?? {
+        const schedule = debtSchedule({
+          ...activeLoan,
+          termMonths: remainingTerm,
+        });
+        const instalment = schedule[0] ?? {
           interestMinor: accrueMonthlyInterestMinor(activeLoan),
           principalMinor: 0,
         };
 
         const interest = instalment.interestMinor;
-        const principal = instalment.principalMinor;
-        const totalDue = interest + principal;
+        const scheduledPrincipal = instalment.principalMinor;
+        const totalDue = interest + scheduledPrincipal;
 
         if (s.finance.cashMinor >= totalDue) {
           s.finance.paymentHistory.onTimePayments += 1;
@@ -2992,9 +3008,20 @@ export class GameSimulation implements CommandExecutor {
         this.spend(interest, "interest", `loan interest ${activeLoan.id}`);
         s.finance.month.interestMinor += interest;
 
-        if (principal > 0) {
-          this.spend(principal, "loanPrincipal", `scheduled loan principal ${activeLoan.id}`);
-          activeLoan = repayLoan(activeLoan, principal);
+        if (scheduledPrincipal > 0) {
+          const cashAvailableForPrincipal = Math.max(0, s.finance.cashMinor);
+          const principalPaid = Math.min(
+            scheduledPrincipal,
+            cashAvailableForPrincipal,
+          );
+          this.spend(
+            scheduledPrincipal,
+            "loanPrincipal",
+            `scheduled loan principal ${activeLoan.id}`,
+          );
+          if (principalPaid > 0) {
+            activeLoan = repayLoan(activeLoan, principalPaid);
+          }
         }
 
         if (activeLoan.principalMinor > 0) {
@@ -3004,7 +3031,8 @@ export class GameSimulation implements CommandExecutor {
 
       s.loans = remainingActiveLoans;
       if (s.loan) {
-        s.loan = remainingActiveLoans[0] ?? repayLoan(s.loan, s.loan.principalMinor);
+        s.loan =
+          remainingActiveLoans[0] ?? repayLoan(s.loan, s.loan.principalMinor);
       }
     }
 
@@ -4694,6 +4722,8 @@ export class GameSimulation implements CommandExecutor {
       s.statements.retainedEarningsMinor += amountMinor;
     else if (accountClass(account) === "equity")
       s.statements.contributedCapitalMinor += amountMinor;
+    else if (account === "groupDeposit")
+      s.finance.payableMinor += amountMinor;
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

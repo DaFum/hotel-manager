@@ -42,7 +42,15 @@ export function LoanPanel({
         <dl>
           <div>
             <dt>{t("loans.panel.creditStanding")}</dt>
-            <dd data-trend={creditStandingScore >= 70 ? "gain" : creditStandingScore < 40 ? "loss" : "flat"}>
+            <dd
+              data-trend={
+                creditStandingScore >= 70
+                  ? "gain"
+                  : creditStandingScore < 40
+                    ? "loss"
+                    : "flat"
+              }
+            >
               {creditStandingScore} / 100
             </dd>
           </div>
@@ -67,11 +75,25 @@ export function LoanPanel({
           onSubmit={(e) => {
             e.preventDefault();
             const form = e.currentTarget;
-            const principalMinor = Number((form.elements.namedItem("principal") as HTMLInputElement).value) * 100;
-            const termMonths = Number((form.elements.namedItem("term") as HTMLInputElement).value);
-            const amortisation = (form.elements.namedItem("amortisation") as HTMLSelectElement).value as Loan["amortisation"];
-            const rateType = (form.elements.namedItem("rateType") as HTMLSelectElement).value as Loan["rateType"];
-            const collateralValueMinor = Number((form.elements.namedItem("collateral") as HTMLInputElement).value || 0) * 100;
+            const principalMinor =
+              Number(
+                (form.elements.namedItem("principal") as HTMLInputElement)
+                  .value,
+              ) * 100;
+            const termMonths = Number(
+              (form.elements.namedItem("term") as HTMLInputElement).value,
+            );
+            const amortisation = (
+              form.elements.namedItem("amortisation") as HTMLSelectElement
+            ).value as Loan["amortisation"];
+            const rateType = (
+              form.elements.namedItem("rateType") as HTMLSelectElement
+            ).value as Loan["rateType"];
+            const collateralValueMinor =
+              Number(
+                (form.elements.namedItem("collateral") as HTMLInputElement)
+                  .value || 0,
+              ) * 100;
 
             onTakeLoan({
               principalMinor,
@@ -85,19 +107,39 @@ export function LoanPanel({
           <div>
             <label>
               {t("loans.panel.principal")}
-              <input name="principal" type="number" min="100" step="100" defaultValue="10000" required disabled={isPending} />
+              <input
+                name="principal"
+                type="number"
+                min="100"
+                step="100"
+                defaultValue="10000"
+                required
+                disabled={isPending}
+              />
             </label>
           </div>
           <div>
             <label>
               {t("loans.panel.termMonths")}
-              <input name="term" type="number" min="1" max="600" defaultValue="12" required disabled={isPending} />
+              <input
+                name="term"
+                type="number"
+                min="1"
+                max="600"
+                defaultValue="12"
+                required
+                disabled={isPending}
+              />
             </label>
           </div>
           <div>
             <label>
               {t("loans.panel.amortisation")}
-              <select name="amortisation" defaultValue="bullet" disabled={isPending}>
+              <select
+                name="amortisation"
+                defaultValue="bullet"
+                disabled={isPending}
+              >
                 <option value="annuity">Annuity</option>
                 <option value="linear">Linear</option>
                 <option value="bullet">Bullet</option>
@@ -116,7 +158,13 @@ export function LoanPanel({
           <div>
             <label>
               {t("loans.panel.collateral")}
-              <input name="collateral" type="number" min="0" defaultValue="0" disabled={isPending} />
+              <input
+                name="collateral"
+                type="number"
+                min="0"
+                defaultValue="0"
+                disabled={isPending}
+              />
             </label>
           </div>
           <button type="submit" disabled={isPending}>
@@ -144,7 +192,9 @@ export function LoanPanel({
                 <tr key={loan.id}>
                   <td>{loan.id}</td>
                   <td>{formatDm(loan.principalMinor, locale)}</td>
-                  <td>{formatBasisPoints(loan.annualRateBasisPoints, locale)}</td>
+                  <td>
+                    {formatBasisPoints(loan.annualRateBasisPoints, locale)}
+                  </td>
                   <td>{loan.amortisation}</td>
                   <td>{loan.rateType}</td>
                   <td>

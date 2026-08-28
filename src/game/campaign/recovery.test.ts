@@ -364,9 +364,7 @@ describe("distress recovery measures", () => {
     expect(after.annualRateBasisPoints).toBeGreaterThan(
       before.annualRateBasisPoints,
     );
-    expect(debtSchedule(after)[0].principalMinor).toBeLessThan(
-      paymentBefore,
-    );
+    expect(debtSchedule(after)[0].principalMinor).toBeLessThan(paymentBefore);
     expect(calls).toEqual([
       { kind: "spend", amountMinor: 250_000, account: "supplies" },
     ]);

@@ -46,6 +46,7 @@ import {
 } from "../content/1991/company";
 import { calculateCreditStanding } from "../finance/creditStanding";
 import { drawLoan, repayLoan } from "../finance/loans";
+import { MAX_LOAN_TERM_MONTHS } from "../finance/debt";
 import { reputationFor } from "../reputation/dimensions";
 
 /** Command types this module owns; everything else belongs to the hotel. */
@@ -280,10 +281,19 @@ export function validateCompanyCommand(
       return ok;
     }
     case "TAKE_LOAN": {
-      if (!Number.isSafeInteger(command.principalMinor) || command.principalMinor <= 0)
+      if (
+        !Number.isSafeInteger(command.principalMinor) ||
+        command.principalMinor <= 0
+      )
         return no("requested principal must be a positive safe integer");
-      if (!Number.isSafeInteger(command.termMonths) || command.termMonths <= 0)
-        return no("term months must be a positive safe integer");
+      if (
+        !Number.isSafeInteger(command.termMonths) ||
+        command.termMonths <= 0 ||
+        command.termMonths > MAX_LOAN_TERM_MONTHS
+      )
+        return no(
+          `term months must be a positive safe integer up to ${MAX_LOAN_TERM_MONTHS}`,
+        );
       if (!["annuity", "linear", "bullet"].includes(command.amortisation))
         return no("invalid amortisation profile");
       if (!["fixed", "variable"].includes(command.rateType))
@@ -300,9 +310,22 @@ export function validateCompanyCommand(
         (sum, l) => sum + l.principalMinor,
         0,
       );
+      const fixedAssetsMinor =
+        state.statements?.fixedAssetsMinor ??
+        state.assets.reduce((sum, a) => sum + a.replacementMinor, 0);
+      const totalPledgedCollateral = existingLoans.reduce(
+        (sum, l) => sum + l.collateralValueMinor,
+        0,
+      );
+      const unencumberedCollateralMinor = Math.max(
+        0,
+        fixedAssetsMinor - totalPledgedCollateral,
+      );
+      if ((command.collateralValueMinor ?? 0) > unencumberedCollateralMinor)
+        return no("declared collateral exceeds unencumbered asset value");
+
       const totalCollateral =
-        existingLoans.reduce((sum, l) => sum + l.collateralValueMinor, 0) +
-        (command.collateralValueMinor ?? 0);
+        totalPledgedCollateral + (command.collateralValueMinor ?? 0);
 
       const standing = calculateCreditStanding({
         operatingCashFlowMinor:
@@ -315,14 +338,22 @@ export function validateCompanyCommand(
           (state.statements?.contributedCapitalMinor ?? 0) +
           (state.statements?.retainedEarningsMinor ?? 0),
         hotelCount: state.company.portfolio.hotelIds.length || 1,
-        reputationScore: reputationFor(state.reputation, "group", state.company.companyId).score,
+        reputationScore: reputationFor(
+          state.reputation,
+          "group",
+          state.company.companyId,
+        ).score,
         totalCollateralValueMinor: totalCollateral,
         paymentHistory: state.finance.paymentHistory,
         macroInterestBp: state.world.macro.interestBp,
-        financingAccessBonusBp: state.narrative?.campaign?.inputs?.creditSpreadBasisPoints,
+        creditSpreadMultiplierBp:
+          state.narrative?.campaign?.inputs?.creditSpreadBasisPoints ?? 10_000,
       });
 
-      if (totalOutstanding + command.principalMinor > standing.borrowingLimitMinor)
+      if (
+        totalOutstanding + command.principalMinor >
+        standing.borrowingLimitMinor
+      )
         return no("requested loan exceeds company borrowing limit");
 
       return ok;
@@ -331,7 +362,10 @@ export function validateCompanyCommand(
       const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
       const targetLoan = existingLoans.find((l) => l.id === command.loanId);
       if (!targetLoan) return no("unknown loan id");
-      if (!Number.isSafeInteger(command.amountMinor) || command.amountMinor <= 0)
+      if (
+        !Number.isSafeInteger(command.amountMinor) ||
+        command.amountMinor <= 0
+      )
         return no("repayment amount must be a positive safe integer");
       if (command.amountMinor > targetLoan.principalMinor)
         return no("repayment amount exceeds loan outstanding principal");
@@ -728,11 +762,16 @@ export function applyCompanyCommand(
           (state.statements?.contributedCapitalMinor ?? 0) +
           (state.statements?.retainedEarningsMinor ?? 0),
         hotelCount: state.company.portfolio.hotelIds.length || 1,
-        reputationScore: reputationFor(state.reputation, "group", state.company.companyId).score,
+        reputationScore: reputationFor(
+          state.reputation,
+          "group",
+          state.company.companyId,
+        ).score,
         totalCollateralValueMinor: totalCollateral,
         paymentHistory: state.finance.paymentHistory,
         macroInterestBp: state.world.macro.interestBp,
-        financingAccessBonusBp: state.narrative?.campaign?.inputs?.creditSpreadBasisPoints,
+        creditSpreadMultiplierBp:
+          state.narrative?.campaign?.inputs?.creditSpreadBasisPoints ?? 10_000,
       });
 
       const offeredRate = standing.offeredRateBp;
@@ -747,8 +786,11 @@ export function applyCompanyCommand(
           id: loanId,
           amortisation: command.amortisation,
           rateType: command.rateType,
-          spreadBasisPoints: command.rateType === "variable" ? spreadBasisPoints : 0,
-          startMonthIndex: Math.floor(state.elapsedMinutes / (30 * 1440)),
+          spreadBasisPoints:
+            command.rateType === "variable" ? spreadBasisPoints : 0,
+          startMonthIndex:
+            (Number(state.calendar.dateKey.slice(0, 4)) - 1991) * 12 +
+            (Number(state.calendar.dateKey.slice(5, 7)) - 1),
           collateralValueMinor: command.collateralValueMinor ?? 0,
         },
       );

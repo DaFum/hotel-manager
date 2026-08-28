@@ -1,4 +1,6 @@
 import type { FinanceView } from "./finance/financeView";
+import { LoanPanel } from "./LoanPanel";
+import type { Loan } from "../game/finance/loans";
 import {
   formatBasisPoints,
   formatDm,
@@ -62,20 +64,42 @@ function MoneyRow({
 export function FinanceDashboard({
   view,
   locale = "en-GB",
+  creditStanding,
+  onTakeLoan,
+  onRepayLoan,
 }: {
   view: FinanceView;
   locale?: GameLocale;
+  creditStanding?: {
+    score: number;
+    offeredRateBp: number;
+    borrowingCapacityMinor: number;
+  };
+  onTakeLoan?: (params: {
+    principalMinor: number;
+    amortisation: Loan["amortisation"];
+    rateType: Loan["rateType"];
+    termMonths: number;
+    collateralValueMinor?: number;
+  }) => void;
+  onRepayLoan?: (loanId: string, amountMinor: number) => void;
 }) {
   const pnl = view.profitAndLoss;
   const t = (key: string) => translateGame(locale, key);
   return (
     <div aria-label={t("finance.dashboard.title")}>
-      <section aria-label={t("loans.panel.title")}>
-        <h2>{t("loans.panel.title")}</h2>
-        <p>
-          {t("loans.panel.totalOutstanding")}: {formatDm(view.balanceSheet.debtMinor, locale)}
-        </p>
-      </section>
+      <LoanPanel
+        offeredRateBp={creditStanding?.offeredRateBp ?? 600}
+        borrowingCapacityMinor={
+          creditStanding?.borrowingCapacityMinor ?? 10_000_000_00
+        }
+        creditStandingScore={creditStanding?.score ?? 50}
+        totalDebtMinor={view.balanceSheet.debtMinor}
+        loans={view.loans}
+        onTakeLoan={onTakeLoan ?? (() => {})}
+        onRepayLoan={onRepayLoan ?? (() => {})}
+        locale={locale}
+      />
       <section aria-label={t("finance.dashboard.pnl")}>
         <h2>{t("finance.dashboard.pnl")}</h2>
         <dl>
@@ -171,43 +195,6 @@ export function FinanceDashboard({
           />
         </dl>
         <p>{t("finance.dashboard.equityUnavailable")}</p>
-      </section>
-      <section aria-label={t("finance.dashboard.loans")}>
-        <h2>{t("finance.dashboard.loans")}</h2>
-        {view.loans.length ? (
-          <table className="register-table">
-            <thead>
-              <tr>
-                <th>Principal</th>
-                <th>Rate</th>
-                <th>Term</th>
-                <th>Next payment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {view.loans.map((loan, index) => (
-                <tr key={index}>
-                  <td>{formatDm(loan.principalMinor, locale)}</td>
-                  <td>
-                    {formatBasisPoints(loan.annualRateBasisPoints, locale)}
-                  </td>
-                  <td>
-                    {loan.termMonths} {t("finance.dashboard.months")}
-                  </td>
-                  <td>
-                    {formatDm(
-                      (loan.schedule[0]?.principalMinor ?? 0) +
-                        (loan.schedule[0]?.interestMinor ?? 0),
-                      locale,
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <p>{t("finance.dashboard.noLoans")}</p>
-        )}
       </section>
       <section aria-label={t("finance.dashboard.investments")}>
         <h2>{t("finance.dashboard.investments")}</h2>

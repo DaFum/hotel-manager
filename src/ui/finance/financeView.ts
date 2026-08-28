@@ -1,4 +1,5 @@
 import type { GameState } from "../../game/simulation/initialState";
+import type { Loan } from "../../game/finance/loans";
 import {
   profitAndLoss,
   cashFlowStatement,
@@ -39,12 +40,7 @@ export interface FinanceView {
     equityMinor: null;
     equityAvailable: false;
   };
-  loans: {
-    principalMinor: number;
-    annualRateBasisPoints: number;
-    termMonths: number;
-    schedule: ReturnType<typeof debtSchedule>;
-  }[];
+  loans: (Loan & { schedule: ReturnType<typeof debtSchedule> })[];
   investments: {
     capexMinor: number;
     renovation: null | { id: string; phase: string; targetModuleId: string };

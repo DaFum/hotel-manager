@@ -132,7 +132,9 @@ describe("the narrative in a running game", () => {
     const close = s.state.lastMonthlyClose;
     expect(close).toBeDefined();
     if (close && close.cashFlowStatement) {
-      expect(close.cashFlowStatement.closingCashMinor).toBe(close.closingCashMinor);
+      expect(close.cashFlowStatement.closingCashMinor).toBe(
+        close.closingCashMinor,
+      );
     }
     expect(
       submit(s, { type: "SET_CAMPAIGN_DIFFICULTY", difficulty: "beginner" })

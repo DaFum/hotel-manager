@@ -117,7 +117,9 @@ export function remainingInvestorCapacityMinor(state: GameState): number {
 
 export function hasReschedulableLoan(state: GameState): boolean {
   const loans = state.loans ?? (state.loan ? [state.loan] : []);
-  return loans.some((l) => l.principalMinor > 0 && l.termMonths < MAX_TERM_MONTHS);
+  return loans.some(
+    (l) => l.principalMinor > 0 && l.termMonths < MAX_TERM_MONTHS,
+  );
 }
 
 /** Everybody above the minimum roster, in stable id order so cuts replay. */
@@ -288,7 +290,10 @@ export function applyRecoveryPath(
       if (state.loans && state.loans.length > 0) {
         state.loans[0] = drawLoan(
           state.loans[0].principalMinor + drawn,
-          Math.max(0, state.loans[0].annualRateBasisPoints + 200 - spreadRelief),
+          Math.max(
+            0,
+            state.loans[0].annualRateBasisPoints + 200 - spreadRelief,
+          ),
           Math.max(1, state.loans[0].termMonths),
           {
             id: state.loans[0].id,
@@ -458,7 +463,10 @@ export function applyRecoveryPath(
     }
     case "turnaround": {
       const loans = state.loans ?? (state.loan ? [state.loan] : []);
-      const targetLoan = loans.find((l) => l.principalMinor > 0 && l.termMonths < MAX_TERM_MONTHS) ?? loans[0];
+      const targetLoan =
+        loans.find(
+          (l) => l.principalMinor > 0 && l.termMonths < MAX_TERM_MONTHS,
+        ) ?? loans[0];
       if (targetLoan) {
         const restructured = restructure(targetLoan, {
           extraMonths: Math.min(
@@ -468,7 +476,9 @@ export function applyRecoveryPath(
           penaltyBasisPoints: TURNAROUND_PENALTY_BASIS_POINTS,
         });
         if (state.loans) {
-          state.loans = state.loans.map((l) => l.id === targetLoan.id ? restructured : l);
+          state.loans = state.loans.map((l) =>
+            l.id === targetLoan.id ? restructured : l,
+          );
         } else {
           state.loan = restructured;
         }

@@ -645,8 +645,8 @@ describe("domain event buffer", () => {
 
     seen.add("TAX_ACCRUED");
     seen.add("TAX_PAID");
-  seen.add("LOAN_TAKEN");
-  seen.add("LOAN_REPAID");
+    seen.add("LOAN_TAKEN");
+    seen.add("LOAN_REPAID");
     const missing = DOMAIN_EVENT_TYPES.filter((type) => !seen.has(type));
     expect(missing).toEqual([]);
     // A payload with no reachable transition must not be listed as covered,

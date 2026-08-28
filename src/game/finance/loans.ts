@@ -33,7 +33,9 @@ export function drawLoan(
   if (!Number.isSafeInteger(termMonths) || termMonths <= 0)
     throw new Error("invalid term");
 
-  const id = options.id ?? `loan.${principalMinor}.${annualRateBasisPoints}.${termMonths}`;
+  const id =
+    options.id ??
+    `loan.${principalMinor}.${annualRateBasisPoints}.${termMonths}`;
   const amortisation = options.amortisation ?? "bullet";
   const rateType = options.rateType ?? "fixed";
   const spreadBasisPoints = options.spreadBasisPoints ?? 0;

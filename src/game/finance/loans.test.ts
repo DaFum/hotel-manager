@@ -29,8 +29,12 @@ describe("pure loans domain module", () => {
     expect(() => drawLoan(-100, 500, 24)).toThrow("invalid principal");
     expect(() => drawLoan(100_000, -50, 24)).toThrow("invalid rate");
     expect(() => drawLoan(100_000, 500, 0)).toThrow("invalid term");
-    expect(() => drawLoan(100_000, 500, 24, { spreadBasisPoints: -10 })).toThrow("invalid spread basis points");
-    expect(() => drawLoan(100_000, 500, 24, { collateralValueMinor: -500 })).toThrow("invalid collateral value");
+    expect(() =>
+      drawLoan(100_000, 500, 24, { spreadBasisPoints: -10 }),
+    ).toThrow("invalid spread basis points");
+    expect(() =>
+      drawLoan(100_000, 500, 24, { collateralValueMinor: -500 }),
+    ).toThrow("invalid collateral value");
   });
 
   it("repays loan reducing principal and preserving all other fields", () => {
@@ -45,6 +49,8 @@ describe("pure loans domain module", () => {
     expect(repaid.id).toBe("loan.repay");
     expect(repaid.amortisation).toBe("linear");
 
-    expect(() => repayLoan(loan, 150_000_00)).toThrow("repayment exceeds principal");
+    expect(() => repayLoan(loan, 150_000_00)).toThrow(
+      "repayment exceeds principal",
+    );
   });
 });

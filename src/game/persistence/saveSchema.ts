@@ -206,7 +206,9 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     state.finance.paymentHistory.onTimePayments < 0 ||
     !Number.isSafeInteger(state.finance.paymentHistory.missedPayments) ||
     state.finance.paymentHistory.missedPayments < 0 ||
-    !Number.isSafeInteger(state.finance.paymentHistory.consecutiveMissedPayments) ||
+    !Number.isSafeInteger(
+      state.finance.paymentHistory.consecutiveMissedPayments,
+    ) ||
     state.finance.paymentHistory.consecutiveMissedPayments < 0
   )
     problems.push("the state has no valid payment history");

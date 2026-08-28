@@ -21,15 +21,18 @@
   background: linear-gradient(
     180deg,
     var(--hm-surface-raised),
-    var(--hm-surface) 40%
+    var(--hm-surface) 45%
   );
   box-shadow: var(--hm-shadow-panel);
-  transition: border-color var(--hm-duration) var(--hm-ease);
+  transition:
+    border-color var(--hm-duration) var(--hm-ease),
+    box-shadow var(--hm-duration) var(--hm-ease);
 }
 
 .hm-main > :is(section, aside):hover,
 .hm-panel:hover {
-  border-left-color: var(--hm-signal-deep);
+  border-left-color: var(--hm-signal);
+  box-shadow: var(--hm-shadow-panel), -2px 0 12px var(--hm-signal-wash);
 }
 
 /*
@@ -52,9 +55,10 @@
   position: absolute;
   bottom: -1px;
   left: 0;
-  width: 2.5rem;
-  height: 1px;
+  width: 3rem;
+  height: 2px;
   background: var(--hm-signal);
+  box-shadow: 0 0 8px var(--hm-signal-wash);
 }
 
 .hm-main > :is(section, aside) > h3,

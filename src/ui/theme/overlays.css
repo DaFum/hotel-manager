@@ -18,7 +18,7 @@
     var(--hm-surface) 60%
   );
   color: var(--hm-ink);
-  box-shadow: var(--hm-shadow-lift);
+  box-shadow: var(--hm-shadow-lift), 0 0 30px var(--hm-signal-wash);
 }
 
 .hm-root dialog h2 {

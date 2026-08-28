@@ -45,6 +45,7 @@
   --hm-button-ink: var(--hm-signal-bright);
 
   background: var(--hm-signal-wash);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
 /* A press should feel like a press: the control moves under the finger. */
@@ -147,6 +148,7 @@
   background: linear-gradient(90deg, var(--hm-signal-wash), transparent 80%);
   color: var(--hm-signal-bright);
   font-weight: 600;
+  text-shadow: 0 0 8px var(--hm-signal-wash);
 }
 
 .hm-root [role="tab"][aria-selected="true"]:hover {

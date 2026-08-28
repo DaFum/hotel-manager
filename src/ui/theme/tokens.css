@@ -19,42 +19,42 @@
  */
 
 :root {
-  /* --- Ground: poured concrete, lit from above ------------------------- */
-  --hm-ground: #0b0d0f;
-  --hm-ground-deep: #070809;
-  --hm-hover-bg: rgb(255 255 255 / 2%);
-  --hm-surface: #14181c;
-  --hm-surface-raised: #1b2127;
-  --hm-surface-sunken: #0e1114;
+  /* --- Ground: obsidian concrete, lit from above ------------------------- */
+  --hm-ground: #090b0e;
+  --hm-ground-deep: #050608;
+  --hm-hover-bg: rgb(232 163 61 / 4%);
+  --hm-surface: #12161b;
+  --hm-surface-raised: #1a2027;
+  --hm-surface-sunken: #0b0d10;
 
-  /* --- Rules: the hairlines of a ledger -------------------------------- */
-  --hm-rule: #262e35;
-  --hm-rule-strong: #38434d;
-  --hm-rule-faint: #1b2126;
+  /* --- Rules: executive ledger hairlines -------------------------------- */
+  --hm-rule: #232c34;
+  --hm-rule-strong: #35424e;
+  --hm-rule-faint: #182026;
 
   /*
-   * Paper: bone, never a clinical white. All three tones clear WCAG AA body
+   * Paper: executive ivory bone. All three tones clear WCAG AA body
    * text against the darkest ground in the system — the quietest of them,
-   * --hm-ink-faint, sits at 5.7:1 on --hm-ground and 5.0:1 on a raised panel,
-   * because "quiet" in this interface must never mean "hard to read".
+   * --hm-ink-faint, sits at >5.5:1 contrast ratio.
    */
-  --hm-ink: #e9e5db;
-  --hm-ink-dim: #a3a79f;
-  --hm-ink-faint: #8a8f8b;
+  --hm-ink: #ede9e0;
+  --hm-ink-dim: #aaaeb5;
+  --hm-ink-faint: #8e9499;
 
-  /* --- The single signal: a Deutschmark note under desk light ---------- */
+  /* --- The Deutschmark gold signal note under executive desk light ------- */
   --hm-signal: #e8a33d;
-  --hm-signal-bright: #ffc061;
-  --hm-signal-deep: #8a5c14;
-  --hm-signal-wash: rgb(232 163 61 / 12%);
+  --hm-signal-bright: #ffc86b;
+  --hm-signal-deep: #9e6918;
+  --hm-signal-wash: rgb(232 163 61 / 14%);
+  --hm-signal-glow: rgb(232 163 61 / 25%);
 
-  /* --- Cold counter-accent, used sparingly for market and world -------- */
-  --hm-steel: #6d9dc5;
-  --hm-steel-wash: rgb(109 157 197 / 12%);
+  /* --- Cold steel counter-accent for financial telemetry & market ------- */
+  --hm-steel: #74a6d4;
+  --hm-steel-wash: rgb(116 166 212 / 14%);
 
   /* --- Atmospheric accents --------------------------------------------- */
-  --hm-atmosphere: rgb(109 157 197 / 10%);
-  --hm-atmosphere-wash: rgb(232 163 61 / 7%);
+  --hm-atmosphere: rgb(116 166 212 / 12%);
+  --hm-atmosphere-wash: rgb(232 163 61 / 9%);
 
   /* --- Operational status. Never carried by hue alone. ----------------- */
   --hm-gain: #5cc98f;
@@ -99,10 +99,10 @@
 
   /* --- Depth ----------------------------------------------------------- */
   --hm-shadow-panel:
-    0 1px 0 rgb(255 255 255 / 4%) inset, 0 12px 28px -18px rgb(0 0 0 / 90%);
-  --hm-shadow-lift: 0 18px 44px -22px rgb(0 0 0 / 95%);
-  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
-  --hm-shadow-rail: rgb(0 0 0 / 40%);
+    0 1px 0 rgb(255 255 255 / 6%) inset, 0 14px 32px -16px rgb(0 0 0 / 92%), 0 0 1px rgb(232 163 61 / 10%);
+  --hm-shadow-lift: 0 20px 50px -20px rgb(0 0 0 / 96%), 0 0 24px -8px rgb(232 163 61 / 15%);
+  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep), 0 0 12px var(--hm-signal-wash);
+  --hm-shadow-rail: rgb(0 0 0 / 50%);
 
   /* --- Motion: brisk, mechanical, never bouncy ------------------------- */
   --hm-ease: cubic-bezier(0.2, 0.8, 0.3, 1);

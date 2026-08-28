@@ -14,6 +14,7 @@
     "lint": "prettier --check .",
     "format": "prettier --write .",
     "test:e2e": "playwright test",
+    "test:e2e:screenshots": "playwright test e2e/visual-verification.spec.ts",
     "benchmark": "node --import tsx scripts/benchmark-slice.ts",
     "benchmark:all": "node --import tsx scripts/benchmark-all.ts",
     "benchmark:multi-hotel": "node --import tsx scripts/multi-hotel-feasibility.ts",

@@ -1,0 +1,135 @@
+import { test, expect } from "@playwright/test";
+import fs from "fs";
+import path from "path";
+import { openManagementArea } from "./management";
+
+const SCREENSHOT_DIR = path.join(process.cwd(), "screenshots");
+
+test.beforeAll(() => {
+  if (!fs.existsSync(SCREENSHOT_DIR)) {
+    fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
+  }
+});
+
+test.describe("Visual Verification Screenshot Suite", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/?seed=424242");
+    await page
+      .getByRole("combobox", { name: /Language|Sprache/ })
+      .selectOption("en-GB");
+    // Wait for the app to settle and main header to load
+    await expect(page.getByRole("heading", { level: 1 })).toContainText(
+      /Frankfurt/i,
+    );
+  });
+
+  test("capture screenshots for all management tabs", async ({ page }) => {
+    const areas = [
+      { id: "mainView", name: "01-mainView" },
+      { id: "hotel", name: "02-hotel" },
+      { id: "guests", name: "03-guests" },
+      { id: "staff", name: "04-staff" },
+      { id: "finance", name: "05-finance" },
+      { id: "revenue", name: "06-revenue" },
+      { id: "marketing", name: "07-marketing" },
+      { id: "market", name: "08-market" },
+      { id: "company", name: "09-company" },
+      { id: "campaign", name: "10-campaign" },
+    ] as const;
+
+    for (const area of areas) {
+      await openManagementArea(page, area.id);
+      await page.screenshot({
+        path: path.join(SCREENSHOT_DIR, `tab-${area.name}.png`),
+        fullPage: true,
+      });
+    }
+  });
+
+  test("capture screenshots for UI overlays, panels, and settings", async ({ page }) => {
+    // 1. Settings & Accessibility Controls section
+    const settingsSection = page.locator("section", {
+      hasText: "Presentation",
+    });
+    if (await settingsSection.isVisible()) {
+      await settingsSection.screenshot({
+        path: path.join(SCREENSHOT_DIR, "overlay-01-settings.png"),
+      });
+    }
+
+    // 2. Save Manager section
+    const saveManager = page.locator(".save-manager");
+    if (await saveManager.isVisible()) {
+      await saveManager.screenshot({
+        path: path.join(SCREENSHOT_DIR, "overlay-02-save-manager.png"),
+      });
+    }
+
+    // 3. TopBar and Telemetry
+    const topBar = page.getByRole("banner");
+    if (await topBar.isVisible()) {
+      await topBar.screenshot({
+        path: path.join(SCREENSHOT_DIR, "overlay-03-topbar.png"),
+      });
+    }
+
+    // 4. Notification Center
+    const notificationCenter = page.getByRole("region", {
+      name: /Notification center|Alerts/i,
+    });
+    if (await notificationCenter.isVisible()) {
+      await notificationCenter.screenshot({
+        path: path.join(SCREENSHOT_DIR, "overlay-04-notification-center.png"),
+      });
+    }
+
+    // 5. Full view initial state
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "fullpage-initial-overview.png"),
+      fullPage: true,
+    });
+  });
+
+  test("capture screenshot of Monthly Close Modal during simulation", async ({ page }) => {
+    // Accelerate time to trigger the monthly close modal
+    await page.getByRole("button", { name: "16x", exact: true }).click();
+
+    const monthlyCloseModal = page.getByRole("dialog", {
+      name: /monthly close/i,
+    });
+    await expect(monthlyCloseModal).toBeVisible({ timeout: 60_000 });
+
+    await monthlyCloseModal.screenshot({
+      path: path.join(SCREENSHOT_DIR, "modal-monthly-close.png"),
+    });
+
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "fullpage-monthly-close.png"),
+      fullPage: true,
+    });
+
+    // Dismiss modal to resume UI state
+    await page.getByRole("button", { name: /continue/i }).click();
+  });
+
+  test("capture mobile viewport screenshots for responsive QA", async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 812 });
+
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "mobile-01-mainView.png"),
+      fullPage: true,
+    });
+
+    await openManagementArea(page, "finance");
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "mobile-02-finance.png"),
+      fullPage: true,
+    });
+
+    await openManagementArea(page, "market");
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "mobile-03-market.png"),
+      fullPage: true,
+    });
+  });
+});

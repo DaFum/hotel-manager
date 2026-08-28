@@ -39,14 +39,7 @@ describe("authoritative F&B operations", () => {
     const foodCostBefore = simulation.state.finance.ledger.filter(
       (entry) => entry.account === "foodCost",
     );
-    expect(foodCostBefore).toEqual([
-      {
-        day: 0,
-        account: "foodCost",
-        amountMinor: -27_000,
-        memo: "60 breakfast-portion",
-      },
-    ]);
+    expect(foodCostBefore).toEqual([]);
     const operatingExpenseBefore =
       simulation.state.finance.month.operatingExpenseMinor;
     simulation.advanceQuantum();

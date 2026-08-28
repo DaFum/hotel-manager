@@ -718,6 +718,23 @@ export const en = {
       drawLoan: "Draw Loan",
       activeLoans: "Active Loan Facility",
       repayFull: "Repay Full",
+      amortisationOption: {
+        annuity: "Annuity",
+        linear: "Linear",
+        bullet: "Bullet",
+      },
+      rateTypeOption: {
+        fixed: "Fixed",
+        variable: "Variable",
+      },
+      table: {
+        id: "ID",
+        principal: "Principal",
+        rate: "Rate",
+        profile: "Profile",
+        rateType: "Rate Type",
+        repay: "Repay",
+      },
     },
   },
   finance: {

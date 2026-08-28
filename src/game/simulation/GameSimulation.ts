@@ -3014,12 +3014,12 @@ export class GameSimulation implements CommandExecutor {
             scheduledPrincipal,
             cashAvailableForPrincipal,
           );
-          this.spend(
-            scheduledPrincipal,
-            "loanPrincipal",
-            `scheduled loan principal ${activeLoan.id}`,
-          );
           if (principalPaid > 0) {
+            this.spend(
+              principalPaid,
+              "loanPrincipal",
+              `scheduled loan principal ${activeLoan.id}`,
+            );
             activeLoan = repayLoan(activeLoan, principalPaid);
           }
         }
@@ -4687,11 +4687,34 @@ export class GameSimulation implements CommandExecutor {
     s.distribution.allotments = s.distribution.allotments.filter(
       (item) => item.releaseDateKey > s.calendar.dateKey,
     );
-    s.distribution.groupBlocks = s.distribution.groupBlocks.map((block) =>
-      block.releaseDateKey <= s.calendar.dateKey && block.status === "confirmed"
-        ? { ...block, status: "released" as const }
-        : block,
-    );
+    s.distribution.groupBlocks = s.distribution.groupBlocks.map((block) => {
+      if (
+        block.releaseDateKey <= s.calendar.dateKey &&
+        block.status === "confirmed"
+      ) {
+        if (block.depositMinor > 0) {
+          s.finance.payableMinor = Math.max(
+            0,
+            s.finance.payableMinor - block.depositMinor,
+          );
+          s.statements.retainedEarningsMinor += block.depositMinor;
+          s.finance.ledger = postEntry(s.finance.ledger, {
+            day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+            account: "groupDeposit",
+            amountMinor: -block.depositMinor,
+            memo: `cleared group deposit liability ${block.id}`,
+          });
+          s.finance.ledger = postEntry(s.finance.ledger, {
+            day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
+            account: "otherRevenue",
+            amountMinor: block.depositMinor,
+            memo: `reclassified group deposit revenue ${block.id}`,
+          });
+        }
+        return { ...block, status: "released" as const };
+      }
+      return block;
+    });
   }
 
   /** Demand bonus for a declared profile the hotel has actually invested in. */
@@ -4722,8 +4745,7 @@ export class GameSimulation implements CommandExecutor {
       s.statements.retainedEarningsMinor += amountMinor;
     else if (accountClass(account) === "equity")
       s.statements.contributedCapitalMinor += amountMinor;
-    else if (account === "groupDeposit")
-      s.finance.payableMinor += amountMinor;
+    else if (account === "groupDeposit") s.finance.payableMinor += amountMinor;
     s.finance.ledger = postEntry(s.finance.ledger, {
       day: Math.floor(s.elapsedMinutes / MINUTES_PER_DAY),
       account,

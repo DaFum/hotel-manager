@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Playwright Engineer'
+  short_description: 'Production-grade Playwright engineering for React, TypeScript, JavaScript, Vite, and Next.js applications.'
+  

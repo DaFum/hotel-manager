@@ -78,7 +78,7 @@ export function CampaignSetup({
                   type="range"
                   min={lever === "technologySpeedBasisPoints" ? "1" : "0"}
                   max="20000"
-                  step="500"
+                  step={lever === "technologySpeedBasisPoints" ? "1" : "500"}
                   value={sandbox[lever]}
                   disabled={locked || !onSandbox}
                   onChange={(event) =>

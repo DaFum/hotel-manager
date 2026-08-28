@@ -4695,6 +4695,15 @@ export class GameSimulation implements CommandExecutor {
           memo: `supplier invoice ${invoice.id}`,
         });
       }
+      if (invoice.amountMinor > 0) {
+        this.pushAlert({
+          id: "alert.insolvent",
+          severity: "critical",
+          title: "alert.insolvent.title",
+          cause: "alert.insolvent.cause",
+          causeValues: { expense: "expense.operating" },
+        });
+      }
     }
     s.finance.supplierInvoices = s.finance.supplierInvoices.filter(
       (invoice) => invoice.amountMinor > 0,

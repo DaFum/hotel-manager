@@ -45,18 +45,13 @@
   --hm-button-ink: var(--hm-signal-bright);
 
   background: var(--hm-signal-wash);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
-/* A press should feel like a press: the control moves under the finger. */
 .hm-root button:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-/*
- * Selected and pressed are the same idea in two ARIA vocabularies, so they get
- * one treatment — filled, not merely tinted, because "which one is on" must
- * survive a glance across a dense panel.
- */
 .hm-root button[aria-pressed="true"],
 .hm-root button[aria-selected="true"],
 .hm-root button[aria-expanded="true"] {
@@ -81,11 +76,6 @@
   cursor: not-allowed;
 }
 
-/*
- * Pending. The worker owns the rules, so a command in flight has not happened
- * yet and must never look as though it has: the control keeps its unselected
- * material and states its uncertainty in a marching hairline.
- */
 .hm-root button[aria-busy="true"],
 .hm-root button[data-pending="true"] {
   --hm-button-edge: var(--hm-warn);
@@ -134,23 +124,19 @@
 .hm-root [role="tab"]:hover:not(:disabled) {
   border-left-color: var(--hm-rule-strong);
   background: var(--hm-surface);
-  color: var(--hm-ink);
+  color: var(--hm-ink-bright);
 }
 
-/*
- * The Leitplanke. A selected department lights its rail and drops its ground a
- * shade, so the rail reads as an open drawer in the cabinet rather than a
- * highlighted row in a list.
- */
 .hm-root [role="tab"][aria-selected="true"] {
   border-left-color: var(--hm-signal);
-  background: linear-gradient(90deg, var(--hm-signal-wash), transparent 80%);
+  background: linear-gradient(90deg, rgb(232 163 61 / 20%), transparent 85%);
   color: var(--hm-signal-bright);
-  font-weight: 600;
+  font-weight: 700;
+  text-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
 .hm-root [role="tab"][aria-selected="true"]:hover {
-  background: linear-gradient(90deg, var(--hm-signal-wash), transparent 60%);
+  background: linear-gradient(90deg, rgb(232 163 61 / 30%), transparent 80%);
   color: var(--hm-signal-bright);
 }
 

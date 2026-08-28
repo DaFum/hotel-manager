@@ -104,19 +104,6 @@ export function roomProblems(
   return problems;
 }
 
-/**
- * Design intent (AGENTS §13)
- * - Purpose: let the player see the house as it actually stands right now, and
- *   get from a thing that is wrong to the room it is wrong in.
- * - Tone: a building under a desk lamp — the same materials as the management
- *   panels around it, never a game window dropped into an admin page.
- * - Constraints: the canvas is decorative in the accessibility sense; every
- *   room and facility it draws is also a real DOM control, and the view
- *   degrades to its register when no renderer exists.
- * - Differentiator: one selection. Clicking a room in the world and choosing
- *   it in the register are the same act, and both open the same operational
- *   detail — the world and the management surface never disagree.
- */
 export function HotelView(props: {
   rooms: readonly HotelViewRoom[];
   facilities?: readonly HotelViewFacility[];
@@ -156,26 +143,18 @@ export function HotelView(props: {
   const scene = useRef<PixiScene | null>(null);
   const [sceneReady, setSceneReady] = useState(false);
 
-  // The scene is attached once and keeps the handler it was given, so the
-  // callback is held in a ref rather than baked into that one attachment.
   const selectRoom = useRef<(roomId: string) => void>(() => {});
   const selectAgent = useRef<(agentId: string) => void>(() => {});
 
-  // Attach once. The worker republishes a snapshot ten times a second, so
-  // rebuilding the WebGL context per update would thrash the renderer.
   useEffect(() => {
     if (props.disableRenderer) return;
     let cancelled = false;
-    // The canvas is decorative: the room list below is the accessible source
-    // of truth, so a headless or WebGL-less environment degrades cleanly.
     void (async () => {
       try {
         const { PixiHotelScene } = await import("../render/PixiHotelScene");
         const created = new PixiHotelScene();
         await created.attach(host.current!);
         if (cancelled) return created.destroy();
-        // Clicking a room in the world is the same act as choosing it in the
-        // register, so it lands in the same state and opens the same detail.
         created.onRoomSelected((roomId) => {
           setSelected(roomId);
           selectRoom.current(roomId);
@@ -232,8 +211,6 @@ export function HotelView(props: {
     sceneReady,
   ]);
 
-  // Pan by dragging and zoom by wheel, on the same camera the floor buttons
-  // move. The buttons stay the accessible path; this is the direct one.
   const drag = useRef<{ x: number; y: number } | null>(null);
   const cameraRef = useRef(props.camera);
 
@@ -248,8 +225,6 @@ export function HotelView(props: {
   useEffect(() => {
     const node = host.current;
     if (!node || !props.onCamera) return;
-    // Non-passive, because a wheel over the building must zoom the house
-    // rather than scroll the page out from under it.
     const onWheel = (event: WheelEvent) => {
       const camera = cameraRef.current;
       if (!camera) return;
@@ -332,7 +307,7 @@ export function HotelView(props: {
   });
 
   return (
-    <section ref={viewRoot} aria-label="Hotel view">
+    <section ref={viewRoot} aria-label="Hotel view" className="hm-hotel-view">
       <div
         className="hm-canvas"
         ref={host}
@@ -349,7 +324,6 @@ export function HotelView(props: {
           if (!from || !camera) return;
           const dx = event.clientX - from.x;
           const dy = event.clientY - from.y;
-          // Apply a small drag threshold to differentiate between a click and a pan.
           if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
             drag.current = { x: event.clientX, y: event.clientY };
             moveCamera.current(dragCamera(camera, { x: dx, y: dy }));
@@ -374,308 +348,325 @@ export function HotelView(props: {
           props.onSelect?.(roomId);
         }}
       />
-      {props.floorPlan ? (
-        <details>
-          <summary>{translateGame(locale, "hotel.buildingStructure")}</summary>
-          <h3>{translateGame(locale, "hotel.placedAreas")}</h3>
-          <ul>
-            {props.floorPlan.areas.map((area) => (
-              <li key={area.id} data-entity-id={area.id} tabIndex={-1}>
-                {area.id}:{" "}
-                {translateGame(locale, `hotel.areaKind.${area.kind}`)},{" "}
-                {translateGame(locale, "room.floor", { value: area.floor })}
-              </li>
-            ))}
-          </ul>
-          <h3>{translateGame(locale, "hotel.navigation")}</h3>
-          <ul>
-            {props.floorPlan.navigationNodes.map((node) => (
-              <li key={node.id} data-entity-id={node.id} tabIndex={-1}>
-                {node.id}:{" "}
-                {translateGame(locale, `hotel.navigationKind.${node.kind}`)},{" "}
-                {translateGame(locale, "room.floor", { value: node.floor })}
-                {(props.closedNavigationIds ?? []).includes(node.id)
-                  ? `, ${translateGame(locale, "hotel.closed")}`
-                  : ""}
-              </li>
-            ))}
-          </ul>
-        </details>
-      ) : null}
-      <h3>Service areas</h3>
-      <ul>
-        {(props.facilities ?? []).map((facility) => (
-          <li key={facility.id} data-entity-id={facility.id} tabIndex={-1}>
-            <button
-              type="button"
-              aria-label={`${facility.name}, ${facility.demand} demand, ${facility.capacity} capacity, limited by ${facility.cause}`}
-              onClick={() => {
-                setSelectedFacility(facility.id);
-                props.onSelectFacility?.(facility.id);
-              }}
-            >
-              Focus {facility.name}
-            </button>
-          </li>
-        ))}
-      </ul>
-      {facilityDetail ? (
-        <p aria-live="polite">
-          {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
-          {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
-        </p>
-      ) : null}
-      {props.situations ? (
-        <section aria-label={translateGame(locale, "operations.title")}>
-          <h3>{translateGame(locale, "operations.title")}</h3>
-          <h4>{translateGame(locale, "operations.reception")}</h4>
-          <ul>
-            {props.situations.reception.desks.map((desk, index) => (
-              <li key={desk.id} data-entity-id={desk.id}>
-                {translateGame(
-                  locale,
-                  desk.staffed
-                    ? "operations.deskStaffed"
-                    : "operations.deskUnstaffed",
-                  {
-                    number: index + 1,
-                    staffId: desk.staffId ?? "",
-                  },
-                )}
-              </li>
-            ))}
-          </ul>
-          <p>
-            {translateGame(locale, "operations.receptionQueue", {
-              count: props.situations.reception.queueGuestIds.length,
-            })}
-          </p>
 
-          <h4>{translateGame(locale, "operations.housekeeping")}</h4>
-          <ul>
-            {Object.entries(
-              props.situations.housekeeping.dirtyRoomIdsByFloor,
-            ).map(([floor, roomIds]) => (
-              <li key={floor}>
-                {translateGame(locale, "operations.dirtyRooms", {
-                  floor,
-                  count: roomIds.length,
-                })}
-              </li>
-            ))}
-          </ul>
-          {props.situations.housekeeping.round ? (
-            <p>
-              {translateGame(locale, "operations.round", {
-                agentId: props.situations.housekeeping.round.agentId,
-                targetRoomId: props.situations.housekeeping.round.targetRoomId,
-                guestLabel: props.situations.housekeeping.round.waitingGuestId
-                  ? translateGame(locale, "room.guestLabel", {
-                      code: guestIdentityCode(
-                        props.situations.housekeeping.round.waitingGuestId,
-                      ),
-                    })
-                  : translateGame(locale, "room.detail.none"),
-              })}
-            </p>
-          ) : null}
-
-          <h4>{translateGame(locale, "operations.overloads")}</h4>
-          <ul>
-            {props.situations.overloads.map((overload) => (
-              <li key={overload.facilityId}>
-                {translateGame(locale, "operations.overload", {
-                  facilityId: overload.facilityId,
-                  count: overload.excess,
-                  cause: facilityCauseKey(overload.cause),
-                })}
-              </li>
-            ))}
-          </ul>
-
-          <h4>{translateGame(locale, "operations.food")}</h4>
-          <ul>
-            {props.situations.fnb.outlets.map((outlet) => (
-              <li key={outlet.id} data-entity-id={outlet.areaId}>
-                {translateGame(locale, "operations.outlet", {
-                  outletId: outlet.id,
-                  free: outlet.tables.filter(
-                    (table) => table.occupiedSeats === 0,
-                  ).length,
-                  waiting: outlet.queueEntityIds.length,
-                  cause: facilityCauseKey(outlet.cause),
-                })}{" "}
-                {translateGame(locale, "operations.turnedAway", {
-                  count: outlet.turnedAwayCount,
-                })}
-              </li>
-            ))}
-          </ul>
-          <p>
-            {translateGame(locale, "operations.kitchen", {
-              status: props.situations.fnb.kitchen.overloaded
-                ? "operations.kitchenOverloaded"
-                : "operations.kitchenAvailable",
-              cause: facilityCauseKey(props.situations.fnb.kitchen.cause),
-            })}
-          </p>
-        </section>
-      ) : null}
-      <section aria-label={translateGame(locale, "agent.people")}>
-        <h3>{translateGame(locale, "agent.people")}</h3>
-        <ul>
-          {(props.agents ?? []).map((agent) => {
-            const label =
-              agent.kind === "guest"
-                ? translateGame(locale, "room.guestLabel", {
-                    code: guestIdentityCode(agent.guestId ?? agent.id),
-                  })
-                : agent.id;
-            return (
-              <li key={agent.id} data-entity-id={agent.id}>
-                <button
-                  type="button"
-                  aria-current={
-                    props.camera?.followedAgentId === agent.id
-                      ? true
-                      : undefined
-                  }
-                  aria-label={`${translateGame(locale, "agent.follow")} ${label}`}
-                  onClick={() => {
-                    setSelectedAgent(agent.id);
-                    props.onSelectAgent?.(agent.id);
-                  }}
-                >
-                  {translateGame(locale, "agent.follow")} {label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-      {agentDetail ? (
-        <section aria-label={translateGame(locale, "agent.detail")}>
-          <h3>{translateGame(locale, "agent.detail")}</h3>
-          <dl>
-            <dt>{translateGame(locale, "agent.identity")}</dt>
-            <dd>
-              {agentDetail.kind === "guest"
-                ? translateGame(locale, "room.guestLabel", {
-                    code: guestIdentityCode(
-                      agentDetail.guestId ?? agentDetail.id,
-                    ),
-                  })
-                : agentDetail.id}
-            </dd>
-            <dt>{translateGame(locale, "agent.statusLabel")}</dt>
-            <dd>
-              {translateGame(
-                locale,
-                agentStatusKey(agentDetail.status ?? "working"),
-              )}
-            </dd>
-            <dt>{translateGame(locale, "agent.position")}</dt>
-            <dd>{agentDetail.locationId}</dd>
-            <dt>{translateGame(locale, "agent.route")}</dt>
-            <dd>
-              {(agentDetail.routeIds ?? [agentDetail.locationId]).join(" → ")}
-            </dd>
-          </dl>
-        </section>
-      ) : null}
-      {detail ? (
-        <section aria-label="Room detail">
-          <h3>{detail.id}</h3>
-          {/* The one-line reading stays exactly as it was: it is the live
-              region a screen reader hears the moment a room is chosen. */}
-          <p aria-live="polite">
-            {detail.id}: {humanRoomState(detail.state)}, cleanliness{" "}
-            {detail.cleanliness}
-          </p>
-          <dl>
-            <dt>{translateGame(locale, "room.detail.status")}</dt>
-            <dd>{humanRoomState(detail.state)}</dd>
-            <dt>{translateGame(locale, "room.detail.occupancy")}</dt>
-            <dd>
-              {translateGame(
-                locale,
-                occupant ? "room.detail.occupied" : "room.detail.vacant",
-              )}
-            </dd>
-            <dt>{translateGame(locale, "room.detail.category")}</dt>
-            <dd>{detail.category}</dd>
-            <dt>{translateGame(locale, "room.detail.guest")}</dt>
-            <dd>
-              {occupant?.guestId
-                ? translateGame(locale, "room.guestLabel", {
-                    code: guestIdentityCode(occupant.guestId),
-                  })
-                : translateGame(locale, "room.detail.none")}
-            </dd>
-            <dt>{translateGame(locale, "room.detail.rate")}</dt>
-            <dd>
-              {rateMinor === undefined
-                ? translateGame(locale, "room.detail.notPriced")
-                : formatDm(rateMinor, locale)}
-            </dd>
-            {occupant ? (
-              <>
-                <dt>{translateGame(locale, "room.detail.departing")}</dt>
-                <dd>{occupant.departureDateKey}</dd>
-              </>
-            ) : null}
-            <dt>{translateGame(locale, "room.detail.condition")}</dt>
-            <dd>{translateGame(locale, roomConditionKey(detail.state))}</dd>
-            <dt>{translateGame(locale, "room.detail.cleanliness")}</dt>
-            <dd>{detail.cleanliness}</dd>
-            {roomFaultReasonByRoomId[detail.id] ? (
-              <>
-                <dt>{translateGame(locale, "room.detail.faultReason")}</dt>
-                <dd>
-                  {translateGame(locale, roomFaultReasonByRoomId[detail.id])}
-                </dd>
-              </>
-            ) : null}
-            {props.renovationPhaseByRoomId?.[detail.id] ? (
-              <>
-                <dt>{translateGame(locale, "room.detail.renovationPhase")}</dt>
-                <dd>
-                  {translateGame(
-                    locale,
-                    renovationPhaseKey(
-                      props.renovationPhaseByRoomId[detail.id],
-                    ),
-                  )}
-                </dd>
-              </>
-            ) : null}
-            {detail.moduleId === undefined ? null : (
-              <>
-                <dt>{translateGame(locale, "room.detail.fittedOutAs")}</dt>
-                <dd>{detail.moduleId}</dd>
-              </>
-            )}
-            {detail.styleAgeYears === undefined ? null : (
-              <>
-                <dt>{translateGame(locale, "room.detail.yearsSinceRefit")}</dt>
-                <dd>{detail.styleAgeYears}</dd>
-              </>
-            )}
-          </dl>
-          <h3>{translateGame(locale, "room.detail.openProblems")}</h3>
-          {problems.length === 0 ? (
-            <p>{translateGame(locale, "room.problems.none")}</p>
-          ) : (
+      <div className="hm-hotel-view__grid">
+        {props.floorPlan ? (
+          <details className="hm-card hm-card--collapsible">
+            <summary>{translateGame(locale, "hotel.buildingStructure")}</summary>
+            <h3>{translateGame(locale, "hotel.placedAreas")}</h3>
             <ul>
-              {problems.map((problem) => (
-                <li key={problem.key}>
-                  {translateGame(locale, problem.key, problem.values)}
+              {props.floorPlan.areas.map((area) => (
+                <li key={area.id} data-entity-id={area.id} tabIndex={-1}>
+                  {area.id}:{" "}
+                  {translateGame(locale, `hotel.areaKind.${area.kind}`)},{" "}
+                  {translateGame(locale, "room.floor", { value: area.floor })}
                 </li>
               ))}
             </ul>
-          )}
+            <h3>{translateGame(locale, "hotel.navigation")}</h3>
+            <ul>
+              {props.floorPlan.navigationNodes.map((node) => (
+                <li key={node.id} data-entity-id={node.id} tabIndex={-1}>
+                  {node.id}:{" "}
+                  {translateGame(locale, `hotel.navigationKind.${node.kind}`)},{" "}
+                  {translateGame(locale, "room.floor", { value: node.floor })}
+                  {(props.closedNavigationIds ?? []).includes(node.id)
+                    ? `, ${translateGame(locale, "hotel.closed")}`
+                    : ""}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
+
+        <section className="hm-card">
+          <h3>Service areas</h3>
+          <ul className="hm-card__list">
+            {(props.facilities ?? []).map((facility) => (
+              <li key={facility.id} data-entity-id={facility.id} tabIndex={-1}>
+                <button
+                  type="button"
+                  aria-label={`${facility.name}, ${facility.demand} demand, ${facility.capacity} capacity, limited by ${facility.cause}`}
+                  onClick={() => {
+                    setSelectedFacility(facility.id);
+                    props.onSelectFacility?.(facility.id);
+                  }}
+                >
+                  Focus {facility.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+          {facilityDetail ? (
+            <p aria-live="polite" className="hm-card__status-msg">
+              {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
+              {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
+            </p>
+          ) : null}
         </section>
-      ) : null}
+
+        {props.situations ? (
+          <section
+            aria-label={translateGame(locale, "operations.title")}
+            className="hm-card hm-card--operations"
+          >
+            <h3>{translateGame(locale, "operations.title")}</h3>
+            <h4>{translateGame(locale, "operations.reception")}</h4>
+            <ul>
+              {props.situations.reception.desks.map((desk, index) => (
+                <li key={desk.id} data-entity-id={desk.id}>
+                  {translateGame(
+                    locale,
+                    desk.staffed
+                      ? "operations.deskStaffed"
+                      : "operations.deskUnstaffed",
+                    {
+                      number: index + 1,
+                      staffId: desk.staffId ?? "",
+                    },
+                  )}
+                </li>
+              ))}
+            </ul>
+            <p>
+              {translateGame(locale, "operations.receptionQueue", {
+                count: props.situations.reception.queueGuestIds.length,
+              })}
+            </p>
+
+            <h4>{translateGame(locale, "operations.housekeeping")}</h4>
+            <ul>
+              {Object.entries(
+                props.situations.housekeeping.dirtyRoomIdsByFloor,
+              ).map(([floor, roomIds]) => (
+                <li key={floor}>
+                  {translateGame(locale, "operations.dirtyRooms", {
+                    floor,
+                    count: roomIds.length,
+                  })}
+                </li>
+              ))}
+            </ul>
+            {props.situations.housekeeping.round ? (
+              <p>
+                {translateGame(locale, "operations.round", {
+                  agentId: props.situations.housekeeping.round.agentId,
+                  targetRoomId: props.situations.housekeeping.round.targetRoomId,
+                  guestLabel: props.situations.housekeeping.round.waitingGuestId
+                    ? translateGame(locale, "room.guestLabel", {
+                        code: guestIdentityCode(
+                          props.situations.housekeeping.round.waitingGuestId,
+                        ),
+                      })
+                    : translateGame(locale, "room.detail.none"),
+                })}
+              </p>
+            ) : null}
+
+            <h4>{translateGame(locale, "operations.overloads")}</h4>
+            <ul>
+              {props.situations.overloads.map((overload) => (
+                <li key={overload.facilityId}>
+                  {translateGame(locale, "operations.overload", {
+                    facilityId: overload.facilityId,
+                    count: overload.excess,
+                    cause: facilityCauseKey(overload.cause),
+                  })}
+                </li>
+              ))}
+            </ul>
+
+            <h4>{translateGame(locale, "operations.food")}</h4>
+            <ul>
+              {props.situations.fnb.outlets.map((outlet) => (
+                <li key={outlet.id} data-entity-id={outlet.areaId}>
+                  {translateGame(locale, "operations.outlet", {
+                    outletId: outlet.id,
+                    free: outlet.tables.filter(
+                      (table) => table.occupiedSeats === 0,
+                    ).length,
+                    waiting: outlet.queueEntityIds.length,
+                    cause: facilityCauseKey(outlet.cause),
+                  })}{" "}
+                  {translateGame(locale, "operations.turnedAway", {
+                    count: outlet.turnedAwayCount,
+                  })}
+                </li>
+              ))}
+            </ul>
+            <p>
+              {translateGame(locale, "operations.kitchen", {
+                status: props.situations.fnb.kitchen.overloaded
+                  ? "operations.kitchenOverloaded"
+                  : "operations.kitchenAvailable",
+                cause: facilityCauseKey(props.situations.fnb.kitchen.cause),
+              })}
+            </p>
+          </section>
+        ) : null}
+
+        <section
+          aria-label={translateGame(locale, "agent.people")}
+          className="hm-card hm-card--agents"
+        >
+          <h3>{translateGame(locale, "agent.people")}</h3>
+          <ul className="hm-card__list">
+            {(props.agents ?? []).map((agent) => {
+              const label =
+                agent.kind === "guest"
+                  ? translateGame(locale, "room.guestLabel", {
+                      code: guestIdentityCode(agent.guestId ?? agent.id),
+                    })
+                  : agent.id;
+              return (
+                <li key={agent.id} data-entity-id={agent.id}>
+                  <button
+                    type="button"
+                    aria-current={
+                      props.camera?.followedAgentId === agent.id
+                        ? true
+                        : undefined
+                    }
+                    aria-label={`${translateGame(locale, "agent.follow")} ${label}`}
+                    onClick={() => {
+                      setSelectedAgent(agent.id);
+                      props.onSelectAgent?.(agent.id);
+                    }}
+                  >
+                    {translateGame(locale, "agent.follow")} {label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+
+          {agentDetail ? (
+            <section
+              aria-label={translateGame(locale, "agent.detail")}
+              className="hm-card__subdetail"
+            >
+              <h4>{translateGame(locale, "agent.detail")}</h4>
+              <dl>
+                <dt>{translateGame(locale, "agent.identity")}</dt>
+                <dd>
+                  {agentDetail.kind === "guest"
+                    ? translateGame(locale, "room.guestLabel", {
+                        code: guestIdentityCode(
+                          agentDetail.guestId ?? agentDetail.id,
+                        ),
+                      })
+                    : agentDetail.id}
+                </dd>
+                <dt>{translateGame(locale, "agent.statusLabel")}</dt>
+                <dd>
+                  {translateGame(
+                    locale,
+                    agentStatusKey(agentDetail.status ?? "working"),
+                  )}
+                </dd>
+                <dt>{translateGame(locale, "agent.position")}</dt>
+                <dd>{agentDetail.locationId}</dd>
+                <dt>{translateGame(locale, "agent.route")}</dt>
+                <dd>
+                  {(agentDetail.routeIds ?? [agentDetail.locationId]).join(" → ")}
+                </dd>
+              </dl>
+            </section>
+          ) : null}
+        </section>
+
+        {detail ? (
+          <section aria-label="Room detail" className="hm-card hm-card--detail">
+            <h3>{detail.id}</h3>
+            <p aria-live="polite" className="hm-card__status-msg">
+              {detail.id}: {humanRoomState(detail.state)}, cleanliness{" "}
+              {detail.cleanliness}
+            </p>
+            <dl>
+              <dt>{translateGame(locale, "room.detail.status")}</dt>
+              <dd>{humanRoomState(detail.state)}</dd>
+              <dt>{translateGame(locale, "room.detail.occupancy")}</dt>
+              <dd>
+                {translateGame(
+                  locale,
+                  occupant ? "room.detail.occupied" : "room.detail.vacant",
+                )}
+              </dd>
+              <dt>{translateGame(locale, "room.detail.category")}</dt>
+              <dd>{detail.category}</dd>
+              <dt>{translateGame(locale, "room.detail.guest")}</dt>
+              <dd>
+                {occupant?.guestId
+                  ? translateGame(locale, "room.guestLabel", {
+                      code: guestIdentityCode(occupant.guestId),
+                    })
+                  : translateGame(locale, "room.detail.none")}
+              </dd>
+              <dt>{translateGame(locale, "room.detail.rate")}</dt>
+              <dd>
+                {rateMinor === undefined
+                  ? translateGame(locale, "room.detail.notPriced")
+                  : formatDm(rateMinor, locale)}
+              </dd>
+              {occupant ? (
+                <>
+                  <dt>{translateGame(locale, "room.detail.departing")}</dt>
+                  <dd>{occupant.departureDateKey}</dd>
+                </>
+              ) : null}
+              <dt>{translateGame(locale, "room.detail.condition")}</dt>
+              <dd>{translateGame(locale, roomConditionKey(detail.state))}</dd>
+              <dt>{translateGame(locale, "room.detail.cleanliness")}</dt>
+              <dd>{detail.cleanliness}</dd>
+              {roomFaultReasonByRoomId[detail.id] ? (
+                <>
+                  <dt>{translateGame(locale, "room.detail.faultReason")}</dt>
+                  <dd>
+                    {translateGame(locale, roomFaultReasonByRoomId[detail.id])}
+                  </dd>
+                </>
+              ) : null}
+              {props.renovationPhaseByRoomId?.[detail.id] ? (
+                <>
+                  <dt>{translateGame(locale, "room.detail.renovationPhase")}</dt>
+                  <dd>
+                    {translateGame(
+                      locale,
+                      renovationPhaseKey(
+                        props.renovationPhaseByRoomId[detail.id],
+                      ),
+                    )}
+                  </dd>
+                </>
+              ) : null}
+              {detail.moduleId === undefined ? null : (
+                <>
+                  <dt>{translateGame(locale, "room.detail.fittedOutAs")}</dt>
+                  <dd>{detail.moduleId}</dd>
+                </>
+              )}
+              {detail.styleAgeYears === undefined ? null : (
+                <>
+                  <dt>{translateGame(locale, "room.detail.yearsSinceRefit")}</dt>
+                  <dd>{detail.styleAgeYears}</dd>
+                </>
+              )}
+            </dl>
+            <h3>{translateGame(locale, "room.detail.openProblems")}</h3>
+            {problems.length === 0 ? (
+              <p>{translateGame(locale, "room.problems.none")}</p>
+            ) : (
+              <ul>
+                {problems.map((problem) => (
+                  <li key={problem.key}>
+                    {translateGame(locale, problem.key, problem.values)}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+      </div>
     </section>
   );
 }

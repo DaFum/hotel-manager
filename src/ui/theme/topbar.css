@@ -17,61 +17,99 @@
   position: sticky;
   top: 0;
   z-index: var(--hm-z-chrome);
-  /*
-   * Flex, not a fixed set of tracks: the strip carries a variable number of
-   * readings, and a rigid grid makes the place and the cash figure collide the
-   * moment one more instrument is added to the row.
-   */
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--hm-space-3) var(--hm-space-4);
-  padding: var(--hm-space-3) var(--hm-space-4);
+  justify-content: space-between;
+  gap: var(--hm-space-3);
+  padding: var(--hm-space-2) var(--hm-space-3);
   border: 1px solid var(--hm-rule-strong);
   border-left: var(--hm-rail) solid var(--hm-signal);
-  border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
+  border-radius: var(--hm-radius);
 
-  /* The perforated ground of continuous-feed paper. */
+  /* Deep luxury executive telemetry bar ground */
   background-color: var(--hm-ground-deep);
-  background-image: radial-gradient(var(--hm-rule) 1px, transparent 1px);
-  background-size: 6px 6px;
+  background-image:
+    radial-gradient(var(--hm-rule-strong) 1px, transparent 1px),
+    linear-gradient(180deg, rgb(232 163 61 / 6%), transparent 70%);
+  background-size: 6px 6px, auto;
   box-shadow: var(--hm-shadow-lift);
 }
 
-/*
- * In high contrast the perforation becomes a field of solid white dots sitting
- * directly behind the date and the cash figure. Texture is the first thing to
- * go in the mode whose entire purpose is legibility.
- */
 .hm-root.high-contrast .hm-topbar {
   background-image: none;
 }
 
+/* Telemetry Cards */
+.hm-root .hm-topbar__card {
+  display: flex;
+  align-items: center;
+  padding: var(--hm-space-1) var(--hm-space-3);
+  background: var(--hm-surface-sunken);
+  border: 1px solid var(--hm-rule);
+  border-radius: var(--hm-radius);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 30%);
+}
+
+.hm-root .hm-topbar__card--location {
+  flex: 0 1 auto;
+}
+
+.hm-root .hm-topbar__card--cash {
+  flex: 0 0 auto;
+  background: linear-gradient(180deg, rgb(232 163 61 / 8%), var(--hm-surface-sunken));
+  border-color: rgb(232 163 61 / 30%);
+}
+
+.hm-root .hm-topbar__card--vitals {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.hm-root .hm-topbar__card--controls {
+  flex: 0 0 auto;
+  gap: var(--hm-space-3);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
 .hm-root .hm-topbar__place {
-  flex: 1 1 16rem;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--hm-space-1) var(--hm-space-3);
+  gap: var(--hm-space-2);
+  margin: 0;
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-sm);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--hm-ink-dim);
 }
 
+.hm-root .hm-topbar__city {
+  font-weight: 700;
+  color: var(--hm-ink-bright);
+}
+
 .hm-root .hm-topbar__clock {
-  padding: 0 var(--hm-space-2);
-  border: 1px solid var(--hm-rule);
-  color: var(--hm-signal);
+  padding: 0.1rem var(--hm-space-2);
+  border: 1px solid var(--hm-signal-deep);
+  border-radius: var(--hm-radius);
+  background: var(--hm-surface);
+  color: var(--hm-signal-bright);
+  box-shadow: 0 0 8px var(--hm-signal-wash);
+  font-family: var(--hm-font-data);
+  font-weight: 700;
 }
 
 /* The money column. */
 .hm-root .hm-topbar__cash {
-  flex: 0 0 auto;
   display: flex;
   align-items: baseline;
   gap: var(--hm-space-2);
+  margin: 0;
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
@@ -79,13 +117,18 @@
   color: var(--hm-ink-faint);
 }
 
+.hm-root .hm-topbar__label {
+  font-weight: 600;
+}
+
 .hm-root .hm-topbar__figure {
   font-size: var(--hm-text-lg);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
   white-space: nowrap;
   color: var(--hm-signal-bright);
+  text-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
 /*
@@ -95,13 +138,19 @@
  */
 .hm-root .hm-topbar__vitals {
   display: flex;
+  align-items: center;
   gap: 0;
-  grid-template-columns: none;
+  margin: 0;
 }
 
 .hm-root .hm-topbar__vitals > div {
-  padding: 0 var(--hm-space-4);
+  padding: 0 var(--hm-space-3);
   border-left: 1px solid var(--hm-rule);
+}
+
+.hm-root .hm-topbar__vitals > div:first-child {
+  padding-left: 0;
+  border-left: 0;
 }
 
 .hm-root .hm-topbar__vitals dt {
@@ -117,6 +166,7 @@
 .hm-root .hm-topbar__vitals dd {
   padding: 0;
   border: 0;
+  margin: 0;
   font-size: var(--hm-text-base);
   font-weight: 600;
   text-align: left;
@@ -126,18 +176,11 @@
   .hm-root .hm-topbar__vitals {
     flex-wrap: wrap;
   }
-
-  .hm-root .hm-topbar__vitals > div:first-child {
-    padding-left: 0;
-    border-left: 0;
-  }
 }
 
-/* Time control reads as one segmented switch, not four loose buttons. It and
-   the save controls sit together at the far end of the strip. */
+/* Speed and IO Controls */
 .hm-root .hm-topbar__speed {
   display: flex;
-  margin-left: auto;
 }
 
 .hm-root .hm-topbar__speed button {
@@ -145,6 +188,7 @@
   padding: var(--hm-space-1) var(--hm-space-3);
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
+  font-weight: 600;
 }
 
 .hm-root .hm-topbar__speed button + button {
@@ -159,7 +203,6 @@
   border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
 }
 
-/* A pressed speed keeps a visible edge against its neighbours. */
 .hm-root .hm-topbar__speed button[aria-pressed="true"] + button {
   border-left-width: 1px;
 }
@@ -170,8 +213,8 @@
 }
 
 @media (width <= 60rem) {
-  .hm-root .hm-topbar__place,
-  .hm-root .hm-topbar__vitals {
+  .hm-root .hm-topbar__card--location,
+  .hm-root .hm-topbar__card--vitals {
     flex-basis: 100%;
   }
 }

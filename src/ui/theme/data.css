@@ -101,6 +101,7 @@
 
 .hm-root tbody tr:hover {
   background: var(--hm-signal-wash);
+  box-shadow: inset 2px 0 0 var(--hm-signal);
 }
 
 .hm-root tbody tr:hover th[scope="row"] {

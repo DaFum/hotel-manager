@@ -1,3 +1,4 @@
+import { entityLabel } from "./entityNames";
 import { translateGame, type GameLocale } from "../i18n";
 import {
   MAX_ZOOM,
@@ -76,81 +77,112 @@ export function WorldControls(props: {
     : props.elevator.cause;
 
   return (
-    <section aria-label="World controls" className="world-controls">
-      <h2>World</h2>
-      <p role="status" aria-label="View state" className="world-controls__status">
-        Floor {camera.floor}, {camera.cutaway ? "cut away" : "whole building"},{" "}
-        zoom {camera.zoom.toFixed(1)} showing {detail}, {light} light
+    <section
+      aria-label={translateGame(locale, "world.region")}
+      className="world-controls"
+    >
+      <h2>{translateGame(locale, "world.title")}</h2>
+      <p
+        role="status"
+        aria-label={translateGame(locale, "world.viewStateLabel")}
+        className="world-controls__status"
+      >
+        {translateGame(locale, "world.viewState", {
+          floor: camera.floor,
+          cutaway: translateGame(
+            locale,
+            camera.cutaway ? "world.cutaway.on" : "world.cutaway.off",
+          ),
+          zoom: camera.zoom.toFixed(1),
+          detail: translateGame(locale, `world.detail.${detail}`),
+          light: translateGame(locale, `world.light.${light}`),
+        })}
       </p>
 
       <div className="world-controls__group">
-        <h3>Move</h3>
+        <h3>{translateGame(locale, "world.move")}</h3>
         <div className="world-controls__actions">
           <button
             type="button"
-            aria-label="Pan left"
+            aria-label={translateGame(locale, "world.panLeft")}
             onClick={() => props.onCamera(panCamera(camera, { x: -64, y: 0 }))}
           >
-            Pan left
+            {translateGame(locale, "world.panLeft")}
           </button>
           <button
             type="button"
-            aria-label="Pan right"
+            aria-label={translateGame(locale, "world.panRight")}
             onClick={() => props.onCamera(panCamera(camera, { x: 64, y: 0 }))}
           >
-            Pan right
+            {translateGame(locale, "world.panRight")}
           </button>
           <div className="world-controls__zoom">
             <button
               className="world-controls__zoom-in"
               type="button"
-              aria-label="Zoom in"
+              aria-label={translateGame(locale, "world.zoomIn")}
               disabled={camera.zoom >= MAX_ZOOM}
-              onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
+              onClick={() =>
+                props.onCamera(zoomCamera(camera, camera.zoom + 0.5))
+              }
             >
-              Zoom in
+              {translateGame(locale, "world.zoomIn")}
             </button>
             <button
               className="world-controls__zoom-out"
               type="button"
-              aria-label="Zoom out"
+              aria-label={translateGame(locale, "world.zoomOut")}
               disabled={camera.zoom <= MIN_ZOOM}
-              onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
+              onClick={() =>
+                props.onCamera(zoomCamera(camera, camera.zoom - 0.5))
+              }
             >
-              Zoom out
+              {translateGame(locale, "world.zoomOut")}
             </button>
           </div>
         </div>
       </div>
 
       <div className="world-controls__group">
-        <h3>Floors</h3>
+        <h3>{translateGame(locale, "world.floors")}</h3>
         <ul className="world-controls__floors-list">
           {props.floors.map((floor) => (
             <li key={floor}>
               <button
                 type="button"
-                aria-label={`Show floor ${floor}`}
+                aria-label={translateGame(locale, "world.showFloor", {
+                  floor,
+                })}
                 aria-pressed={camera.floor === floor}
                 onClick={() =>
                   props.onCamera(selectFloor(camera, floor, camera.cutaway))
                 }
               >
-                Floor {floor}
-                {visibleFloor(floor, camera) ? " (visible)" : " (hidden)"}
+                {translateGame(locale, "world.floorLabel", {
+                  floor,
+                  visibility: translateGame(
+                    locale,
+                    visibleFloor(floor, camera)
+                      ? "world.visible"
+                      : "world.hidden",
+                  ),
+                })}
               </button>
             </li>
           ))}
         </ul>
         <button
           type="button"
-          aria-label="Toggle cutaway"
+          aria-label={translateGame(locale, "world.toggleCutaway")}
           aria-pressed={camera.cutaway}
           onClick={() =>
             props.onCamera(selectFloor(camera, camera.floor, !camera.cutaway))
           }
         >
-          {camera.cutaway ? "Show whole building" : "Cut away above this floor"}
+          {translateGame(
+            locale,
+            camera.cutaway ? "world.showWholeBuilding" : "world.cutAwayAbove",
+          )}
         </button>
       </div>
 
@@ -194,7 +226,7 @@ export function WorldControls(props: {
             {props.elevator.cars?.map((car) => (
               <li key={car.id} data-entity-id={car.id}>
                 {translateGame(locale, "world.liftCar", {
-                  id: car.id,
+                  id: entityLabel(car.id, locale),
                   floor: car.currentFloor,
                   direction: `world.direction.${car.direction}`,
                   status: car.failed
@@ -209,9 +241,11 @@ export function WorldControls(props: {
       </div>
 
       <div className="world-controls__group">
-        <h3>Problems</h3>
+        <h3>{translateGame(locale, "world.problems")}</h3>
         {props.problems.length === 0 ? (
-          <p className="world-controls__empty">Nothing needs attention.</p>
+          <p className="world-controls__empty">
+            {translateGame(locale, "world.noProblems")}
+          </p>
         ) : (
           <ul className="world-controls__problems-list">
             {props.problems.map((problem) => (

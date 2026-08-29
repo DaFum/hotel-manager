@@ -11,7 +11,7 @@ describe("SemanticHotelTree", () => {
       />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: /room\.101 single vacant dirty/i }),
+      screen.getByRole("button", { name: /Room 101, single vacant dirty/i }),
     );
     expect(inspect).toHaveBeenCalledWith("room.101");
   });

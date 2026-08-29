@@ -32,7 +32,9 @@
 .hm-main > :is(section, aside):hover,
 .hm-panel:hover {
   border-left-color: var(--hm-signal);
-  box-shadow: var(--hm-shadow-panel), -2px 0 12px var(--hm-signal-wash);
+  box-shadow:
+    var(--hm-shadow-panel),
+    -2px 0 12px var(--hm-signal-wash);
 }
 
 /*
@@ -72,9 +74,15 @@
  * A panel nested inside a panel is a drawer, not another sheet: it loses the
  * shadow and the ground, and keeps only the rail, so nesting never reads as a
  * stack of identical cards.
+ *
+ * These are defaults, not rulings, so the selector is wrapped in :where() and
+ * carries no specificity of its own. A panel that brings its own surface — the
+ * guest ledger's cream paper, say — states it with a single class and wins.
+ * Before this was scoped, `background: none` stripped that paper while the
+ * ledger's near-black ink survived, and the whole department rendered at about
+ * 1.1:1 contrast: legible to nobody.
  */
-.hm-main > :is(section, aside) section,
-.hm-panel section {
+:where(.hm-main > :is(section, aside), .hm-panel) section {
   padding: var(--hm-space-3) 0 var(--hm-space-3) var(--hm-space-4);
   border: 0;
   border-left: 1px solid var(--hm-rule);
@@ -82,8 +90,7 @@
   box-shadow: none;
 }
 
-.hm-main > :is(section, aside) section > h2,
-.hm-panel section > h2 {
+:where(.hm-main > :is(section, aside), .hm-panel) section > h2 {
   font-family: var(--hm-font-body);
   font-size: var(--hm-text-sm);
   font-weight: 600;
@@ -92,8 +99,7 @@
   color: var(--hm-ink-dim);
 }
 
-.hm-main > :is(section, aside) section > h2::after,
-.hm-panel section > h2::after {
+:where(.hm-main > :is(section, aside), .hm-panel) section > h2::after {
   display: none;
 }
 
@@ -144,7 +150,9 @@
   background:
     radial-gradient(70% 60% at 50% 0%, var(--hm-atmosphere), transparent 70%),
     var(--hm-surface-sunken);
-  box-shadow: var(--hm-shadow-drop), inset 0 0 20px rgb(0 0 0 / 50%);
+  box-shadow:
+    var(--hm-shadow-drop),
+    inset 0 0 20px rgb(0 0 0 / 50%);
 }
 
 .hm-canvas canvas {

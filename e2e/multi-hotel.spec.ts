@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openManagementArea } from "./management";
+import { openDrawer, openManagementArea, selectLocale } from "./management";
 
 test("shows the group as a portfolio the player can drill into", async ({
   page,
@@ -38,7 +38,7 @@ test("flies a brand and reports the standards a house is breaking", async ({
       name: /fly rheinstern collection over hotel mainblick/i,
     })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
 
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await expect(
@@ -62,7 +62,7 @@ test("keeps delegated authority and the decisions it sent up on one panel", asyn
   await governance
     .getByRole("button", { name: /raise the repair limit/i })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
   await expect(governance).toContainText("repairs to 10000,00 DM");
 });
 
@@ -83,12 +83,13 @@ test("carries the group through a save and a reload", async ({ page }) => {
   await brands
     .getByRole("button", { name: /fly mainblick over hotel mainblick/i })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
 
-  await page.getByRole("button", { name: /^save$/i }).click();
-  await expect(page.getByLabel("Saves committed")).not.toContainText(": 0");
+  await openDrawer(page, "saves");
+  await page.getByRole("button", { name: /^(save|speichern)$/i }).click();
+  await expect(page.getByLabel(/^(Saves committed|Gespeicherte Spielstände)$/)).not.toContainText(": 0");
 
-  await page.getByRole("button", { name: /^load$/i }).click();
+  await page.getByRole("button", { name: /^(load|laden)$/i }).click();
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await expect(
     portfolio.getByRole("article", { name: "Hotel Mainblick" }),
@@ -121,6 +122,7 @@ test("shows the parts of the hotel that are not bedrooms as a business", async (
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "hotel");
   const spaces = page.getByRole("region", { name: "Commercial spaces" });
   await expect(spaces).toBeVisible();
@@ -128,7 +130,8 @@ test("shows the parts of the hotel that are not bedrooms as a business", async (
     /\d+ served, \d+ waiting/,
   );
   // Every space states its hours, its capacity and how it is operated.
-  await expect(spaces).toContainText(/space.carpark \(parking\): 18 at a time/);
+  await expect(spaces).toContainText(/Car park/);
+  await expect(spaces).toContainText(/18 at a time/);
   await expect(spaces).toContainText("00:00–24:00");
   await expect(spaces).toContainText("self");
   await expect(spaces).toContainText("Everything goes through the desk");
@@ -138,9 +141,7 @@ test("gives the isometric world a keyboard and screen-reader path", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   const world = page.getByRole("region", { name: "World controls" });
   await expect(world).toBeVisible();
 
@@ -172,14 +173,12 @@ test("keeps every room reachable and described without the canvas", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   const view = page.getByRole("region", { name: "Hotel view" });
-  const room = view.getByRole("button", { name: /room.101 single/ });
+  const room = view.getByRole("button", { name: /Room 101, single/ });
   // The state is in the label as words, not as a colour swatch.
   await expect(room).toHaveAttribute("aria-label", /vacant clean|occupied/);
   await room.focus();
   await page.keyboard.press("Enter");
-  await expect(view.getByText(/room.101: .*cleanliness/)).toBeVisible();
+  await expect(view.getByText(/Room 101, single: .*cleanliness/)).toBeVisible();
 });

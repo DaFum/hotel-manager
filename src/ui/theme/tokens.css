@@ -37,6 +37,7 @@
    * text against the darkest ground in the system — the quietest of them,
    * --hm-ink-faint, sits at >5.5:1 contrast ratio.
    */
+  --hm-ink-bright: #fffdf8;
   --hm-ink: #ede9e0;
   --hm-ink-dim: #aaaeb5;
   --hm-ink-faint: #8e9499;
@@ -95,13 +96,18 @@
 
   /* --- Edges: cut, not rounded. This building is concrete. ------------- */
   --hm-radius: 2px;
+  --hm-radius-lg: 6px;
   --hm-rail: 3px;
 
   /* --- Depth ----------------------------------------------------------- */
   --hm-shadow-panel:
-    0 1px 0 rgb(255 255 255 / 6%) inset, 0 14px 32px -16px rgb(0 0 0 / 92%), 0 0 1px rgb(232 163 61 / 10%);
-  --hm-shadow-lift: 0 20px 50px -20px rgb(0 0 0 / 96%), 0 0 24px -8px rgb(232 163 61 / 15%);
-  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep), 0 0 12px var(--hm-signal-wash);
+    0 1px 0 rgb(255 255 255 / 6%) inset, 0 14px 32px -16px rgb(0 0 0 / 92%),
+    0 0 1px rgb(232 163 61 / 10%);
+  --hm-shadow-lift:
+    0 20px 50px -20px rgb(0 0 0 / 96%), 0 0 24px -8px rgb(232 163 61 / 15%);
+  --hm-shadow-signal:
+    0 0 0 1px var(--hm-signal-deep), 0 0 12px var(--hm-signal-wash);
+  --hm-shadow-drop: 0 8px 20px -12px rgb(0 0 0 / 88%);
   --hm-shadow-rail: rgb(0 0 0 / 50%);
 
   /* --- Motion: brisk, mechanical, never bouncy ------------------------- */
@@ -132,6 +138,7 @@
   --hm-rule: #fff;
   --hm-rule-strong: #fff;
   --hm-rule-faint: #fff;
+  --hm-ink-bright: #fff;
   --hm-ink: #fff;
   --hm-ink-dim: #fff;
   --hm-ink-faint: #fff;
@@ -152,4 +159,5 @@
   --hm-idle: #fff;
   --hm-shadow-panel: none;
   --hm-shadow-lift: none;
+  --hm-shadow-drop: none;
 }

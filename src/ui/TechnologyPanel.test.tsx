@@ -19,6 +19,6 @@ it("offers a DOM-accessible technology adoption action", () => {
       onAdopt={onAdopt}
     />,
   );
-  fireEvent.click(screen.getByRole("button", { name: "Adopt internet" }));
+  fireEvent.click(screen.getByRole("button", { name: "Adopt Internet" }));
   expect(onAdopt).toHaveBeenCalledWith("internet");
 });

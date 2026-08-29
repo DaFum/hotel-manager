@@ -1,18 +1,17 @@
 import { test, expect } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { openManagementArea } from "./management";
+import { openManagementArea, selectLocale } from "./management";
 
 const statusBar = (page: Page) =>
   page.getByRole("region", { name: /Status bar|Statusleiste/ });
-const savesCommitted = (page: Page) => page.getByLabel("Saves committed");
+const savesCommitted = (page: Page) =>
+  page.getByLabel(/^(Saves committed|Gespeicherte Spielstände)$/);
 
 test("operate the 1991 hotel through one monthly close and save load", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
 
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     /Frankfurt/i,
@@ -65,7 +64,7 @@ test("restores the saved game date after save and load", async ({ page }) => {
   });
 
   await page.getByRole("button", { name: /pause/i }).click();
-  await page.getByRole("button", { name: /^save$/i }).click();
+  await page.getByRole("button", { name: /^(save|speichern)$/i }).click();
   // Wait for the IndexedDB transaction to commit, not just for SAVE_DATA.
   await expect(savesCommitted(page)).toHaveText(/1/, { timeout: 30_000 });
   const saved = (await statusBar(page).innerText()).match(/1991-\d\d-\d\d/)![0];
@@ -74,6 +73,6 @@ test("restores the saved game date after save and load", async ({ page }) => {
   await expect(statusBar(page)).not.toContainText(saved, { timeout: 30_000 });
 
   await page.getByRole("button", { name: /pause/i }).click();
-  await page.getByRole("button", { name: /^load$/i }).click();
+  await page.getByRole("button", { name: /^(load|laden)$/i }).click();
   await expect(statusBar(page)).toContainText(saved, { timeout: 30_000 });
 });

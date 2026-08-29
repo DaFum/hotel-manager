@@ -1,10 +1,17 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { SemanticHotelTree } from "./accessibility/SemanticHotelTree";
 import { roomConcern } from "../render/sceneLayout";
 import { formatDm } from "./money";
 import { dragCamera, wheelZoom, type CameraState } from "../render/camera";
 import type { VisualAgent } from "../render/agentMaterialization";
 import type { ElevatorVisualState } from "../render/agentMaterialization";
+import { entityLabel } from "./entityNames";
 import { translateGame, type GameLocale } from "../i18n";
 import type { RoomOccupantRef } from "../game/simulation/initialState";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
@@ -105,6 +112,12 @@ export function roomProblems(
 }
 
 export function HotelView(props: {
+  /**
+   * The controls that drive this view — panning, zoom, floors, layers. They
+   * belong beside the picture they move, not fifteen hundred pixels below it
+   * at the bottom of the department, which is where they were.
+   */
+  controls?: ReactNode;
   rooms: readonly HotelViewRoom[];
   facilities?: readonly HotelViewFacility[];
   agents?: readonly VisualAgent[];
@@ -308,36 +321,45 @@ export function HotelView(props: {
 
   return (
     <section ref={viewRoot} aria-label="Hotel view" className="hm-hotel-view">
-      <div
-        className="hm-canvas"
-        ref={host}
-        data-testid="hotel-canvas"
-        onPointerDown={(event) => {
-          if (!props.onCamera) return;
-          drag.current = { x: event.clientX, y: event.clientY };
-          if (event.currentTarget.setPointerCapture)
-            event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          const from = drag.current;
-          const camera = cameraRef.current;
-          if (!from || !camera) return;
-          const dx = event.clientX - from.x;
-          const dy = event.clientY - from.y;
-          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      {/* The stage: the building and the controls that move it, side by side,
+          so choosing a floor or a layer never means scrolling away from the
+          thing it changes. */}
+      <div className="hm-hotel-view__stage">
+        <div
+          className="hm-canvas"
+          ref={host}
+          data-testid="hotel-canvas"
+          onPointerDown={(event) => {
+            if (!props.onCamera) return;
             drag.current = { x: event.clientX, y: event.clientY };
-            moveCamera.current(dragCamera(camera, { x: dx, y: dy }));
-          }
-        }}
-        onPointerUp={(event) => {
-          drag.current = null;
-          if (event.currentTarget.releasePointerCapture)
-            event.currentTarget.releasePointerCapture(event.pointerId);
-        }}
-        onPointerCancel={() => {
-          drag.current = null;
-        }}
-      />
+            if (event.currentTarget.setPointerCapture)
+              event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            const from = drag.current;
+            const camera = cameraRef.current;
+            if (!from || !camera) return;
+            const dx = event.clientX - from.x;
+            const dy = event.clientY - from.y;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+              drag.current = { x: event.clientX, y: event.clientY };
+              moveCamera.current(dragCamera(camera, { x: dx, y: dy }));
+            }
+          }}
+          onPointerUp={(event) => {
+            drag.current = null;
+            if (event.currentTarget.releasePointerCapture)
+              event.currentTarget.releasePointerCapture(event.pointerId);
+          }}
+          onPointerCancel={() => {
+            drag.current = null;
+          }}
+        />
+        {props.controls ? (
+          <div className="hm-hotel-view__controls">{props.controls}</div>
+        ) : null}
+      </div>
+
       <SemanticHotelTree
         locale={props.locale}
         floorByRoomId={props.floorByRoomId}
@@ -352,7 +374,9 @@ export function HotelView(props: {
       <div className="hm-hotel-view__grid">
         {props.floorPlan ? (
           <details className="hm-card hm-card--collapsible">
-            <summary>{translateGame(locale, "hotel.buildingStructure")}</summary>
+            <summary>
+              {translateGame(locale, "hotel.buildingStructure")}
+            </summary>
             <h3>{translateGame(locale, "hotel.placedAreas")}</h3>
             <ul>
               {props.floorPlan.areas.map((area) => (
@@ -380,7 +404,7 @@ export function HotelView(props: {
         ) : null}
 
         <section className="hm-card">
-          <h3>Service areas</h3>
+          <h3>{translateGame(locale, "hotel.serviceAreas")}</h3>
           <ul className="hm-card__list">
             {(props.facilities ?? []).map((facility) => (
               <li key={facility.id} data-entity-id={facility.id} tabIndex={-1}>
@@ -392,15 +416,25 @@ export function HotelView(props: {
                     props.onSelectFacility?.(facility.id);
                   }}
                 >
-                  Focus {facility.name}
+                  {facility.name}
                 </button>
               </li>
             ))}
           </ul>
           {facilityDetail ? (
             <p aria-live="polite" className="hm-card__status-msg">
-              {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
-              {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
+              {facilityDetail.name}:{" "}
+              {translateGame(locale, "panels.facilities.load", {
+                demand: facilityDetail.demand,
+                capacity: facilityDetail.capacity,
+                share: `${facilityDetail.capacity > 0 ? Math.round((facilityDetail.demand / facilityDetail.capacity) * 100) : 0}%`,
+              })}
+              , {translateGame(locale, "panels.facilities.limitedBy", {
+                cause: translateGame(
+                  locale,
+                  facilityCauseKey(facilityDetail.cause),
+                ),
+              })}
             </p>
           ) : null}
         </section>
@@ -422,7 +456,9 @@ export function HotelView(props: {
                       : "operations.deskUnstaffed",
                     {
                       number: index + 1,
-                      staffId: desk.staffId ?? "",
+                      staffId: desk.staffId
+                        ? entityLabel(desk.staffId, locale)
+                        : "",
                     },
                   )}
                 </li>
@@ -450,8 +486,14 @@ export function HotelView(props: {
             {props.situations.housekeeping.round ? (
               <p>
                 {translateGame(locale, "operations.round", {
-                  agentId: props.situations.housekeeping.round.agentId,
-                  targetRoomId: props.situations.housekeeping.round.targetRoomId,
+                  agentId: entityLabel(
+                    props.situations.housekeeping.round.agentId,
+                    locale,
+                  ),
+                  targetRoomId: entityLabel(
+                    props.situations.housekeeping.round.targetRoomId,
+                    locale,
+                  ),
                   guestLabel: props.situations.housekeeping.round.waitingGuestId
                     ? translateGame(locale, "room.guestLabel", {
                         code: guestIdentityCode(
@@ -481,7 +523,7 @@ export function HotelView(props: {
               {props.situations.fnb.outlets.map((outlet) => (
                 <li key={outlet.id} data-entity-id={outlet.areaId}>
                   {translateGame(locale, "operations.outlet", {
-                    outletId: outlet.id,
+                    outletId: entityLabel(outlet.id, locale),
                     free: outlet.tables.filter(
                       (table) => table.occupiedSeats === 0,
                     ).length,
@@ -568,7 +610,9 @@ export function HotelView(props: {
                 <dd>{agentDetail.locationId}</dd>
                 <dt>{translateGame(locale, "agent.route")}</dt>
                 <dd>
-                  {(agentDetail.routeIds ?? [agentDetail.locationId]).join(" → ")}
+                  {(agentDetail.routeIds ?? [agentDetail.locationId]).join(
+                    " → ",
+                  )}
                 </dd>
               </dl>
             </section>
@@ -628,7 +672,9 @@ export function HotelView(props: {
               ) : null}
               {props.renovationPhaseByRoomId?.[detail.id] ? (
                 <>
-                  <dt>{translateGame(locale, "room.detail.renovationPhase")}</dt>
+                  <dt>
+                    {translateGame(locale, "room.detail.renovationPhase")}
+                  </dt>
                   <dd>
                     {translateGame(
                       locale,
@@ -647,7 +693,9 @@ export function HotelView(props: {
               )}
               {detail.styleAgeYears === undefined ? null : (
                 <>
-                  <dt>{translateGame(locale, "room.detail.yearsSinceRefit")}</dt>
+                  <dt>
+                    {translateGame(locale, "room.detail.yearsSinceRefit")}
+                  </dt>
                   <dd>{detail.styleAgeYears}</dd>
                 </>
               )}

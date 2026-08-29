@@ -5,6 +5,8 @@ import { TutorialCoach } from "../ui/onboarding/TutorialCoach";
 import { NotificationCenter } from "../ui/notifications/NotificationCenter";
 import { NotificationFilters } from "../ui/notifications/NotificationFilters";
 import { ContextHelp } from "../ui/help/ContextHelp";
+import { Drawer } from "../ui/shell/Drawer";
+import { LocaleProvider } from "../ui/localeContext";
 import { AudioEngine } from "../audio/audioEngine";
 import { translateGame } from "../i18n";
 import "../ui/accessibility/accessibility.css";
@@ -180,6 +182,15 @@ export function App() {
   const [announcedMilestone, setAnnouncedMilestone] = useState<string | null>(
     null,
   );
+  /**
+   * Which desk drawer is open, if any. Chrome the player opens on purpose:
+   * never more than one at a time, and never in front of the hotel by default.
+   */
+  const [openDrawer, setOpenDrawer] = useState<"settings" | "saves" | null>(
+    null,
+  );
+  /** The noticeboard column, so the message button can put focus on it. */
+  const messages = useRef<HTMLElement | null>(null);
   const preferences = game.preferences;
   const seenAlerts = useRef(new Set<string>());
   const audio = useRef<AudioEngine | null>(null);
@@ -282,8 +293,13 @@ export function App() {
         className="hm-root hm-boot"
         aria-label={translateGame(preferences.locale, "app.main")}
       >
-        <h1>Hotel Manager</h1>
-        <p>Starting {CITY.name} 1991…</p>
+        <h1>{translateGame(preferences.locale, "app.title")}</h1>
+        <p>
+          {translateGame(preferences.locale, "app.starting", {
+            city: CITY.name,
+            year: 1991,
+          })}
+        </p>
       </main>
     );
 
@@ -364,6 +380,33 @@ export function App() {
           />
         ) : null}
         <HotelView
+          controls={
+            <WorldControls
+              camera={camera}
+              floors={
+                flagshipSelected
+                  ? [
+                      ...new Set(
+                        Object.values(s.renderDescriptors.floorByRoomId),
+                      ),
+                    ].sort((a, b) => a - b)
+                  : []
+              }
+              minuteOfDay={s.calendar.minuteOfDay}
+              elevator={
+                flagshipSelected
+                  ? elevatorVisual(s.renderDescriptors.elevator)
+                  : {
+                      queue: 0,
+                      waitMinutes: 0,
+                      cause: "world.elevatorCause.notSimulated",
+                    }
+              }
+              problems={flagshipSelected ? worldProblems(s) : []}
+              onCamera={setCamera}
+              locale={preferences.locale}
+            />
+          }
           rooms={flagshipSelected ? s.hotel.rooms : []}
           facilities={flagshipSelected ? s.facilities : []}
           agents={flagshipSelected ? visualAgents(s, camera) : []}
@@ -420,29 +463,6 @@ export function App() {
           disableRenderer={rendererDisabled()}
           locale={preferences.locale}
         />
-        <WorldControls
-          camera={camera}
-          floors={
-            flagshipSelected
-              ? [
-                  ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
-                ].sort((a, b) => a - b)
-              : []
-          }
-          minuteOfDay={s.calendar.minuteOfDay}
-          elevator={
-            flagshipSelected
-              ? elevatorVisual(s.renderDescriptors.elevator)
-              : {
-                  queue: 0,
-                  waitMinutes: 0,
-                  cause: "world.elevatorCause.notSimulated",
-                }
-          }
-          problems={flagshipSelected ? worldProblems(s) : []}
-          onCamera={setCamera}
-          locale={preferences.locale}
-        />
       </>
     ),
     hotel: flagshipSelected ? (
@@ -450,6 +470,7 @@ export function App() {
         <FacilitiesDashboard rows={s.facilities} />
         <FnbDashboard fnb={s.fnb} locale={preferences.locale} />
         <CommercialSpacesPanel
+          locale={preferences.locale}
           spaces={s.commercialSpaces.spaces.map((space) => ({
             id: space.id,
             kind: space.kind,
@@ -834,219 +855,300 @@ export function App() {
   };
 
   return (
-    <div
-      lang={preferences.locale.slice(0, 2)}
-      className={`hm-root${preferences.accessibility.highContrast ? " high-contrast" : ""}`}
-      style={{ fontSize: `${preferences.accessibility.textScale}rem` }}
-      data-reduced-motion={preferences.accessibility.reducedMotion}
-    >
-      <h1>
-        {s.hotel.name}, {CITY.name} 1991
-      </h1>
-      {/* The telemetry line: three live regions the player can consult but
-          is never interrupted by, set as one quiet status strip. */}
-      <div className="hm-telemetry">
-        <p
-          className="hm-telemetry__status"
-          role="status"
-          aria-label="Simulation status"
-          aria-live="polite"
-        >
-          {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
-        </p>
-        <p aria-label="Command status" aria-live="polite">
-          {translateGame(preferences.locale, "app.telemetry.command", {
-            status: game.commandStatus,
-          })}
-        </p>
-        <p aria-label="Saves committed">
-          {translateGame(preferences.locale, "app.telemetry.saves", {
-            count: game.savedCount,
-          })}
-        </p>
-      </div>
-      <TopBar
-        city={CITY.name}
-        dateKey={s.calendar.dateKey}
-        minuteOfDay={s.calendar.minuteOfDay}
-        cashMinor={s.finance.cashMinor}
-        monthProfitMinor={
-          s.finance.month.roomRevenueMinor +
-          s.finance.month.otherRevenueMinor -
-          s.finance.month.operatingExpenseMinor
-        }
-        occupancyBasisPoints={s.metrics.occupancyBasisPoints}
-        reputation={s.guestSatisfaction.score}
-        warningCount={s.alerts.length}
-        speed={game.speed}
-        onSpeed={game.setSpeed}
-        onSave={() => game.save()}
-        onLoad={() => game.load()}
-        locale={preferences.locale}
-      />
-      <ContextHelp
-        title={translateGame(preferences.locale, "help.guestSatisfaction")}
-        drivers={s.guestSatisfaction.causes.map((key) => ({ key }))}
-        locale={preferences.locale}
-      />
-      <section
-        aria-label={translateGame(preferences.locale, "settings.presentation")}
+    <LocaleProvider locale={preferences.locale}>
+      <div
+        lang={preferences.locale.slice(0, 2)}
+        className={`hm-root${preferences.accessibility.highContrast ? " high-contrast" : ""}`}
+        style={{ fontSize: `${preferences.accessibility.textScale}rem` }}
+        data-reduced-motion={preferences.accessibility.reducedMotion}
       >
-        <label>
-          {translateGame(preferences.locale, "topbar.language")}{" "}
-          <select
-            aria-label={translateGame(preferences.locale, "topbar.language")}
-            value={preferences.locale}
-            onChange={(event) => {
-              const locale = event.currentTarget.value as "de-DE" | "en-GB";
-              game.setPreferences({ ...preferences, locale });
+        <TopBar
+          hotelName={s.hotel.name}
+          city={CITY.name}
+          dateKey={s.calendar.dateKey}
+          minuteOfDay={s.calendar.minuteOfDay}
+          cashMinor={s.finance.cashMinor}
+          monthProfitMinor={
+            s.finance.month.roomRevenueMinor +
+            s.finance.month.otherRevenueMinor -
+            s.finance.month.operatingExpenseMinor
+          }
+          occupancyBasisPoints={s.metrics.occupancyBasisPoints}
+          reputation={s.guestSatisfaction.score}
+          warningCount={s.alerts.length}
+          speed={game.speed}
+          onSpeed={game.setSpeed}
+          onSave={() => game.save()}
+          onLoad={() => game.load()}
+          onOpenSettings={() => setOpenDrawer("settings")}
+          onOpenSaves={() => setOpenDrawer("saves")}
+          onOpenNotifications={() => messages.current?.focus()}
+          locale={preferences.locale}
+        />
+        {/*
+        The frame: departments on the left, the department the player opened in
+        the middle, the noticeboard on the right. Everything else in this file
+        is a drawer or a modal, so this is the whole game on one screen.
+      */}
+        <div className="hm-frame">
+          <ManagementShell
+            locale={preferences.locale}
+            title={translateGame(preferences.locale, "app.main")}
+            adoption={{
+              personalComputerBp: adoption["personal-computer"] ?? 0,
+              internetBp: adoption.internet ?? 0,
+              smartphoneBp: adoption.smartphone ?? 0,
+              channelManagerBp: adoption["channel-manager"] ?? 0,
             }}
+            areas={AREA_ORDER.map((id) => ({ id, content: areaContent[id] }))}
+          />
+          {/*
+          The noticeboard, in reading order: what to do next, what has just
+          happened, and why the house stands where it does.
+        */}
+          <aside
+            className="hm-messages"
+            ref={messages}
+            tabIndex={-1}
+            aria-label={translateGame(
+              preferences.locale,
+              "notifications.board",
+            )}
           >
-            <option value="de-DE">Deutsch</option>
-            <option value="en-GB">English</option>
-          </select>
-        </label>
-        <AccessibilityPreferences
-          value={preferences.accessibility}
+            {preferences.tutorialCompleted.length < 3 ? (
+              <TutorialCoach
+                state={{
+                  step:
+                    preferences.tutorialCompleted.length === 0
+                      ? "set-room-price"
+                      : preferences.tutorialCompleted.at(-1) ===
+                          "set-room-price"
+                        ? "inspect-bookings"
+                        : "hire-housekeeping",
+                  completed: preferences.tutorialCompleted,
+                }}
+                onDismiss={() =>
+                  game.setPreferences({
+                    ...preferences,
+                    tutorialCompleted: [
+                      "set-room-price",
+                      "inspect-bookings",
+                      "hire-housekeeping",
+                    ],
+                  })
+                }
+                onAction={game.observeTutorialAction}
+                locale={preferences.locale}
+              />
+            ) : null}
+            <NotificationCenter
+              notifications={s.alerts.map((alert): NotificationRecord => ({
+                id: alert.id,
+                type: alert.id,
+                category: alert.category,
+                severity: alert.severity,
+                gameTime: alert.gameTime,
+                source: alert.source,
+                causes: [{ key: alert.cause, values: alert.causeValues }],
+                read: openAlert === alert.id,
+                acknowledged: alert.acknowledged,
+                groupId: alert.groupId,
+                delegate: alert.delegate,
+                message: { key: alert.title, values: alert.causeValues },
+                actionTarget: alert.actionEntityId
+                  ? {
+                      label: {
+                        key: "notifications.open",
+                        values: {
+                          title: translateGame(
+                            preferences.locale,
+                            alert.title,
+                            alert.causeValues,
+                          ),
+                        },
+                      },
+                      entityId: alert.target?.entityId ?? alert.actionEntityId,
+                    }
+                  : undefined,
+              }))}
+              preferences={preferences.notifications}
+              pauseState={game.pauseStatus}
+              onAction={openNotificationTarget}
+              onAcknowledge={game.acknowledgeAlert}
+              locale={preferences.locale}
+            />
+            {/* Which messages reach the board is a setting about the board, so
+              it is folded away underneath it rather than filling a screen. */}
+            <details className="hm-messages__filters">
+              <summary>
+                {translateGame(
+                  preferences.locale,
+                  "notifications.filtersToggle",
+                )}
+              </summary>
+              <NotificationFilters
+                value={preferences.notifications}
+                locale={preferences.locale}
+                categories={[
+                  ...new Set(s.alerts.map((alert) => alert.category)),
+                ]}
+                hotels={s.company.portfolio.hotelIds.map((id) => ({
+                  id,
+                  name: hotelName(s, id),
+                }))}
+                regions={[
+                  ...new Set(Object.values(s.company.portfolio.hotelRegion)),
+                ].map((id) => {
+                  const hotelId = s.company.portfolio.hotelIds.find(
+                    (candidate) =>
+                      s.company.portfolio.hotelRegion[candidate] === id,
+                  );
+                  return { id, name: hotelId ? cityName(s, hotelId) : id };
+                })}
+                onChange={(notifications) =>
+                  game.setPreferences({ ...preferences, notifications })
+                }
+              />
+            </details>
+            <ContextHelp
+              title={translateGame(
+                preferences.locale,
+                "help.guestSatisfaction",
+              )}
+              drivers={s.guestSatisfaction.causes.map((key) => ({ key }))}
+              locale={preferences.locale}
+            />
+          </aside>
+        </div>
+        {/* Diagnostics, at the size a diagnostic deserves: three live regions
+          the player may consult and is never interrupted by. */}
+        <div className="hm-telemetry">
+          <p
+            className="hm-telemetry__status"
+            role="status"
+            aria-label={translateGame(
+              preferences.locale,
+              "app.telemetry.simulation",
+            )}
+            aria-live="polite"
+          >
+            {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
+          </p>
+          <p
+            aria-label={translateGame(
+              preferences.locale,
+              "app.telemetry.commandLabel",
+            )}
+            aria-live="polite"
+          >
+            {translateGame(preferences.locale, "app.telemetry.command", {
+              status: game.commandStatus,
+            })}
+          </p>
+          <p
+            aria-label={translateGame(
+              preferences.locale,
+              "app.telemetry.savesLabel",
+            )}
+          >
+            {translateGame(preferences.locale, "app.telemetry.saves", {
+              count: game.savedCount,
+            })}
+          </p>
+        </div>
+        <Drawer
+          id="hm-drawer-saves"
+          title={translateGame(preferences.locale, "topbar.openSaves")}
+          open={openDrawer === "saves"}
+          onClose={() => setOpenDrawer(null)}
           locale={preferences.locale}
-          onChange={(accessibility) =>
-            game.setPreferences({ ...preferences, accessibility })
-          }
-        />
-        <AudioSettings
-          value={preferences.audio}
+        >
+          <SaveManager
+            slots={game.slots}
+            recoveredFrom={game.recoveredFrom}
+            validationFailure={game.validationFailure}
+            onSave={(slot) => game.save(slot)}
+            onLoad={(slot) => game.load(slot)}
+          />
+          <SaveTransferPanel />
+        </Drawer>
+        <Drawer
+          id="hm-drawer-settings"
+          title={translateGame(preferences.locale, "topbar.openSettings")}
+          open={openDrawer === "settings"}
+          onClose={() => setOpenDrawer(null)}
           locale={preferences.locale}
-          onChange={(audio) => game.setPreferences({ ...preferences, audio })}
-        />
-      </section>
-      {preferences.tutorialCompleted.length < 3 ? (
-        <TutorialCoach
-          state={{
-            step:
-              preferences.tutorialCompleted.length === 0
-                ? "set-room-price"
-                : preferences.tutorialCompleted.at(-1) === "set-room-price"
-                  ? "inspect-bookings"
-                  : "hire-housekeeping",
-            completed: preferences.tutorialCompleted,
-          }}
-          onDismiss={() =>
-            game.setPreferences({
-              ...preferences,
-              tutorialCompleted: [
-                "set-room-price",
-                "inspect-bookings",
-                "hire-housekeeping",
-              ],
-            })
-          }
-          onAction={game.observeTutorialAction}
-          locale={preferences.locale}
-        />
-      ) : null}
-      <NotificationCenter
-        notifications={s.alerts.map((alert): NotificationRecord => ({
-          id: alert.id,
-          type: alert.id,
-          category: alert.category,
-          severity: alert.severity,
-          gameTime: alert.gameTime,
-          source: alert.source,
-          causes: [{ key: alert.cause, values: alert.causeValues }],
-          read: openAlert === alert.id,
-          acknowledged: alert.acknowledged,
-          groupId: alert.groupId,
-          delegate: alert.delegate,
-          message: { key: alert.title, values: alert.causeValues },
-          actionTarget: alert.actionEntityId
-            ? {
-                label: {
-                  key: "notifications.open",
-                  values: {
-                    title: translateGame(
-                      preferences.locale,
-                      alert.title,
-                      alert.causeValues,
-                    ),
-                  },
-                },
-                entityId: alert.target?.entityId ?? alert.actionEntityId,
+        >
+          <section
+            aria-label={translateGame(
+              preferences.locale,
+              "settings.presentation",
+            )}
+          >
+            <label>
+              {translateGame(preferences.locale, "topbar.language")}{" "}
+              <select
+                aria-label={translateGame(
+                  preferences.locale,
+                  "topbar.language",
+                )}
+                value={preferences.locale}
+                onChange={(event) => {
+                  const locale = event.currentTarget.value as "de-DE" | "en-GB";
+                  game.setPreferences({ ...preferences, locale });
+                }}
+              >
+                <option value="de-DE">Deutsch</option>
+                <option value="en-GB">English</option>
+              </select>
+            </label>
+            <AccessibilityPreferences
+              value={preferences.accessibility}
+              locale={preferences.locale}
+              onChange={(accessibility) =>
+                game.setPreferences({ ...preferences, accessibility })
               }
-            : undefined,
-        }))}
-        preferences={preferences.notifications}
-        pauseState={game.pauseStatus}
-        onAction={openNotificationTarget}
-        onAcknowledge={game.acknowledgeAlert}
-        locale={preferences.locale}
-      />
-      <NotificationFilters
-        value={preferences.notifications}
-        locale={preferences.locale}
-        categories={[...new Set(s.alerts.map((alert) => alert.category))]}
-        hotels={s.company.portfolio.hotelIds.map((id) => ({
-          id,
-          name: hotelName(s, id),
-        }))}
-        regions={[
-          ...new Set(Object.values(s.company.portfolio.hotelRegion)),
-        ].map((id) => {
-          const hotelId = s.company.portfolio.hotelIds.find(
-            (candidate) => s.company.portfolio.hotelRegion[candidate] === id,
-          );
-          return { id, name: hotelId ? cityName(s, hotelId) : id };
-        })}
-        onChange={(notifications) =>
-          game.setPreferences({ ...preferences, notifications })
-        }
-      />
-      <SaveTransferPanel />
-      <SaveManager
-        slots={game.slots}
-        recoveredFrom={game.recoveredFrom}
-        validationFailure={game.validationFailure}
-        onSave={(slot) => game.save(slot)}
-        onLoad={(slot) => game.load(slot)}
-      />
-      {new URLSearchParams(window.location.search).get("balancing") === "on" ? (
-        <BalancingDashboard metrics={balancingMetricsFromSnapshot(s)} />
-      ) : null}
-      <ManagementShell
-        locale={preferences.locale}
-        title={translateGame(preferences.locale, "app.main")}
-        adoption={{
-          personalComputerBp: adoption["personal-computer"] ?? 0,
-          internetBp: adoption.internet ?? 0,
-          smartphoneBp: adoption.smartphone ?? 0,
-          channelManagerBp: adoption["channel-manager"] ?? 0,
-        }}
-        areas={AREA_ORDER.map((id) => ({ id, content: areaContent[id] }))}
-      />
-      <MonthlyCloseModal
-        locale={preferences.locale}
-        report={
-          s.lastMonthlyClose && s.lastMonthlyClose.periodKey !== dismissedClose
-            ? s.lastMonthlyClose
-            : null
-        }
-        onDismiss={() =>
-          setDismissedClose(s.lastMonthlyClose?.periodKey ?? null)
-        }
-      />
-      <MilestoneToast
-        milestoneId={
-          latestMilestone !== announcedMilestone ? latestMilestone : null
-        }
-        onDismiss={() => setAnnouncedMilestone(latestMilestone)}
-      />
-      <CareerOutcomeModal
-        outcome={s.narrative.career}
-        onRecovery={(path) =>
-          game.send({ type: "TAKE_RECOVERY_MEASURE", path })
-        }
-        onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
-        onRestart={() => game.restart()}
-      />
-    </div>
+            />
+            <AudioSettings
+              value={preferences.audio}
+              locale={preferences.locale}
+              onChange={(audio) =>
+                game.setPreferences({ ...preferences, audio })
+              }
+            />
+          </section>
+        </Drawer>
+        {new URLSearchParams(window.location.search).get("balancing") ===
+        "on" ? (
+          <BalancingDashboard metrics={balancingMetricsFromSnapshot(s)} />
+        ) : null}
+        <MonthlyCloseModal
+          locale={preferences.locale}
+          report={
+            s.lastMonthlyClose &&
+            s.lastMonthlyClose.periodKey !== dismissedClose
+              ? s.lastMonthlyClose
+              : null
+          }
+          onDismiss={() =>
+            setDismissedClose(s.lastMonthlyClose?.periodKey ?? null)
+          }
+        />
+        <MilestoneToast
+          milestoneId={
+            latestMilestone !== announcedMilestone ? latestMilestone : null
+          }
+          onDismiss={() => setAnnouncedMilestone(latestMilestone)}
+        />
+        <CareerOutcomeModal
+          outcome={s.narrative.career}
+          onRecovery={(path) =>
+            game.send({ type: "TAKE_RECOVERY_MEASURE", path })
+          }
+          onContinue={() => game.send({ type: "CONTINUE_ENDLESS_CAREER" })}
+          onRestart={() => game.restart()}
+        />
+      </div>
+    </LocaleProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { selectLocale } from "./management";
 
 test("hotel view stays interactive during 16x simulation", async ({ page }) => {
   await page.goto("/?renderer=off");
@@ -6,12 +7,10 @@ test("hotel view stays interactive during 16x simulation", async ({ page }) => {
     /Frankfurt/i,
     { timeout: 30_000 },
   );
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   const room = page
     .getByRole("region", { name: "Hotel view" })
-    .getByRole("button", { name: /room.101 single/i });
+    .getByRole("button", { name: /Room 101, single/i });
   const status = page.getByRole("region", {
     name: /Status bar|Statusleiste/,
   });
@@ -33,6 +32,6 @@ test("hotel view stays interactive during 16x simulation", async ({ page }) => {
   await expect(
     page
       .getByRole("region", { name: "Hotel view" })
-      .getByText(/room.101: .*cleanliness/i),
+      .getByText(/Room 101, single: .*cleanliness/i),
   ).toBeVisible();
 });

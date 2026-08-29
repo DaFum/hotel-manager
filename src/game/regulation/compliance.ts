@@ -24,6 +24,7 @@ export type ConsequenceDescriptor =
 
 export interface RegulationRule {
   id: string;
+  simulationOrder?: number;
   area: RegulationArea;
   jurisdictionId: string;
   requirement: number;
@@ -197,5 +198,10 @@ export function applicableRules(
             (worldState[rule.activation.worldMetric] as number) >=
               rule.activation.minimum)),
     )
-    .sort((a, b) => compareIds(a.id, b.id));
+    .sort((a, b) => {
+      const orderA = a.simulationOrder ?? 0;
+      const orderB = b.simulationOrder ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return compareIds(a.id, b.id);
+    });
 }

@@ -215,6 +215,10 @@ export interface MonthAccumulator {
 export interface ComplianceRuleState {
   status: "inactive" | "compliant" | "grace" | "noncompliant";
   lastEvaluatedMinutes: number;
+  gap?: number;
+  measured?: number;
+  requirement?: number;
+  remediation?: { kind: string; costMinor: number; improvement: number }[];
 }
 
 export interface ComplianceState {

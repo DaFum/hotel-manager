@@ -208,12 +208,54 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.compliance.rules ||
     typeof state.compliance.rules !== "object" ||
     Array.isArray(state.compliance.rules) ||
+    !Object.values(state.compliance.rules).every(
+      (rule: any) =>
+        rule !== null &&
+        typeof rule === "object" &&
+        ["inactive", "compliant", "grace", "noncompliant"].includes(rule.status) &&
+        Number.isSafeInteger(rule.lastEvaluatedMinutes) &&
+        rule.lastEvaluatedMinutes >= 0 &&
+        (rule.gap === undefined || (Number.isSafeInteger(rule.gap) && rule.gap >= 0)) &&
+        (rule.measured === undefined || (Number.isSafeInteger(rule.measured) && rule.measured >= 0)) &&
+        (rule.requirement === undefined || (Number.isSafeInteger(rule.requirement) && rule.requirement >= 0)) &&
+        (rule.remediation === undefined ||
+          (Array.isArray(rule.remediation) &&
+            rule.remediation.every(
+              (rem: any) =>
+                rem !== null &&
+                typeof rem === "object" &&
+                typeof rem.kind === "string" &&
+                Number.isSafeInteger(rem.costMinor) &&
+                rem.costMinor >= 0 &&
+                Number.isSafeInteger(rem.improvement) &&
+                rem.improvement >= 0,
+            ))),
+    ) ||
     !state.compliance.activeRestrictions ||
     typeof state.compliance.activeRestrictions !== "object" ||
     Array.isArray(state.compliance.activeRestrictions) ||
+    !Object.values(state.compliance.activeRestrictions).every(
+      (res: any) =>
+        res !== null &&
+        typeof res === "object" &&
+        typeof res.ruleId === "string" &&
+        res.ruleId.length > 0 &&
+        (res.capacityValue === undefined || (Number.isSafeInteger(res.capacityValue) && res.capacityValue >= 0)) &&
+        (res.capacityFactorBp === undefined ||
+          (Number.isSafeInteger(res.capacityFactorBp) &&
+            res.capacityFactorBp >= 0 &&
+            res.capacityFactorBp <= 10_000)),
+    ) ||
     !state.compliance.activeClosures ||
     typeof state.compliance.activeClosures !== "object" ||
-    Array.isArray(state.compliance.activeClosures)
+    Array.isArray(state.compliance.activeClosures) ||
+    !Object.values(state.compliance.activeClosures).every(
+      (cls: any) =>
+        cls !== null &&
+        typeof cls === "object" &&
+        typeof cls.ruleId === "string" &&
+        cls.ruleId.length > 0,
+    )
   )
     problems.push("the state has no valid compliance section");
   if (!state.finance || !Number.isSafeInteger(state.finance.cashMinor))

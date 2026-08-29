@@ -1968,14 +1968,18 @@ export class GameSimulation implements CommandExecutor {
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
-    const constraints: FacilityConstraint[] = [
-      { label: "facility.cause.demand", value: demand },
-      { label: "facility.cause.seating", value: seating.capacity },
-      { label: "facility.cause.serviceStaff", value: serviceThroughput },
-      { label: "facility.cause.kitchenLine", value: kitchenThroughput },
-      { label: "facility.cause.stock", value: stock },
-      { label: "facility.cause.miseEnPlace", value: prepared },
-    ];
+    const constraints: FacilityConstraint[] = this.applyComplianceConstraints(
+      "facility.breakfast_room",
+      [
+        { label: "facility.cause.demand", value: demand },
+        { label: "facility.cause.seating", value: seating.capacity },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
+      seating.capacity,
+    );
     const row = facilityRow({
       id: "fnb.breakfastRoom",
       name: "Breakfast room",
@@ -2047,11 +2051,9 @@ export class GameSimulation implements CommandExecutor {
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
-    const row = facilityRow({
-      id: "fnb.restaurant",
-      name: "Restaurant",
-      demand,
-      constraints: [
+    const constraints = this.applyComplianceConstraints(
+      "facility.restaurant",
+      [
         { label: "facility.cause.demand", value: demand },
         { label: "facility.cause.seating", value: seating.capacity },
         { label: "facility.cause.serviceStaff", value: serviceThroughput },
@@ -2059,6 +2061,13 @@ export class GameSimulation implements CommandExecutor {
         { label: "facility.cause.stock", value: stock },
         { label: "facility.cause.miseEnPlace", value: prepared },
       ],
+      seating.capacity,
+    );
+    const row = facilityRow({
+      id: "fnb.restaurant",
+      name: "Restaurant",
+      demand,
+      constraints,
     });
     const kitchen = runKitchenService({
       boardCovers: 0,
@@ -2129,11 +2138,9 @@ export class GameSimulation implements CommandExecutor {
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
-    const row = facilityRow({
-      id: "fnb.bar",
-      name: "Bar and lounge",
-      demand,
-      constraints: [
+    const constraints = this.applyComplianceConstraints(
+      "facility.bar",
+      [
         { label: "facility.cause.demand", value: demand },
         { label: "facility.cause.seating", value: seating.capacity },
         { label: "facility.cause.serviceStaff", value: serviceThroughput },
@@ -2141,6 +2148,13 @@ export class GameSimulation implements CommandExecutor {
         { label: "facility.cause.stock", value: stock },
         { label: "facility.cause.miseEnPlace", value: prepared },
       ],
+      seating.capacity,
+    );
+    const row = facilityRow({
+      id: "fnb.bar",
+      name: "Bar and lounge",
+      demand,
+      constraints,
     });
     const kitchen = runKitchenService({
       boardCovers: 0,
@@ -2200,11 +2214,9 @@ export class GameSimulation implements CommandExecutor {
       this.workingLifts() * STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(orders, kitchenThroughput);
-    const row = facilityRow({
-      id: "fnb.roomService",
-      name: "Room service",
-      demand: orders,
-      constraints: [
+    const constraints = this.applyComplianceConstraints(
+      "facility.kitchen",
+      [
         { label: "facility.cause.demand", value: orders },
         { label: "facility.cause.kitchenLine", value: kitchenThroughput },
         { label: "facility.cause.serviceStaff", value: serviceThroughput },
@@ -2213,6 +2225,13 @@ export class GameSimulation implements CommandExecutor {
         { label: "facility.cause.stock", value: stock },
         { label: "facility.cause.miseEnPlace", value: prepared },
       ],
+      kitchenThroughput,
+    );
+    const row = facilityRow({
+      id: "fnb.roomService",
+      name: "Room service",
+      demand: orders,
+      constraints,
     });
     const kitchen = runKitchenService({
       boardCovers: 0,
@@ -4406,6 +4425,14 @@ export class GameSimulation implements CommandExecutor {
       { energyPriceIndexBp: s.world.macro.energyPriceIndexBp },
       s.elapsedMinutes,
     );
+    const applicableIds = new Set(applicable.map((r) => r.id));
+
+    // Clear alerts for tracked rules that are no longer applicable
+    for (const ruleId of Object.keys(s.compliance.rules).sort(compareIds)) {
+      if (!applicableIds.has(ruleId)) {
+        this.clearAlerts([`alert.compliance.${ruleId}`]);
+      }
+    }
 
     for (const rule of applicable) {
       const alertId = `alert.compliance.${rule.id}`;
@@ -4448,6 +4475,47 @@ export class GameSimulation implements CommandExecutor {
       { energyPriceIndexBp: s.world.macro.energyPriceIndexBp },
       s.elapsedMinutes,
     );
+    const applicableIds = new Set(applicable.map((r) => r.id));
+
+    // Reconcile tracked rules that are no longer applicable
+    for (const ruleId of Object.keys(s.compliance.rules).sort(compareIds)) {
+      if (!applicableIds.has(ruleId)) {
+        const previousStatus = s.compliance.rules[ruleId]?.status;
+        s.compliance.rules[ruleId] = {
+          status: "inactive",
+          lastEvaluatedMinutes: s.elapsedMinutes,
+          gap: 0,
+        };
+
+        // Clear active consequences
+        for (const facilityId of Object.keys(s.compliance.activeRestrictions).sort(compareIds)) {
+          if (s.compliance.activeRestrictions[facilityId]?.ruleId === ruleId) {
+            delete s.compliance.activeRestrictions[facilityId];
+          }
+        }
+        for (const facilityId of Object.keys(s.compliance.activeClosures).sort(compareIds)) {
+          if (s.compliance.activeClosures[facilityId]?.ruleId === ruleId) {
+            delete s.compliance.activeClosures[facilityId];
+          }
+        }
+
+        // Clear alerts
+        this.clearAlerts([`alert.compliance.${ruleId}`]);
+
+        if (previousStatus === "noncompliant") {
+          const ruleObj = REGULATION_RULES.find((r) => r.id === ruleId);
+          this.emit(
+            {
+              type: "COMPLIANCE_REMEDIED",
+              ruleId,
+              hotelId: s.hotel.id,
+              area: ruleObj?.area ?? "safety",
+            },
+            [s.hotel.id, ruleId],
+          );
+        }
+      }
+    }
 
     for (const rule of applicable) {
       const measured = measuredFacts[rule.area] ?? 0;
@@ -4459,6 +4527,10 @@ export class GameSimulation implements CommandExecutor {
       s.compliance.rules[rule.id] = {
         status: currentStatus,
         lastEvaluatedMinutes: s.elapsedMinutes,
+        gap: evalCase.gap,
+        measured: evalCase.measured,
+        requirement: evalCase.requirement,
+        remediation: evalCase.remediation,
       };
 
       if (currentStatus === "noncompliant") {

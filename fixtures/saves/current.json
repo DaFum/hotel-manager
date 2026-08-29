@@ -15654,17 +15654,29 @@
     },
     "compliance": {
       "rules": {
-        "regulation.de.accessibility.standards": {
-          "status": "compliant",
-          "lastEvaluatedMinutes": 44640
-        },
         "regulation.de.labor.min_wage": {
           "status": "compliant",
-          "lastEvaluatedMinutes": 44640
+          "lastEvaluatedMinutes": 44640,
+          "gap": 0,
+          "measured": 235000,
+          "requirement": 200000,
+          "remediation": []
         },
         "regulation.de.safety.fire": {
           "status": "compliant",
-          "lastEvaluatedMinutes": 44640
+          "lastEvaluatedMinutes": 44640,
+          "gap": 0,
+          "measured": 87,
+          "requirement": 60,
+          "remediation": []
+        },
+        "regulation.de.accessibility.standards": {
+          "status": "compliant",
+          "lastEvaluatedMinutes": 44640,
+          "gap": 0,
+          "measured": 60,
+          "requirement": 50,
+          "remediation": []
         }
       },
       "activeRestrictions": {},

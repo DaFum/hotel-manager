@@ -374,6 +374,33 @@ export function App() {
           />
         ) : null}
         <HotelView
+          controls={
+            <WorldControls
+              camera={camera}
+              floors={
+                flagshipSelected
+                  ? [
+                      ...new Set(
+                        Object.values(s.renderDescriptors.floorByRoomId),
+                      ),
+                    ].sort((a, b) => a - b)
+                  : []
+              }
+              minuteOfDay={s.calendar.minuteOfDay}
+              elevator={
+                flagshipSelected
+                  ? elevatorVisual(s.renderDescriptors.elevator)
+                  : {
+                      queue: 0,
+                      waitMinutes: 0,
+                      cause: "world.elevatorCause.notSimulated",
+                    }
+              }
+              problems={flagshipSelected ? worldProblems(s) : []}
+              onCamera={setCamera}
+              locale={preferences.locale}
+            />
+          }
           rooms={flagshipSelected ? s.hotel.rooms : []}
           facilities={flagshipSelected ? s.facilities : []}
           agents={flagshipSelected ? visualAgents(s, camera) : []}
@@ -428,29 +455,6 @@ export function App() {
           }}
           onCamera={setCamera}
           disableRenderer={rendererDisabled()}
-          locale={preferences.locale}
-        />
-        <WorldControls
-          camera={camera}
-          floors={
-            flagshipSelected
-              ? [
-                  ...new Set(Object.values(s.renderDescriptors.floorByRoomId)),
-                ].sort((a, b) => a - b)
-              : []
-          }
-          minuteOfDay={s.calendar.minuteOfDay}
-          elevator={
-            flagshipSelected
-              ? elevatorVisual(s.renderDescriptors.elevator)
-              : {
-                  queue: 0,
-                  waitMinutes: 0,
-                  cause: "world.elevatorCause.notSimulated",
-                }
-          }
-          problems={flagshipSelected ? worldProblems(s) : []}
-          onCamera={setCamera}
           locale={preferences.locale}
         />
       </>

@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { SemanticHotelTree } from "./accessibility/SemanticHotelTree";
 import { roomConcern } from "../render/sceneLayout";
 import { formatDm } from "./money";
@@ -106,6 +112,12 @@ export function roomProblems(
 }
 
 export function HotelView(props: {
+  /**
+   * The controls that drive this view — panning, zoom, floors, layers. They
+   * belong beside the picture they move, not fifteen hundred pixels below it
+   * at the bottom of the department, which is where they were.
+   */
+  controls?: ReactNode;
   rooms: readonly HotelViewRoom[];
   facilities?: readonly HotelViewFacility[];
   agents?: readonly VisualAgent[];
@@ -309,36 +321,45 @@ export function HotelView(props: {
 
   return (
     <section ref={viewRoot} aria-label="Hotel view" className="hm-hotel-view">
-      <div
-        className="hm-canvas"
-        ref={host}
-        data-testid="hotel-canvas"
-        onPointerDown={(event) => {
-          if (!props.onCamera) return;
-          drag.current = { x: event.clientX, y: event.clientY };
-          if (event.currentTarget.setPointerCapture)
-            event.currentTarget.setPointerCapture(event.pointerId);
-        }}
-        onPointerMove={(event) => {
-          const from = drag.current;
-          const camera = cameraRef.current;
-          if (!from || !camera) return;
-          const dx = event.clientX - from.x;
-          const dy = event.clientY - from.y;
-          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+      {/* The stage: the building and the controls that move it, side by side,
+          so choosing a floor or a layer never means scrolling away from the
+          thing it changes. */}
+      <div className="hm-hotel-view__stage">
+        <div
+          className="hm-canvas"
+          ref={host}
+          data-testid="hotel-canvas"
+          onPointerDown={(event) => {
+            if (!props.onCamera) return;
             drag.current = { x: event.clientX, y: event.clientY };
-            moveCamera.current(dragCamera(camera, { x: dx, y: dy }));
-          }
-        }}
-        onPointerUp={(event) => {
-          drag.current = null;
-          if (event.currentTarget.releasePointerCapture)
-            event.currentTarget.releasePointerCapture(event.pointerId);
-        }}
-        onPointerCancel={() => {
-          drag.current = null;
-        }}
-      />
+            if (event.currentTarget.setPointerCapture)
+              event.currentTarget.setPointerCapture(event.pointerId);
+          }}
+          onPointerMove={(event) => {
+            const from = drag.current;
+            const camera = cameraRef.current;
+            if (!from || !camera) return;
+            const dx = event.clientX - from.x;
+            const dy = event.clientY - from.y;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+              drag.current = { x: event.clientX, y: event.clientY };
+              moveCamera.current(dragCamera(camera, { x: dx, y: dy }));
+            }
+          }}
+          onPointerUp={(event) => {
+            drag.current = null;
+            if (event.currentTarget.releasePointerCapture)
+              event.currentTarget.releasePointerCapture(event.pointerId);
+          }}
+          onPointerCancel={() => {
+            drag.current = null;
+          }}
+        />
+        {props.controls ? (
+          <div className="hm-hotel-view__controls">{props.controls}</div>
+        ) : null}
+      </div>
+
       <SemanticHotelTree
         locale={props.locale}
         floorByRoomId={props.floorByRoomId}
@@ -383,7 +404,7 @@ export function HotelView(props: {
         ) : null}
 
         <section className="hm-card">
-          <h3>Service areas</h3>
+          <h3>{translateGame(locale, "hotel.serviceAreas")}</h3>
           <ul className="hm-card__list">
             {(props.facilities ?? []).map((facility) => (
               <li key={facility.id} data-entity-id={facility.id} tabIndex={-1}>
@@ -395,7 +416,7 @@ export function HotelView(props: {
                     props.onSelectFacility?.(facility.id);
                   }}
                 >
-                  Focus {facility.name}
+                  {facility.name}
                 </button>
               </li>
             ))}

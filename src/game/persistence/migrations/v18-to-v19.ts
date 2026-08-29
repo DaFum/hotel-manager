@@ -1,8 +1,14 @@
 import type { SaveEnvelope } from "../saveVersions";
 
 export function migrateV18ToV19(save: SaveEnvelope): SaveEnvelope {
+  if (!save.state || typeof save.state !== "object" || Array.isArray(save.state)) {
+    return {
+      ...save,
+      saveVersion: 19,
+    };
+  }
   const oldState = save.state as Record<string, any>;
-  const oldHotel = oldState.hotel ?? {};
+  const oldHotel = oldState.hotel && typeof oldState.hotel === "object" ? oldState.hotel : {};
   const migratedHotel = {
     ...oldHotel,
     jurisdictionId: oldHotel.jurisdictionId ?? "de.he.frankfurt",

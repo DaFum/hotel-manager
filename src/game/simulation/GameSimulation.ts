@@ -4451,6 +4451,9 @@ export class GameSimulation implements CommandExecutor {
           target: { entityId: "navigation.compliance", kind: "navigation" },
         });
       } else if (status === "noncompliant") {
+        const wasAcknowledged = s.alerts.find(
+          (a) => a.id === alertId,
+        )?.acknowledged;
         this.clearAlerts([alertId]);
         this.pushAlert({
           id: alertId,
@@ -4549,7 +4552,7 @@ export class GameSimulation implements CommandExecutor {
           s.narrative.chronicle = appendChronicleEntry(
             s.narrative.chronicle,
             {
-              id: `compliance.${rule.id}.${s.calendar.dateKey}`,
+              id: `compliance.${rule.id}.breach.${s.calendar.dateKey}`,
               date: s.calendar.dateKey,
               scope: "company",
               textKey: `chronicle.compliance.breach.${rule.id}`,
@@ -4611,7 +4614,7 @@ export class GameSimulation implements CommandExecutor {
           s.narrative.chronicle = appendChronicleEntry(
             s.narrative.chronicle,
             {
-              id: `compliance.${rule.id}.${s.calendar.dateKey}`,
+              id: `compliance.${rule.id}.remedy.${s.calendar.dateKey}`,
               date: s.calendar.dateKey,
               scope: "company",
               textKey: `chronicle.compliance.remedy.${rule.id}`,

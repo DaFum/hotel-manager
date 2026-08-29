@@ -472,7 +472,7 @@ describe("compliance and regulation", () => {
     runQuanta(sim, QUANTA_PER_DAY * 32);
     s = sim.snapshot();
 
-    expect(s.compliance.rules["regulation.de.labor.min_wage"]?.status).toBe("noncompliant");
+    expect(s.compliance.rules["regulation.de.labor.tariff_wage"]?.status).toBe("noncompliant");
     expect(s.finance.ledger.some((e) => e.account === "fine")).toBe(true);
 
     const events = sim.takeDomainEvents();
@@ -480,7 +480,7 @@ describe("compliance and regulation", () => {
 
     expect(
       s.reputation.employer[s.hotel.id]?.contributors.some((c) =>
-        c.cause.includes("regulation.de.labor.min_wage"),
+        c.cause.includes("regulation.de.labor.tariff_wage"),
       ),
     ).toBe(true);
 

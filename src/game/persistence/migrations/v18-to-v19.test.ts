@@ -21,3 +21,17 @@ it("migrates v18 state to v19 by adding jurisdictionId and compliance section", 
     activeClosures: {},
   });
 });
+
+it("handles null or invalid save.state gracefully during v18 to v19 migration", () => {
+  const nullStateSave = {
+    saveVersion: 18,
+    contentVersion: "1991.1",
+    protocolVersion: 6,
+    rngState: {} as any,
+    state: null as any,
+  };
+
+  const migrated = migrateV18ToV19(nullStateSave);
+  expect(migrated.saveVersion).toBe(19);
+  expect(migrated.state).toBeNull();
+});

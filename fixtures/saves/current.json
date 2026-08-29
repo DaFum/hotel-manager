@@ -15654,7 +15654,7 @@
     },
     "compliance": {
       "rules": {
-        "regulation.de.labor.min_wage": {
+        "regulation.de.labor.tariff_wage": {
           "status": "compliant",
           "lastEvaluatedMinutes": 44640,
           "gap": 0,

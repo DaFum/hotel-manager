@@ -140,14 +140,16 @@ export function evaluateCompliance(
   if (!Number.isSafeInteger(remediationCostMinor))
     throw new Error("compliance remediation cost overflow");
 
-  const fineDescriptor = rule.consequences?.find(
+  const fineDescriptors = rule.consequences?.filter(
     (c): c is Extract<ConsequenceDescriptor, { kind: "fine" }> =>
       c.kind === "fine",
-  );
+  ) ?? [];
+  const totalFineMinor =
+    fineDescriptors.length > 0
+      ? fineDescriptors.reduce((sum, f) => sum + f.amountMinor, 0)
+      : rule.consequenceMinor;
   const activeConsequenceMinor =
-    status === "noncompliant"
-      ? (fineDescriptor?.amountMinor ?? rule.consequenceMinor)
-      : 0;
+    status === "noncompliant" ? totalFineMinor : 0;
 
   const activeConsequences =
     status === "noncompliant" ? (rule.consequences ?? []) : [];

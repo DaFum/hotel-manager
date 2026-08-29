@@ -641,11 +641,11 @@
       "unitKey": "unit.each",
       "referenceCostMinor": 260
     },
-    "regulation.de.labor.min_wage": {
-      "id": "regulation.de.labor.min_wage",
+    "regulation.de.labor.tariff_wage": {
+      "id": "regulation.de.labor.tariff_wage",
       "kind": "regulation",
       "simulationOrder": 0,
-      "nameKey": "regulation.de.labor.min_wage.name",
+      "nameKey": "regulation.de.labor.tariff_wage.name",
       "jurisdictionId": "de.he.frankfurt",
       "area": "labor",
       "requirement": 200000,

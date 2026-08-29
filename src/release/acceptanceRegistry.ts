@@ -79,7 +79,7 @@ export const ACCEPTANCE_REGISTRY = [
         implementationPath: "src/content-schema/regulation.ts",
         evidence: {
           path: "src/content-schema/schemaSnapshot.test.ts",
-          assertion: "validates regulation content schema and snapshot",
+          assertion: "is the complete generated JSON schema for version 1",
         },
       },
       {
@@ -88,7 +88,7 @@ export const ACCEPTANCE_REGISTRY = [
         evidence: {
           path: "src/game/simulation/GameSimulation.test.ts",
           assertion:
-            "applies compliance consequences and emits breach and remedy events",
+            "raises lead-time alert, handles breach with fine, reputation delta, facility constraint, and remedies when compliant",
         },
       },
     ],

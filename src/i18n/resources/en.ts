@@ -22,6 +22,9 @@ export const en = {
   app: {
     main: "Hotel management",
     telemetry: {
+      simulation: "Simulation status",
+      commandLabel: "Command status",
+      savesLabel: "Saves committed",
       command: "Command: {status}",
       saves: "Saves committed: {count}",
     },

@@ -77,11 +77,14 @@ export function WorldControls(props: {
     : props.elevator.cause;
 
   return (
-    <section aria-label="World controls" className="world-controls">
+    <section
+      aria-label={translateGame(locale, "world.region")}
+      className="world-controls"
+    >
       <h2>{translateGame(locale, "world.title")}</h2>
       <p
         role="status"
-        aria-label="View state"
+        aria-label={translateGame(locale, "world.viewStateLabel")}
         className="world-controls__status"
       >
         {translateGame(locale, "world.viewState", {

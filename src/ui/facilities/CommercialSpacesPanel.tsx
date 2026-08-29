@@ -49,11 +49,11 @@ export function CommercialSpacesPanel(props: {
   const t = (key: string, values: Record<string, string | number> = {}) =>
     translateGame(locale, key, values);
   return (
-    <section aria-label="Commercial spaces">
+    <section aria-label={t("panels.commercial.title")}>
       <h2>{t("panels.commercial.title")}</h2>
 
       <h3>{t("panels.commercial.lobby")}</h3>
-      <p aria-label="Lobby load">
+      <p aria-label={t("panels.commercial.lobbyLoad")}>
         {t("panels.commercial.lobbySummary", {
           served: props.lobby.served,
           waiting: props.lobby.unserved,
@@ -80,7 +80,14 @@ export function CommercialSpacesPanel(props: {
               {/* Name first, then the figures, rather than an identifier at
                   the head of a comma-separated run of eight readings. */}
               <strong>{entityLabel(space.id, locale)}</strong>{" "}
-              <span>({space.kind})</span>
+              <span>(
+                {translateGame(
+                  locale,
+                  `entity.space.${space.kind}`,
+                ) !== `entity.space.${space.kind}`
+                  ? translateGame(locale, `entity.space.${space.kind}`)
+                  : entityLabel(`space.${space.kind}`, locale)}
+              )</span>
               <dl>
                 <div>
                   <dt>{t("panels.commercial.capacity")}</dt>

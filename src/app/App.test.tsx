@@ -104,7 +104,11 @@ describe("App", () => {
     expect(
       screen.getByText("No per-room state exists for this managed hotel."),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /Zimmer 101/i })).toBeNull();
+    expect(
+      screen.queryByRole("button", {
+        name: new RegExp(entityLabel("room.101", "de-DE"), "i"),
+      }),
+    ).toBeNull();
   });
 
   it("keeps an authoritative alert in the single notification center", () => {
@@ -197,7 +201,9 @@ describe("App", () => {
 
     // The app renders in German by default, and the view now says so.
     expect(
-      screen.getByRole("status", { name: "View state" }).textContent,
+      screen.getByRole("status", {
+        name: translateGame("de-DE", "world.viewStateLabel"),
+      }).textContent,
     ).toContain(`Etage ${snapshot.renderDescriptors.floorByRoomId[room.id]}`);
     expect(
       within(notifications).getByRole("heading", {
@@ -233,18 +239,18 @@ describe("App", () => {
     );
 
     const expectedContent: Record<(typeof AREA_ORDER)[number], string[]> = {
-      mainView: ["Hotel view", "World controls"],
+      mainView: ["Hotel view", translateGame("de-DE", "world.region")],
       hotel: [
-        "Facilities",
+        translateGame("de-DE", "panels.facilities.title"),
         "Speisen und Getränke",
-        "Commercial spaces",
-        "Classification",
-        "Build",
-        "Technology",
+        translateGame("de-DE", "panels.commercial.title"),
+        translateGame("de-DE", "panels.classification.title"),
+        translateGame("de-DE", "panels.build.title"),
+        translateGame("de-DE", "panels.technology.title"),
       ],
       guests: ["Gäste"],
       staff: ["Personal"],
-      finance: ["Finanzen", "Purchasing"],
+      finance: ["Finanzen", translateGame("de-DE", "panels.purchasing.title")],
       revenue: ["Umsatz", "Competitors"],
       marketing: [
         "Vertriebspipeline",

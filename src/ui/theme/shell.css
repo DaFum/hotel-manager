@@ -235,6 +235,11 @@
     mask-image: linear-gradient(90deg, #000 85%, transparent);
   }
 
+  .hm-root .hm-shell__nav:focus-within {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
   .hm-root .hm-shell__nav [role="tablist"] {
     scroll-snap-type: x proximity;
   }

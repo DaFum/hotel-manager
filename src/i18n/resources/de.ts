@@ -23,6 +23,9 @@ export const de = {
   app: {
     main: "Hotelverwaltung",
     telemetry: {
+      simulation: "Simulationsstatus",
+      commandLabel: "Befehlsstatus",
+      savesLabel: "Gespeicherte Spielstände",
       command: "Befehl: {status}",
       saves: "Gespeicherte Spielstände: {count}",
     },

@@ -67,11 +67,12 @@ export function SemanticHotelTree({
                 // single" — never by the identifier the simulation files it
                 // under, which is what `room.101 single` was showing forty
                 // times per floor.
+                const categoryLabel = room.category
+                  ? translateGame(locale, `revenue.category.${room.category}`)
+                  : translateGame(locale, "room.fallback");
                 const label =
                   room.label ??
-                  `${entityLabel(room.id, locale)}, ${
-                    room.category ?? translateGame(locale, "room.fallback")
-                  }`;
+                  `${entityLabel(room.id, locale)}, ${categoryLabel}`;
                 const state = translateGame(
                   locale,
                   `room.states.${room.state}`,

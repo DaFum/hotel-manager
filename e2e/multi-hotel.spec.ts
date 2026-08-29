@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openManagementArea, selectLocale } from "./management";
+import { openDrawer, openManagementArea, selectLocale } from "./management";
 
 test("shows the group as a portfolio the player can drill into", async ({
   page,
@@ -85,6 +85,7 @@ test("carries the group through a save and a reload", async ({ page }) => {
     .click();
   await expect(page.getByLabel("Command status")).toContainText("accepted");
 
+  await openDrawer(page, "saves");
   await page.getByRole("button", { name: /^(save|speichern)$/i }).click();
   await expect(page.getByLabel("Saves committed")).not.toContainText(": 0");
 

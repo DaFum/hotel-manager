@@ -57,7 +57,7 @@ test("rosters a specialist role and declares a specialization", async ({
   await staff.getByLabel("Role").selectOption("wellness");
   await staff.getByRole("button", { name: /hire applicant/i }).click();
   await expect(rows).toHaveCount(before + 1);
-  await expect(staff).toContainText(/wellness/i);
+  await expect(rows.last()).toContainText(/wellness/i);
 
   await openManagementArea(page, "hotel");
   const classification = page.getByRole("region", { name: "Classification" });

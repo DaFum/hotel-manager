@@ -63,7 +63,7 @@ export function ClassificationPanel(props: {
           <option value="">{t("panels.classification.none")}</option>
           {SPECIALIZATIONS.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+              {t(s.id)}
             </option>
           ))}
         </select>
@@ -71,7 +71,7 @@ export function ClassificationPanel(props: {
       {selected ? (
         <p aria-label={t("panels.classification.investment")}>
           {t("panels.classification.needs", {
-            name: selected.name,
+            name: t(selected.id),
             threshold: selected.thresholdSqm,
             area: t(
               selected.requires === "conferenceSqm"

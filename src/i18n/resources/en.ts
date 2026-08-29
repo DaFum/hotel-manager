@@ -17,10 +17,16 @@ export const en = {
       empty: "Guest satisfaction fell for no single dominant reason.",
     },
   },
+  spec: {
+    conference: "Conference hotel",
+    wellness: "Wellness hotel",
+  },
   trend: { "digital-booking": { name: "Digital booking" } },
   macro: { credit: { name: "Credit-market pressure" } },
   app: {
     main: "Hotel management",
+    title: "Hotel Manager",
+    starting: "Starting {city} {year}…",
     telemetry: {
       simulation: "Simulation status",
       commandLabel: "Command status",
@@ -42,6 +48,11 @@ export const en = {
       kiosk: "Kiosk",
       carpark: "Car park",
       terrace: "Terrace",
+      shop: "Shop",
+      parking: "Parking",
+      outdoor: "Outdoor area",
+      mobility: "Mobility",
+      security: "Security",
     },
     loan: {
       starter: "Opening loan",
@@ -115,6 +126,11 @@ export const en = {
       atATime: "{count} at a time",
       open: "Open",
       operator: "Operator",
+      operators: {
+        self: "Self-operated",
+        lease: "Let",
+        concession: "Concession",
+      },
       soldThisMonth: "Sold this month",
       toTheHotel: "To the hotel",
       fit: "Fit",

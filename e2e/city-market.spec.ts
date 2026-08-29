@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { openManagementArea } from "./management";
+import { openManagementArea, selectLocale } from "./management";
 
 test("shows the city's demand sources and the uncertainty around them", async ({
   page,
@@ -49,9 +49,7 @@ test("puts the rival houses beside this hotel on the same terms", async ({
 
 test("quotes the going wage before the player offers one", async ({ page }) => {
   await page.goto("/?seed=424242");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "staff");
   const staff = page.getByRole("region", { name: "Staff" });
   await expect(staff.getByLabel("Market wage")).toContainText(

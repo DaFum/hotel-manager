@@ -1,13 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { openManagementArea } from "../management";
+import { openManagementArea, selectLocale } from "../management";
 
 test("operates the hotel while company and campaign state remain responsive", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "campaign");
   const campaign = page.getByRole("region", { name: "Campaign setup" });
   const chronicle = page.getByRole("region", { name: "Company chronicle" });

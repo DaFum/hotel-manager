@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { openManagementArea } from "./management";
+import { openManagementArea, selectLocale } from "./management";
 
 test("shows every facility with the constraint that is binding it", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "hotel");
   const facilities = page.getByRole("region", { name: "Facilities" });
   await expect(facilities).toBeVisible();
@@ -29,7 +30,13 @@ test("shows every facility with the constraint that is binding it", async ({
   });
   await expect(fallback).toBeVisible();
   await fallback.click();
-  await expect(page.getByText(/Breakfast room: .* limited by/i)).toBeVisible();
+  // The facility's own live readout. The F&B line names the outlet properly
+  // now too, so this has to say which of the two it means.
+  await expect(
+    page
+      .locator('[aria-live="polite"]')
+      .filter({ hasText: /Breakfast room: .* limited by/i }),
+  ).toBeVisible();
   await expect(page.getByTestId("hotel-canvas").locator("canvas")).toHaveCount(
     0,
   );
@@ -39,9 +46,7 @@ test("rosters a specialist role and declares a specialization", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
 
   await openManagementArea(page, "staff");
   const staff = page.getByRole("region", { name: "Staff", exact: true });
@@ -52,7 +57,7 @@ test("rosters a specialist role and declares a specialization", async ({
   await staff.getByLabel("Role").selectOption("wellness");
   await staff.getByRole("button", { name: /hire applicant/i }).click();
   await expect(rows).toHaveCount(before + 1);
-  await expect(staff).toContainText(/wellness/);
+  await expect(staff).toContainText(/wellness/i);
 
   await openManagementArea(page, "hotel");
   const classification = page.getByRole("region", { name: "Classification" });
@@ -69,9 +74,7 @@ test("runs a conference through the deep house without breaking the board", asyn
   page,
 }) => {
   await page.goto("/?seed=424242");
-  await page
-    .getByRole("combobox", { name: /Language|Sprache/ })
-    .selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "hotel");
   await page.getByRole("button", { name: "16x", exact: true }).click();
 

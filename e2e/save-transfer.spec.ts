@@ -1,6 +1,23 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+/**
+ * Saves and the transfer panel live in a desk drawer behind the command bar
+ * rather than inline under the hotel, so this walk opens the drawer to reach
+ * them — and commits the quick save from the command bar first, while the
+ * drawer's scrim is not over it.
+ */
+function openSaves(page: Page) {
+  return page.getByRole("button", { name: /Spielstände|Saved games/ }).click();
+}
+
 test("save transfer exposes validated file boundaries", async ({ page }) => {
   await page.goto("/?renderer=off");
+
+  // The command bar speaks the player's language; this walk stays in German.
+  await page.getByRole("button", { name: "Speichern", exact: true }).click();
+  await expect(page.getByLabel("Saves committed")).toContainText("1");
+
+  await openSaves(page);
   await expect(
     page.getByRole("region", { name: "Save transfer" }),
   ).toBeVisible();
@@ -11,8 +28,7 @@ test("save transfer exposes validated file boundaries", async ({ page }) => {
     "accept",
     "application/json",
   );
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByLabel("Saves committed")).toContainText("1");
+
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Export save file" }).click();
   const download = await downloadPromise;
@@ -24,5 +40,6 @@ test("save transfer exposes validated file boundaries", async ({ page }) => {
   ).toBeVisible();
 
   await page.reload();
+  await openSaves(page);
   await expect(page.getByText("quick save", { exact: true })).toBeVisible();
 });

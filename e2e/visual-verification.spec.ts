@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
-import { openManagementArea } from "./management";
+import { openManagementArea, selectLocale } from "./management";
 
 const SCREENSHOT_DIR = path.join(process.cwd(), "screenshots");
 
@@ -14,9 +14,7 @@ test.beforeAll(() => {
 test.describe("Visual Verification Screenshot Suite", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/?seed=424242");
-    await page
-      .getByRole("combobox", { name: /Language|Sprache/ })
-      .selectOption("en-GB");
+    await selectLocale(page, "en-GB");
     // Wait for the app to settle and main header to load
     await expect(page.getByRole("heading", { level: 1 })).toContainText(
       /Frankfurt/i,
@@ -46,8 +44,11 @@ test.describe("Visual Verification Screenshot Suite", () => {
     }
   });
 
-  test("capture screenshots for UI overlays, panels, and settings", async ({ page }) => {
-    // 1. Settings & Accessibility Controls section
+  test("capture screenshots for UI overlays, panels, and settings", async ({
+    page,
+  }) => {
+    // 1. Settings & Accessibility Controls, in the drawer that now holds them
+    await page.getByRole("button", { name: /^Settings$/ }).click();
     const settingsSection = page.getByRole("region", {
       name: /Presentation settings/i,
     });
@@ -55,8 +56,10 @@ test.describe("Visual Verification Screenshot Suite", () => {
     await settingsSection.screenshot({
       path: path.join(SCREENSHOT_DIR, "overlay-01-settings.png"),
     });
+    await page.keyboard.press("Escape");
 
-    // 2. Save Manager section
+    // 2. Save Manager, likewise
+    await page.getByRole("button", { name: /^Saved games$/ }).click();
     const saveManager = page.getByRole("region", {
       name: /Saved games/i,
     });
@@ -64,6 +67,7 @@ test.describe("Visual Verification Screenshot Suite", () => {
     await saveManager.screenshot({
       path: path.join(SCREENSHOT_DIR, "overlay-02-save-manager.png"),
     });
+    await page.keyboard.press("Escape");
 
     // 3. TopBar / Status Bar
     const topBar = page.getByRole("region", {
@@ -90,7 +94,9 @@ test.describe("Visual Verification Screenshot Suite", () => {
     });
   });
 
-  test("capture screenshot of Monthly Close Modal during simulation", async ({ page }) => {
+  test("capture screenshot of Monthly Close Modal during simulation", async ({
+    page,
+  }) => {
     // Accelerate time to trigger the monthly close modal
     await page.getByRole("button", { name: "16x", exact: true }).click();
 
@@ -112,7 +118,9 @@ test.describe("Visual Verification Screenshot Suite", () => {
     await page.getByRole("button", { name: /continue/i }).click();
   });
 
-  test("capture mobile viewport screenshots for responsive QA", async ({ page }) => {
+  test("capture mobile viewport screenshots for responsive QA", async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 375, height: 812 });
 
     await page.screenshot({

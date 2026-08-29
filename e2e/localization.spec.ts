@@ -1,17 +1,21 @@
 import { expect, test } from "@playwright/test";
-import { openManagementArea } from "./management";
+import { openManagementArea, selectLocale } from "./management";
 test("locale switch preserves authoritative cash", async ({ page }) => {
   await page.goto("/?renderer=off");
   await openManagementArea(page, "finance");
   const cash = page.getByTestId("cash-value");
   const before = await cash.getAttribute("data-minor");
-  const language = page.getByLabel(/Language|Sprache/);
-  await language.selectOption("en-GB");
+  await selectLocale(page, "en-GB");
   await expect(cash).toHaveAttribute("data-minor", before!);
-  await expect(page.getByText("Cash", { exact: true })).toBeVisible();
+  // Scoped to the command bar: "Cash" is also a row in the balance sheet.
+  await expect(
+    page.getByLabel("Status bar").getByText("Cash", { exact: true }),
+  ).toBeVisible();
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByLabel("Saves committed")).toContainText("1");
-  await language.selectOption("de-DE");
-  await page.getByRole("button", { name: "Load", exact: true }).click();
+  await selectLocale(page, "de-DE");
+  await page.getByRole("button", { name: "Laden", exact: true }).click();
+  // The loaded save carries the language it was written with.
+  await selectLocale(page, "en-GB");
   await expect(page.getByLabel(/Language|Sprache/)).toHaveValue("en-GB");
 });

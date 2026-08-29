@@ -15,7 +15,7 @@ test("save transfer exposes validated file boundaries", async ({ page }) => {
 
   // The command bar speaks the player's language; this walk stays in German.
   await page.getByRole("button", { name: "Speichern", exact: true }).click();
-  await expect(page.getByLabel("Saves committed")).toContainText("1");
+  await expect(page.getByLabel(/^(Saves committed|Gespeicherte Spielstände)$/)).toContainText("1");
 
   await openSaves(page);
   await expect(

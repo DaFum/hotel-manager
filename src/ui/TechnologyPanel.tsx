@@ -12,7 +12,7 @@ export function TechnologyPanel(props: {
 }) {
   const locale = useLocale();
   return (
-    <section aria-label="Technology">
+    <section aria-label={translateGame(locale, "panels.technology.title")}>
       <h2>{translateGame(locale, "panels.technology.title")}</h2>
       <ul>
         {props.technologies.map((technology) => {

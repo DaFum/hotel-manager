@@ -28,14 +28,14 @@ export function FacilitiesDashboard({
 
   if (rows.length === 0)
     return (
-      <section aria-label="Facilities">
+      <section aria-label={t("panels.facilities.title")}>
         <h2>{t("panels.facilities.title")}</h2>
         <p>{t("panels.facilities.empty")}</p>
       </section>
     );
 
   return (
-    <section aria-label="Facilities">
+    <section aria-label={t("panels.facilities.title")}>
       <h2>{t("panels.facilities.title")}</h2>
       <ul>
         {rows.map((r) => {

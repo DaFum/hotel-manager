@@ -423,9 +423,18 @@ export function HotelView(props: {
           </ul>
           {facilityDetail ? (
             <p aria-live="polite" className="hm-card__status-msg">
-              {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
-              {facilityDetail.capacity} capacity, limited by{" "}
-              {facilityDetail.cause}
+              {facilityDetail.name}:{" "}
+              {translateGame(locale, "panels.facilities.load", {
+                demand: facilityDetail.demand,
+                capacity: facilityDetail.capacity,
+                share: `${facilityDetail.capacity > 0 ? Math.round((facilityDetail.demand / facilityDetail.capacity) * 100) : 0}%`,
+              })}
+              , {translateGame(locale, "panels.facilities.limitedBy", {
+                cause: translateGame(
+                  locale,
+                  facilityCauseKey(facilityDetail.cause),
+                ),
+              })}
             </p>
           ) : null}
         </section>

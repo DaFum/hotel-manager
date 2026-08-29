@@ -1021,17 +1021,31 @@ export function App() {
           <p
             className="hm-telemetry__status"
             role="status"
-            aria-label="Simulation status"
+            aria-label={translateGame(
+              preferences.locale,
+              "app.telemetry.simulation",
+            )}
             aria-live="polite"
           >
             {game.errors.length > 0 ? game.errors[game.errors.length - 1] : ""}
           </p>
-          <p aria-label="Command status" aria-live="polite">
+          <p
+            aria-label={translateGame(
+              preferences.locale,
+              "app.telemetry.commandLabel",
+            )}
+            aria-live="polite"
+          >
             {translateGame(preferences.locale, "app.telemetry.command", {
               status: game.commandStatus,
             })}
           </p>
-          <p aria-label="Saves committed">
+          <p
+            aria-label={translateGame(
+              preferences.locale,
+              "app.telemetry.savesLabel",
+            )}
+          >
             {translateGame(preferences.locale, "app.telemetry.saves", {
               count: game.savedCount,
             })}

@@ -78,7 +78,7 @@ describe("hotel view", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /Breakfast room, 30 demand/i }),
     );
-    expect(screen.getByText(/Breakfast room: 30 demand/i)).toBeTruthy();
+    expect(screen.getByText(/Breakfast room: 30\/20 \(150%\)/i)).toBeTruthy();
   });
 
   it("only pans the camera when drag movement exceeds the threshold", () => {

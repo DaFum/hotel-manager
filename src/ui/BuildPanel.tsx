@@ -9,7 +9,7 @@ export function BuildPanel(props: {
 }) {
   const locale = useLocale();
   return (
-    <section aria-label="Build">
+    <section aria-label={translateGame(locale, "panels.build.title")}>
       <h2>{translateGame(locale, "panels.build.title")}</h2>
       <p>
         {translateGame(locale, "panels.build.convert", {

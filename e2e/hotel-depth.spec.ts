@@ -87,7 +87,7 @@ test("runs a conference through the deep house without breaking the board", asyn
     page.getByRole("region", { name: /Notification center|Alerts/i }),
   ).toBeVisible();
   // The simulation must still be running: no SIMULATION_ERROR surfaced.
-  await expect(page.getByLabel("Simulation status")).not.toContainText(
+  await expect(page.getByLabel(/^(Simulation status|Simulationsstatus)$/)).not.toContainText(
     /error/i,
   );
 });

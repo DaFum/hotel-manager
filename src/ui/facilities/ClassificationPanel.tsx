@@ -30,9 +30,9 @@ export function ClassificationPanel(props: {
   const selected = SPECIALIZATIONS.find((s) => s.id === props.specializationId);
   const built = selected ? props.investedArea[selected.requires] : 0;
   return (
-    <section aria-label="Classification">
+    <section aria-label={t("panels.classification.title")}>
       <h2>{t("panels.classification.title")}</h2>
-      <p aria-label="Star rating">
+      <p aria-label={t("panels.classification.starRating")}>
         {t("panels.classification.stars", {
           count: props.classification.stars,
         })}
@@ -69,7 +69,7 @@ export function ClassificationPanel(props: {
         </select>
       </label>
       {selected ? (
-        <p aria-label="Profile investment">
+        <p aria-label={t("panels.classification.investment")}>
           {t("panels.classification.needs", {
             name: selected.name,
             threshold: selected.thresholdSqm,

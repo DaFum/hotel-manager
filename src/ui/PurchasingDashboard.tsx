@@ -9,7 +9,7 @@ export function PurchasingDashboard(props: {
   const locale = useLocale();
   const skus = Object.keys(props.stock).sort();
   return (
-    <section aria-label="Purchasing">
+    <section aria-label={translateGame(locale, "panels.purchasing.title")}>
       <h2>{translateGame(locale, "panels.purchasing.title")}</h2>
       <ul>
         {skus.map((sku) => {

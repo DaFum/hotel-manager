@@ -4,7 +4,8 @@ import { openManagementArea, selectLocale } from "./management";
 
 const statusBar = (page: Page) =>
   page.getByRole("region", { name: /Status bar|Statusleiste/ });
-const savesCommitted = (page: Page) => page.getByLabel("Saves committed");
+const savesCommitted = (page: Page) =>
+  page.getByLabel(/^(Saves committed|Gespeicherte Spielstände)$/);
 
 test("operate the 1991 hotel through one monthly close and save load", async ({
   page,

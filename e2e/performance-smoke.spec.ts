@@ -32,6 +32,6 @@ test("hotel view stays interactive during 16x simulation", async ({ page }) => {
   await expect(
     page
       .getByRole("region", { name: "Hotel view" })
-      .getByText(/room.101: .*cleanliness/i),
+      .getByText(/Room 101, single: .*cleanliness/i),
   ).toBeVisible();
 });

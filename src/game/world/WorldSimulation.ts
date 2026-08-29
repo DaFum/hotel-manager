@@ -107,14 +107,7 @@ export function createWorldState(): WorldState {
     regulationPressureBp: 1000,
   };
 }
-export function readEnergyPriceIndexBp(state: WorldState): number {
-  return state.macro.energyPriceIndexBp ?? 10_000;
-}
-
 export class WorldSimulation {
-  energyPriceIndexBp(state: WorldState): number {
-    return state.macro.energyPriceIndexBp ?? 10_000;
-  }
   /**
    * `crisisBufferBasisPoints` from the campaign, defaulting to neutral so the
    * world can still be stepped on its own in a test or a scenario. It is the

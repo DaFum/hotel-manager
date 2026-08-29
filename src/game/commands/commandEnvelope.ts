@@ -217,7 +217,23 @@ export type GameCommand =
       termMonths: number;
       collateralValueMinor?: number;
     }
-  | { type: "REPAY_LOAN"; loanId: string; amountMinor: number };
+  | { type: "REPAY_LOAN"; loanId: string; amountMinor: number }
+  // --- utilities and efficiency ------------------------------------------
+  | {
+      type: "SIGN_UTILITY_CONTRACT";
+      kind: import("../utilities/consumption").UtilityKind;
+      supplierId: string;
+      standingChargeMinor: number;
+      unitPriceMinor: number;
+      validFromDateKey: string;
+      validToDateKey: string;
+      priceLock: "fixed" | "floating";
+    }
+  | {
+      type: "INVEST_IN_EFFICIENCY";
+      kind: import("../utilities/consumption").UtilityKind;
+      savingBasisPoints: number;
+    };
 
 export type CommandType = GameCommand["type"];
 

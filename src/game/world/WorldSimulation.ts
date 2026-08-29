@@ -61,6 +61,7 @@ export function createWorldState(): WorldState {
       interestBp: 900,
       unemploymentBp: 600,
       growthBp: 150,
+      energyPriceIndexBp: 10_000,
     },
     technologies: TECHNOLOGY_CONTENT.map((technology) => {
       const replacement = technology.replacedByTechnologyId
@@ -170,6 +171,15 @@ export class WorldSimulation {
           Math.max(
             1,
             volatilityScaledRange(500, {
+              economicVolatilityBasisPoints: this.economicVolatilityBp,
+            }),
+          )),
+      energyPriceIndexBp:
+        8_000 +
+        (this.streams.economy.nextUint32() %
+          Math.max(
+            1,
+            volatilityScaledRange(4000, {
               economicVolatilityBasisPoints: this.economicVolatilityBp,
             }),
           )),

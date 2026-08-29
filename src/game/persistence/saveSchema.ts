@@ -21,6 +21,7 @@ import {
 } from "./saveVersions";
 import { isValidPlayerPreferences } from "../settings/playerPreferences";
 import { isFnbState } from "../fnb/fnbState";
+import { MAX_EFFICIENCY_BP } from "../utilities/consumption";
 
 export {
   CONTENT_VERSION,
@@ -297,12 +298,90 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.world ||
     !Array.isArray(state.world.technologies) ||
     !state.world.macro ||
+    !Number.isSafeInteger(state.world.macro.energyPriceIndexBp) ||
     !Array.isArray(state.world.trends) ||
     !Array.isArray(state.world.activeShocks) ||
     !state.world.weather ||
     !state.world.commonCurrency
   )
     problems.push("the state has no complete world");
+
+  if (
+    !state.utilityContracts ||
+    typeof state.utilityContracts !== "object" ||
+    Array.isArray(state.utilityContracts) ||
+    !["energy", "water", "waste"].every((kind) => {
+      const c = (state.utilityContracts as any)[kind];
+      return (
+        c &&
+        typeof c === "object" &&
+        c.kind === kind &&
+        typeof c.supplierId === "string" &&
+        Number.isSafeInteger(c.standingChargeMinor) &&
+        c.standingChargeMinor >= 0 &&
+        c.standingChargeMinor <= 10_000_000_000 &&
+        Number.isSafeInteger(c.unitPriceMinor) &&
+        c.unitPriceMinor >= 0 &&
+        c.unitPriceMinor <= 1_000_000 &&
+        Number.isSafeInteger(c.efficiencyBasisPoints) &&
+        c.efficiencyBasisPoints >= 0 &&
+        c.efficiencyBasisPoints <= MAX_EFFICIENCY_BP &&
+        typeof c.validFromDateKey === "string" &&
+        typeof c.validToDateKey === "string" &&
+        ["fixed", "floating"].includes(c.priceLock)
+      );
+    })
+  )
+    problems.push("the state has no valid utility contracts");
+
+  if (
+    !state.meters ||
+    typeof state.meters !== "object" ||
+    Array.isArray(state.meters) ||
+    !Number.isSafeInteger((state.meters as any).energy) ||
+    !Number.isSafeInteger((state.meters as any).water) ||
+    !Number.isSafeInteger((state.meters as any).waste)
+  )
+    problems.push("the state has no valid meters");
+
+  if (
+    !Array.isArray(state.outages) ||
+    !state.outages.every(
+      (o: any) =>
+        o &&
+        typeof o === "object" &&
+        ["energy", "water", "waste"].includes(o.kind) &&
+        typeof o.cause === "string" &&
+        Number.isSafeInteger(o.atMinutes) &&
+        Number.isSafeInteger(o.minutes),
+    )
+  )
+    problems.push("the state has no valid outages");
+
+  if (
+    !Array.isArray(state.efficiencyProjects) ||
+    !state.efficiencyProjects.every(
+      (p: any) =>
+        p !== null &&
+        typeof p === "object" &&
+        !Array.isArray(p) &&
+        typeof p.id === "string" &&
+        p.id.length > 0 &&
+        ["energy", "water", "waste"].includes(p.kind) &&
+        Number.isSafeInteger(p.savingBasisPoints) &&
+        p.savingBasisPoints > 0 &&
+        p.savingBasisPoints <= MAX_EFFICIENCY_BP &&
+        ["planned", "implementing", "complete"].includes(p.status) &&
+        Number.isSafeInteger(p.remainingMonths) &&
+        p.remainingMonths >= 0 &&
+        Number.isSafeInteger(p.costMinor) &&
+        p.costMinor >= 0,
+    )
+  )
+    problems.push("the state has malformed efficiency projects");
+
+  if (typeof state.standbyPower !== "boolean")
+    problems.push("the state has no valid standby power field");
   if (
     !state.cityMarket?.occupancyAttribution ||
     !Number.isSafeInteger(

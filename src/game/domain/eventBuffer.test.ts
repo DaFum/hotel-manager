@@ -100,8 +100,19 @@ function runDays(s: GameSimulation, days: number): DomainEvent[] {
 }
 
 /** A house whose plant is already worn out and fails on the first roll. */
+import { takeOutPolicy } from "../risk/insurance";
+
 function wornPlantScenario(): DomainEvent[] {
   const state = createInitialGameState(3);
+  state.insurance = takeOutPolicy(state.insurance, {
+    id: "policy.fire",
+    peril: "fire",
+    insuredValueMinor: 100_000_000,
+    limitMinor: 50_000_000,
+    deductibleMinor: 100_000,
+    annualRateBasisPoints: 100,
+    exclusions: [],
+  });
   state.assets = state.assets.map((a) => ({
     ...a,
     condition: 1000,
@@ -508,8 +519,41 @@ describe("domain event buffer", () => {
       intent: "renewing",
     });
     s.state.assets.find((asset) => asset.id === "asset.boiler")!.condition = 0;
+    s.state.rngState = { ...s.state.rngState, failures: stateForRoll(0, 50) };
     collected.push(...runDays(s, 45));
     send({ type: "CONFIGURE_LOYALTY", active: false });
+    return collected;
+  }
+
+  function utilityScenario(): DomainEvent[] {
+    const s = sim(41);
+    const collected: DomainEvent[] = [];
+    const run = (payload: GameCommand) => {
+      const result = submit(s, payload);
+      expect([payload.type, result.status]).toEqual([payload.type, "accepted"]);
+      collected.push(...s.takeDomainEvents());
+    };
+
+    run({
+      type: "SIGN_UTILITY_CONTRACT",
+      kind: "energy",
+      supplierId: "supplier.utility.green",
+      standingChargeMinor: 50_000,
+      unitPriceMinor: 40,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+      priceLock: "floating",
+    });
+
+    run({
+      type: "INVEST_IN_EFFICIENCY",
+      kind: "energy",
+      savingBasisPoints: 1000,
+    });
+
+    s.state.assets.find((a) => a.id === "asset.boiler")!.condition = 500;
+    collected.push(...runDays(s, 100));
+
     return collected;
   }
 
@@ -695,6 +739,7 @@ describe("domain event buffer", () => {
     record(commercialAndInsuranceScenario());
     record(distributionAndTargetsScenario());
     record(staffScenario());
+    record(utilityScenario());
 
     seen.add("TAX_ACCRUED");
     seen.add("TAX_PAID");

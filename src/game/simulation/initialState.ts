@@ -94,6 +94,7 @@ import {
 } from "../facilities/commercialSpaces";
 import {
   createUtilityContracts,
+  type EfficiencyProject,
   type MeterReadings,
   type UtilityContracts,
   type UtilityOutage,
@@ -364,6 +365,8 @@ export interface GameState {
   insurance: InsuranceState;
   /** Energy, water and waste contracts, meters and any running outage. */
   utilityContracts: UtilityContracts;
+  efficiencyProjects: EfficiencyProject[];
+  standbyPower: boolean;
   meters: MeterReadings;
   outages: UtilityOutage[];
   /** Campaigns, negotiated accounts, guest records and the loyalty scheme. */
@@ -562,6 +565,8 @@ export function createInitialGameState(seed: number): GameState {
     },
     insurance: createInsuranceState(),
     utilityContracts: createUtilityContracts(),
+    efficiencyProjects: [],
+    standbyPower: false,
     meters: { energy: 0, water: 0, waste: 0 },
     outages: [],
     commercial: createCommercialState(),

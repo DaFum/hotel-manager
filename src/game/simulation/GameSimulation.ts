@@ -143,6 +143,7 @@ import { roomAppeal, segmentFitBp } from "../rooms/product";
 import { roomModule, roomProductFor } from "../content/rooms/modules";
 import { noisePenaltyBp } from "../renovation/projects";
 import { consume, deliverOrder, placeOrder } from "../purchasing/inventory";
+import { contractForSku, supplyChainTradeOff } from "../purchasing/contracts";
 import { degradeAsset, repairAsset } from "../maintenance/maintenance";
 import { hireApplicant, type Shift } from "../staff/staffing";
 import { postEntry } from "../finance/ledger";
@@ -310,6 +311,11 @@ import {
   validateCompanyCommand,
 } from "../company/companyCommands";
 import {
+  applyUtilityCommand,
+  isUtilityCommand,
+  validateUtilityCommand,
+} from "../utilities/utilityCommands";
+import {
   applyCommercialCommand,
   isCommercialCommand,
   validateCommercialCommand,
@@ -366,11 +372,34 @@ const ASSET_INSURANCE_PERIL: Readonly<
 };
 import {
   UTILITY_KINDS,
+  advanceEfficiencyProject,
+  applyEfficiencyInvestment,
+  createUtilityContracts,
+  outageConsequences,
   readMeters,
+  repriceFloatingContract,
   standingChargeMinor,
+  startOutage,
   utilityUsageMinor,
   wasteDisposalMinor,
+  type UtilityContract,
+  type UtilityKind,
 } from "../utilities/consumption";
+
+export function activeUtilityContract(
+  state: GameState,
+  kind: UtilityKind,
+): UtilityContract {
+  const contract = state.utilityContracts?.[kind];
+  if (
+    contract &&
+    contract.validFromDateKey <= state.calendar.dateKey &&
+    state.calendar.dateKey < contract.validToDateKey
+  ) {
+    return contract;
+  }
+  return createUtilityContracts()[kind];
+}
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -491,6 +520,14 @@ export class GameSimulation implements CommandExecutor {
     state.commercial.campaignAttributionLog ??= [];
     state.commercial.loyalty.active ??= true;
     state.distribution ??= createDistributionState();
+    state.utilityContracts ??= createUtilityContracts();
+    state.efficiencyProjects ??= [];
+    state.standbyPower ??= false;
+    state.meters ??= { energy: 0, water: 0, waste: 0 };
+    state.outages ??= [];
+    if (state.world?.macro) {
+      state.world.macro.energyPriceIndexBp ??= 10_000;
+    }
     state.revenuePolicy = updateRevenuePolicy(createRevenuePolicy(), {
       ...state.revenuePolicy,
       managerAttributes:
@@ -632,6 +669,9 @@ export class GameSimulation implements CommandExecutor {
         }
         case "ORDER_SUPPLIES": {
           const supplier = supplierForSku(command.sku);
+          const activeContract = contractForSku(s.procurement, command.sku, s.calendar.dateKey);
+          const tradeOff = activeContract ? supplyChainTradeOff(activeContract) : null;
+          const unitPriceMinor = tradeOff ? tradeOff.unitPriceMinor : supplier.unitPriceMinor;
           if (command.quantity < supplier.minimumQuantity)
             return {
               ok: false,
@@ -643,7 +683,7 @@ export class GameSimulation implements CommandExecutor {
               supplierId: supplier.id,
               sku: supplier.sku,
               quantity: command.quantity,
-              unitPriceMinor: supplier.unitPriceMinor,
+              unitPriceMinor,
               leadMinutes: supplier.leadMinutes,
             },
           );
@@ -782,6 +822,7 @@ export class GameSimulation implements CommandExecutor {
           if (isDistributionCommand(command))
             return validateDistributionCommand(s, command);
           if (isStaffCommand(command)) return validateStaffCommand(s, command);
+          if (isUtilityCommand(command)) return validateUtilityCommand(s, command);
           return { ok: false, reason: "unknown command" };
       }
     } catch (error) {
@@ -960,18 +1001,21 @@ export class GameSimulation implements CommandExecutor {
       }
       case "ORDER_SUPPLIES": {
         const supplier = supplierForSku(command.sku);
+        const activeContract = contractForSku(s.procurement, command.sku, s.calendar.dateKey);
+        const tradeOff = activeContract ? supplyChainTradeOff(activeContract) : null;
+        const unitPriceMinor = tradeOff ? tradeOff.unitPriceMinor : supplier.unitPriceMinor;
         if (command.quantity < supplier.minimumQuantity)
           throw new Error(
             `minimum order is ${supplier.minimumQuantity} ${supplier.sku}`,
           );
-        const costMinor = command.quantity * supplier.unitPriceMinor;
+        const costMinor = command.quantity * unitPriceMinor;
         const result = placeOrder(
           { cashMinor: costMinor, nowMinutes: s.elapsedMinutes },
           {
             supplierId: supplier.id,
             sku: supplier.sku,
             quantity: command.quantity,
-            unitPriceMinor: supplier.unitPriceMinor,
+            unitPriceMinor,
             leadMinutes: supplier.leadMinutes,
           },
         );
@@ -1334,6 +1378,15 @@ export class GameSimulation implements CommandExecutor {
             emit: (payload, entities) => this.emit(payload, entities),
             spend: (amountMinor, account, memo) =>
               this.spend(amountMinor, account, memo),
+          });
+          return;
+        }
+        if (isUtilityCommand(command)) {
+          applyUtilityCommand(s, command, {
+            emit: (payload, entities) => this.emit(payload, entities),
+            spend: (amountMinor, account, memo) =>
+              this.spend(amountMinor, account, memo),
+            energyPriceIndexBp: () => s.world.macro.energyPriceIndexBp,
           });
           return;
         }
@@ -2367,6 +2420,121 @@ export class GameSimulation implements CommandExecutor {
 
   private runMaintenance(): void {
     const s = this.state;
+
+    // Check expired outages
+    const expiredOutages = s.outages.filter(
+      (outage) => s.elapsedMinutes >= outage.atMinutes + outage.minutes,
+    );
+    if (expiredOutages.length > 0) {
+      s.outages = s.outages.filter(
+        (outage) => s.elapsedMinutes < outage.atMinutes + outage.minutes,
+      );
+      const remainingUnsellable = s.outages.some(
+        (o) => outageConsequences(o, s.standbyPower).roomsUnsellable,
+      );
+      if (!remainingUnsellable) {
+        for (const room of s.hotel.rooms) {
+          if (room.faultReasonCode === "room.fault.outage") {
+            const from = room.state;
+            room.state = "VacantDirty";
+            room.faultReasonCode = undefined;
+            this.emit(
+              {
+                type: "ROOM_STATE_CHANGED",
+                roomId: room.id,
+                from,
+                to: room.state,
+              },
+              [room.id],
+            );
+          }
+        }
+      }
+      for (const outage of expiredOutages) {
+        this.emit(
+          {
+            type: "UTILITY_OUTAGE_ENDED",
+            kind: outage.kind,
+            cause: outage.cause,
+          },
+          [`utility-contract.${outage.kind}`],
+        );
+      }
+    }
+
+    if (this.dayRolled) {
+      // Daily outage roll
+      const roll = this.streams.failures.nextUint32() % 10_000;
+      const rawBoilerCondition = s.assets.find((a) => a.id === "asset.boiler")?.condition ?? 10_000;
+      const energyOutageThresholdBp = rawBoilerCondition < 2000 ? 100 : 20;
+
+      if (
+        roll < energyOutageThresholdBp &&
+        !s.outages.some((o) => o.kind === "energy")
+      ) {
+        const outage = startOutage(
+          {
+            kind: "energy",
+            atMinutes: s.elapsedMinutes,
+            cause: "equipment breakdown",
+          },
+          this.streams.failures,
+        );
+        s.outages.push(outage);
+        const cons = outageConsequences(outage, s.standbyPower);
+        if (cons.roomsUnsellable) {
+          for (const room of s.hotel.rooms) {
+            if (room.state !== "Occupied" && room.state !== "OutOfOrder") {
+              const from = room.state;
+              room.state = "OutOfOrder";
+              room.faultReasonCode = "room.fault.outage";
+              this.emit(
+                {
+                  type: "ROOM_STATE_CHANGED",
+                  roomId: room.id,
+                  from,
+                  to: room.state,
+                },
+                [room.id],
+              );
+            }
+          }
+        }
+        for (const stay of s.stays) {
+          const complaintId = `complaint.outage.energy.${s.elapsedMinutes}.${stay.bookingId}`;
+          if (!s.handledComplaintIds.includes(complaintId)) {
+            s.handledComplaintIds.push(complaintId);
+            this.emit(
+              {
+                type: "COMPLAINT_RAISED",
+                complaintId,
+                bookingId: stay.bookingId,
+              },
+              [complaintId, stay.bookingId],
+            );
+          }
+        }
+        this.moveReputation("hotel", s.hotel.id, -5, "energy outage");
+        if (outage.minutes >= 240) {
+          this.moveReputation(
+            "media",
+            s.company.companyId,
+            -3,
+            "severe energy outage",
+          );
+        }
+        this.emit(
+          {
+            type: "UTILITY_OUTAGE_STARTED",
+            kind: outage.kind,
+            cause: outage.cause,
+            minutes: outage.minutes,
+          },
+          [`utility-contract.${outage.kind}`],
+        );
+      }
+    }
+
     // Wear is applied once a day: a five-minute quantum floors to zero decay.
     const wearMinutes = this.dayRolled ? MINUTES_PER_DAY : 0;
     // A shift is a budget, not a per-asset allowance: every service booked
@@ -2755,27 +2923,46 @@ export class GameSimulation implements CommandExecutor {
     const wasteKilos =
       s.stays.length + Math.ceil(this.eventBreakfastCovers() / 4);
 
+    const energyContract = activeUtilityContract(s, "energy");
+    const waterContract = activeUtilityContract(s, "water");
+    const wasteContract = activeUtilityContract(s, "waste");
+
     if (energyUnits > 0 || waterUnits > 0) {
       this.spend(
-        utilityUsageMinor(s.utilityContracts.energy, energyUnits),
+        utilityUsageMinor(energyContract, energyUnits),
         "utilities",
         `metered energy: ${energyUnits} units`,
       );
       this.spend(
-        utilityUsageMinor(s.utilityContracts.water, waterUnits),
+        utilityUsageMinor(waterContract, waterUnits),
         "utilities",
         `metered water: ${waterUnits} units`,
       );
     }
-    if (wasteKilos > 0)
+    if (wasteKilos > 0) {
+      const activeProcurement = contractForSku(
+        s.procurement,
+        "cleaning-unit",
+        s.calendar.dateKey,
+      );
+      const tradeOff = activeProcurement
+        ? supplyChainTradeOff(activeProcurement)
+        : {
+            sortedWasteShareBp: SORTED_WASTE_BP,
+            unitPriceMinor: 0,
+            reputationDeltaBp: 0,
+            supplyRiskDeltaBp: 0,
+          };
+
       this.spend(
-        wasteDisposalMinor(s.utilityContracts.waste, {
+        wasteDisposalMinor(wasteContract, {
           kilos: wasteKilos,
-          sortedBasisPoints: SORTED_WASTE_BP,
+          sortedBasisPoints: tradeOff.sortedWasteShareBp,
         }),
         "utilities",
         `waste: ${wasteKilos} kilos`,
       );
+    }
 
     s.meters = readMeters(s.meters, {
       energy: energyUnits,
@@ -4460,6 +4647,43 @@ export class GameSimulation implements CommandExecutor {
     // Everything the closed month owes is charged first, so the report the
     // player reads is the whole month rather than the month before overheads.
     this.chargeUtilityStandingCharges();
+
+    // Reprice floating contracts and advance efficiency projects
+    for (const kind of UTILITY_KINDS) {
+      s.utilityContracts[kind] = repriceFloatingContract(
+        s.utilityContracts[kind],
+        s.world.macro.energyPriceIndexBp,
+      );
+    }
+    s.efficiencyProjects = s.efficiencyProjects.map((project) =>
+      advanceEfficiencyProject(project),
+    );
+    for (const project of s.efficiencyProjects) {
+      if (project.status === "complete") {
+        s.utilityContracts = applyEfficiencyInvestment(s.utilityContracts, {
+          kind: project.kind,
+          savingBasisPoints: project.savingBasisPoints,
+        });
+        if (project.kind === "energy") {
+          s.standbyPower = true;
+        }
+        this.emit(
+          {
+            type: "EFFICIENCY_INVESTMENT_COMPLETED",
+            projectId: project.id,
+            kind: project.kind,
+            savingBasisPoints: project.savingBasisPoints,
+          },
+          [`utility-contract.${project.kind}`, project.id],
+        );
+      }
+    }
+    if (s.utilityContracts.energy.efficiencyBasisPoints >= 1000) {
+      s.standbyPower = true;
+    }
+    s.efficiencyProjects = s.efficiencyProjects.filter(
+      (project) => project.status !== "complete",
+    );
     this.runCommercialSpaceMonth();
     this.runEmploymentMonth();
     this.runCommercialMonth();
@@ -4710,7 +4934,7 @@ export class GameSimulation implements CommandExecutor {
   private chargeUtilityStandingCharges(): void {
     for (const kind of UTILITY_KINDS)
       this.spend(
-        standingChargeMinor(this.state.utilityContracts[kind]),
+        standingChargeMinor(activeUtilityContract(this.state, kind)),
         "utilities",
         `${kind} standing charge`,
       );
@@ -4827,6 +5051,23 @@ export class GameSimulation implements CommandExecutor {
       s.staff.some((member) => member.absent) ? -1 : 1,
       "monthly rota",
     );
+
+    const cleaningContract = contractForSku(
+      s.procurement,
+      "cleaning-unit",
+      s.calendar.dateKey,
+    );
+    if (cleaningContract) {
+      const tradeOff = supplyChainTradeOff(cleaningContract);
+      if (tradeOff.reputationDeltaBp !== 0) {
+        this.moveReputation(
+          "hotel",
+          s.hotel.id,
+          Math.trunc(tradeOff.reputationDeltaBp / 100),
+          `supply choice ${cleaningContract.tier}`,
+        );
+      }
+    }
     s.reputation = decayReputation(s.reputation);
   }
 
@@ -4842,7 +5083,7 @@ export class GameSimulation implements CommandExecutor {
     return `${prefix}${highest + 1}`;
   }
 
-  private availableRooms(dateKey: string, category: string): number {
+  public availableRooms(dateKey: string, category: string): number {
     const s = this.state;
     const total = s.hotel.rooms.filter((r) => r.category === category).length;
     // Only a live booking holds anything: a cancellation or a no-show has

@@ -54,5 +54,22 @@ export function migrateV12ToV13(save: SaveEnvelope): SaveEnvelope {
     GroupNegotiation: 50,
     ContractNegotiation: 50,
   };
+  state.efficiencyProjects ??= [];
+  state.standbyPower ??= false;
+  state.meters ??= { energy: 0, water: 0, waste: 0 };
+  state.outages ??= [];
+  if (state.world?.macro) {
+    state.world.macro.energyPriceIndexBp ??= 10_000;
+  }
+  if (state.utilityContracts && typeof state.utilityContracts === "object") {
+    for (const kind of ["energy", "water", "waste"] as const) {
+      if (state.utilityContracts[kind]) {
+        state.utilityContracts[kind].supplierId ??= `supplier.utility.municipal.${kind}`;
+        state.utilityContracts[kind].validFromDateKey ??= "1991-01-01";
+        state.utilityContracts[kind].validToDateKey ??= "2099-12-31";
+        state.utilityContracts[kind].priceLock ??= "fixed";
+      }
+    }
+  }
   return { ...save, saveVersion: 13, state };
 }

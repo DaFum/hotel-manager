@@ -324,6 +324,39 @@ export type DomainEventPayload =
       loanId: string;
       amountMinor: number;
       remainingPrincipalMinor: number;
+    }
+  // --- utilities and efficiency ------------------------------------------
+  | {
+      type: "UTILITY_CONTRACT_SIGNED";
+      kind: import("../utilities/consumption").UtilityKind;
+      supplierId: string;
+      standingChargeMinor: number;
+      unitPriceMinor: number;
+      priceLock: "fixed" | "floating";
+    }
+  | {
+      type: "EFFICIENCY_INVESTMENT_STARTED";
+      projectId: string;
+      kind: import("../utilities/consumption").UtilityKind;
+      savingBasisPoints: number;
+      costMinor: number;
+    }
+  | {
+      type: "EFFICIENCY_INVESTMENT_COMPLETED";
+      projectId: string;
+      kind: import("../utilities/consumption").UtilityKind;
+      savingBasisPoints: number;
+    }
+  | {
+      type: "UTILITY_OUTAGE_STARTED";
+      kind: import("../utilities/consumption").UtilityKind;
+      cause: string;
+      minutes: number;
+    }
+  | {
+      type: "UTILITY_OUTAGE_ENDED";
+      kind: import("../utilities/consumption").UtilityKind;
+      cause: string;
     };
 
 export type DomainEventType = DomainEventPayload["type"];
@@ -427,6 +460,11 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   ENDLESS_CAREER_CONTINUED: true,
   LOAN_TAKEN: true,
   LOAN_REPAID: true,
+  UTILITY_CONTRACT_SIGNED: true,
+  EFFICIENCY_INVESTMENT_STARTED: true,
+  EFFICIENCY_INVESTMENT_COMPLETED: true,
+  UTILITY_OUTAGE_STARTED: true,
+  UTILITY_OUTAGE_ENDED: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -517,6 +555,11 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "ENDLESS_CAREER_CONTINUED",
   "LOAN_TAKEN",
   "LOAN_REPAID",
+  "UTILITY_CONTRACT_SIGNED",
+  "EFFICIENCY_INVESTMENT_STARTED",
+  "EFFICIENCY_INVESTMENT_COMPLETED",
+  "UTILITY_OUTAGE_STARTED",
+  "UTILITY_OUTAGE_ENDED",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

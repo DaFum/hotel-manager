@@ -1,6 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 import { AREA_ORDER } from "../src/ui/ManagementShell";
-import { openManagementArea, selectLocale } from "./management";
+import {
+  closeDrawer,
+  openDrawer,
+  openManagementArea,
+  selectLocale,
+} from "./management";
 
 /**
  * The frame's structural promises, asserted rather than assumed.
@@ -104,6 +109,67 @@ test.describe("the document is ordered the way it is read", () => {
     });
 
     expect(placed).toBe("above");
+  });
+});
+
+/**
+ * High contrast is a promise, not a filter (tokens.css): it must win over every
+ * decorative token in the system, including the ones a department declares for
+ * its own surface.
+ */
+test.describe("a themed board keeps the high-contrast promise", () => {
+  test.use({ viewport: DESK });
+
+  /**
+   * The revenue board and the guest ledger bring their own paper, so they also
+   * declare the ink that paper takes. Declared on the board, those tokens beat
+   * the value they would have inherited whatever the specificity of the rule
+   * upstream — so the black-and-white palette set on the root never reached
+   * them, and a player who had asked for high contrast still got dark red on
+   * cream. The board must answer to the palette, not outrank it.
+   */
+  test("the paper departments take the high-contrast palette", async ({
+    page,
+  }) => {
+    await start(page);
+    await openDrawer(page, "settings");
+    await page.getByRole("checkbox", { name: /High contrast/i }).check();
+    await closeDrawer(page);
+
+    const offenders: string[] = [];
+    for (const [area, selector] of [
+      ["revenue", ".revenue-board"],
+      ["guests", ".guest-ledger"],
+    ] as const) {
+      await openManagementArea(page, area);
+      const seen = await page.evaluate((selector) => {
+        const root = document.querySelector(".hm-root");
+        const board = document.querySelector(selector);
+        if (!root || !board) return null;
+        const read = (el: Element, name: string) =>
+          getComputedStyle(el).getPropertyValue(name).trim();
+        return ["--hm-ink", "--hm-ink-dim", "--hm-signal"].map((name) => ({
+          name,
+          root: read(root, name),
+          board: read(board, name),
+        }));
+      }, selector);
+
+      if (!seen) {
+        offenders.push(`${area}: the board is not on screen`);
+        continue;
+      }
+      for (const token of seen) {
+        if (token.root !== token.board) {
+          offenders.push(
+            `${area} ${token.name}: board says ${token.board}, ` +
+              `high contrast says ${token.root}`,
+          );
+        }
+      }
+    }
+
+    expect(offenders, "themed tokens outranking high contrast").toEqual([]);
   });
 });
 

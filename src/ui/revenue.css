@@ -2,24 +2,35 @@
   --revenue-ink: #172424;
   --revenue-paper: #e5e1d2;
   --revenue-signal: #99381f;
+  --revenue-rule: rgb(23 36 36 / 35%);
+  --revenue-rule-soft: rgb(23 36 36 / 20%);
 
-  /*
-   * The board brings its own paper, so it must bring its own ink.
-   *
-   * Setting `color` alone was not enough: every ruled figure on this page is
-   * drawn by a rule in data.css or controls.css that names an ink token
-   * outright — `dd` takes --hm-ink, `dt` and `td` take --hm-ink-dim — and a
-   * declared colour beats an inherited one no matter how specific the board's
-   * own selectors are. The dark theme's ink therefore stayed on the light
-   * paper: ADR, RevPAR and GOPPAR read #ede9e0 on #e5e1d2, which is 1.03:1.
-   * The department's entire readout was invisible.
-   *
-   * Restating the semantic tokens fixes it at the source rather than in a
-   * specificity war: the shared rules keep asking for --hm-ink, and on this
-   * surface the answer is now the ink this paper takes. Every value below
-   * clears WCAG AA against the darkest tone the paper reaches (#ddd9ca),
-   * including the ruled stripe.
-   */
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0 27px,
+      rgb(23 36 36 / 7%) 28px
+    ),
+    linear-gradient(115deg, #eeeadd, var(--revenue-paper));
+  color: var(--revenue-ink);
+  border: 1px solid var(--revenue-rule);
+  box-shadow: 0 1.25rem 3rem rgb(23 36 36 / 18%);
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+/*
+ * The ink this paper takes — in normal mode only.
+ *
+ * A custom property declared on a descendant beats the value it would have
+ * inherited, whatever the specificity of the rule that set it upstream. So
+ * these, declared on the board, silently outranked the black-and-white palette
+ * that .hm-root.high-contrast sets on the root, and the department kept its
+ * cream paper and its dark red signal for a player who had asked for high
+ * contrast. High contrast is a promise, not a filter (tokens.css): the board
+ * states its ink where the promise does not apply, and answers to the promise
+ * where it does.
+ */
+.hm-root:not(.high-contrast) .revenue-board {
   --hm-ink-bright: #0f1a1a;
   --hm-ink: var(--revenue-ink);
   --hm-ink-dim: #45514f;
@@ -46,18 +57,22 @@
   --hm-surface-sunken: #ddd8c8;
   --hm-hover-bg: rgb(153 56 31 / 6%);
   --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
+}
 
-  background:
-    repeating-linear-gradient(
-      0deg,
-      transparent 0 27px,
-      rgb(23 36 36 / 7%) 28px
-    ),
-    linear-gradient(115deg, #eeeadd, var(--revenue-paper));
-  color: var(--revenue-ink);
-  border: 1px solid rgb(23 36 36 / 35%);
-  box-shadow: 0 1.25rem 3rem rgb(23 36 36 / 18%);
-  padding: clamp(1rem, 3vw, 2.5rem);
+/*
+ * Under high contrast the board keeps its structure and gives up its surface:
+ * the paper, the rules and the signal all become whatever the accessibility
+ * palette says they are.
+ */
+.hm-root.high-contrast .revenue-board {
+  --revenue-ink: var(--hm-ink);
+  --revenue-paper: var(--hm-ground);
+  --revenue-signal: var(--hm-signal);
+  --revenue-rule: var(--hm-rule);
+  --revenue-rule-soft: var(--hm-rule);
+
+  background: var(--hm-ground);
+  box-shadow: none;
 }
 
 .revenue-board__header {
@@ -87,7 +102,7 @@
 }
 
 .revenue-board > section {
-  border-top: 1px solid rgb(23 36 36 / 35%);
+  border-top: 1px solid var(--revenue-rule);
   margin-block-start: 1.2rem;
   padding-block-start: 1rem;
   overflow-x: auto;
@@ -107,7 +122,7 @@
 
 .revenue-board th,
 .revenue-board td {
-  border-bottom: 1px solid rgb(23 36 36 / 20%);
+  border-bottom: 1px solid var(--revenue-rule-soft);
   padding: 0.55rem 0.7rem;
   text-align: left;
   vertical-align: top;

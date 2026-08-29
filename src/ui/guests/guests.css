@@ -4,14 +4,24 @@
   --guest-rule: #8c3229;
   --guest-muted: #5b5449;
 
-  /*
-   * The ledger's paper needs the ledger's ink — see the note in revenue.css.
-   * The shared rules name --hm-ink and --hm-ink-dim outright, so a surface
-   * that changes its ground has to answer those names itself or keep the dark
-   * theme's paper-coloured ink on cream. Every value clears WCAG AA against
-   * the darkest tone this paper reaches (#ded3be), and --guest-muted moves off
-   * #6a6256, which only ever cleared AA for large text.
-   */
+  color: var(--guest-ink);
+  background:
+    linear-gradient(90deg, rgb(140 50 41 / 7%) 1px, transparent 1px) 0 0 / 28px
+      28px,
+    linear-gradient(var(--guest-paper), #e5dac5);
+  border: 1px solid color-mix(in srgb, var(--guest-ink) 35%, transparent);
+  box-shadow: 0 18px 45px rgb(32 30 25 / 18%);
+  padding: clamp(1.2rem, 3vw, 2.6rem);
+}
+
+/*
+ * The ink this paper takes — in normal mode only. See the note in revenue.css:
+ * a custom property declared on a descendant beats the inherited one whatever
+ * the upstream specificity, so these quietly outranked the high-contrast
+ * palette and left a player who had asked for black and white reading dark red
+ * on cream.
+ */
+.hm-root:not(.high-contrast) .guest-ledger {
   --hm-ink-bright: #16150f;
   --hm-ink: var(--guest-ink);
   --hm-ink-dim: #4f4940;
@@ -38,15 +48,17 @@
   --hm-surface-sunken: #ded3be;
   --hm-hover-bg: rgb(140 50 41 / 6%);
   --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
+}
 
-  color: var(--guest-ink);
-  background:
-    linear-gradient(90deg, rgb(140 50 41 / 7%) 1px, transparent 1px) 0 0 / 28px
-      28px,
-    linear-gradient(var(--guest-paper), #e5dac5);
-  border: 1px solid color-mix(in srgb, var(--guest-ink) 35%, transparent);
-  box-shadow: 0 18px 45px rgb(32 30 25 / 18%);
-  padding: clamp(1.2rem, 3vw, 2.6rem);
+/* Under high contrast the ledger keeps its structure and gives up its surface. */
+.hm-root.high-contrast .guest-ledger {
+  --guest-ink: var(--hm-ink);
+  --guest-paper: var(--hm-ground);
+  --guest-rule: var(--hm-signal);
+  --guest-muted: var(--hm-ink-dim);
+
+  background: var(--hm-ground);
+  box-shadow: none;
 }
 
 .guest-ledger__masthead {

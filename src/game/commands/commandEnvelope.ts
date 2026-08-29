@@ -152,7 +152,7 @@ export type GameCommand =
   | { type: "APPROVE_LEAVE"; staffId: string; days: number }
   | {
       type: "SET_DEPARTMENT_AUTHORITY";
-      departmentId: string;
+      departmentId: "housekeeping" | "reception" | "fnb" | "maintenance";
       authority: Partial<import("../management/managerAuthority").DepartmentHeadAuthority>;
     }
   | { type: "START_RENOVATION" }

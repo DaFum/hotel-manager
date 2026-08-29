@@ -166,8 +166,9 @@ export function validateStaffCommand(
       return ok;
     }
     case "SET_DEPARTMENT_AUTHORITY": {
-      if (typeof command.departmentId !== "string" || !command.departmentId)
-        return no("departmentId is required");
+      const KNOWN_DEPTS = ["housekeeping", "reception", "fnb", "maintenance"];
+      if (!KNOWN_DEPTS.includes(command.departmentId))
+        return no(`unknown department ${command.departmentId}`);
       try {
         createDepartmentHeadAuthority(command.authority);
       } catch (error) {
@@ -316,6 +317,15 @@ export function applyStaffCommand(
       };
       const staffRow = state.staff.find((s) => s.id === command.staffId);
       if (staffRow) staffRow.absent = true;
+      ctx.emit(
+        {
+          type: "TRAINING_STARTED",
+          staffId: command.staffId,
+          employeeId: employee.id,
+          courseId: course.id,
+        },
+        [command.staffId, employee.id],
+      );
       return;
     }
     case "APPROVE_LEAVE": {

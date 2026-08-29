@@ -113,6 +113,12 @@ export type DomainEventPayload =
       monthlyWageMinor: number;
     }
   | {
+      type: "TRAINING_STARTED";
+      staffId: string;
+      employeeId: string;
+      courseId: string;
+    }
+  | {
       type: "TRAINING_COMPLETED";
       staffId: string;
       employeeId: string;
@@ -365,6 +371,7 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   END_EMPLOYMENT: true,
   SET_WAGE: true,
   PROMOTE: true,
+  TRAINING_STARTED: true,
   TRAINING_COMPLETED: true,
   LEAVE_APPROVED: true,
   SHIFT_CHANGED: true,
@@ -454,6 +461,7 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "END_EMPLOYMENT",
   "SET_WAGE",
   "PROMOTE",
+  "TRAINING_STARTED",
   "TRAINING_COMPLETED",
   "LEAVE_APPROVED",
   "SHIFT_CHANGED",

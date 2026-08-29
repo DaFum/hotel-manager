@@ -293,8 +293,13 @@ export function App() {
         className="hm-root hm-boot"
         aria-label={translateGame(preferences.locale, "app.main")}
       >
-        <h1>Hotel Manager</h1>
-        <p>Starting {CITY.name} 1991…</p>
+        <h1>{translateGame(preferences.locale, "app.title")}</h1>
+        <p>
+          {translateGame(preferences.locale, "app.starting", {
+            city: CITY.name,
+            year: 1991,
+          })}
+        </p>
       </main>
     );
 

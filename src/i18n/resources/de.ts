@@ -18,10 +18,16 @@ export const de = {
         "Die Gästezufriedenheit sank ohne einen einzelnen dominanten Grund.",
     },
   },
+  spec: {
+    conference: "Tagungshotel",
+    wellness: "Wellnesshotel",
+  },
   trend: { "digital-booking": { name: "Digitale Buchung" } },
   macro: { credit: { name: "Druck am Kreditmarkt" } },
   app: {
     main: "Hotelverwaltung",
+    title: "Hotel Manager",
+    starting: "Starte {city} {year}…",
     telemetry: {
       simulation: "Simulationsstatus",
       commandLabel: "Befehlsstatus",
@@ -43,6 +49,11 @@ export const de = {
       kiosk: "Kiosk",
       carpark: "Parkhaus",
       terrace: "Terrasse",
+      shop: "Geschäft",
+      parking: "Parkplatz",
+      outdoor: "Außenbereich",
+      mobility: "Mobilität",
+      security: "Sicherheit",
     },
     loan: {
       starter: "Eröffnungsdarlehen",
@@ -115,6 +126,11 @@ export const de = {
       atATime: "{count} gleichzeitig",
       open: "Geöffnet",
       operator: "Betrieb",
+      operators: {
+        self: "Eigenbetrieb",
+        lease: "Pacht",
+        concession: "Konzession",
+      },
       soldThisMonth: "Diesen Monat verkauft",
       toTheHotel: "Anteil des Hotels",
       fit: "Passung",

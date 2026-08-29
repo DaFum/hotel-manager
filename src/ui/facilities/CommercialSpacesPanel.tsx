@@ -105,7 +105,9 @@ export function CommercialSpacesPanel(props: {
                 </div>
                 <div>
                   <dt>{t("panels.commercial.operator")}</dt>
-                  <dd>{space.operator}</dd>
+                  <dd>
+                    {t(`panels.commercial.operators.${space.operator}`)}
+                  </dd>
                 </div>
                 <div>
                   <dt>{t("panels.commercial.soldThisMonth")}</dt>

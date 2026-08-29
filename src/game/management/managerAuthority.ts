@@ -97,3 +97,48 @@ export function setAuthorityLimit(
     authority: createManagerAuthority({ ...manager.authority, ...limits }),
   };
 }
+
+/** Limits under which a department head plans staffing autonomously. */
+export interface DepartmentHeadAuthority {
+  staffingBudgetMinor: number;
+  minServiceLevelBasisPoints: number;
+  overtimeCapHours: number;
+  staffingReserveCount: number;
+}
+
+export const DEFAULT_DEPARTMENT_HEAD_AUTHORITY: DepartmentHeadAuthority = {
+  staffingBudgetMinor: 50_000_00, // 50,000 DM
+  minServiceLevelBasisPoints: 5_000, // 50%
+  overtimeCapHours: 40,
+  staffingReserveCount: 0,
+};
+
+export function createDepartmentHeadAuthority(
+  partial: Partial<DepartmentHeadAuthority> = {},
+): DepartmentHeadAuthority {
+  const declared = Object.fromEntries(
+    Object.entries(partial).filter(([, value]) => value !== undefined),
+  ) as Partial<DepartmentHeadAuthority>;
+  const merged = { ...DEFAULT_DEPARTMENT_HEAD_AUTHORITY, ...declared };
+  assertNonNegativeMinor(merged.staffingBudgetMinor, "staffing budget");
+  if (
+    !Number.isSafeInteger(merged.minServiceLevelBasisPoints) ||
+    merged.minServiceLevelBasisPoints < 0 ||
+    merged.minServiceLevelBasisPoints > 10_000
+  ) {
+    throw new Error("invalid minimum service level basis points");
+  }
+  if (
+    !Number.isSafeInteger(merged.overtimeCapHours) ||
+    merged.overtimeCapHours < 0
+  ) {
+    throw new Error("invalid overtime cap hours");
+  }
+  if (
+    !Number.isSafeInteger(merged.staffingReserveCount) ||
+    merged.staffingReserveCount < 0
+  ) {
+    throw new Error("invalid staffing reserve count");
+  }
+  return merged;
+}

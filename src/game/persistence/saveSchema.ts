@@ -330,6 +330,27 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   if (!Array.isArray(state.technologyImplementations))
     problems.push("the state has no technology implementations");
   if (
+    !state.departmentHeadAuthorities ||
+    typeof state.departmentHeadAuthorities !== "object" ||
+    Array.isArray(state.departmentHeadAuthorities) ||
+    !Object.values(state.departmentHeadAuthorities).every(
+      (auth) =>
+        auth !== null &&
+        typeof auth === "object" &&
+        !Array.isArray(auth) &&
+        Number.isSafeInteger(auth.staffingBudgetMinor) &&
+        auth.staffingBudgetMinor >= 0 &&
+        Number.isSafeInteger(auth.minServiceLevelBasisPoints) &&
+        auth.minServiceLevelBasisPoints >= 0 &&
+        auth.minServiceLevelBasisPoints <= 10_000 &&
+        Number.isSafeInteger(auth.overtimeCapHours) &&
+        auth.overtimeCapHours >= 0 &&
+        Number.isSafeInteger(auth.staffingReserveCount) &&
+        auth.staffingReserveCount >= 0,
+    )
+  )
+    problems.push("the state has malformed departmentHeadAuthorities");
+  if (
     !state.company?.hotelResults ||
     typeof state.company.hotelResults !== "object" ||
     Array.isArray(state.company.hotelResults) ||

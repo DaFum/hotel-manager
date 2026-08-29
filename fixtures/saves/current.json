@@ -1,5 +1,5 @@
 {
-  "saveVersion": 17,
+  "saveVersion": 18,
   "contentVersion": "1991.1",
   "protocolVersion": 6,
   "rngState": {
@@ -10408,7 +10408,7 @@
             "type": "HOTEL_RESULT_PUBLISHED",
             "hotelId": "hotel.frankfurt.1",
             "periodKey": "1991-01",
-            "grossOperatingProfitMinor": 304744
+            "grossOperatingProfitMinor": 262744
           }
         },
         {
@@ -10494,7 +10494,7 @@
           "payload": {
             "type": "MONTH_CLOSED",
             "periodKey": "1991-01",
-            "profitMinor": -2150880,
+            "profitMinor": -2192880,
             "occupancyBasisPoints": 3454
           }
         },
@@ -21889,7 +21889,7 @@
       }
     ],
     "finance": {
-      "cashMinor": 2882756,
+      "cashMinor": 2752256,
       "payableMinor": 0,
       "taxPayableMinor": 0,
       "ledger": [
@@ -24085,6 +24085,54 @@
         },
         {
           "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 18,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
+        },
+        {
+          "day": 18,
           "account": "roomRevenue",
           "amountMinor": 8100,
           "memo": "room.103"
@@ -25066,6 +25114,66 @@
           "account": "barRevenue",
           "amountMinor": 6750,
           "memo": "10 bar covers"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 24,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
         },
         {
           "day": 24,
@@ -26185,6 +26293,66 @@
         },
         {
           "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 29,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
+        },
+        {
+          "day": 29,
           "account": "roomRevenue",
           "amountMinor": 7920,
           "memo": "room.101"
@@ -27109,6 +27277,66 @@
         },
         {
           "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 33,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
+        },
+        {
+          "day": 33,
           "account": "roomRevenue",
           "amountMinor": 8550,
           "memo": "room.101"
@@ -27352,6 +27580,66 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 34,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
         },
         {
           "day": 34,
@@ -27775,6 +28063,60 @@
         },
         {
           "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 36,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 36,
           "account": "roomRevenue",
           "amountMinor": 11280,
           "memo": "room.113"
@@ -27988,6 +28330,66 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 37,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
         },
         {
           "day": 37,
@@ -28240,6 +28642,66 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 38,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
         },
         {
           "day": 38,
@@ -28516,6 +28978,66 @@
           "account": "roomServiceRevenue",
           "amountMinor": 1900,
           "memo": "1 room-service orders"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.1"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.fnb.101"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.1"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.101"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.housekeeping.2"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.kitchen.1"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.laundry.1"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.1"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.reception.2"
+        },
+        {
+          "day": 39,
+          "account": "overtimeWages",
+          "amountMinor": -1500,
+          "memo": "daily overtime pay for staff.technician.1"
         },
         {
           "day": 39,
@@ -29089,13 +29611,13 @@
         "consecutiveMissedPayments": 0
       },
       "month": {
-        "openingCashMinor": 2222965,
-        "openingLedgerIndex": 827,
+        "openingCashMinor": 2180965,
+        "openingLedgerIndex": 855,
         "roomRevenueMinor": 1155210,
         "otherRevenueMinor": 1892550,
         "eventRevenueMinor": 1021200,
         "housekeepingLateRoomReleaseCount": 0,
-        "operatingExpenseMinor": 1228319,
+        "operatingExpenseMinor": 1316819,
         "interestMinor": 0,
         "soldRoomNights": 120,
         "availableRoomNights": 240
@@ -32059,19 +32581,19 @@
       "periodKey": "1991-01",
       "taxChargeMinor": 0,
       "openingCashMinor": 40000000,
-      "closingCashMinor": 2222965,
+      "closingCashMinor": 2180965,
       "roomRevenueMinor": 2429760,
       "otherRevenueMinor": 4475975,
-      "operatingExpenseMinor": 9056615,
+      "operatingExpenseMinor": 9098615,
       "soldRoomNights": 257,
       "availableRoomNights": 744,
       "revenueMinor": 6905735,
-      "operatingProfitMinor": -2150880,
-      "cashDeltaMinor": -37777035,
+      "operatingProfitMinor": -2192880,
+      "cashDeltaMinor": -37819035,
       "occupancyBasisPoints": 3454,
       "adrMinor": 9454,
       "revParMinor": 3266,
-      "gopparMinor": -2891,
+      "gopparMinor": -2947,
       "whatWentWell": [
         {
           "labelKey": "finance.monthlyClose.causes.revenueMinorRecord",
@@ -32094,15 +32616,15 @@
       "whatIsChanging": [],
       "cashFlowStatement": {
         "openingCashMinor": 40000000,
-        "operatingCashMinor": -3777035,
+        "operatingCashMinor": -3819035,
         "investingCashMinor": -34000000,
         "financingCashMinor": 0,
-        "closingCashMinor": 2222965
+        "closingCashMinor": 2180965
       },
       "balanceSheet": {
-        "totalAssetsMinor": 49313145,
+        "totalAssetsMinor": 49271145,
         "totalLiabilitiesMinor": 10324000,
-        "equityMinor": 38989145,
+        "equityMinor": 38947145,
         "balances": true
       }
     },
@@ -32111,19 +32633,19 @@
         "periodKey": "1991-01",
         "taxChargeMinor": 0,
         "openingCashMinor": 40000000,
-        "closingCashMinor": 2222965,
+        "closingCashMinor": 2180965,
         "roomRevenueMinor": 2429760,
         "otherRevenueMinor": 4475975,
-        "operatingExpenseMinor": 9056615,
+        "operatingExpenseMinor": 9098615,
         "soldRoomNights": 257,
         "availableRoomNights": 744,
         "revenueMinor": 6905735,
-        "operatingProfitMinor": -2150880,
-        "cashDeltaMinor": -37777035,
+        "operatingProfitMinor": -2192880,
+        "cashDeltaMinor": -37819035,
         "occupancyBasisPoints": 3454,
         "adrMinor": 9454,
         "revParMinor": 3266,
-        "gopparMinor": -2891,
+        "gopparMinor": -2947,
         "whatWentWell": [
           {
             "labelKey": "finance.monthlyClose.causes.revenueMinorRecord",
@@ -32146,15 +32668,15 @@
         "whatIsChanging": [],
         "cashFlowStatement": {
           "openingCashMinor": 40000000,
-          "operatingCashMinor": -3777035,
+          "operatingCashMinor": -3819035,
           "investingCashMinor": -34000000,
           "financingCashMinor": 0,
-          "closingCashMinor": 2222965
+          "closingCashMinor": 2180965
         },
         "balanceSheet": {
-          "totalAssetsMinor": 49313145,
+          "totalAssetsMinor": 49271145,
           "totalLiabilitiesMinor": 10324000,
-          "equityMinor": 38989145,
+          "equityMinor": 38947145,
           "balances": true
         }
       },
@@ -32169,7 +32691,7 @@
     "metrics": {
       "adrMinor": 9627,
       "revParMinor": 4813,
-      "gopparMinor": 7581,
+      "gopparMinor": 7212,
       "occupancyBasisPoints": 5000
     },
     "elapsedMinutes": 57600,
@@ -32279,6 +32801,32 @@
     },
     "technologyProjects": [],
     "technologyImplementations": [],
+    "departmentHeadAuthorities": {
+      "housekeeping": {
+        "staffingBudgetMinor": 5000000,
+        "minServiceLevelBasisPoints": 5000,
+        "overtimeCapHours": 40,
+        "staffingReserveCount": 0
+      },
+      "reception": {
+        "staffingBudgetMinor": 5000000,
+        "minServiceLevelBasisPoints": 5000,
+        "overtimeCapHours": 40,
+        "staffingReserveCount": 0
+      },
+      "fnb": {
+        "staffingBudgetMinor": 5000000,
+        "minServiceLevelBasisPoints": 5000,
+        "overtimeCapHours": 40,
+        "staffingReserveCount": 0
+      },
+      "maintenance": {
+        "staffingBudgetMinor": 5000000,
+        "minServiceLevelBasisPoints": 5000,
+        "overtimeCapHours": 40,
+        "staffingReserveCount": 0
+      }
+    },
     "company": {
       "companyId": "company.player",
       "name": "Mainblick Hotelgesellschaft",
@@ -32461,7 +33009,7 @@
         }
       ],
       "treasury": {
-        "hqMinor": 1170718,
+        "hqMinor": 1040218,
         "hotelCashMinor": {
           "hotel.frankfurt.1": 0,
           "hotel.offenbach.1": 1712038
@@ -32546,9 +33094,9 @@
           "roomRevenueMinor": 2429760,
           "eventRevenueMinor": 1816800,
           "otherRevenueMinor": 4475975,
-          "operatingExpenseMinor": 6600991,
-          "grossOperatingProfitMinor": 304744,
-          "gopparMinor": 410,
+          "operatingExpenseMinor": 6642991,
+          "grossOperatingProfitMinor": 262744,
+          "gopparMinor": 353,
           "occupancyBasisPoints": 3454,
           "soldRoomNights": 257,
           "availableRoomNights": 744,
@@ -33196,7 +33744,7 @@
       },
       "lastDepreciationPeriodKey": "1991-01",
       "contributedCapitalMinor": 40500000,
-      "retainedEarningsMinor": 308586
+      "retainedEarningsMinor": 178086
     },
     "insurance": {
       "policies": [],
@@ -34416,6 +34964,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34434,6 +34984,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34452,6 +35004,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34470,6 +35024,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34488,6 +35044,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34506,6 +35064,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34524,6 +35084,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34542,6 +35104,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34560,6 +35124,8 @@
           "morale": 65,
           "overtimeHours": 6,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         },
@@ -34578,6 +35144,8 @@
           "morale": 65,
           "overtimeHours": 5,
           "leaveDaysTaken": 0,
+          "remainingLeaveDays": 0,
+          "activeTraining": null,
           "trainingCompleted": [],
           "statusCause": null
         }
@@ -40344,7 +40912,7 @@
       },
       "annualProfit": {
         "year": 1991,
-        "operatingProfitMinor": -2150880,
+        "operatingProfitMinor": -2192880,
         "interestMinor": 75000,
         "lastCompletedYearProfitMinor": 0
       },

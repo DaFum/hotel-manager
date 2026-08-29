@@ -255,21 +255,29 @@ import {
 } from "../commercial/campaigns";
 import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
+  completeTraining,
   createContract as createEmploymentContract,
   employ,
   markSick,
   fallsSick,
+  overtimePayMinor,
   resign,
   returnToWork,
   startEmploymentMonth,
   willResign,
   workOvertime,
+  OVERTIME_HOURLY_PREMIUM_MINOR,
 } from "../staff/employeeLifecycle";
+import {
+  applyStaffCommand,
+  isStaffCommand,
+  validateStaffCommand,
+} from "../staff/staffCommands";
 import {
   createManagerAuthority,
   managerForHotel,
 } from "../management/managerAuthority";
-import { escalationReason } from "../management/escalation";
+import { escalationReason, raiseEscalation, type LocalDecision } from "../management/escalation";
 import {
   beginStay,
   createParty,
@@ -773,6 +781,7 @@ export class GameSimulation implements CommandExecutor {
             return validateCommercialCommand(s, command);
           if (isDistributionCommand(command))
             return validateDistributionCommand(s, command);
+          if (isStaffCommand(command)) return validateStaffCommand(s, command);
           return { ok: false, reason: "unknown command" };
       }
     } catch (error) {
@@ -1315,6 +1324,16 @@ export class GameSimulation implements CommandExecutor {
             emit: (payload, entities) => this.emit(payload, entities),
             spend: (amount, account, memo) => this.spend(amount, account, memo),
             earn: (amount, account, memo) => this.earn(amount, account, memo),
+          });
+          return;
+        }
+        if (isStaffCommand(command)) {
+          const verdict = validateStaffCommand(s, command);
+          if (!verdict.ok) throw new Error(verdict.reason);
+          applyStaffCommand(s, command, {
+            emit: (payload, entities) => this.emit(payload, entities),
+            spend: (amountMinor, account, memo) =>
+              this.spend(amountMinor, account, memo),
           });
           return;
         }
@@ -2780,12 +2799,90 @@ export class GameSimulation implements CommandExecutor {
     )) {
       if (employee.status === "resigned" || employee.status === "dismissed")
         continue;
-      if (strain > 0 && employee.status === "working")
+      const hoursBefore = employee.overtimeHours;
+      if (strain > 0 && employee.status === "working") {
         s.workforce = workOvertime(s.workforce, employee.id, strain);
+        const employeeAfter = s.workforce.employees.find(
+          (e) => e.id === employee.id,
+        )!;
+        const newHours = employeeAfter.overtimeHours - hoursBefore;
+        if (newHours > 0) {
+          const deltaCostMinor = newHours * OVERTIME_HOURLY_PREMIUM_MINOR;
+          this.spend(
+            deltaCostMinor,
+            "overtimeWages",
+            `daily overtime pay for ${employee.staffId}`,
+          );
+        }
+      }
 
       const current = s.workforce.employees.find((e) => e.id === employee.id)!;
-      if (current.status === "sick" || current.status === "onLeave") {
+      if (current.activeTraining) {
+        if (current.activeTraining.remainingDays > 1) {
+          s.workforce = {
+            ...s.workforce,
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id
+                ? {
+                    ...e,
+                    activeTraining: {
+                      ...e.activeTraining!,
+                      remainingDays: e.activeTraining!.remainingDays - 1,
+                    },
+                  }
+                : e,
+            ),
+          };
+        } else {
+          const courseId = current.activeTraining.courseId;
+          s.workforce = {
+            ...s.workforce,
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id ? { ...e, activeTraining: null } : e,
+            ),
+          };
+          s.workforce = completeTraining(s.workforce, current.id, courseId);
+          const updated = s.workforce.employees.find((e) => e.id === current.id)!;
+          const staffRow = s.staff.find((st) => st.id === current.staffId);
+          if (staffRow) {
+            staffRow.skill = updated.skill;
+            if (current.remainingLeaveDays === 0) staffRow.absent = false;
+          }
+          this.emit(
+            {
+              type: "TRAINING_COMPLETED",
+              staffId: current.staffId,
+              employeeId: current.id,
+              courseId,
+            },
+            [current.staffId, current.id],
+          );
+        }
+        continue;
+      }
+
+      if (current.status === "sick") {
         s.workforce = returnToWork(s.workforce, current.id);
+        continue;
+      }
+      if (current.status === "onLeave") {
+        if (current.remainingLeaveDays > 1) {
+          s.workforce = {
+            ...s.workforce,
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id
+                ? { ...e, remainingLeaveDays: e.remainingLeaveDays - 1 }
+                : e,
+            ),
+          };
+        } else {
+          s.workforce = {
+            ...returnToWork(s.workforce, current.id),
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id ? { ...e, remainingLeaveDays: 0 } : e,
+            ),
+          };
+        }
         continue;
       }
       if (fallsSick(current, this.streams.staffing)) {
@@ -2811,7 +2908,120 @@ export class GameSimulation implements CommandExecutor {
       const employee = s.workforce.employees.find(
         (e) => e.staffId === member.id,
       );
-      member.absent = employee ? employee.status !== "working" : member.absent;
+      member.absent = employee
+        ? employee.status !== "working" || Boolean(employee.activeTraining)
+        : member.absent;
+    }
+
+    this.checkStaffingEscalations();
+  }
+
+  private checkStaffingEscalations(): void {
+    const s = this.state;
+    if (!s.departmentHeadAuthorities) return;
+    const periodKey = s.calendar.dateKey.slice(0, 7);
+
+    const rolesForDepartment = (deptId: string): string[] => {
+      switch (deptId) {
+        case "maintenance":
+          return ["technician", "maintenance"];
+        case "fnb":
+          return ["fnb", "kitchen"];
+        case "housekeeping":
+          return ["housekeeping", "laundry"];
+        case "reception":
+          return ["reception"];
+        default:
+          return [deptId];
+      }
+    };
+
+    const sortedDepts = Object.entries(s.departmentHeadAuthorities).sort(
+      (a, b) => compareIds(a[0], b[0]),
+    );
+
+    for (const [deptId, authority] of sortedDepts) {
+      const allowedRoles = rolesForDepartment(deptId);
+      const deptStaff = s.staff.filter((m) => allowedRoles.includes(m.role));
+      const deptEmployees = s.workforce.employees.filter((e) =>
+        deptStaff.some((m) => m.id === e.staffId),
+      );
+
+      const totalOvertime = deptEmployees.reduce((sum, e) => sum + e.overtimeHours, 0);
+      const availableCount = deptEmployees.filter((e) => e.status === "working").length;
+      const actualStaffingSpend = deptEmployees.reduce(
+        (sum, e) => sum + e.contract.monthlyWageMinor,
+        0,
+      );
+
+      const totalSkill = deptEmployees.reduce((sum, e) => sum + e.skill, 0);
+      const avgSkill = deptEmployees.length > 0 ? Math.trunc(totalSkill / deptEmployees.length) : 0;
+      const actualServiceLevelBp = avgSkill * 100;
+
+      const decisionsToCheck: LocalDecision[] = [
+        {
+          kind: "overtime-cap",
+          departmentId: deptId,
+          overtimeHours: totalOvertime,
+          capHours: authority.overtimeCapHours,
+        },
+        {
+          kind: "staffing-reserve",
+          departmentId: deptId,
+          availableCount,
+          reserveCount: authority.staffingReserveCount,
+        },
+        {
+          kind: "staffing-budget",
+          departmentId: deptId,
+          budgetMinor: authority.staffingBudgetMinor,
+          actualMinor: actualStaffingSpend,
+        },
+        {
+          kind: "service-level",
+          departmentId: deptId,
+          actualBp: actualServiceLevelBp,
+          minBp: authority.minServiceLevelBasisPoints,
+        },
+      ];
+
+      for (const decision of decisionsToCheck) {
+        const dummyManagerAuth = createManagerAuthority({
+          repairLimitMinor: Number.MAX_SAFE_INTEGER,
+          capexLimitMinor: Number.MAX_SAFE_INTEGER,
+          recoveryLimitMinor: Number.MAX_SAFE_INTEGER,
+          mayHire: true,
+          mayReprice: true,
+        });
+        const reason = escalationReason(dummyManagerAuth, decision);
+        if (reason !== null) {
+          const escalationId = `escalation.dept.${deptId}.${decision.kind}.${periodKey}`;
+          if (!s.company.escalations.some((e) => e.id === escalationId)) {
+            const raised = raiseEscalation(s.company.escalations, {
+              id: escalationId,
+              hotelId: s.hotel.id,
+              managerId: `head.${deptId}`,
+              raisedAtMinutes: s.elapsedMinutes,
+              decision,
+              reason,
+            });
+            const open = raised.filter((e) => e.status === "open");
+            const resolved = raised.filter((e) => e.status !== "open").slice(-50);
+            s.company.escalations = [...open, ...resolved].sort((a, b) =>
+              compareIds(a.id, b.id),
+            );
+            this.emit(
+              {
+                type: "DECISION_ESCALATED",
+                escalationId,
+                hotelId: s.hotel.id,
+                reason,
+              },
+              [s.hotel.id, escalationId],
+            );
+          }
+        }
+      }
     }
   }
 

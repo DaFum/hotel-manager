@@ -14,6 +14,7 @@ import { createHotelBudget } from "./budgets";
 import {
   setAuthorityLimit,
   managerForHotel,
+  createDepartmentHeadAuthority,
 } from "../management/managerAuthority";
 import { resolveEscalation } from "../management/escalation";
 import { fundHotel, sweepToHeadquarters } from "../treasury/internalFunding";
@@ -541,6 +542,34 @@ export function applyCompanyCommand(
           escalation.decision.kind === "capex" ? "capex" : "maintenance",
           `approved ${escalation.decision.kind} at ${escalation.hotelId}`,
         );
+      if (command.approve) {
+        const d = escalation.decision;
+        if ("departmentId" in d) {
+          const deptId = d.departmentId;
+          const currentAuth = state.departmentHeadAuthorities?.[deptId] ?? createDepartmentHeadAuthority();
+          if (d.kind === "overtime-cap") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              overtimeCapHours: d.overtimeHours + 10,
+            });
+          } else if (d.kind === "staffing-reserve") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              staffingReserveCount: d.availableCount,
+            });
+          } else if (d.kind === "staffing-budget") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              staffingBudgetMinor: d.actualMinor + 10_000_00,
+            });
+          } else if (d.kind === "service-level") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              minServiceLevelBasisPoints: d.actualBp,
+            });
+          }
+        }
+      }
       ctx.emit(
         {
           type: "ESCALATION_RESOLVED",

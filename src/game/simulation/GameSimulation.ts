@@ -382,7 +382,24 @@ import {
   startOutage,
   utilityUsageMinor,
   wasteDisposalMinor,
+  type UtilityContract,
+  type UtilityKind,
 } from "../utilities/consumption";
+
+export function activeUtilityContract(
+  state: GameState,
+  kind: UtilityKind,
+): UtilityContract {
+  const contract = state.utilityContracts?.[kind];
+  if (
+    contract &&
+    contract.validFromDateKey <= state.calendar.dateKey &&
+    state.calendar.dateKey < contract.validToDateKey
+  ) {
+    return contract;
+  }
+  return createUtilityContracts()[kind];
+}
 /** The MASTER deterministic phase contract; order is part of the save format. */
 export const PHASE_ORDER = [
   "commands",
@@ -2900,14 +2917,18 @@ export class GameSimulation implements CommandExecutor {
     const wasteKilos =
       s.stays.length + Math.ceil(this.eventBreakfastCovers() / 4);
 
+    const energyContract = activeUtilityContract(s, "energy");
+    const waterContract = activeUtilityContract(s, "water");
+    const wasteContract = activeUtilityContract(s, "waste");
+
     if (energyUnits > 0 || waterUnits > 0) {
       this.spend(
-        utilityUsageMinor(s.utilityContracts.energy, energyUnits),
+        utilityUsageMinor(energyContract, energyUnits),
         "utilities",
         `metered energy: ${energyUnits} units`,
       );
       this.spend(
-        utilityUsageMinor(s.utilityContracts.water, waterUnits),
+        utilityUsageMinor(waterContract, waterUnits),
         "utilities",
         `metered water: ${waterUnits} units`,
       );
@@ -2926,7 +2947,7 @@ export class GameSimulation implements CommandExecutor {
           };
 
       this.spend(
-        wasteDisposalMinor(s.utilityContracts.waste, {
+        wasteDisposalMinor(wasteContract, {
           kilos: wasteKilos,
           sortedBasisPoints: tradeOff.sortedWasteShareBp,
         }),
@@ -4635,6 +4656,9 @@ export class GameSimulation implements CommandExecutor {
           kind: project.kind,
           savingBasisPoints: project.savingBasisPoints,
         });
+        if (project.kind === "energy") {
+          s.standbyPower = true;
+        }
         this.emit(
           {
             type: "EFFICIENCY_INVESTMENT_COMPLETED",
@@ -4645,6 +4669,9 @@ export class GameSimulation implements CommandExecutor {
           [`utility-contract.${project.kind}`, project.id],
         );
       }
+    }
+    if (s.utilityContracts.energy.efficiencyBasisPoints >= 1000) {
+      s.standbyPower = true;
     }
     s.efficiencyProjects = s.efficiencyProjects.filter(
       (project) => project.status !== "complete",
@@ -4899,7 +4926,7 @@ export class GameSimulation implements CommandExecutor {
   private chargeUtilityStandingCharges(): void {
     for (const kind of UTILITY_KINDS)
       this.spend(
-        standingChargeMinor(this.state.utilityContracts[kind]),
+        standingChargeMinor(activeUtilityContract(this.state, kind)),
         "utilities",
         `${kind} standing charge`,
       );

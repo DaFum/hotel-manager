@@ -64,6 +64,10 @@ export function validateUtilityCommand(
         return no("unit price must be a whole non-negative amount");
       if (command.validToDateKey <= command.validFromDateKey)
         return no("a contract must end after it starts");
+      if (command.validFromDateKey > state.calendar.dateKey)
+        return no("a contract cannot start in the future");
+      if (state.calendar.dateKey >= command.validToDateKey)
+        return no("a contract must end in the future");
 
       const existing = state.utilityContracts[command.kind];
       const dateKey = state.calendar.dateKey;
@@ -92,6 +96,18 @@ export function validateUtilityCommand(
         command.savingBasisPoints > MAX_EFFICIENCY_BP
       )
         return no("invalid efficiency saving basis points");
+
+      const currentEfficiency =
+        state.utilityContracts[command.kind]?.efficiencyBasisPoints ?? 0;
+      const remainingPotential = MAX_EFFICIENCY_BP - currentEfficiency;
+
+      if (remainingPotential <= 0)
+        return no("utility has already reached maximum efficiency");
+
+      if (command.savingBasisPoints > remainingPotential)
+        return no(
+          `saving basis points exceed remaining potential of ${remainingPotential} bp`,
+        );
 
       if (
         state.efficiencyProjects.some(

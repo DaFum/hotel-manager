@@ -21,6 +21,7 @@ import {
 } from "./saveVersions";
 import { isValidPlayerPreferences } from "../settings/playerPreferences";
 import { isFnbState } from "../fnb/fnbState";
+import { MAX_EFFICIENCY_BP } from "../utilities/consumption";
 
 export {
   CONTENT_VERSION,
@@ -354,8 +355,27 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
   )
     problems.push("the state has no valid outages");
 
-  if (!Array.isArray(state.efficiencyProjects))
-    problems.push("the state has no valid efficiency projects");
+  if (
+    !Array.isArray(state.efficiencyProjects) ||
+    !state.efficiencyProjects.every(
+      (p: any) =>
+        p !== null &&
+        typeof p === "object" &&
+        !Array.isArray(p) &&
+        typeof p.id === "string" &&
+        p.id.length > 0 &&
+        ["energy", "water", "waste"].includes(p.kind) &&
+        Number.isSafeInteger(p.savingBasisPoints) &&
+        p.savingBasisPoints > 0 &&
+        p.savingBasisPoints <= MAX_EFFICIENCY_BP &&
+        ["planned", "implementing", "complete"].includes(p.status) &&
+        Number.isSafeInteger(p.remainingMonths) &&
+        p.remainingMonths >= 0 &&
+        Number.isSafeInteger(p.costMinor) &&
+        p.costMinor >= 0,
+    )
+  )
+    problems.push("the state has malformed efficiency projects");
 
   if (typeof state.standbyPower !== "boolean")
     problems.push("the state has no valid standby power field");

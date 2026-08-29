@@ -86,18 +86,43 @@ describe("utility commands and simulation loop integration", () => {
       supplierId: "supplier.another_power",
       standingChargeMinor: 60_000,
       unitPriceMinor: 50,
-      validFromDateKey: "1991-06-01",
+      validFromDateKey: "1991-01-01",
       validToDateKey: "1992-06-01",
       priceLock: "fixed",
     });
     expect(overlapRes.status).toBe("rejected");
     expect(overlapRes.reason).toMatch(/overlaps an active contract/);
+
+    // Future start date rejection
+    const futureRes = submit(s, {
+      type: "SIGN_UTILITY_CONTRACT",
+      kind: "energy",
+      supplierId: "supplier.future_power",
+      standingChargeMinor: 50_000,
+      unitPriceMinor: 40,
+      validFromDateKey: "1995-01-01",
+      validToDateKey: "1996-01-01",
+      priceLock: "fixed",
+    });
+    expect(futureRes.status).toBe("rejected");
+    expect(futureRes.reason).toMatch(/cannot start in the future/);
   });
 
   it("handles INVEST_IN_EFFICIENCY: posts CapEx, pushes project, and applies saving only on completion", () => {
     const s = sim();
     const savingBp = 1000;
     const expectedCost = efficiencyInvestmentCostMinor(savingBp);
+
+    // Excess efficiency investment rejection
+    s.state.utilityContracts.energy.efficiencyBasisPoints = 5500;
+    const overCapRes = submit(s, {
+      type: "INVEST_IN_EFFICIENCY",
+      kind: "energy",
+      savingBasisPoints: 1000,
+    });
+    expect(overCapRes.status).toBe("rejected");
+    expect(overCapRes.reason).toMatch(/exceed remaining potential/);
+    s.state.utilityContracts.energy.efficiencyBasisPoints = 0;
 
     const res = submit(s, {
       type: "INVEST_IN_EFFICIENCY",

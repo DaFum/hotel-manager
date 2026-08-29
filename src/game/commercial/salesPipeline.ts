@@ -96,6 +96,7 @@ export function signContract(
     | "paymentTermsDays"
     | "cancellationDaysBeforeArrival"
     | "cancellationFeeBasisPoints"
+    | "renewalIntent"
   > &
     Partial<
       Pick<
@@ -104,11 +105,13 @@ export function signContract(
         | "paymentTermsDays"
         | "cancellationDaysBeforeArrival"
         | "cancellationFeeBasisPoints"
+        | "renewalIntent"
       >
     >,
 ): SalesState {
   const contract: NegotiatedContract = {
     ...input,
+    renewalIntent: input.renewalIntent ?? "unknown",
     concessions: [...input.concessions],
     blackoutDateKeys: [...(input.blackoutDateKeys ?? [])].sort(),
     paymentTermsDays: input.paymentTermsDays ?? 0,

@@ -3,6 +3,7 @@ export interface MacroState {
   interestBp: number;
   unemploymentBp: number;
   growthBp: number;
+  energyPriceIndexBp: number;
 }
 export function nextBounded(
   current: number,
@@ -27,5 +28,10 @@ export function advanceMacro(
       40,
     ),
     growthBp: nextBounded(state.growthBp, targets.growthBp, 60),
+    energyPriceIndexBp: nextBounded(
+      state.energyPriceIndexBp,
+      targets.energyPriceIndexBp,
+      100,
+    ),
   };
 }

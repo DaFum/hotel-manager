@@ -1,0 +1,49 @@
+{
+  "saveVersion": 12,
+  "contentVersion": "1991.1",
+  "protocolVersion": 4,
+  "rngState": {
+    "guests": 1,
+    "staffing": 1,
+    "failures": 1,
+    "economy": 1,
+    "events": 1,
+    "weather": 1,
+    "AI": 1,
+    "narrative": 1
+  },
+  "state": {
+    "seed": 1,
+    "stateVersion": 0,
+    "utilityContracts": {
+      "energy": {
+        "kind": "energy",
+        "standingChargeMinor": 45000,
+        "unitPriceMinor": 32,
+        "efficiencyBasisPoints": 0
+      },
+      "water": {
+        "kind": "water",
+        "standingChargeMinor": 18000,
+        "unitPriceMinor": 11,
+        "efficiencyBasisPoints": 0
+      },
+      "waste": {
+        "kind": "waste",
+        "standingChargeMinor": 9000,
+        "unitPriceMinor": 100,
+        "efficiencyBasisPoints": 0
+      }
+    },
+    "meters": { "energy": 0, "water": 0, "waste": 0 },
+    "outages": [],
+    "world": {
+      "macro": {
+        "inflationBp": 250,
+        "interestBp": 900,
+        "unemploymentBp": 600,
+        "growthBp": 150
+      }
+    }
+  }
+}

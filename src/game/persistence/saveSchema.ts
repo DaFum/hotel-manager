@@ -297,12 +297,68 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.world ||
     !Array.isArray(state.world.technologies) ||
     !state.world.macro ||
+    !Number.isSafeInteger(state.world.macro.energyPriceIndexBp) ||
     !Array.isArray(state.world.trends) ||
     !Array.isArray(state.world.activeShocks) ||
     !state.world.weather ||
     !state.world.commonCurrency
   )
     problems.push("the state has no complete world");
+
+  if (
+    !state.utilityContracts ||
+    typeof state.utilityContracts !== "object" ||
+    Array.isArray(state.utilityContracts) ||
+    !["energy", "water", "waste"].every((kind) => {
+      const c = (state.utilityContracts as any)[kind];
+      return (
+        c &&
+        typeof c === "object" &&
+        c.kind === kind &&
+        typeof c.supplierId === "string" &&
+        Number.isSafeInteger(c.standingChargeMinor) &&
+        c.standingChargeMinor >= 0 &&
+        Number.isSafeInteger(c.unitPriceMinor) &&
+        c.unitPriceMinor >= 0 &&
+        Number.isSafeInteger(c.efficiencyBasisPoints) &&
+        c.efficiencyBasisPoints >= 0 &&
+        typeof c.validFromDateKey === "string" &&
+        typeof c.validToDateKey === "string" &&
+        ["fixed", "floating"].includes(c.priceLock)
+      );
+    })
+  )
+    problems.push("the state has no valid utility contracts");
+
+  if (
+    !state.meters ||
+    typeof state.meters !== "object" ||
+    Array.isArray(state.meters) ||
+    !Number.isSafeInteger((state.meters as any).energy) ||
+    !Number.isSafeInteger((state.meters as any).water) ||
+    !Number.isSafeInteger((state.meters as any).waste)
+  )
+    problems.push("the state has no valid meters");
+
+  if (
+    !Array.isArray(state.outages) ||
+    !state.outages.every(
+      (o: any) =>
+        o &&
+        typeof o === "object" &&
+        ["energy", "water", "waste"].includes(o.kind) &&
+        typeof o.cause === "string" &&
+        Number.isSafeInteger(o.atMinutes) &&
+        Number.isSafeInteger(o.minutes),
+    )
+  )
+    problems.push("the state has no valid outages");
+
+  if (!Array.isArray(state.efficiencyProjects))
+    problems.push("the state has no valid efficiency projects");
+
+  if (typeof state.standbyPower !== "boolean")
+    problems.push("the state has no valid standby power field");
   if (
     !state.cityMarket?.occupancyAttribution ||
     !Number.isSafeInteger(

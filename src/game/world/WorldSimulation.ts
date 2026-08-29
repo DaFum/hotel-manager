@@ -61,6 +61,7 @@ export function createWorldState(): WorldState {
       interestBp: 900,
       unemploymentBp: 600,
       growthBp: 150,
+      energyPriceIndexBp: 10_000,
     },
     technologies: TECHNOLOGY_CONTENT.map((technology) => {
       const replacement = technology.replacedByTechnologyId
@@ -106,7 +107,14 @@ export function createWorldState(): WorldState {
     regulationPressureBp: 1000,
   };
 }
+export function readEnergyPriceIndexBp(state: WorldState): number {
+  return state.macro.energyPriceIndexBp ?? 10_000;
+}
+
 export class WorldSimulation {
+  energyPriceIndexBp(state: WorldState): number {
+    return state.macro.energyPriceIndexBp ?? 10_000;
+  }
   /**
    * `crisisBufferBasisPoints` from the campaign, defaulting to neutral so the
    * world can still be stepped on its own in a test or a scenario. It is the
@@ -170,6 +178,15 @@ export class WorldSimulation {
           Math.max(
             1,
             volatilityScaledRange(500, {
+              economicVolatilityBasisPoints: this.economicVolatilityBp,
+            }),
+          )),
+      energyPriceIndexBp:
+        8_000 +
+        (this.streams.economy.nextUint32() %
+          Math.max(
+            1,
+            volatilityScaledRange(4000, {
               economicVolatilityBasisPoints: this.economicVolatilityBp,
             }),
           )),

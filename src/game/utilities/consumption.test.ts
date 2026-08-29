@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   UTILITY_KINDS,
+  advanceEfficiencyProject,
   applyEfficiencyInvestment,
   createUtilityContracts,
+  efficiencyInvestmentCostMinor,
   meterReading,
   outageConsequences,
   readMeters,
+  repriceFloatingContract,
+  signUtilityContract,
   startOutage,
   standingChargeMinor,
   utilityBillMinor,
@@ -122,6 +126,100 @@ describe("utility contracts and meters", () => {
     ).toThrow(/sorted/);
   });
 
+  it("validates and replaces utility contracts through signUtilityContract", () => {
+    const contracts = createUtilityContracts();
+    const updated = signUtilityContract(contracts, {
+      kind: "energy",
+      supplierId: "supplier.green_power",
+      standingChargeMinor: 50_000,
+      unitPriceMinor: 40,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+      priceLock: "floating",
+    });
+
+    expect(updated.energy.supplierId).toBe("supplier.green_power");
+    expect(updated.energy.priceLock).toBe("floating");
+    expect(updated.energy.standingChargeMinor).toBe(50_000);
+    expect(updated.energy.unitPriceMinor).toBe(40);
+
+    expect(() =>
+      signUtilityContract(contracts, {
+        kind: "energy",
+        supplierId: "s1",
+        standingChargeMinor: 50_000,
+        unitPriceMinor: 40,
+        validFromDateKey: "1992-01-01",
+        validToDateKey: "1991-01-01",
+        priceLock: "fixed",
+      }),
+    ).toThrow(/end after it starts/);
+
+    expect(() =>
+      signUtilityContract(contracts, {
+        kind: "energy",
+        supplierId: "s1",
+        standingChargeMinor: -1,
+        unitPriceMinor: 40,
+        validFromDateKey: "1991-01-01",
+        validToDateKey: "1992-01-01",
+        priceLock: "fixed",
+      }),
+    ).toThrow();
+  });
+
+  it("reprices floating contracts against world energy price index while leaving fixed contracts unchanged", () => {
+    const contracts = createUtilityContracts();
+    const floating = signUtilityContract(contracts, {
+      kind: "energy",
+      supplierId: "s1",
+      standingChargeMinor: 45_000,
+      unitPriceMinor: 100,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+      priceLock: "floating",
+    });
+
+    const repriced = repriceFloatingContract(floating.energy, 12_000);
+    expect(repriced.unitPriceMinor).toBe(120);
+
+    const fixedRepricing = repriceFloatingContract(contracts.energy, 12_000);
+    expect(fixedRepricing.unitPriceMinor).toBe(contracts.energy.unitPriceMinor);
+
+    expect(repriced.standingChargeMinor).toBe(floating.energy.standingChargeMinor);
+    expect(repriced.efficiencyBasisPoints).toBe(floating.energy.efficiencyBasisPoints);
+  });
+
+  it("advances efficiency projects and computes CapEx costs safely", () => {
+    const cost = efficiencyInvestmentCostMinor(1000);
+    expect(cost).toBe(5_000_000);
+    expect(Number.isSafeInteger(cost)).toBe(true);
+
+    expect(() => efficiencyInvestmentCostMinor(-1)).toThrow();
+    expect(() => efficiencyInvestmentCostMinor(10_000)).toThrow();
+
+    const project = {
+      id: "p1",
+      kind: "energy" as const,
+      savingBasisPoints: 1000,
+      status: "planned" as const,
+      remainingMonths: 2,
+      costMinor: cost,
+    };
+
+    const step1 = advanceEfficiencyProject(project);
+    expect(step1.remainingMonths).toBe(1);
+    expect(step1.status).toBe("implementing");
+
+    const step2 = advanceEfficiencyProject(step1);
+    expect(step2.remainingMonths).toBe(0);
+    expect(step2.status).toBe("complete");
+
+    expect(() =>
+      advanceEfficiencyProject({ ...project, remainingMonths: -1 }),
+    ).toThrow(/whole and non-negative/);
+  });
+
   it("gives an outage a cause, a duration and named consequences", () => {
     const outage = startOutage(
       { kind: "energy", atMinutes: 1440, cause: "substation fault" },
@@ -140,8 +238,39 @@ describe("utility contracts and meters", () => {
 
     const effects = outageConsequences(outage);
     expect(effects.affectedFacilities).toContain("facility.kitchen");
+    expect(effects.affectedFacilities).toContain("facility.elevator");
+    expect(effects.affectedFacilities).not.toContain("facility.lifts");
     expect(effects.roomsUnsellable).toBe(true);
     expect(effects.cause).toMatch(/substation fault/);
+  });
+
+  it("mitigates energy outages when standby power is present", () => {
+    const outage = startOutage({
+      kind: "energy",
+      atMinutes: 0,
+      cause: "blackout",
+    });
+
+    const withoutStandby = outageConsequences(outage, false);
+    expect(withoutStandby.roomsUnsellable).toBe(true);
+    expect(withoutStandby.affectedFacilities).toEqual([
+      "facility.elevator",
+      "facility.kitchen",
+      "facility.reception",
+      "facility.wellness",
+    ]);
+
+    const withStandby = outageConsequences(outage, true);
+    expect(withStandby.roomsUnsellable).toBe(false);
+    expect(withStandby.affectedFacilities).toEqual(["facility.elevator"]);
+
+    const waterOutage = startOutage({
+      kind: "water",
+      atMinutes: 0,
+      cause: "pipe burst",
+    });
+    const waterWithStandby = outageConsequences(waterOutage, true);
+    expect(waterWithStandby.roomsUnsellable).toBe(true);
   });
 
   it("keeps a water outage's consequences different from an energy one", () => {

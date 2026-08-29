@@ -127,7 +127,11 @@ it("migrates version 12 distribution and commercial defaults to version 13", () 
     ContractNegotiation: 50,
   });
 
-  // expect(validateEnvelope(migrated)).toEqual([]); // v13 envelope is no longer valid against v14 schema
+  expect(mState.efficiencyProjects).toEqual([]);
+  expect(mState.standbyPower).toBe(false);
+  expect(mState.world.macro.energyPriceIndexBp).toBe(10000);
+  expect(mState.utilityContracts.energy.supplierId).toBe("supplier.utility.municipal.energy");
+  expect(mState.utilityContracts.energy.priceLock).toBe("fixed");
 
   const v12FixtureClone = structuredClone(v12Fixture);
   const rngStateClone = structuredClone(state.rngState);

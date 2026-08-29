@@ -18,11 +18,16 @@ export type UtilityKind = (typeof UTILITY_KINDS)[number];
 
 export interface UtilityContract {
   kind: UtilityKind;
+  supplierId: string;
   /** Charged whether or not a single unit is drawn. */
   standingChargeMinor: number;
   unitPriceMinor: number;
+  baseUnitPriceMinor?: number;
   /** Consumption avoided by efficiency actually installed, in basis points. */
   efficiencyBasisPoints: number;
+  validFromDateKey: string;
+  validToDateKey: string;
+  priceLock: "fixed" | "floating";
 }
 
 export type UtilityContracts = Record<UtilityKind, UtilityContract>;
@@ -34,23 +39,120 @@ export function createUtilityContracts(): UtilityContracts {
   return {
     energy: {
       kind: "energy",
+      supplierId: "supplier.utility.municipal.energy",
       standingChargeMinor: 45_000,
       unitPriceMinor: 32,
+      baseUnitPriceMinor: 32,
       efficiencyBasisPoints: 0,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "2099-12-31",
+      priceLock: "fixed",
     },
     water: {
       kind: "water",
+      supplierId: "supplier.utility.municipal.water",
       standingChargeMinor: 18_000,
       unitPriceMinor: 11,
+      baseUnitPriceMinor: 11,
       efficiencyBasisPoints: 0,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "2099-12-31",
+      priceLock: "fixed",
     },
     waste: {
       kind: "waste",
+      supplierId: "supplier.utility.municipal.waste",
       standingChargeMinor: 9_000,
       unitPriceMinor: 100,
+      baseUnitPriceMinor: 100,
       efficiencyBasisPoints: 0,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "2099-12-31",
+      priceLock: "fixed",
     },
   };
+}
+
+export function signUtilityContract(
+  contracts: UtilityContracts,
+  proposed: Omit<UtilityContract, "efficiencyBasisPoints"> &
+    Partial<Pick<UtilityContract, "efficiencyBasisPoints">>,
+): UtilityContracts {
+  if (proposed.validToDateKey <= proposed.validFromDateKey)
+    throw new Error("a contract must end after it starts");
+  assertNonNegativeMinor(proposed.standingChargeMinor, "standing charge");
+  assertNonNegativeMinor(proposed.unitPriceMinor, "unit price");
+  if (proposed.efficiencyBasisPoints !== undefined)
+    assertBasisPoints(proposed.efficiencyBasisPoints, "efficiency");
+  if (proposed.priceLock !== "fixed" && proposed.priceLock !== "floating")
+    throw new Error("invalid price lock type");
+
+  const existing = contracts[proposed.kind];
+  const efficiencyBasisPoints =
+    proposed.efficiencyBasisPoints ?? existing.efficiencyBasisPoints;
+
+  const newContract: UtilityContract = {
+    ...proposed,
+    baseUnitPriceMinor: proposed.baseUnitPriceMinor ?? proposed.unitPriceMinor,
+    efficiencyBasisPoints,
+  };
+
+  return {
+    ...contracts,
+    [proposed.kind]: newContract,
+  };
+}
+
+export function repriceFloatingContract(
+  contract: UtilityContract,
+  energyPriceIndexBp: number,
+): UtilityContract {
+  if (contract.priceLock !== "floating") return contract;
+  assertBasisPoints(energyPriceIndexBp, "energy price index");
+  const base = contract.baseUnitPriceMinor ?? contract.unitPriceMinor;
+  const unitPriceMinor = Math.max(
+    0,
+    Math.round((base * energyPriceIndexBp) / 10_000),
+  );
+  return {
+    ...contract,
+    baseUnitPriceMinor: base,
+    unitPriceMinor,
+  };
+}
+
+export interface EfficiencyProject {
+  id: string;
+  kind: UtilityKind;
+  savingBasisPoints: number;
+  status: "planned" | "implementing" | "complete";
+  remainingMonths: number;
+  costMinor: number;
+}
+
+export function advanceEfficiencyProject(
+  project: EfficiencyProject,
+): EfficiencyProject {
+  if (
+    !Number.isSafeInteger(project.remainingMonths) ||
+    project.remainingMonths < 0
+  )
+    throw new Error("remaining project months must be whole and non-negative");
+  const remainingMonths = Math.max(0, project.remainingMonths - 1);
+  return {
+    ...project,
+    remainingMonths,
+    status: remainingMonths === 0 ? "complete" : "implementing",
+  };
+}
+
+export function efficiencyInvestmentCostMinor(
+  savingBasisPoints: number,
+): number {
+  assertBasisPoints(savingBasisPoints, "saving basis points");
+  if (savingBasisPoints <= 0 || savingBasisPoints > MAX_EFFICIENCY_BP)
+    throw new Error("invalid saving basis points");
+  return savingBasisPoints * 5_000;
 }
 
 /**
@@ -194,14 +296,24 @@ export interface OutageConsequences {
  * What actually stops working. Each utility takes down different parts of the
  * house, so the player fixes the fault rather than a generic penalty.
  */
-export function outageConsequences(outage: UtilityOutage): OutageConsequences {
+export function outageConsequences(
+  outage: UtilityOutage,
+  standbyPower?: boolean | { active: boolean },
+): OutageConsequences {
+  const hasStandby =
+    typeof standbyPower === "boolean"
+      ? standbyPower
+      : Boolean(standbyPower?.active);
   const facilities: Record<UtilityKind, string[]> = {
-    energy: [
-      "facility.kitchen",
-      "facility.lifts",
-      "facility.reception",
-      "facility.wellness",
-    ],
+    energy:
+      hasStandby && outage.kind === "energy"
+        ? ["facility.elevator"]
+        : [
+            "facility.elevator",
+            "facility.kitchen",
+            "facility.reception",
+            "facility.wellness",
+          ],
     water: ["facility.kitchen", "facility.laundry", "facility.wellness"],
     waste: ["facility.kitchen"],
   };
@@ -209,7 +321,8 @@ export function outageConsequences(outage: UtilityOutage): OutageConsequences {
     affectedFacilities: [...facilities[outage.kind]].sort(),
     // Guests cannot be sold a room with no power and no water; waste is a
     // problem for the kitchen long before it is a problem for a bedroom.
-    roomsUnsellable: outage.kind !== "waste",
+    roomsUnsellable:
+      outage.kind === "energy" ? !hasStandby : outage.kind !== "waste",
     cause: `${outage.kind} outage: ${outage.cause} for ${outage.minutes} minutes`,
   };
 }

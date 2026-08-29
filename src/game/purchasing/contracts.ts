@@ -25,6 +25,8 @@ export interface SupplierContract {
   validToDateKey: string;
   /** Days the goods keep once delivered; null for things that do not spoil. */
   shelfLifeDays: number | null;
+  /** Supply-chain sourcing tier: standard, regional or sustainable. */
+  tier?: "standard" | "regional" | "sustainable";
 }
 
 /** A standing instruction the house reorders by, without being asked. */
@@ -242,4 +244,42 @@ export function centralPurchasingTradeOff(
     // A central order waits for the consolidation run.
     centralLeadTimeDays: contract.leadTimeDays + CONSOLIDATION_DELAY_DAYS,
   };
+}
+
+/**
+ * Trade-offs for sustainable or regional supply choices across separate axes
+ * (cost, waste sorting share, reputation delta, risk change), with no aggregate score.
+ */
+export function supplyChainTradeOff(contract: SupplierContract): {
+  unitPriceMinor: number;
+  sortedWasteShareBp: number;
+  reputationDeltaBp: number;
+  supplyRiskDeltaBp: number;
+} {
+  assertNonNegativeMinor(contract.unitPriceMinor, "unit price");
+  const tier = contract.tier ?? "standard";
+  switch (tier) {
+    case "sustainable":
+      return {
+        unitPriceMinor: Math.round((contract.unitPriceMinor * 12_000) / 10_000),
+        sortedWasteShareBp: 7000,
+        reputationDeltaBp: 300,
+        supplyRiskDeltaBp: -100,
+      };
+    case "regional":
+      return {
+        unitPriceMinor: Math.round((contract.unitPriceMinor * 11_000) / 10_000),
+        sortedWasteShareBp: 5000,
+        reputationDeltaBp: 150,
+        supplyRiskDeltaBp: -50,
+      };
+    case "standard":
+    default:
+      return {
+        unitPriceMinor: contract.unitPriceMinor,
+        sortedWasteShareBp: 2500,
+        reputationDeltaBp: 0,
+        supplyRiskDeltaBp: 0,
+      };
+  }
 }

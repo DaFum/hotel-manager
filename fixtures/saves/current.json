@@ -5,7 +5,7 @@
   "rngState": {
     "guests": 664291926,
     "staffing": 935897149,
-    "failures": 3668344193,
+    "failures": 2528389826,
     "economy": 441993275,
     "events": 836529317,
     "weather": 2941373337,
@@ -32698,7 +32698,7 @@
     "rngState": {
       "guests": 664291926,
       "staffing": 935897149,
-      "failures": 3668344193,
+      "failures": 2528389826,
       "economy": 441993275,
       "events": 836529317,
       "weather": 2941373337,
@@ -32713,7 +32713,8 @@
         "inflationBp": 250,
         "interestBp": 900,
         "unemploymentBp": 600,
-        "growthBp": 150
+        "growthBp": 150,
+        "energyPriceIndexBp": 10000
       },
       "technologies": [
         {
@@ -33753,23 +33754,40 @@
     "utilityContracts": {
       "energy": {
         "kind": "energy",
+        "supplierId": "supplier.utility.municipal.energy",
         "standingChargeMinor": 45000,
         "unitPriceMinor": 32,
-        "efficiencyBasisPoints": 0
+        "baseUnitPriceMinor": 32,
+        "efficiencyBasisPoints": 0,
+        "validFromDateKey": "1991-01-01",
+        "validToDateKey": "2099-12-31",
+        "priceLock": "fixed"
       },
       "water": {
         "kind": "water",
+        "supplierId": "supplier.utility.municipal.water",
         "standingChargeMinor": 18000,
         "unitPriceMinor": 11,
-        "efficiencyBasisPoints": 0
+        "baseUnitPriceMinor": 11,
+        "efficiencyBasisPoints": 0,
+        "validFromDateKey": "1991-01-01",
+        "validToDateKey": "2099-12-31",
+        "priceLock": "fixed"
       },
       "waste": {
         "kind": "waste",
+        "supplierId": "supplier.utility.municipal.waste",
         "standingChargeMinor": 9000,
         "unitPriceMinor": 100,
-        "efficiencyBasisPoints": 0
+        "baseUnitPriceMinor": 100,
+        "efficiencyBasisPoints": 0,
+        "validFromDateKey": "1991-01-01",
+        "validToDateKey": "2099-12-31",
+        "priceLock": "fixed"
       }
     },
+    "efficiencyProjects": [],
+    "standbyPower": false,
     "meters": {
       "energy": 1081,
       "water": 1103,

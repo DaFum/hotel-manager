@@ -114,14 +114,13 @@ describe("distribution commands", () => {
     expect(rejection.reason).toBe("group block already exists");
   });
 
-  it("declines a group contract", () => {
+  it("declines a group contract and emits event", () => {
     const simulation = new GameSimulation(createInitialGameState(5));
-    expect(
-      submit(simulation, {
-        type: "DECLINE_GROUP_CONTRACT",
-        blockId: "block.2",
-      }).status,
-    ).toBe("accepted");
+    const result = submit(simulation, {
+      type: "DECLINE_GROUP_CONTRACT",
+      blockId: "block.2",
+    });
+    expect(result.status).toBe("accepted");
     expect(simulation.state.distribution.groupBlocks[0]).toEqual({
       id: "block.2",
       category: "single",
@@ -134,5 +133,67 @@ describe("distribution commands", () => {
       paymentTermsDays: 0,
       status: "declined",
     });
+
+    const emitted = simulation.state.eventJournal.pending.filter(
+      (e) => e.payload.type === "GROUP_CONTRACT_DECLINED",
+    );
+    expect(emitted).toHaveLength(1);
+    expect(emitted[0].payload).toEqual({
+      type: "GROUP_CONTRACT_DECLINED",
+      blockId: "block.2",
+    });
+  });
+
+  it("handles RENEW_CORPORATE_ACCOUNT and emits domain events", () => {
+    const simulation = new GameSimulation(createInitialGameState(5));
+    submit(simulation, {
+      type: "OFFER_CORPORATE_ACCOUNT",
+      leadId: "lead.renew",
+      accountName: "RenewCorp",
+      segmentId: "segment.business",
+      expectedRoomNights: 200,
+    });
+
+    const result = submit(simulation, {
+      type: "RENEW_CORPORATE_ACCOUNT",
+      leadId: "lead.renew",
+      stage: "proposed",
+    });
+    expect(result.status).toBe("accepted");
+
+    const lead = simulation.state.commercial.sales.leads.find(
+      (l) => l.id === "lead.renew",
+    );
+    expect(lead?.stage).toBe("proposed");
+
+    const events = simulation.state.eventJournal.pending.map((e) => e.payload.type);
+    expect(events).toContain("CORPORATE_ACCOUNT_OFFERED");
+    expect(events).toContain("CORPORATE_ACCOUNT_RENEWED");
+  });
+
+  it("does not advance stateVersion or RNG state when a command is rejected", () => {
+    const simulation = new GameSimulation(createInitialGameState(5));
+    const versionBefore = simulation.state.stateVersion;
+    const rngBefore = structuredClone(simulation.state.rngState);
+
+    // Submit command with stale expectedStateVersion (99 when stateVersion is 0)
+    const result = simulation.submitCommands([
+      commandEnvelope({
+        commandId: "test.stale",
+        issuedAtMinutes: simulation.state.elapsedMinutes,
+        actor: "player",
+        expectedStateVersion: 99, // stale
+        payload: {
+          type: "CLOSE_CHANNEL",
+          channelId: "walkIn",
+          closed: true,
+        },
+      }),
+    ])[0];
+
+    expect(result.status).toBe("rejected");
+    expect(result.reason).toContain("expected state version");
+    expect(simulation.state.stateVersion).toBe(versionBefore);
+    expect(simulation.state.rngState).toEqual(rngBefore);
   });
 });

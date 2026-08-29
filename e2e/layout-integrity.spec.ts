@@ -52,6 +52,61 @@ test.describe("the page never scrolls sideways", () => {
   });
 });
 
+/**
+ * Reading order promises. Both of these were broken in a way no rendering test
+ * would catch: the page looked correct and read wrongly.
+ */
+test.describe("the document is ordered the way it is read", () => {
+  test.use({ viewport: DESK });
+
+  /**
+   * A link that skips the chrome has to come before the chrome. It sat inside
+   * the management shell, which put it on the eleventh tab stop — behind the
+   * ten controls it exists to bypass.
+   */
+  test("the skip link is the first thing a keyboard reaches", async ({
+    page,
+  }) => {
+    await start(page);
+
+    const first = await page.evaluate(() => {
+      const focusable = [
+        ...document.querySelectorAll(
+          'a[href],button,input,select,[tabindex]:not([tabindex="-1"])',
+        ),
+      ].filter(
+        (el) => el.getBoundingClientRect().width > 0 || el.tagName === "A",
+      );
+      const el = focusable[0];
+      return el ? `${el.tagName}:${(el.textContent ?? "").trim()}` : "(none)";
+    });
+
+    expect(first).toMatch(/^A:/);
+  });
+
+  /**
+   * The game works out the player's next action; it used to file that answer
+   * at the foot of the noticeboard, roughly 3300px below the fold on a
+   * handset. It belongs above the frame, with the vitals.
+   */
+  test("the next action is above the working frame", async ({ page }) => {
+    await start(page);
+
+    const placed = await page.evaluate(() => {
+      const slot = document.querySelector(".hm-nextaction");
+      const frame = document.querySelector(".hm-frame");
+      if (!slot) return "no next action is being offered";
+      if (!frame) return "the frame is missing";
+      return slot.compareDocumentPosition(frame) &
+        Node.DOCUMENT_POSITION_FOLLOWING
+        ? "above"
+        : "below";
+    });
+
+    expect(placed).toBe("above");
+  });
+});
+
 test.describe("the working surface stays in its column", () => {
   test.use({ viewport: DESK });
 

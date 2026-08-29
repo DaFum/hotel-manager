@@ -31,6 +31,54 @@
   flex: 0 0 auto;
 }
 
+/* --- The next action ---------------------------------------------------- */
+
+/*
+ * One slot, one action, directly under the vitals.
+ *
+ * It is a band, not a card: a row of heading, sentence and controls, so the
+ * whole prompt costs one line of the screen rather than a block of it. The
+ * dismissal sits at the far end, where a trailing control belongs, and the
+ * band disappears entirely once the player has no next action — this strip is
+ * borrowed space, not owned space.
+ */
+.hm-root > .hm-nextaction {
+  flex: 0 0 auto;
+}
+
+.hm-root > .hm-nextaction > aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hm-space-2) var(--hm-space-4);
+  padding: var(--hm-space-2) var(--hm-space-4);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  background: var(--hm-surface);
+}
+
+.hm-root > .hm-nextaction h2 {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-signal);
+}
+
+.hm-root > .hm-nextaction p {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--hm-ink-bright);
+}
+
+.hm-root > .hm-nextaction button {
+  flex: 0 0 auto;
+}
+
 /* --- The working frame: departments | surface | messages ---------------- */
 
 .hm-frame {

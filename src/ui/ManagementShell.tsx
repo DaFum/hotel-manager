@@ -51,9 +51,12 @@ export function ManagementShell({
       data-era-digital={capabilities.digitalBackOffice}
       data-era-smartphone={capabilities.smartphoneVisuals}
     >
-      <a href="#management-content">
-        {translateGame(locale, "management.skip")}
-      </a>
+      {/*
+        The skip link is not here. It belongs to the page shell, ahead of the
+        command bar, because a link that skips the chrome has to be reachable
+        before the chrome: from inside this component it landed on the eleventh
+        tab stop, behind the ten controls it exists to bypass. See App.tsx.
+      */}
       <nav
         className="hm-shell__nav"
         aria-label={translateGame(locale, "management.areas")}

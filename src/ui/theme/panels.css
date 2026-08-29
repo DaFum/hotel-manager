@@ -104,6 +104,93 @@
 }
 
 /*
+ * A dormant register says its subject and its silence on one line.
+ *
+ * At the start of a run almost nothing has happened yet, and each subject that
+ * has nothing to report was spending a full block to say so: the guest
+ * department opened with six of its eight sections reading "no complaints have
+ * been raised yet", "no guests have left a review yet", and so on down a
+ * screenful. That is a page of structure carrying almost no information — the
+ * player pays the scanning cost of eight registers to learn that two of them
+ * are live.
+ *
+ * A section holding nothing but a heading and one line of prose — no table, no
+ * list, no control, so nothing to act on and nothing to read down — lays that
+ * pair out as a row instead of a column. The subject stays legible, stays in
+ * the heading outline, and stays in the same place it will occupy once it has
+ * something to say. Only its height collapses.
+ */
+.hm-root
+  :is(
+    .hm-main > section,
+    .hm-main > aside,
+    .hm-panel,
+    .hm-panel section,
+    .hm-main > :is(section, aside) section
+  ):has(> :is(h2, h3, h4) + p:last-child):not(
+    :has(
+      :is(
+        table,
+        ul,
+        ol,
+        dl,
+        button,
+        input,
+        select,
+        textarea,
+        details,
+        a,
+        img,
+        canvas
+      )
+    )
+  ) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hm-space-2) var(--hm-space-4);
+}
+
+/*
+ * The heading no longer owns a line of its own, so it stops reserving the
+ * space under it that a block heading needs.
+ */
+.hm-root
+  :is(
+    .hm-main > section,
+    .hm-main > aside,
+    .hm-panel,
+    .hm-panel section,
+    .hm-main > :is(section, aside) section
+  ):has(> :is(h2, h3, h4) + p:last-child):not(
+    :has(
+      :is(
+        table,
+        ul,
+        ol,
+        dl,
+        button,
+        input,
+        select,
+        textarea,
+        details,
+        a,
+        img,
+        canvas
+      )
+    )
+  )
+  > :is(h2, h3, h4) {
+  margin: 0;
+
+  /* It may hold its line, but it may not refuse to give ground: a heading
+     that cannot shrink sizes the row to its own longest word and takes the
+     page sideways with it. */
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/*
  * Articles are single records — an alert, a story, a rival's move.
  */
 .hm-main > :is(section, aside) article,

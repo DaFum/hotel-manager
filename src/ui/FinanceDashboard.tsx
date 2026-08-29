@@ -95,21 +95,6 @@ export function FinanceDashboard({
   const t = (key: string) => translateGame(locale, key);
   return (
     <div aria-label={t("finance.dashboard.title")}>
-      <LoanPanel
-        offeredRateBp={creditStanding?.offeredRateBp ?? 600}
-        borrowingCapacityMinor={
-          creditStanding?.borrowingCapacityMinor ?? 10_000_000_00
-        }
-        creditStandingScore={creditStanding?.score ?? 50}
-        totalDebtMinor={view.balanceSheet.debtMinor}
-        loans={view.loans}
-        onTakeLoan={onTakeLoan ?? (() => {})}
-        onRepayLoan={onRepayLoan ?? (() => {})}
-        isPending={isPending}
-        locale={locale}
-        creditStandingInputs={creditStandingInputs}
-        availableCollateralMinor={availableCollateralMinor}
-      />
       <section aria-label={t("finance.dashboard.pnl")}>
         <h2>{t("finance.dashboard.pnl")}</h2>
         <dl>
@@ -273,6 +258,28 @@ export function FinanceDashboard({
         </p>
         <p>{t("finance.dashboard.causeBoundary")}</p>
       </section>
+      {/*
+        Borrowing sits below the statements, not above them.
+        It led the department, so the first thing the player met on opening
+        Finance was a form for taking on debt — an instrument, before any of
+        the four readings that say whether debt is warranted. The statement of
+        position comes first now, and the lever after it.
+      */}
+      <LoanPanel
+        offeredRateBp={creditStanding?.offeredRateBp ?? 600}
+        borrowingCapacityMinor={
+          creditStanding?.borrowingCapacityMinor ?? 10_000_000_00
+        }
+        creditStandingScore={creditStanding?.score ?? 50}
+        totalDebtMinor={view.balanceSheet.debtMinor}
+        loans={view.loans}
+        onTakeLoan={onTakeLoan ?? (() => {})}
+        onRepayLoan={onRepayLoan ?? (() => {})}
+        isPending={isPending}
+        locale={locale}
+        creditStandingInputs={creditStandingInputs}
+        availableCollateralMinor={availableCollateralMinor}
+      />
       <section aria-label={t("finance.dashboard.insurance")}>
         <h2>{t("finance.dashboard.insurance")}</h2>
         {view.policies.length ? (

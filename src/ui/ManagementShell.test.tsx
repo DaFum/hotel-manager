@@ -80,9 +80,9 @@ describe("ManagementShell", () => {
     expect(
       screen.getByRole("main", { name: "Management" }).getAttribute("id"),
     ).toBe("management-content");
-    expect(
-      screen.getByRole("link", { name: /skip/i }).getAttribute("href"),
-    ).toBe("#management-content");
+    // The skip link lives in the page shell now, ahead of the command bar, so
+    // that it is the first tab stop; e2e/layout-integrity.spec.ts holds it there.
+    expect(screen.queryByRole("link", { name: /skip/i })).toBeNull();
 
     for (const [index, id] of AREA_ORDER.entries()) {
       expect(tabs[index]?.getAttribute("aria-controls")).toBe(

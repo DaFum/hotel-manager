@@ -2,7 +2,7 @@
   --guest-ink: #201e19;
   --guest-paper: #eee6d5;
   --guest-rule: #8c3229;
-  --guest-muted: #6a6256;
+  --guest-muted: #5b5449;
 
   color: var(--guest-ink);
   background:
@@ -12,6 +12,53 @@
   border: 1px solid color-mix(in srgb, var(--guest-ink) 35%, transparent);
   box-shadow: 0 18px 45px rgb(32 30 25 / 18%);
   padding: clamp(1.2rem, 3vw, 2.6rem);
+}
+
+/*
+ * The ink this paper takes — in normal mode only. See the note in revenue.css:
+ * a custom property declared on a descendant beats the inherited one whatever
+ * the upstream specificity, so these quietly outranked the high-contrast
+ * palette and left a player who had asked for black and white reading dark red
+ * on cream.
+ */
+.hm-root:not(.high-contrast) .guest-ledger {
+  --hm-ink-bright: #16150f;
+  --hm-ink: var(--guest-ink);
+  --hm-ink-dim: #4f4940;
+  --hm-ink-faint: var(--guest-muted);
+  --hm-signal: var(--guest-rule);
+  --hm-signal-bright: #7d2a17;
+  --hm-signal-deep: #7d2a17;
+  --hm-signal-wash: rgb(140 50 41 / 12%);
+  --hm-signal-glow: rgb(140 50 41 / 20%);
+  --hm-steel: #24506f;
+  --hm-steel-wash: rgb(36 80 111 / 12%);
+  --hm-gain: #1b5c3c;
+  --hm-gain-wash: rgb(27 92 60 / 12%);
+  --hm-loss: #99381f;
+  --hm-loss-wash: rgb(153 56 31 / 12%);
+  --hm-warn: #6b4a08;
+  --hm-warn-wash: rgb(107 74 8 / 14%);
+  --hm-idle: #5b5449;
+  --hm-rule: rgb(32 30 25 / 22%);
+  --hm-rule-strong: rgb(32 30 25 / 48%);
+  --hm-rule-faint: rgb(32 30 25 / 12%);
+  --hm-surface: #eae1cd;
+  --hm-surface-raised: #f3ecdc;
+  --hm-surface-sunken: #ded3be;
+  --hm-hover-bg: rgb(140 50 41 / 6%);
+  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
+}
+
+/* Under high contrast the ledger keeps its structure and gives up its surface. */
+.hm-root.high-contrast .guest-ledger {
+  --guest-ink: var(--hm-ink);
+  --guest-paper: var(--hm-ground);
+  --guest-rule: var(--hm-signal);
+  --guest-muted: var(--hm-ink-dim);
+
+  background: var(--hm-ground);
+  box-shadow: none;
 }
 
 .guest-ledger__masthead {

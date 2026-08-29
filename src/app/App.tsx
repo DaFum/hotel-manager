@@ -467,6 +467,28 @@ export function App() {
     ),
     hotel: flagshipSelected ? (
       <>
+        {/*
+          What this house is, and the levers that change it, before the
+          catalogue of what is in it. The three registers below run to fifteen
+          headings between them, and with them on top the first control in the
+          department sat 1932px down — two screens of inventory before the
+          player could do anything at all. Classification states the hotel's
+          standing and carries its strategic levers, so it reads as both the
+          summary and the first action; the shelves follow.
+        */}
+        <ClassificationPanel
+          classification={s.classification}
+          specializationId={s.specializationId}
+          investedArea={s.investedArea}
+          onSetSpecialization={(specializationId) =>
+            game.send({ type: "SET_SPECIALIZATION", specializationId })
+          }
+          onExpand={(area) => game.send({ type: "EXPAND_FACILITY", area })}
+        />
+        <BuildPanel
+          renovationActive={s.renovation !== null}
+          onStartRenovation={() => game.send({ type: "START_RENOVATION" })}
+        />
         <FacilitiesDashboard rows={s.facilities} />
         <FnbDashboard fnb={s.fnb} locale={preferences.locale} />
         <CommercialSpacesPanel
@@ -486,19 +508,6 @@ export function App() {
             fitBp: space.fitBp ?? (space.fit ?? 0) * 100,
           }))}
           lobby={s.lobby}
-        />
-        <ClassificationPanel
-          classification={s.classification}
-          specializationId={s.specializationId}
-          investedArea={s.investedArea}
-          onSetSpecialization={(specializationId) =>
-            game.send({ type: "SET_SPECIALIZATION", specializationId })
-          }
-          onExpand={(area) => game.send({ type: "EXPAND_FACILITY", area })}
-        />
-        <BuildPanel
-          renovationActive={s.renovation !== null}
-          onStartRenovation={() => game.send({ type: "START_RENOVATION" })}
         />
         <TechnologyPanel
           technologies={s.world.technologies}
@@ -862,6 +871,14 @@ export function App() {
         style={{ fontSize: `${preferences.accessibility.textScale}rem` }}
         data-reduced-motion={preferences.accessibility.reducedMotion}
       >
+        {/*
+          The first thing in the document, and so the first thing a keyboard
+          reaches: a link that skips the chrome is only worth having if it
+          comes before the chrome.
+        */}
+        <a href="#management-content">
+          {translateGame(preferences.locale, "management.skip")}
+        </a>
         <TopBar
           hotelName={s.hotel.name}
           city={CITY.name}
@@ -885,6 +902,44 @@ export function App() {
           onOpenNotifications={() => messages.current?.focus()}
           locale={preferences.locale}
         />
+        {/*
+          The next thing to do, directly under the vitals.
+          The game already works out what the player should do first; it used
+          to file that answer at the bottom of the noticeboard, which on a
+          handset put "set your first room price" some 3300px below the fold —
+          four screens from the controls it is talking about. One slot, one
+          action, at the top of the frame. It is derived from state, so it
+          empties itself the moment the player no longer needs it and the
+          interface sheds its training wheels rather than spending its best
+          space on them forever.
+        */}
+        {preferences.tutorialCompleted.length < 3 ? (
+          <div className="hm-nextaction">
+            <TutorialCoach
+              state={{
+                step:
+                  preferences.tutorialCompleted.length === 0
+                    ? "set-room-price"
+                    : preferences.tutorialCompleted.at(-1) === "set-room-price"
+                      ? "inspect-bookings"
+                      : "hire-housekeeping",
+                completed: preferences.tutorialCompleted,
+              }}
+              onDismiss={() =>
+                game.setPreferences({
+                  ...preferences,
+                  tutorialCompleted: [
+                    "set-room-price",
+                    "inspect-bookings",
+                    "hire-housekeeping",
+                  ],
+                })
+              }
+              onAction={game.observeTutorialAction}
+              locale={preferences.locale}
+            />
+          </div>
+        ) : null}
         {/*
         The frame: departments on the left, the department the player opened in
         the middle, the noticeboard on the right. Everything else in this file
@@ -915,32 +970,6 @@ export function App() {
               "notifications.board",
             )}
           >
-            {preferences.tutorialCompleted.length < 3 ? (
-              <TutorialCoach
-                state={{
-                  step:
-                    preferences.tutorialCompleted.length === 0
-                      ? "set-room-price"
-                      : preferences.tutorialCompleted.at(-1) ===
-                          "set-room-price"
-                        ? "inspect-bookings"
-                        : "hire-housekeeping",
-                  completed: preferences.tutorialCompleted,
-                }}
-                onDismiss={() =>
-                  game.setPreferences({
-                    ...preferences,
-                    tutorialCompleted: [
-                      "set-room-price",
-                      "inspect-bookings",
-                      "hire-housekeeping",
-                    ],
-                  })
-                }
-                onAction={game.observeTutorialAction}
-                locale={preferences.locale}
-              />
-            ) : null}
             <NotificationCenter
               notifications={s.alerts.map((alert): NotificationRecord => ({
                 id: alert.id,

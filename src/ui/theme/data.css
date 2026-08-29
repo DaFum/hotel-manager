@@ -194,9 +194,36 @@
   max-width: 100%;
 }
 
-.hm-main > :is(section, aside):has(> table),
-.hm-panel:has(> table) {
+/*
+ * A register wider than its column scrolls inside its own frame.
+ *
+ * This guard used to require the table to be a direct child of `.hm-main` or
+ * of a panel, and the departments that needed it most do not nest that way:
+ * the staff register sits in a section inside the panel, one level too deep
+ * for `.hm-main > …`, so nothing framed it and its 1264px of columns pushed
+ * the whole department sideways instead. The frame is now claimed by whatever
+ * element actually holds the table, at whatever depth it sits.
+ *
+ * `max-width: 100%` above cannot do this job alone: it caps the drawn width
+ * but not the min-content contribution a table makes to its ancestors, which
+ * is what does the pushing.
+ */
+.hm-root :is(section, aside, article, div, details, figure):has(> table) {
   overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+/*
+ * A ledger value holds one line so the decimal points stay in a column — but
+ * not every value is a figure. "DEM 100,000.00 — at the neutral market" is a
+ * figure with a sentence after it, and held on one line it measured 439px on
+ * a 375px handset and pushed the city market sideways. Where there is no
+ * column to protect, the reading wraps instead of moving the page.
+ */
+@media (width <= 60rem) {
+  .hm-root dd {
+    white-space: normal;
+  }
 }
 
 /* --- Finance registers -------------------------------------------------- */
@@ -231,4 +258,25 @@
   display: grid;
   grid-template-columns: minmax(10rem, 1fr) auto;
   gap: 1rem;
+}
+
+/*
+ * A ledger row is a whole row, not a cell.
+ *
+ * The list it sits in is itself a two-column grid, built for bare dt/dd pairs,
+ * so a wrapped row auto-placed into the list's `auto` column and sized that
+ * track to its own max-content: 359px of row inside a 290px list, which is
+ * what pushed the finance department off a 375px screen. Spanning both tracks
+ * puts the row back in charge of its own width. The 10rem floor on the label
+ * goes with it where there is no room for one, so the row can reach the width
+ * it is given rather than insisting on a minimum the screen cannot pay.
+ */
+.hm-root dl > .ledger-row {
+  grid-column: 1 / -1;
+}
+
+@media (width <= 60rem) {
+  .ledger-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
 }

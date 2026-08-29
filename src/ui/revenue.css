@@ -1,7 +1,9 @@
 .revenue-board {
   --revenue-ink: #172424;
   --revenue-paper: #e5e1d2;
-  --revenue-signal: #b7472d;
+  --revenue-signal: #99381f;
+  --revenue-rule: rgb(23 36 36 / 35%);
+  --revenue-rule-soft: rgb(23 36 36 / 20%);
 
   background:
     repeating-linear-gradient(
@@ -11,9 +13,66 @@
     ),
     linear-gradient(115deg, #eeeadd, var(--revenue-paper));
   color: var(--revenue-ink);
-  border: 1px solid rgb(23 36 36 / 35%);
+  border: 1px solid var(--revenue-rule);
   box-shadow: 0 1.25rem 3rem rgb(23 36 36 / 18%);
   padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+/*
+ * The ink this paper takes — in normal mode only.
+ *
+ * A custom property declared on a descendant beats the value it would have
+ * inherited, whatever the specificity of the rule that set it upstream. So
+ * these, declared on the board, silently outranked the black-and-white palette
+ * that .hm-root.high-contrast sets on the root, and the department kept its
+ * cream paper and its dark red signal for a player who had asked for high
+ * contrast. High contrast is a promise, not a filter (tokens.css): the board
+ * states its ink where the promise does not apply, and answers to the promise
+ * where it does.
+ */
+.hm-root:not(.high-contrast) .revenue-board {
+  --hm-ink-bright: #0f1a1a;
+  --hm-ink: var(--revenue-ink);
+  --hm-ink-dim: #45514f;
+  --hm-ink-faint: #55605e;
+  --hm-signal: var(--revenue-signal);
+  --hm-signal-bright: #7d2a17;
+  --hm-signal-deep: #7d2a17;
+  --hm-signal-wash: rgb(153 56 31 / 12%);
+  --hm-signal-glow: rgb(153 56 31 / 20%);
+  --hm-steel: #24506f;
+  --hm-steel-wash: rgb(36 80 111 / 12%);
+  --hm-gain: #1b5c3c;
+  --hm-gain-wash: rgb(27 92 60 / 12%);
+  --hm-loss: #99381f;
+  --hm-loss-wash: rgb(153 56 31 / 12%);
+  --hm-warn: #6b4a08;
+  --hm-warn-wash: rgb(107 74 8 / 14%);
+  --hm-idle: #55605e;
+  --hm-rule: rgb(23 36 36 / 22%);
+  --hm-rule-strong: rgb(23 36 36 / 48%);
+  --hm-rule-faint: rgb(23 36 36 / 12%);
+  --hm-surface: #e9e5d8;
+  --hm-surface-raised: #f2eee2;
+  --hm-surface-sunken: #ddd8c8;
+  --hm-hover-bg: rgb(153 56 31 / 6%);
+  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
+}
+
+/*
+ * Under high contrast the board keeps its structure and gives up its surface:
+ * the paper, the rules and the signal all become whatever the accessibility
+ * palette says they are.
+ */
+.hm-root.high-contrast .revenue-board {
+  --revenue-ink: var(--hm-ink);
+  --revenue-paper: var(--hm-ground);
+  --revenue-signal: var(--hm-signal);
+  --revenue-rule: var(--hm-rule);
+  --revenue-rule-soft: var(--hm-rule);
+
+  background: var(--hm-ground);
+  box-shadow: none;
 }
 
 .revenue-board__header {
@@ -43,7 +102,7 @@
 }
 
 .revenue-board > section {
-  border-top: 1px solid rgb(23 36 36 / 35%);
+  border-top: 1px solid var(--revenue-rule);
   margin-block-start: 1.2rem;
   padding-block-start: 1rem;
   overflow-x: auto;
@@ -63,7 +122,7 @@
 
 .revenue-board th,
 .revenue-board td {
-  border-bottom: 1px solid rgb(23 36 36 / 20%);
+  border-bottom: 1px solid var(--revenue-rule-soft);
   padding: 0.55rem 0.7rem;
   text-align: left;
   vertical-align: top;

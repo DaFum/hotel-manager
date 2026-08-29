@@ -31,6 +31,54 @@
   flex: 0 0 auto;
 }
 
+/* --- The next action ---------------------------------------------------- */
+
+/*
+ * One slot, one action, directly under the vitals.
+ *
+ * It is a band, not a card: a row of heading, sentence and controls, so the
+ * whole prompt costs one line of the screen rather than a block of it. The
+ * dismissal sits at the far end, where a trailing control belongs, and the
+ * band disappears entirely once the player has no next action — this strip is
+ * borrowed space, not owned space.
+ */
+.hm-root > .hm-nextaction {
+  flex: 0 0 auto;
+}
+
+.hm-root > .hm-nextaction > aside {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--hm-space-2) var(--hm-space-4);
+  padding: var(--hm-space-2) var(--hm-space-4);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  background: var(--hm-surface);
+}
+
+.hm-root > .hm-nextaction h2 {
+  margin: 0;
+  flex: 0 1 auto;
+  min-width: 0;
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-signal);
+}
+
+.hm-root > .hm-nextaction p {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  color: var(--hm-ink-bright);
+}
+
+.hm-root > .hm-nextaction button {
+  flex: 0 0 auto;
+}
+
 /* --- The working frame: departments | surface | messages ---------------- */
 
 .hm-frame {
@@ -380,10 +428,39 @@
 .hm-hotel-view__controls {
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
   border: 1px solid var(--hm-rule);
   border-left: var(--hm-rail) solid var(--hm-rule-strong);
   border-radius: var(--hm-radius);
-  background: var(--hm-surface-sunken);
+
+  /*
+   * A scrolling panel has to say so. This column is shorter than the controls
+   * it holds, and with a plain fill the content simply stopped at the bottom
+   * edge — a floor button sliced through the middle read as a rendering fault
+   * rather than as an invitation to scroll. The two `local` gradients paint the
+   * panel's own ground and travel with the content; the two `scroll` shadows
+   * stay with the frame, so a shadow is visible exactly when there is more in
+   * that direction and gone when there is not.
+   */
+  background:
+    linear-gradient(var(--hm-surface-sunken) 30%, rgb(11 13 16 / 0%)) top / 100%
+      1.5rem no-repeat local,
+    linear-gradient(rgb(11 13 16 / 0%), var(--hm-surface-sunken) 70%) bottom /
+      100% 1.5rem no-repeat local,
+    radial-gradient(
+        farthest-side at 50% 0,
+        var(--hm-shadow-rail),
+        rgb(0 0 0 / 0%)
+      )
+      top / 100% 0.6rem no-repeat scroll,
+    radial-gradient(
+        farthest-side at 50% 100%,
+        var(--hm-shadow-rail),
+        rgb(0 0 0 / 0%)
+      )
+      bottom / 100% 0.6rem no-repeat scroll,
+    var(--hm-surface-sunken);
 }
 
 .hm-hotel-view__controls h3 {
@@ -399,17 +476,34 @@
   font-size: var(--hm-text-xs);
 }
 
-@media (width <= 68rem) {
+/*
+ * The stage folds on the width it is given, not the width of the screen.
+ *
+ * This used to fold below a 68rem viewport, and the department it lives in is
+ * never that wide: on a 1280px screen the stage gets 609px once the rail and
+ * the noticeboard are paid for, so the fold never fired and the building was
+ * dealt 321px with the camera controls taking the other 272px. The subject of
+ * the screen came second to its own switches, and the switches still did not
+ * fit — 661px of them in a 430px frame, with "Show service areas" below the
+ * fold entirely.
+ *
+ * Asking the department how wide it is answers both at once: the building gets
+ * the full width, and the controls, no longer trapped in a fixed row, show
+ * every one of themselves.
+ */
+.hm-shell__panel {
+  container: hm-department / inline-size;
+}
+
+@container hm-department (width < 46rem) {
   .hm-hotel-view__stage {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .hm-hotel-view__stage {
     grid-template-rows: none;
   }
 
   .hm-hotel-view__controls {
     overflow-y: visible;
+    background: var(--hm-surface-sunken);
   }
 }
 

@@ -43,7 +43,7 @@ test.describe("the page never scrolls sideways", () => {
 
     const offenders: string[] = [];
     for (const area of AREA_ORDER) {
-      await openManagementArea(page, area);
+      await openManagementArea(page, area as "revenue" | "guests");
       const width = await page.evaluate(() => ({
         scroll: document.documentElement.scrollWidth,
         client: document.documentElement.clientWidth,
@@ -72,21 +72,31 @@ test.describe("the document is ordered the way it is read", () => {
   test("the skip link is the first thing a keyboard reaches", async ({
     page,
   }) => {
-    await start(page);
+    // Deliberately not start(): choosing a locale opens the settings drawer,
+    // which leaves focus on the button that opened it, and a Tab from there
+    // measures the middle of the document rather than its beginning. Nothing
+    // asserted below is language-dependent.
+    await page.goto("/?seed=424242");
+    // The boot screen carries an h1 of its own, so waiting on the heading
+    // waits for nothing: the department rail only exists once the game itself
+    // has mounted, and pressing Tab before that measured a document React was
+    // about to replace.
+    await expect(page.locator('[role="tablist"]')).toBeVisible();
 
-    const first = await page.evaluate(() => {
-      const focusable = [
-        ...document.querySelectorAll(
-          'a[href],button,input,select,[tabindex]:not([tabindex="-1"])',
-        ),
-      ].filter(
-        (el) => el.getBoundingClientRect().width > 0 || el.tagName === "A",
-      );
-      const el = focusable[0];
-      return el ? `${el.tagName}:${(el.textContent ?? "").trim()}` : "(none)";
+    // Ask the browser, rather than guessing from document order: press Tab
+    // from an untouched page and see what actually takes focus. An earlier
+    // version of this test read the first match of a focusable-looking
+    // selector and asserted only that it was an anchor — which any anchor
+    // anywhere, visible or not, would have satisfied.
+    await page.keyboard.press("Tab");
+
+    const focused = await page.evaluate(() => {
+      const el = document.activeElement;
+      if (!el || el === document.body) return "(nothing took focus)";
+      return `${el.tagName}[href="${el.getAttribute("href") ?? ""}"]`;
     });
 
-    expect(first).toMatch(/^A:/);
+    expect(focused).toBe('A[href="#management-content"]');
   });
 
   /**
@@ -137,33 +147,73 @@ test.describe("a themed board keeps the high-contrast promise", () => {
     await closeDrawer(page);
 
     const offenders: string[] = [];
-    for (const [area, selector] of [
-      ["revenue", ".revenue-board"],
-      ["guests", ".guest-ledger"],
-    ] as const) {
+    // Each board's private surface tokens, and the palette token each one has
+    // to resolve to once high contrast is on.
+    const boards = [
+      {
+        area: "revenue",
+        selector: ".revenue-board",
+        surface: [
+          ["--revenue-ink", "--hm-ink"],
+          ["--revenue-paper", "--hm-ground"],
+          ["--revenue-signal", "--hm-signal"],
+          ["--revenue-rule", "--hm-rule"],
+          ["--revenue-rule-soft", "--hm-rule"],
+        ],
+      },
+      {
+        area: "guests",
+        selector: ".guest-ledger",
+        surface: [
+          ["--guest-ink", "--hm-ink"],
+          ["--guest-paper", "--hm-ground"],
+          ["--guest-rule", "--hm-signal"],
+          ["--guest-muted", "--hm-ink-dim"],
+        ],
+      },
+    ] as const;
+
+    for (const { area, selector, surface } of boards) {
       await openManagementArea(page, area);
-      const seen = await page.evaluate((selector) => {
-        const root = document.querySelector(".hm-root");
-        const board = document.querySelector(selector);
-        if (!root || !board) return null;
-        const read = (el: Element, name: string) =>
-          getComputedStyle(el).getPropertyValue(name).trim();
-        return ["--hm-ink", "--hm-ink-dim", "--hm-signal"].map((name) => ({
-          name,
-          root: read(root, name),
-          board: read(board, name),
-        }));
-      }, selector);
+      const seen = await page.evaluate(
+        ({ selector, surface }) => {
+          const root = document.querySelector(".hm-root");
+          const board = document.querySelector(selector);
+          if (!root || !board) return null;
+          const read = (el: Element, name: string) =>
+            getComputedStyle(el).getPropertyValue(name).trim();
+          return [
+            // The tokens the shared rules read, which the board must not
+            // outrank …
+            ...["--hm-ink", "--hm-ink-dim", "--hm-signal"].map((name) => ({
+              name,
+              expected: read(root, name),
+              actual: read(board, name),
+              against: name,
+            })),
+            // … and the board's own surface, which has to follow the palette
+            // rather than keep its paper. Without these the ink could obey
+            // high contrast while the board still painted cream underneath it.
+            ...surface.map(([name, source]) => ({
+              name,
+              expected: read(root, source),
+              actual: read(board, name),
+              against: source,
+            })),
+          ];
+        },
+        { selector, surface },
+      );
 
       if (!seen) {
         offenders.push(`${area}: the board is not on screen`);
         continue;
       }
       for (const token of seen) {
-        if (token.root !== token.board) {
+        if (token.expected !== token.actual) {
           offenders.push(
-            `${area} ${token.name}: board says ${token.board}, ` +
-              `high contrast says ${token.root}`,
+            `${area} ${token.name}: board says ${token.actual}, ` +
+              `high contrast says ${token.expected} (via ${token.against})`,
           );
         }
       }

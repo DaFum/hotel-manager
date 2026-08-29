@@ -39,6 +39,8 @@ export interface EmployeeRecord {
   /** Hours worked beyond contract this month; the cause of most of the above. */
   overtimeHours: number;
   leaveDaysTaken: number;
+  remainingLeaveDays: number;
+  activeTraining: { courseId: string; remainingDays: number } | null;
   trainingCompleted: string[];
   /** Why they are in the status they are in. */
   statusCause: string | null;
@@ -95,6 +97,8 @@ export function employ(
         morale: 65,
         overtimeHours: 0,
         leaveDaysTaken: 0,
+        remainingLeaveDays: 0,
+        activeTraining: null,
         trainingCompleted: [],
         statusCause: null,
       },
@@ -197,6 +201,7 @@ export function takeLeave(
     ...e,
     status: "onLeave" as const,
     leaveDaysTaken: e.leaveDaysTaken + days,
+    remainingLeaveDays: e.remainingLeaveDays + days,
     statusCause: "annual leave",
   }));
   return {

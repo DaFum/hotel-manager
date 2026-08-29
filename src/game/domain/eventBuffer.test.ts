@@ -544,8 +544,9 @@ describe("domain event buffer", () => {
     send({
       type: "START_TRAINING",
       staffId,
-      courseId: "customer_service",
+      courseId: "customer_service_101",
     });
+    collected.push(...runDays(s, 3));
     send({
       type: "APPROVE_LEAVE",
       staffId,

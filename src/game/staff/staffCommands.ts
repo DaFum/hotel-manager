@@ -11,6 +11,7 @@ import {
   promote,
   takeLeave,
 } from "./employeeLifecycle";
+import { findTrainingCourse, TRAINING_COURSES } from "./training";
 import { marketWageMinor } from "../labor/market";
 import { BASE_MONTHLY_WAGE_MINOR } from "../content/1991/cityMarket";
 import { createDepartmentHeadAuthority } from "../management/managerAuthority";
@@ -131,6 +132,8 @@ export function validateStaffCommand(
     case "START_TRAINING": {
       if (typeof command.courseId !== "string" || !command.courseId)
         return no("courseId is required");
+      const course = findTrainingCourse(command.courseId);
+      if (!course) return no("unknown training course");
       const staffRow = state.staff.find((s) => s.id === command.staffId);
       if (!staffRow) return no("unknown staff id");
       const employee = state.workforce.employees.find(
@@ -139,6 +142,12 @@ export function validateStaffCommand(
       if (!employee) return no("unknown employee record");
       if (employee.status === "resigned" || employee.status === "dismissed")
         return no("employee has already left");
+      if (employee.activeTraining)
+        return no("employee is already undergoing training");
+      if (employee.trainingCompleted.includes(command.courseId))
+        return no("course already completed");
+      if (state.finance.cashMinor < course.costMinor)
+        return no("insufficient cash for training");
       return ok;
     }
     case "APPROVE_LEAVE": {
@@ -285,25 +294,28 @@ export function applyStaffCommand(
       const employee = state.workforce.employees.find(
         (e) => e.staffId === command.staffId,
       )!;
-      state.workforce = completeTraining(
-        state.workforce,
-        employee.id,
-        command.courseId,
+      const course = findTrainingCourse(command.courseId)!;
+      ctx.spend(
+        course.costMinor,
+        "training",
+        `training course ${course.id} for ${command.staffId}`,
       );
-      const updated = state.workforce.employees.find(
-        (e) => e.id === employee.id,
-      )!;
+      state.workforce = {
+        ...state.workforce,
+        employees: state.workforce.employees.map((e) =>
+          e.id === employee.id
+            ? {
+                ...e,
+                activeTraining: {
+                  courseId: course.id,
+                  remainingDays: course.durationDays,
+                },
+              }
+            : e,
+        ),
+      };
       const staffRow = state.staff.find((s) => s.id === command.staffId);
-      if (staffRow) staffRow.skill = updated.skill;
-      ctx.emit(
-        {
-          type: "TRAINING_COMPLETED",
-          staffId: command.staffId,
-          employeeId: employee.id,
-          courseId: command.courseId,
-        },
-        [command.staffId, employee.id],
-      );
+      if (staffRow) staffRow.absent = true;
       return;
     }
     case "APPROVE_LEAVE": {
@@ -311,6 +323,8 @@ export function applyStaffCommand(
         (e) => e.staffId === command.staffId,
       )!;
       state.workforce = takeLeave(state.workforce, employee.id, command.days);
+      const staffRow = state.staff.find((s) => s.id === command.staffId);
+      if (staffRow) staffRow.absent = true;
       ctx.emit(
         {
           type: "LEAVE_APPROVED",

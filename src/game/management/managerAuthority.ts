@@ -108,9 +108,9 @@ export interface DepartmentHeadAuthority {
 
 export const DEFAULT_DEPARTMENT_HEAD_AUTHORITY: DepartmentHeadAuthority = {
   staffingBudgetMinor: 50_000_00, // 50,000 DM
-  minServiceLevelBasisPoints: 8_000, // 80%
+  minServiceLevelBasisPoints: 5_000, // 50%
   overtimeCapHours: 40,
-  staffingReserveCount: 2,
+  staffingReserveCount: 0,
 };
 
 export function createDepartmentHeadAuthority(

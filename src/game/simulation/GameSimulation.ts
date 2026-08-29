@@ -255,6 +255,7 @@ import {
 } from "../commercial/campaigns";
 import { recordStay as recordCrmStay } from "../commercial/crm";
 import {
+  completeTraining,
   createContract as createEmploymentContract,
   employ,
   markSick,
@@ -2816,8 +2817,72 @@ export class GameSimulation implements CommandExecutor {
       }
 
       const current = s.workforce.employees.find((e) => e.id === employee.id)!;
-      if (current.status === "sick" || current.status === "onLeave") {
+      if (current.activeTraining) {
+        if (current.activeTraining.remainingDays > 1) {
+          s.workforce = {
+            ...s.workforce,
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id
+                ? {
+                    ...e,
+                    activeTraining: {
+                      ...e.activeTraining!,
+                      remainingDays: e.activeTraining!.remainingDays - 1,
+                    },
+                  }
+                : e,
+            ),
+          };
+        } else {
+          const courseId = current.activeTraining.courseId;
+          s.workforce = {
+            ...s.workforce,
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id ? { ...e, activeTraining: null } : e,
+            ),
+          };
+          s.workforce = completeTraining(s.workforce, current.id, courseId);
+          const updated = s.workforce.employees.find((e) => e.id === current.id)!;
+          const staffRow = s.staff.find((st) => st.id === current.staffId);
+          if (staffRow) {
+            staffRow.skill = updated.skill;
+            if (current.remainingLeaveDays === 0) staffRow.absent = false;
+          }
+          this.emit(
+            {
+              type: "TRAINING_COMPLETED",
+              staffId: current.staffId,
+              employeeId: current.id,
+              courseId,
+            },
+            [current.staffId, current.id],
+          );
+        }
+        continue;
+      }
+
+      if (current.status === "sick") {
         s.workforce = returnToWork(s.workforce, current.id);
+        continue;
+      }
+      if (current.status === "onLeave") {
+        if (current.remainingLeaveDays > 1) {
+          s.workforce = {
+            ...s.workforce,
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id
+                ? { ...e, remainingLeaveDays: e.remainingLeaveDays - 1 }
+                : e,
+            ),
+          };
+        } else {
+          s.workforce = {
+            ...returnToWork(s.workforce, current.id),
+            employees: s.workforce.employees.map((e) =>
+              e.id === current.id ? { ...e, remainingLeaveDays: 0 } : e,
+            ),
+          };
+        }
         continue;
       }
       if (fallsSick(current, this.streams.staffing)) {
@@ -2852,15 +2917,40 @@ export class GameSimulation implements CommandExecutor {
   private checkStaffingEscalations(): void {
     const s = this.state;
     if (!s.departmentHeadAuthorities) return;
+    const periodKey = s.calendar.dateKey.slice(0, 7);
+
+    const rolesForDepartment = (deptId: string): string[] => {
+      switch (deptId) {
+        case "maintenance":
+          return ["technician", "maintenance"];
+        case "fnb":
+          return ["fnb", "kitchen"];
+        case "housekeeping":
+          return ["housekeeping", "laundry"];
+        case "reception":
+          return ["reception"];
+        default:
+          return [deptId];
+      }
+    };
 
     for (const [deptId, authority] of Object.entries(s.departmentHeadAuthorities)) {
-      const deptStaff = s.staff.filter((m) => m.role === deptId || deptId === "all");
+      const allowedRoles = rolesForDepartment(deptId);
+      const deptStaff = s.staff.filter((m) => allowedRoles.includes(m.role));
       const deptEmployees = s.workforce.employees.filter((e) =>
         deptStaff.some((m) => m.id === e.staffId),
       );
 
       const totalOvertime = deptEmployees.reduce((sum, e) => sum + e.overtimeHours, 0);
       const availableCount = deptEmployees.filter((e) => e.status === "working").length;
+      const actualStaffingSpend = deptEmployees.reduce(
+        (sum, e) => sum + e.contract.monthlyWageMinor,
+        0,
+      );
+
+      const totalSkill = deptEmployees.reduce((sum, e) => sum + e.skill, 0);
+      const avgSkill = deptEmployees.length > 0 ? Math.trunc(totalSkill / deptEmployees.length) : 0;
+      const actualServiceLevelBp = avgSkill * 100;
 
       const decisionsToCheck: LocalDecision[] = [
         {
@@ -2875,6 +2965,18 @@ export class GameSimulation implements CommandExecutor {
           availableCount,
           reserveCount: authority.staffingReserveCount,
         },
+        {
+          kind: "staffing-budget",
+          departmentId: deptId,
+          budgetMinor: authority.staffingBudgetMinor,
+          actualMinor: actualStaffingSpend,
+        },
+        {
+          kind: "service-level",
+          departmentId: deptId,
+          actualBp: actualServiceLevelBp,
+          minBp: authority.minServiceLevelBasisPoints,
+        },
       ];
 
       for (const decision of decisionsToCheck) {
@@ -2887,7 +2989,7 @@ export class GameSimulation implements CommandExecutor {
         });
         const reason = escalationReason(dummyManagerAuth, decision);
         if (reason !== null) {
-          const escalationId = `escalation.dept.${deptId}.${decision.kind}.${s.calendar.dateKey}`;
+          const escalationId = `escalation.dept.${deptId}.${decision.kind}.${periodKey}`;
           if (!s.company.escalations.some((e) => e.id === escalationId)) {
             s.company.escalations = raiseEscalation(s.company.escalations, {
               id: escalationId,
@@ -2896,7 +2998,7 @@ export class GameSimulation implements CommandExecutor {
               raisedAtMinutes: s.elapsedMinutes,
               decision,
               reason,
-            });
+            }).slice(-100);
             this.emit(
               {
                 type: "DECISION_ESCALATED",

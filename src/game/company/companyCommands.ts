@@ -541,6 +541,30 @@ export function applyCompanyCommand(
           escalation.decision.kind === "capex" ? "capex" : "maintenance",
           `approved ${escalation.decision.kind} at ${escalation.hotelId}`,
         );
+      if (command.approve) {
+        const d = escalation.decision;
+        if (d.kind === "overtime-cap") {
+          if (state.departmentHeadAuthorities?.[d.departmentId]) {
+            state.departmentHeadAuthorities[d.departmentId].overtimeCapHours =
+              d.overtimeHours + 10;
+          }
+        } else if (d.kind === "staffing-reserve") {
+          if (state.departmentHeadAuthorities?.[d.departmentId]) {
+            state.departmentHeadAuthorities[d.departmentId].staffingReserveCount =
+              d.availableCount;
+          }
+        } else if (d.kind === "staffing-budget") {
+          if (state.departmentHeadAuthorities?.[d.departmentId]) {
+            state.departmentHeadAuthorities[d.departmentId].staffingBudgetMinor =
+              d.actualMinor + 10_000_00;
+          }
+        } else if (d.kind === "service-level") {
+          if (state.departmentHeadAuthorities?.[d.departmentId]) {
+            state.departmentHeadAuthorities[d.departmentId].minServiceLevelBasisPoints =
+              d.actualBp;
+          }
+        }
+      }
       ctx.emit(
         {
           type: "ESCALATION_RESOLVED",

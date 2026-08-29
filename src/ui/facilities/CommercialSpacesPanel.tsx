@@ -1,6 +1,7 @@
 import { formatDm } from "../money";
 import { entityLabel } from "../entityNames";
-import type { GameLocale } from "../../i18n";
+import { useLocale } from "../localeContext";
+import { translateGame, type GameLocale } from "../../i18n";
 
 export interface CommercialSpaceRow {
   id: string;
@@ -43,18 +44,24 @@ export function CommercialSpacesPanel(props: {
   lobby: LobbyRow;
   locale?: GameLocale;
 }) {
-  const locale = props.locale ?? "en-GB";
+  const contextLocale = useLocale();
+  const locale = props.locale ?? contextLocale;
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
   return (
     <section aria-label="Commercial spaces">
-      <h2>Commercial spaces</h2>
+      <h2>{t("panels.commercial.title")}</h2>
 
-      <h3>Lobby</h3>
+      <h3>{t("panels.commercial.lobby")}</h3>
       <p aria-label="Lobby load">
-        {props.lobby.served} served, {props.lobby.unserved} waiting —{" "}
-        {props.lobby.cause}
+        {t("panels.commercial.lobbySummary", {
+          served: props.lobby.served,
+          waiting: props.lobby.unserved,
+          cause: props.lobby.cause,
+        })}
       </p>
       {props.lobby.automation.length === 0 ? (
-        <p>Everything goes through the desk.</p>
+        <p>{t("panels.commercial.deskOnly")}</p>
       ) : (
         <ul>
           {props.lobby.automation.map((mode) => (
@@ -63,9 +70,9 @@ export function CommercialSpacesPanel(props: {
         </ul>
       )}
 
-      <h3>Spaces</h3>
+      <h3>{t("panels.commercial.spaces")}</h3>
       {props.spaces.length === 0 ? (
-        <p>The hotel trades from no commercial space.</p>
+        <p>{t("panels.commercial.none")}</p>
       ) : (
         <ul>
           {props.spaces.map((space) => (
@@ -76,30 +83,38 @@ export function CommercialSpacesPanel(props: {
               <span>({space.kind})</span>
               <dl>
                 <div>
-                  <dt>Capacity</dt>
-                  <dd>{space.capacity} at a time</dd>
+                  <dt>{t("panels.commercial.capacity")}</dt>
+                  <dd>
+                    {t("panels.commercial.atATime", {
+                      count: space.capacity,
+                    })}
+                  </dd>
                 </div>
                 <div>
-                  <dt>Open</dt>
+                  <dt>{t("panels.commercial.open")}</dt>
                   <dd>
                     {clock(space.openMinute)}–{clock(space.closeMinute)}
                   </dd>
                 </div>
                 <div>
-                  <dt>Operator</dt>
+                  <dt>{t("panels.commercial.operator")}</dt>
                   <dd>{space.operator}</dd>
                 </div>
                 <div>
-                  <dt>Sold this month</dt>
+                  <dt>{t("panels.commercial.soldThisMonth")}</dt>
                   <dd>{space.unitsSold}</dd>
                 </div>
                 <div>
-                  <dt>To the hotel</dt>
-                  <dd>{formatDm(space.hotelShareMinor)}</dd>
+                  <dt>{t("panels.commercial.toTheHotel")}</dt>
+                  <dd>{formatDm(space.hotelShareMinor, locale)}</dd>
                 </div>
                 <div>
-                  <dt>Fit</dt>
-                  <dd>{space.fitBp / 100}/100</dd>
+                  <dt>{t("panels.commercial.fit")}</dt>
+                  <dd>
+                    {t("panels.commercial.fitValue", {
+                      value: space.fitBp / 100,
+                    })}
+                  </dd>
                 </div>
               </dl>
             </li>

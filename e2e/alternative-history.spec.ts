@@ -9,9 +9,11 @@ test("derives the management era from simulated adoption", async ({ page }) => {
   await expect(shell).toHaveAttribute("data-era-digital", "false");
   await expect(shell).toHaveAttribute("data-era-smartphone", "false");
   await openManagementArea(page, "hotel");
-  await page.getByRole("button", { name: "Adopt personal-computer" }).click();
+  await page
+    .getByRole("button", { name: "Personal Computer einführen" })
+    .click();
   await expect(page.getByLabel("Command status")).toContainText("accepted");
   await expect(
-    page.getByRole("button", { name: "Implementing personal-computer" }),
+    page.getByRole("button", { name: "Personal Computer wird eingeführt" }),
   ).toBeDisabled();
 });

@@ -1,6 +1,7 @@
 import { utilizationBp } from "../../game/facilities/capacity";
 import { formatBasisPoints } from "../money";
-import { ENGLISH_TEXT, type LocalizationKey } from "../localization";
+import { useLocale } from "../localeContext";
+import { translateGame } from "../../i18n";
 
 export interface FacilityRow {
   id: string;
@@ -21,17 +22,21 @@ export function FacilitiesDashboard({
 }: {
   rows: readonly FacilityRow[];
 }) {
+  const locale = useLocale();
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   if (rows.length === 0)
     return (
       <section aria-label="Facilities">
-        <h2>Facilities</h2>
-        <p>No facilities are running yet.</p>
+        <h2>{t("panels.facilities.title")}</h2>
+        <p>{t("panels.facilities.empty")}</p>
       </section>
     );
 
   return (
     <section aria-label="Facilities">
-      <h2>Facilities</h2>
+      <h2>{t("panels.facilities.title")}</h2>
       <ul>
         {rows.map((r) => {
           const loadBp = utilizationBp(
@@ -43,13 +48,17 @@ export function FacilitiesDashboard({
             <li key={r.id} aria-label={r.name}>
               <h3>{r.name}</h3>
               <p>
-                {r.demand}/{r.capacity} ({formatBasisPoints(loadBp)})
-                {over ? " — over capacity" : ""}
+                {t("panels.facilities.load", {
+                  demand: r.demand,
+                  capacity: r.capacity,
+                  share: formatBasisPoints(loadBp),
+                })}
+                {over ? ` — ${t("panels.facilities.overCapacity")}` : ""}
               </p>
-              <p>
-                Limited by:{" "}
-                {ENGLISH_TEXT[r.cause as LocalizationKey] ?? r.cause}
-              </p>
+              {/* The binding cause is already a catalogue key when the
+                  simulation knows one, so it resolves in the player's
+                  language rather than reaching them as English. */}
+              <p>{t("panels.facilities.limitedBy", { cause: r.cause })}</p>
             </li>
           );
         })}

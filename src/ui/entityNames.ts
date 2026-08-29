@@ -78,6 +78,7 @@ export function entityLabel(id: string, locale: GameLocale): string {
   const known =
     lookup(locale, `fnb.outlets.${parts.at(-1)}`) ??
     lookup(locale, `entity.${parts[0]}.${parts.at(-1)}`) ??
+    lookup(locale, `entity.technology.${parts.at(-1)}`) ??
     lookup(locale, `staff.role.${parts.at(-1)}`);
   if (known) return known;
 

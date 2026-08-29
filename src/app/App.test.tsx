@@ -195,9 +195,10 @@ describe("App", () => {
       }),
     );
 
+    // The app renders in German by default, and the view now says so.
     expect(
       screen.getByRole("status", { name: "View state" }).textContent,
-    ).toContain(`Floor ${snapshot.renderDescriptors.floorByRoomId[room.id]}`);
+    ).toContain(`Etage ${snapshot.renderDescriptors.floorByRoomId[room.id]}`);
     expect(
       within(notifications).getByRole("heading", {
         name: /warnung: reinigungsrückstand/i,

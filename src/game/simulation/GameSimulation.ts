@@ -2908,7 +2908,9 @@ export class GameSimulation implements CommandExecutor {
       const employee = s.workforce.employees.find(
         (e) => e.staffId === member.id,
       );
-      member.absent = employee ? employee.status !== "working" : member.absent;
+      member.absent = employee
+        ? employee.status !== "working" || Boolean(employee.activeTraining)
+        : member.absent;
     }
 
     this.checkStaffingEscalations();
@@ -2934,7 +2936,11 @@ export class GameSimulation implements CommandExecutor {
       }
     };
 
-    for (const [deptId, authority] of Object.entries(s.departmentHeadAuthorities)) {
+    const sortedDepts = Object.entries(s.departmentHeadAuthorities).sort(
+      (a, b) => compareIds(a[0], b[0]),
+    );
+
+    for (const [deptId, authority] of sortedDepts) {
       const allowedRoles = rolesForDepartment(deptId);
       const deptStaff = s.staff.filter((m) => allowedRoles.includes(m.role));
       const deptEmployees = s.workforce.employees.filter((e) =>
@@ -2991,14 +2997,19 @@ export class GameSimulation implements CommandExecutor {
         if (reason !== null) {
           const escalationId = `escalation.dept.${deptId}.${decision.kind}.${periodKey}`;
           if (!s.company.escalations.some((e) => e.id === escalationId)) {
-            s.company.escalations = raiseEscalation(s.company.escalations, {
+            const raised = raiseEscalation(s.company.escalations, {
               id: escalationId,
               hotelId: s.hotel.id,
               managerId: `head.${deptId}`,
               raisedAtMinutes: s.elapsedMinutes,
               decision,
               reason,
-            }).slice(-100);
+            });
+            const open = raised.filter((e) => e.status === "open");
+            const resolved = raised.filter((e) => e.status !== "open").slice(-50);
+            s.company.escalations = [...open, ...resolved].sort((a, b) =>
+              compareIds(a.id, b.id),
+            );
             this.emit(
               {
                 type: "DECISION_ESCALATED",

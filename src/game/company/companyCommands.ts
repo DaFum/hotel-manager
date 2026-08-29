@@ -14,6 +14,7 @@ import { createHotelBudget } from "./budgets";
 import {
   setAuthorityLimit,
   managerForHotel,
+  createDepartmentHeadAuthority,
 } from "../management/managerAuthority";
 import { resolveEscalation } from "../management/escalation";
 import { fundHotel, sweepToHeadquarters } from "../treasury/internalFunding";
@@ -543,25 +544,29 @@ export function applyCompanyCommand(
         );
       if (command.approve) {
         const d = escalation.decision;
-        if (d.kind === "overtime-cap") {
-          if (state.departmentHeadAuthorities?.[d.departmentId]) {
-            state.departmentHeadAuthorities[d.departmentId].overtimeCapHours =
-              d.overtimeHours + 10;
-          }
-        } else if (d.kind === "staffing-reserve") {
-          if (state.departmentHeadAuthorities?.[d.departmentId]) {
-            state.departmentHeadAuthorities[d.departmentId].staffingReserveCount =
-              d.availableCount;
-          }
-        } else if (d.kind === "staffing-budget") {
-          if (state.departmentHeadAuthorities?.[d.departmentId]) {
-            state.departmentHeadAuthorities[d.departmentId].staffingBudgetMinor =
-              d.actualMinor + 10_000_00;
-          }
-        } else if (d.kind === "service-level") {
-          if (state.departmentHeadAuthorities?.[d.departmentId]) {
-            state.departmentHeadAuthorities[d.departmentId].minServiceLevelBasisPoints =
-              d.actualBp;
+        if ("departmentId" in d) {
+          const deptId = d.departmentId;
+          const currentAuth = state.departmentHeadAuthorities?.[deptId] ?? createDepartmentHeadAuthority();
+          if (d.kind === "overtime-cap") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              overtimeCapHours: d.overtimeHours + 10,
+            });
+          } else if (d.kind === "staffing-reserve") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              staffingReserveCount: d.availableCount,
+            });
+          } else if (d.kind === "staffing-budget") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              staffingBudgetMinor: d.actualMinor + 10_000_00,
+            });
+          } else if (d.kind === "service-level") {
+            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
+              ...currentAuth,
+              minServiceLevelBasisPoints: d.actualBp,
+            });
           }
         }
       }

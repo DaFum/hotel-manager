@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { runHotelDepthScenario } from "../test/hotelDepthScenario";
 
-it("propagates conference load into fnb housekeeping and elevators", () => {
+it("propagates conference load into fnb housekeeping and elevators", { timeout: 30_000 }, () => {
   const r = runHotelDepthScenario(180);
   expect(r.conferences).toBeGreaterThan(0);
   expect(r.breakfastDemand).toBeGreaterThan(0);

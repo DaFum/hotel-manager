@@ -54,14 +54,16 @@ export function validateUtilityCommand(
         return no("invalid price lock type");
       if (
         !Number.isSafeInteger(command.standingChargeMinor) ||
-        command.standingChargeMinor < 0
+        command.standingChargeMinor < 0 ||
+        command.standingChargeMinor > 10_000_000_000
       )
-        return no("standing charge must be a whole non-negative amount");
+        return no("standing charge is out of range");
       if (
         !Number.isSafeInteger(command.unitPriceMinor) ||
-        command.unitPriceMinor < 0
+        command.unitPriceMinor < 0 ||
+        command.unitPriceMinor > 1_000_000
       )
-        return no("unit price must be a whole non-negative amount");
+        return no("unit price is out of range");
       if (command.validToDateKey <= command.validFromDateKey)
         return no("a contract must end after it starts");
       if (command.validFromDateKey > state.calendar.dateKey)

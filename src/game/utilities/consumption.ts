@@ -3,6 +3,7 @@ import {
   assertBasisPoints,
   assertCount,
   assertNonNegativeMinor,
+  safeProductMinor,
 } from "../domain/units";
 
 /**
@@ -34,6 +35,9 @@ export type UtilityContracts = Record<UtilityKind, UtilityContract>;
 
 /** The most efficiency can ever take off a bill; the rest is physics. */
 export const MAX_EFFICIENCY_BP = 6000;
+
+export const MAX_UTILITY_STANDING_CHARGE_MINOR = 10_000_000_000;
+export const MAX_UTILITY_UNIT_PRICE_MINOR = 1_000_000;
 
 export function createUtilityContracts(): UtilityContracts {
   return {
@@ -81,15 +85,29 @@ export function signUtilityContract(
   if (proposed.validToDateKey <= proposed.validFromDateKey)
     throw new Error("a contract must end after it starts");
   assertNonNegativeMinor(proposed.standingChargeMinor, "standing charge");
+  if (proposed.standingChargeMinor > MAX_UTILITY_STANDING_CHARGE_MINOR)
+    throw new Error(
+      `standing charge exceeds maximum limit of ${MAX_UTILITY_STANDING_CHARGE_MINOR}`,
+    );
   assertNonNegativeMinor(proposed.unitPriceMinor, "unit price");
-  if (proposed.efficiencyBasisPoints !== undefined)
+  if (proposed.unitPriceMinor > MAX_UTILITY_UNIT_PRICE_MINOR)
+    throw new Error(
+      `unit price exceeds maximum limit of ${MAX_UTILITY_UNIT_PRICE_MINOR}`,
+    );
+  if (proposed.efficiencyBasisPoints !== undefined) {
     assertBasisPoints(proposed.efficiencyBasisPoints, "efficiency");
+    if (proposed.efficiencyBasisPoints > MAX_EFFICIENCY_BP)
+      throw new Error(
+        `efficiency basis points cannot exceed ${MAX_EFFICIENCY_BP}`,
+      );
+  }
   if (proposed.priceLock !== "fixed" && proposed.priceLock !== "floating")
     throw new Error("invalid price lock type");
 
   const existing = contracts[proposed.kind];
   const efficiencyBasisPoints =
-    proposed.efficiencyBasisPoints ?? existing.efficiencyBasisPoints;
+    proposed.efficiencyBasisPoints ??
+    (existing ? existing.efficiencyBasisPoints : 0);
 
   const newContract: UtilityContract = {
     ...proposed,
@@ -169,7 +187,7 @@ export function utilityUsageMinor(
   const billable = Math.trunc(
     (units * (10_000 - contract.efficiencyBasisPoints)) / 10_000,
   );
-  return billable * contract.unitPriceMinor;
+  return safeProductMinor(billable, contract.unitPriceMinor, `${contract.kind} usage`);
 }
 
 /** One month of the contract: the standing charge, whatever was drawn. */

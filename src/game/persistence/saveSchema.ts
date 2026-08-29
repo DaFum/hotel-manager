@@ -319,10 +319,13 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
         typeof c.supplierId === "string" &&
         Number.isSafeInteger(c.standingChargeMinor) &&
         c.standingChargeMinor >= 0 &&
+        c.standingChargeMinor <= 10_000_000_000 &&
         Number.isSafeInteger(c.unitPriceMinor) &&
         c.unitPriceMinor >= 0 &&
+        c.unitPriceMinor <= 1_000_000 &&
         Number.isSafeInteger(c.efficiencyBasisPoints) &&
         c.efficiencyBasisPoints >= 0 &&
+        c.efficiencyBasisPoints <= MAX_EFFICIENCY_BP &&
         typeof c.validFromDateKey === "string" &&
         typeof c.validToDateKey === "string" &&
         ["fixed", "floating"].includes(c.priceLock)

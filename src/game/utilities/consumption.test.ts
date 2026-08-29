@@ -166,6 +166,49 @@ describe("utility contracts and meters", () => {
         priceLock: "fixed",
       }),
     ).toThrow();
+
+    // Invalid price lock
+    expect(() =>
+      signUtilityContract(contracts, {
+        kind: "energy",
+        supplierId: "s1",
+        standingChargeMinor: 100,
+        unitPriceMinor: 40,
+        validFromDateKey: "1991-01-01",
+        validToDateKey: "1992-01-01",
+        priceLock: "invalid" as any,
+      }),
+    ).toThrow(/invalid price lock type/);
+
+    // Efficiency exceeding MAX_EFFICIENCY_BP
+    expect(() =>
+      signUtilityContract(contracts, {
+        kind: "energy",
+        supplierId: "s1",
+        standingChargeMinor: 100,
+        unitPriceMinor: 40,
+        validFromDateKey: "1991-01-01",
+        validToDateKey: "1992-01-01",
+        priceLock: "fixed",
+        efficiencyBasisPoints: 7000,
+      }),
+    ).toThrow(/cannot exceed 6000/);
+
+    // Omitted efficiency preserves existing installed efficiency
+    const existingWithEfficiency = {
+      ...contracts,
+      energy: { ...contracts.energy, efficiencyBasisPoints: 1200 },
+    };
+    const preserved = signUtilityContract(existingWithEfficiency, {
+      kind: "energy",
+      supplierId: "supplier.new",
+      standingChargeMinor: 500,
+      unitPriceMinor: 30,
+      validFromDateKey: "1991-01-01",
+      validToDateKey: "1992-01-01",
+      priceLock: "fixed",
+    });
+    expect(preserved.energy.efficiencyBasisPoints).toBe(1200);
   });
 
   it("reprices floating contracts against world energy price index while leaving fixed contracts unchanged", () => {

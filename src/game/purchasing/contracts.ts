@@ -259,20 +259,24 @@ export function supplyChainTradeOff(contract: SupplierContract): {
   assertNonNegativeMinor(contract.unitPriceMinor, "unit price");
   const tier = contract.tier ?? "standard";
   switch (tier) {
-    case "sustainable":
+    case "sustainable": {
+      const product = safeProductMinor(contract.unitPriceMinor, 12_000, "sustainable unit price");
       return {
-        unitPriceMinor: Math.round((contract.unitPriceMinor * 12_000) / 10_000),
+        unitPriceMinor: Math.round(product / 10_000),
         sortedWasteShareBp: 7000,
         reputationDeltaBp: 300,
         supplyRiskDeltaBp: -100,
       };
-    case "regional":
+    }
+    case "regional": {
+      const product = safeProductMinor(contract.unitPriceMinor, 11_000, "regional unit price");
       return {
-        unitPriceMinor: Math.round((contract.unitPriceMinor * 11_000) / 10_000),
+        unitPriceMinor: Math.round(product / 10_000),
         sortedWasteShareBp: 5000,
         reputationDeltaBp: 150,
         supplyRiskDeltaBp: -50,
       };
+    }
     case "standard":
     default:
       return {

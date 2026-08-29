@@ -669,6 +669,9 @@ export class GameSimulation implements CommandExecutor {
         }
         case "ORDER_SUPPLIES": {
           const supplier = supplierForSku(command.sku);
+          const activeContract = contractForSku(s.procurement, command.sku, s.calendar.dateKey);
+          const tradeOff = activeContract ? supplyChainTradeOff(activeContract) : null;
+          const unitPriceMinor = tradeOff ? tradeOff.unitPriceMinor : supplier.unitPriceMinor;
           if (command.quantity < supplier.minimumQuantity)
             return {
               ok: false,
@@ -680,7 +683,7 @@ export class GameSimulation implements CommandExecutor {
               supplierId: supplier.id,
               sku: supplier.sku,
               quantity: command.quantity,
-              unitPriceMinor: supplier.unitPriceMinor,
+              unitPriceMinor,
               leadMinutes: supplier.leadMinutes,
             },
           );
@@ -998,18 +1001,21 @@ export class GameSimulation implements CommandExecutor {
       }
       case "ORDER_SUPPLIES": {
         const supplier = supplierForSku(command.sku);
+        const activeContract = contractForSku(s.procurement, command.sku, s.calendar.dateKey);
+        const tradeOff = activeContract ? supplyChainTradeOff(activeContract) : null;
+        const unitPriceMinor = tradeOff ? tradeOff.unitPriceMinor : supplier.unitPriceMinor;
         if (command.quantity < supplier.minimumQuantity)
           throw new Error(
             `minimum order is ${supplier.minimumQuantity} ${supplier.sku}`,
           );
-        const costMinor = command.quantity * supplier.unitPriceMinor;
+        const costMinor = command.quantity * unitPriceMinor;
         const result = placeOrder(
           { cashMinor: costMinor, nowMinutes: s.elapsedMinutes },
           {
             supplierId: supplier.id,
             sku: supplier.sku,
             quantity: command.quantity,
-            unitPriceMinor: supplier.unitPriceMinor,
+            unitPriceMinor,
             leadMinutes: supplier.leadMinutes,
           },
         );
@@ -2459,8 +2465,8 @@ export class GameSimulation implements CommandExecutor {
     if (this.dayRolled) {
       // Daily outage roll
       const roll = this.streams.failures.nextUint32() % 10_000;
-      const energyCondition = this.assetCondition("asset.boiler");
-      const energyOutageThresholdBp = energyCondition < 2000 ? 100 : 20;
+      const rawBoilerCondition = s.assets.find((a) => a.id === "asset.boiler")?.condition ?? 10_000;
+      const energyOutageThresholdBp = rawBoilerCondition < 2000 ? 100 : 20;
 
       if (
         roll < energyOutageThresholdBp &&
@@ -2934,9 +2940,11 @@ export class GameSimulation implements CommandExecutor {
       );
     }
     if (wasteKilos > 0) {
-      const activeProcurement =
-        contractForSku(s.procurement, "cleaning-unit", s.calendar.dateKey) ??
-        s.procurement.contracts[0];
+      const activeProcurement = contractForSku(
+        s.procurement,
+        "cleaning-unit",
+        s.calendar.dateKey,
+      );
       const tradeOff = activeProcurement
         ? supplyChainTradeOff(activeProcurement)
         : {
@@ -5043,6 +5051,23 @@ export class GameSimulation implements CommandExecutor {
       s.staff.some((member) => member.absent) ? -1 : 1,
       "monthly rota",
     );
+
+    const cleaningContract = contractForSku(
+      s.procurement,
+      "cleaning-unit",
+      s.calendar.dateKey,
+    );
+    if (cleaningContract) {
+      const tradeOff = supplyChainTradeOff(cleaningContract);
+      if (tradeOff.reputationDeltaBp !== 0) {
+        this.moveReputation(
+          "hotel",
+          s.hotel.id,
+          Math.trunc(tradeOff.reputationDeltaBp / 100),
+          `supply choice ${cleaningContract.tier}`,
+        );
+      }
+    }
     s.reputation = decayReputation(s.reputation);
   }
 

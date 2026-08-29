@@ -34,23 +34,83 @@ export function Drawer({
 }) {
   const panel = useRef<HTMLDivElement | null>(null);
   const closer = useRef<HTMLButtonElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const wasOpenRef = useRef<boolean>(false);
+  const onCloseRef = useRef(onClose);
 
-  // Opening a drawer moves the player into it; Escape brings them back out to
-  // the game. Focus is placed on the close control because it is the one
-  // action every drawer shares, whatever it holds.
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
+  useEffect(() => {
+    if (open && !wasOpenRef.current) {
+      wasOpenRef.current = true;
+      openerRef.current = (document.activeElement as HTMLElement | null) ?? null;
+      closer.current?.focus();
+    } else if (!open && wasOpenRef.current) {
+      wasOpenRef.current = false;
+      if (openerRef.current && document.contains(openerRef.current)) {
+        openerRef.current.focus();
+      }
+      openerRef.current = null;
+    }
+  }, [open]);
+
+  useEffect(() => {
+    return () => {
+      if (wasOpenRef.current && openerRef.current && document.contains(openerRef.current)) {
+        openerRef.current.focus();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (!open) return;
-    closer.current?.focus();
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
+        return;
+      }
+
+      if (event.key === "Tab") {
+        const node = panel.current;
+        if (!node) return;
+
+        const focusables = Array.from(
+          node.querySelectorAll<HTMLElement>(
+            'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+
+        if (focusables.length === 0) {
+          event.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement;
+
+        if (event.shiftKey) {
+          if (active === first || !node.contains(active)) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (active === last || !node.contains(active)) {
+            event.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
+
     const node = panel.current;
     node?.addEventListener("keydown", onKeyDown);
     return () => node?.removeEventListener("keydown", onKeyDown);
-  }, [open, onClose]);
+  }, [open]);
 
   return (
     <div className="hm-drawer" id={id} hidden={!open}>
@@ -63,7 +123,7 @@ export function Drawer({
       <div
         className="hm-drawer__panel"
         role="dialog"
-        aria-modal="false"
+        aria-modal="true"
         aria-label={title}
         ref={panel}
       >

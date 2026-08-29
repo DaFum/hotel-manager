@@ -1,4 +1,6 @@
 import { formatDm } from "../money";
+import { entityLabel } from "../entityNames";
+import type { GameLocale } from "../../i18n";
 
 export interface CommercialSpaceRow {
   id: string;
@@ -39,7 +41,9 @@ const clock = (minute: number) =>
 export function CommercialSpacesPanel(props: {
   spaces: readonly CommercialSpaceRow[];
   lobby: LobbyRow;
+  locale?: GameLocale;
 }) {
+  const locale = props.locale ?? "en-GB";
   return (
     <section aria-label="Commercial spaces">
       <h2>Commercial spaces</h2>
@@ -66,12 +70,38 @@ export function CommercialSpacesPanel(props: {
         <ul>
           {props.spaces.map((space) => (
             <li key={space.id}>
-              {space.id} ({space.kind}): {space.capacity} at a time,{" "}
-              {clock(space.openMinute)}–{clock(space.closeMinute)},{" "}
-              {space.operator} — {space.unitsSold} sold this month,{" "}
-              {formatDm(space.hotelShareMinor)} to the hotel, fit{" "}
-              {space.fitBp / 100}
-              /100
+              {/* Name first, then the figures, rather than an identifier at
+                  the head of a comma-separated run of eight readings. */}
+              <strong>{entityLabel(space.id, locale)}</strong>{" "}
+              <span>({space.kind})</span>
+              <dl>
+                <div>
+                  <dt>Capacity</dt>
+                  <dd>{space.capacity} at a time</dd>
+                </div>
+                <div>
+                  <dt>Open</dt>
+                  <dd>
+                    {clock(space.openMinute)}–{clock(space.closeMinute)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Operator</dt>
+                  <dd>{space.operator}</dd>
+                </div>
+                <div>
+                  <dt>Sold this month</dt>
+                  <dd>{space.unitsSold}</dd>
+                </div>
+                <div>
+                  <dt>To the hotel</dt>
+                  <dd>{formatDm(space.hotelShareMinor)}</dd>
+                </div>
+                <div>
+                  <dt>Fit</dt>
+                  <dd>{space.fitBp / 100}/100</dd>
+                </div>
+              </dl>
             </li>
           ))}
         </ul>

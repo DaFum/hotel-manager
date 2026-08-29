@@ -1,3 +1,4 @@
+import { entityLabel } from "./entityNames";
 import { translateGame, type GameLocale } from "../i18n";
 import {
   MAX_ZOOM,
@@ -78,7 +79,11 @@ export function WorldControls(props: {
   return (
     <section aria-label="World controls" className="world-controls">
       <h2>World</h2>
-      <p role="status" aria-label="View state" className="world-controls__status">
+      <p
+        role="status"
+        aria-label="View state"
+        className="world-controls__status"
+      >
         Floor {camera.floor}, {camera.cutaway ? "cut away" : "whole building"},{" "}
         zoom {camera.zoom.toFixed(1)} showing {detail}, {light} light
       </p>
@@ -106,7 +111,9 @@ export function WorldControls(props: {
               type="button"
               aria-label="Zoom in"
               disabled={camera.zoom >= MAX_ZOOM}
-              onClick={() => props.onCamera(zoomCamera(camera, camera.zoom + 0.5))}
+              onClick={() =>
+                props.onCamera(zoomCamera(camera, camera.zoom + 0.5))
+              }
             >
               Zoom in
             </button>
@@ -115,7 +122,9 @@ export function WorldControls(props: {
               type="button"
               aria-label="Zoom out"
               disabled={camera.zoom <= MIN_ZOOM}
-              onClick={() => props.onCamera(zoomCamera(camera, camera.zoom - 0.5))}
+              onClick={() =>
+                props.onCamera(zoomCamera(camera, camera.zoom - 0.5))
+              }
             >
               Zoom out
             </button>
@@ -194,7 +203,7 @@ export function WorldControls(props: {
             {props.elevator.cars?.map((car) => (
               <li key={car.id} data-entity-id={car.id}>
                 {translateGame(locale, "world.liftCar", {
-                  id: car.id,
+                  id: entityLabel(car.id, locale),
                   floor: car.currentFloor,
                   direction: `world.direction.${car.direction}`,
                   status: car.failed

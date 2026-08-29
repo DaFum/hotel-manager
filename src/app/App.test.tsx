@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { DEFAULT_PLAYER_PREFERENCES } from "../game/settings/playerPreferences";
 import { createInitialGameState } from "../game/simulation/initialState";
 import { translateGame } from "../i18n";
+import { entityLabel } from "../ui/entityNames";
 import { AREA_ORDER } from "../ui/ManagementShell";
 import { useGameStore, type GameStore } from "./gameStore";
 import { App } from "./App";
@@ -103,7 +104,7 @@ describe("App", () => {
     expect(
       screen.getByText("No per-room state exists for this managed hotel."),
     ).toBeTruthy();
-    expect(screen.queryByRole("button", { name: /room\.101/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Zimmer 101/i })).toBeNull();
   });
 
   it("keeps an authoritative alert in the single notification center", () => {
@@ -204,7 +205,7 @@ describe("App", () => {
     ).toBeTruthy();
     expect(document.activeElement).toBe(
       screen.getByRole("button", {
-        name: new RegExp(`prüfen.*${room.id}`, "i"),
+        name: new RegExp(`prüfen.*${entityLabel(room.id, "de-DE")}`, "i"),
       }),
     );
   });

@@ -26,6 +26,31 @@ export const en = {
       saves: "Saves committed: {count}",
     },
   },
+  entity: {
+    room: "Room {number}",
+    lift: "Lift {number}",
+    space: {
+      kiosk: "Kiosk",
+      carpark: "Car park",
+      terrace: "Terrace",
+    },
+    loan: {
+      starter: "Opening loan",
+    },
+    facility: {
+      breakfast_room: "Breakfast room",
+      bar: "Bar and lounge",
+      restaurant: "Restaurant",
+      wellness: "Wellness",
+      fitness: "Fitness",
+      conference: "Conference",
+      housekeeping: "Housekeeping",
+      laundry: "Laundry",
+      lifts: "Lifts",
+      security: "Security",
+      reception: "Reception",
+    },
+  },
   topbar: {
     status: "Status bar",
     cash: "Cash",
@@ -305,7 +330,7 @@ export const en = {
       fixedTerm: "fixed term",
       casual: "casual",
     },
-    cause: { none: "no status cause" },
+    cause: { none: "—" },
     training: { none: "none completed" },
     load: { demand: "Demand", capacity: "Capacity", cause: "Binding cause" },
     housekeeping: {

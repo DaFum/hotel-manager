@@ -73,6 +73,6 @@ it("offers a keyboard-accessible service-area overlay toggle", () => {
   expect(next.showServiceAreas).toBe(true);
   expect(screen.getByText(/2 Wartende, 4 Minuten, verfügbar/)).toBeTruthy();
   expect(
-    screen.getByText(/asset\.lift\.car\.1: Etage 1, wartet, betriebsbereit/),
+    screen.getByText(/Aufzug 1: Etage 1, wartet, betriebsbereit/),
   ).toBeTruthy();
 });

@@ -27,6 +27,31 @@ export const de = {
       saves: "Gespeicherte Spielstände: {count}",
     },
   },
+  entity: {
+    room: "Zimmer {number}",
+    lift: "Aufzug {number}",
+    space: {
+      kiosk: "Kiosk",
+      carpark: "Parkhaus",
+      terrace: "Terrasse",
+    },
+    loan: {
+      starter: "Eröffnungsdarlehen",
+    },
+    facility: {
+      breakfast_room: "Frühstücksraum",
+      bar: "Bar und Lounge",
+      restaurant: "Restaurant",
+      wellness: "Wellness",
+      fitness: "Fitness",
+      conference: "Konferenz",
+      housekeeping: "Housekeeping",
+      laundry: "Wäscherei",
+      lifts: "Aufzüge",
+      security: "Sicherheit",
+      reception: "Rezeption",
+    },
+  },
   topbar: {
     status: "Statusleiste",
     cash: "Bargeld",
@@ -311,7 +336,7 @@ export const de = {
       fixedTerm: "befristet",
       casual: "Aushilfe",
     },
-    cause: { none: "kein Statusgrund" },
+    cause: { none: "—" },
     training: { none: "keine abgeschlossen" },
     load: {
       demand: "Bedarf",

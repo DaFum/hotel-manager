@@ -6,6 +6,7 @@ import {
 } from "../game/finance/creditStanding";
 import { formatBasisPoints, formatDm } from "./money";
 import type { GameLocale } from "../i18n";
+import { entityLabel } from "./entityNames";
 import { translateGame } from "../i18n";
 
 export interface LoanPanelProps {
@@ -48,7 +49,10 @@ export function LoanPanel({
   const rawProposedCollateralMinor = proposedCollateralDm * 100;
   const proposedCollateralMinor =
     availableCollateralMinor !== undefined
-      ? Math.min(rawProposedCollateralMinor, Math.max(0, availableCollateralMinor))
+      ? Math.min(
+          rawProposedCollateralMinor,
+          Math.max(0, availableCollateralMinor),
+        )
       : rawProposedCollateralMinor;
 
   const dynamicStanding = creditStandingInputs
@@ -231,7 +235,7 @@ export function LoanPanel({
             <tbody>
               {loans.map((loan) => (
                 <tr key={loan.id}>
-                  <td>{loan.id}</td>
+                  <td>{entityLabel(loan.id, locale)}</td>
                   <td>{formatDm(loan.principalMinor, locale)}</td>
                   <td>
                     {formatBasisPoints(loan.annualRateBasisPoints, locale)}

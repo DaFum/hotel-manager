@@ -4,6 +4,7 @@ import { translateGame, type GameLocale } from "../i18n";
 import type { WorkforceView } from "./workforceView";
 import { formatBasisPoints, formatDm } from "./money";
 import { facilityCauseKey } from "./localization";
+import { entityLabel } from "./entityNames";
 
 export function StaffDashboard(props: {
   view: WorkforceView;
@@ -59,7 +60,7 @@ export function StaffDashboard(props: {
           <tbody>
             {props.view.rows.map((row) => (
               <tr key={row.employeeId}>
-                <th scope="row">{row.staffId}</th>
+                <th scope="row">{entityLabel(row.staffId, locale)}</th>
                 <td>
                   {t(
                     row.role.startsWith("staff.")

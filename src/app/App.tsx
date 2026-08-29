@@ -460,6 +460,7 @@ export function App() {
         <FacilitiesDashboard rows={s.facilities} />
         <FnbDashboard fnb={s.fnb} locale={preferences.locale} />
         <CommercialSpacesPanel
+          locale={preferences.locale}
           spaces={s.commercialSpaces.spaces.map((space) => ({
             id: space.id,
             kind: space.kind,

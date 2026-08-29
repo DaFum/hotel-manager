@@ -5,6 +5,7 @@ import { formatDm } from "./money";
 import { dragCamera, wheelZoom, type CameraState } from "../render/camera";
 import type { VisualAgent } from "../render/agentMaterialization";
 import type { ElevatorVisualState } from "../render/agentMaterialization";
+import { entityLabel } from "./entityNames";
 import { translateGame, type GameLocale } from "../i18n";
 import type { RoomOccupantRef } from "../game/simulation/initialState";
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
@@ -352,7 +353,9 @@ export function HotelView(props: {
       <div className="hm-hotel-view__grid">
         {props.floorPlan ? (
           <details className="hm-card hm-card--collapsible">
-            <summary>{translateGame(locale, "hotel.buildingStructure")}</summary>
+            <summary>
+              {translateGame(locale, "hotel.buildingStructure")}
+            </summary>
             <h3>{translateGame(locale, "hotel.placedAreas")}</h3>
             <ul>
               {props.floorPlan.areas.map((area) => (
@@ -400,7 +403,8 @@ export function HotelView(props: {
           {facilityDetail ? (
             <p aria-live="polite" className="hm-card__status-msg">
               {facilityDetail.name}: {facilityDetail.demand} demand,{" "}
-              {facilityDetail.capacity} capacity, limited by {facilityDetail.cause}
+              {facilityDetail.capacity} capacity, limited by{" "}
+              {facilityDetail.cause}
             </p>
           ) : null}
         </section>
@@ -422,7 +426,9 @@ export function HotelView(props: {
                       : "operations.deskUnstaffed",
                     {
                       number: index + 1,
-                      staffId: desk.staffId ?? "",
+                      staffId: desk.staffId
+                        ? entityLabel(desk.staffId, locale)
+                        : "",
                     },
                   )}
                 </li>
@@ -450,8 +456,14 @@ export function HotelView(props: {
             {props.situations.housekeeping.round ? (
               <p>
                 {translateGame(locale, "operations.round", {
-                  agentId: props.situations.housekeeping.round.agentId,
-                  targetRoomId: props.situations.housekeeping.round.targetRoomId,
+                  agentId: entityLabel(
+                    props.situations.housekeeping.round.agentId,
+                    locale,
+                  ),
+                  targetRoomId: entityLabel(
+                    props.situations.housekeeping.round.targetRoomId,
+                    locale,
+                  ),
                   guestLabel: props.situations.housekeeping.round.waitingGuestId
                     ? translateGame(locale, "room.guestLabel", {
                         code: guestIdentityCode(
@@ -481,7 +493,7 @@ export function HotelView(props: {
               {props.situations.fnb.outlets.map((outlet) => (
                 <li key={outlet.id} data-entity-id={outlet.areaId}>
                   {translateGame(locale, "operations.outlet", {
-                    outletId: outlet.id,
+                    outletId: entityLabel(outlet.id, locale),
                     free: outlet.tables.filter(
                       (table) => table.occupiedSeats === 0,
                     ).length,
@@ -568,7 +580,9 @@ export function HotelView(props: {
                 <dd>{agentDetail.locationId}</dd>
                 <dt>{translateGame(locale, "agent.route")}</dt>
                 <dd>
-                  {(agentDetail.routeIds ?? [agentDetail.locationId]).join(" → ")}
+                  {(agentDetail.routeIds ?? [agentDetail.locationId]).join(
+                    " → ",
+                  )}
                 </dd>
               </dl>
             </section>
@@ -628,7 +642,9 @@ export function HotelView(props: {
               ) : null}
               {props.renovationPhaseByRoomId?.[detail.id] ? (
                 <>
-                  <dt>{translateGame(locale, "room.detail.renovationPhase")}</dt>
+                  <dt>
+                    {translateGame(locale, "room.detail.renovationPhase")}
+                  </dt>
                   <dd>
                     {translateGame(
                       locale,
@@ -647,7 +663,9 @@ export function HotelView(props: {
               )}
               {detail.styleAgeYears === undefined ? null : (
                 <>
-                  <dt>{translateGame(locale, "room.detail.yearsSinceRefit")}</dt>
+                  <dt>
+                    {translateGame(locale, "room.detail.yearsSinceRefit")}
+                  </dt>
                   <dd>{detail.styleAgeYears}</dd>
                 </>
               )}

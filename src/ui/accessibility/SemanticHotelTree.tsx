@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { entityLabel } from "../entityNames";
 import { translateGame, type GameLocale } from "../../i18n";
 import { groupByFloor } from "../../render/sceneLayout";
 import { renovationPhaseKey, type RenovationPhase } from "../localization";
@@ -62,9 +63,15 @@ export function SemanticHotelTree({
             <ul>
               {floorRooms.map((room) => {
                 const detailId = `semantic-${room.id.replace(/[^a-z0-9_-]/gi, "-")}-detail`;
+                // A room is called by its number and its kind — "Room 101,
+                // single" — never by the identifier the simulation files it
+                // under, which is what `room.101 single` was showing forty
+                // times per floor.
                 const label =
                   room.label ??
-                  `${room.id} ${room.category ?? translateGame(locale, "room.fallback")}`;
+                  `${entityLabel(room.id, locale)}, ${
+                    room.category ?? translateGame(locale, "room.fallback")
+                  }`;
                 const state = translateGame(
                   locale,
                   `room.states.${room.state}`,

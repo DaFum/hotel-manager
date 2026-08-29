@@ -19,7 +19,7 @@ describe("hotel view", () => {
     render(<HotelView rooms={rooms} />);
     expect(screen.getByRole("region", { name: /hotel view/i })).toBeTruthy();
     expect(
-      screen.getByRole("button", { name: /room\.101 single vacant clean/i }),
+      screen.getByRole("button", { name: /Room 101, single vacant clean/i }),
     ).toBeTruthy();
   });
 
@@ -48,7 +48,7 @@ describe("hotel view", () => {
       />,
     );
     fireEvent.click(
-      screen.getByRole("button", { name: /room\.101 single vacant clean/i }),
+      screen.getByRole("button", { name: /Room 101, single vacant clean/i }),
     );
     fireEvent.click(
       screen.getByRole("button", {
@@ -143,7 +143,7 @@ describe("hotel view", () => {
 
     // Simulate what the accessible layout would do for the same selection
     fireEvent.click(
-      screen.getByRole("button", { name: /room\.101 single vacant clean/i }),
+      screen.getByRole("button", { name: /Room 101, single vacant clean/i }),
     );
 
     expect(onSelect).toHaveBeenCalledWith("room.101");
@@ -168,7 +168,7 @@ describe("hotel view", () => {
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /room\.101 single occupied/i }),
+      screen.getByRole("button", { name: /Room 101, single occupied/i }),
     );
 
     expect(screen.getAllByText("Guest G-RETURNING-1").length).toBeGreaterThan(
@@ -198,7 +198,7 @@ describe("hotel view", () => {
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /room\.101 single occupied/i }),
+      screen.getByRole("button", { name: /Room 101, single occupied/i }),
     );
     const detail = screen.getByRole("region", { name: "Room detail" });
     expect(detail.textContent).toContain("Occupied");
@@ -376,11 +376,11 @@ describe("hotel view", () => {
     );
 
     fireEvent.click(
-      screen.getByRole("button", { name: /room\.101 single out of order/i }),
+      screen.getByRole("button", { name: /Room 101, single out of order/i }),
     );
     expect(screen.getAllByText("Boiler failure").length).toBeGreaterThan(0);
     expect(screen.getByText(/desk 2: unmanned/i)).toBeTruthy();
-    expect(screen.getByText(/room\.102.*guest g-waiting/i)).toBeTruthy();
+    expect(screen.getByText(/Room 102.*guest g-waiting/i)).toBeTruthy();
     expect(
       screen.getByText(/1 free table.*1 waiting.*kitchen line.*6 turned away/i),
     ).toBeTruthy();

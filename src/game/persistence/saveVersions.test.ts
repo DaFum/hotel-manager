@@ -8,5 +8,5 @@ it("does not migrate pre-release development saves", () => {
 
   expect(migrateToCurrent(obsolete15)).toBe(obsolete15);
   expect(migrateToCurrent(obsolete16)).toBe(obsolete16);
-  expect(MIGRATABLE_SAVE_VERSIONS).toEqual([]);
+  expect(MIGRATABLE_SAVE_VERSIONS).toEqual([17]);
 });

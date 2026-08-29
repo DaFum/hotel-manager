@@ -135,6 +135,26 @@ export type GameCommand =
       shift: Shift;
       monthlyWageMinor: number;
     }
+  | { type: "END_EMPLOYMENT"; staffId: string; cause?: string }
+  | {
+      type: "SET_ROSTER";
+      assignments: { staffId: string; shift: Shift }[];
+    }
+  | { type: "SET_SHIFT"; staffId: string; shift: Shift }
+  | { type: "SET_WAGE"; staffId: string; monthlyWageMinor: number }
+  | { type: "START_TRAINING"; staffId: string; courseId: string }
+  | {
+      type: "PROMOTE";
+      staffId: string;
+      role: StaffRole;
+      monthlyWageMinor: number;
+    }
+  | { type: "APPROVE_LEAVE"; staffId: string; days: number }
+  | {
+      type: "SET_DEPARTMENT_AUTHORITY";
+      departmentId: string;
+      authority: Partial<import("../management/managerAuthority").DepartmentHeadAuthority>;
+    }
   | { type: "START_RENOVATION" }
   | { type: "SET_SPECIALIZATION"; specializationId: string | null }
   | { type: "EXPAND_FACILITY"; area: ExpandableArea }

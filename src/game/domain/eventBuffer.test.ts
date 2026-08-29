@@ -268,7 +268,7 @@ function companyScenario(): DomainEvent[] {
   collected.push(...runDays(s, 70));
 
   const escalation = s.state.company.escalations.find(
-    (e) => e.status === "open",
+    (e) => e.status === "open" && e.decision.kind === "capex",
   );
   expect(escalation).toBeDefined();
   // The one the failed Rheinstern audit raised, against the flagship, for
@@ -513,6 +513,57 @@ describe("domain event buffer", () => {
     return collected;
   }
 
+  function staffScenario(): DomainEvent[] {
+    const s = sim(31);
+    const collected: DomainEvent[] = [];
+    const send = (payload: GameCommand) => {
+      expect(submit(s, payload).status).toBe("accepted");
+      collected.push(...s.takeDomainEvents());
+    };
+    const staffId = s.state.staff[0].id;
+    send({
+      type: "SET_SHIFT",
+      staffId,
+      shift: "night",
+    });
+    send({
+      type: "SET_ROSTER",
+      assignments: [{ staffId, shift: "morning" }],
+    });
+    send({
+      type: "SET_WAGE",
+      staffId,
+      monthlyWageMinor: s.state.staff[0].monthlyWageMinor + 10_000,
+    });
+    send({
+      type: "PROMOTE",
+      staffId,
+      role: "reception",
+      monthlyWageMinor: s.state.staff[0].monthlyWageMinor + 20_000,
+    });
+    send({
+      type: "START_TRAINING",
+      staffId,
+      courseId: "customer_service",
+    });
+    send({
+      type: "APPROVE_LEAVE",
+      staffId,
+      days: 1,
+    });
+    send({
+      type: "SET_DEPARTMENT_AUTHORITY",
+      departmentId: "housekeeping",
+      authority: { overtimeCapHours: 50 },
+    });
+    send({
+      type: "END_EMPLOYMENT",
+      staffId,
+      cause: "resignation",
+    });
+    return collected;
+  }
+
   function distributionAndTargetsScenario(): DomainEvent[] {
     const s = sim(23);
     const collected: DomainEvent[] = [];
@@ -642,6 +693,7 @@ describe("domain event buffer", () => {
     record(campaignScenario());
     record(commercialAndInsuranceScenario());
     record(distributionAndTargetsScenario());
+    record(staffScenario());
 
     seen.add("TAX_ACCRUED");
     seen.add("TAX_PAID");

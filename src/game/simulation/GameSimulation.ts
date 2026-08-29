@@ -259,17 +259,24 @@ import {
   employ,
   markSick,
   fallsSick,
+  overtimePayMinor,
   resign,
   returnToWork,
   startEmploymentMonth,
   willResign,
   workOvertime,
+  OVERTIME_HOURLY_PREMIUM_MINOR,
 } from "../staff/employeeLifecycle";
+import {
+  applyStaffCommand,
+  isStaffCommand,
+  validateStaffCommand,
+} from "../staff/staffCommands";
 import {
   createManagerAuthority,
   managerForHotel,
 } from "../management/managerAuthority";
-import { escalationReason } from "../management/escalation";
+import { escalationReason, raiseEscalation, type LocalDecision } from "../management/escalation";
 import {
   beginStay,
   createParty,
@@ -773,6 +780,7 @@ export class GameSimulation implements CommandExecutor {
             return validateCommercialCommand(s, command);
           if (isDistributionCommand(command))
             return validateDistributionCommand(s, command);
+          if (isStaffCommand(command)) return validateStaffCommand(s, command);
           return { ok: false, reason: "unknown command" };
       }
     } catch (error) {
@@ -1315,6 +1323,16 @@ export class GameSimulation implements CommandExecutor {
             emit: (payload, entities) => this.emit(payload, entities),
             spend: (amount, account, memo) => this.spend(amount, account, memo),
             earn: (amount, account, memo) => this.earn(amount, account, memo),
+          });
+          return;
+        }
+        if (isStaffCommand(command)) {
+          const verdict = validateStaffCommand(s, command);
+          if (!verdict.ok) throw new Error(verdict.reason);
+          applyStaffCommand(s, command, {
+            emit: (payload, entities) => this.emit(payload, entities),
+            spend: (amountMinor, account, memo) =>
+              this.spend(amountMinor, account, memo),
           });
           return;
         }
@@ -2780,8 +2798,22 @@ export class GameSimulation implements CommandExecutor {
     )) {
       if (employee.status === "resigned" || employee.status === "dismissed")
         continue;
-      if (strain > 0 && employee.status === "working")
+      const hoursBefore = employee.overtimeHours;
+      if (strain > 0 && employee.status === "working") {
         s.workforce = workOvertime(s.workforce, employee.id, strain);
+        const employeeAfter = s.workforce.employees.find(
+          (e) => e.id === employee.id,
+        )!;
+        const newHours = employeeAfter.overtimeHours - hoursBefore;
+        if (newHours > 0) {
+          const deltaCostMinor = newHours * OVERTIME_HOURLY_PREMIUM_MINOR;
+          this.spend(
+            deltaCostMinor,
+            "overtimeWages",
+            `daily overtime pay for ${employee.staffId}`,
+          );
+        }
+      }
 
       const current = s.workforce.employees.find((e) => e.id === employee.id)!;
       if (current.status === "sick" || current.status === "onLeave") {
@@ -2812,6 +2844,71 @@ export class GameSimulation implements CommandExecutor {
         (e) => e.staffId === member.id,
       );
       member.absent = employee ? employee.status !== "working" : member.absent;
+    }
+
+    this.checkStaffingEscalations();
+  }
+
+  private checkStaffingEscalations(): void {
+    const s = this.state;
+    if (!s.departmentHeadAuthorities) return;
+
+    for (const [deptId, authority] of Object.entries(s.departmentHeadAuthorities)) {
+      const deptStaff = s.staff.filter((m) => m.role === deptId || deptId === "all");
+      const deptEmployees = s.workforce.employees.filter((e) =>
+        deptStaff.some((m) => m.id === e.staffId),
+      );
+
+      const totalOvertime = deptEmployees.reduce((sum, e) => sum + e.overtimeHours, 0);
+      const availableCount = deptEmployees.filter((e) => e.status === "working").length;
+
+      const decisionsToCheck: LocalDecision[] = [
+        {
+          kind: "overtime-cap",
+          departmentId: deptId,
+          overtimeHours: totalOvertime,
+          capHours: authority.overtimeCapHours,
+        },
+        {
+          kind: "staffing-reserve",
+          departmentId: deptId,
+          availableCount,
+          reserveCount: authority.staffingReserveCount,
+        },
+      ];
+
+      for (const decision of decisionsToCheck) {
+        const dummyManagerAuth = createManagerAuthority({
+          repairLimitMinor: Number.MAX_SAFE_INTEGER,
+          capexLimitMinor: Number.MAX_SAFE_INTEGER,
+          recoveryLimitMinor: Number.MAX_SAFE_INTEGER,
+          mayHire: true,
+          mayReprice: true,
+        });
+        const reason = escalationReason(dummyManagerAuth, decision);
+        if (reason !== null) {
+          const escalationId = `escalation.dept.${deptId}.${decision.kind}.${s.calendar.dateKey}`;
+          if (!s.company.escalations.some((e) => e.id === escalationId)) {
+            s.company.escalations = raiseEscalation(s.company.escalations, {
+              id: escalationId,
+              hotelId: s.hotel.id,
+              managerId: `head.${deptId}`,
+              raisedAtMinutes: s.elapsedMinutes,
+              decision,
+              reason,
+            });
+            this.emit(
+              {
+                type: "DECISION_ESCALATED",
+                escalationId,
+                hotelId: s.hotel.id,
+                reason,
+              },
+              [s.hotel.id, escalationId],
+            );
+          }
+        }
+      }
     }
   }
 

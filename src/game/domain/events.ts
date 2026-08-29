@@ -93,6 +93,47 @@ export type DomainEventPayload =
   // --- people, supply and money ------------------------------------------
   | { type: "STAFF_HIRED"; staffId: string; role: string; shift: string }
   | {
+      type: "END_EMPLOYMENT";
+      staffId: string;
+      employeeId: string;
+      severanceMinor: number;
+      cause: string;
+    }
+  | {
+      type: "SET_WAGE";
+      staffId: string;
+      employeeId: string;
+      monthlyWageMinor: number;
+    }
+  | {
+      type: "PROMOTE";
+      staffId: string;
+      employeeId: string;
+      role: string;
+      monthlyWageMinor: number;
+    }
+  | {
+      type: "TRAINING_COMPLETED";
+      staffId: string;
+      employeeId: string;
+      courseId: string;
+    }
+  | {
+      type: "LEAVE_APPROVED";
+      staffId: string;
+      employeeId: string;
+      days: number;
+    }
+  | { type: "SHIFT_CHANGED"; staffId: string; shift: string }
+  | {
+      type: "ROSTER_SET";
+      assignments: { staffId: string; shift: string }[];
+    }
+  | {
+      type: "DEPARTMENT_AUTHORITY_CHANGED";
+      departmentId: string;
+    }
+  | {
       type: "SUPPLY_ORDERED";
       sku: string;
       quantity: number;
@@ -321,6 +362,14 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   LOYALTY_BENEFIT_APPLIED: true,
   CAMPAIGN_ATTRIBUTION_RECORDED: true,
   STAFF_HIRED: true,
+  END_EMPLOYMENT: true,
+  SET_WAGE: true,
+  PROMOTE: true,
+  TRAINING_COMPLETED: true,
+  LEAVE_APPROVED: true,
+  SHIFT_CHANGED: true,
+  ROSTER_SET: true,
+  DEPARTMENT_AUTHORITY_CHANGED: true,
   SUPPLY_ORDERED: true,
   SUPPLY_DELIVERED: true,
   MONTH_CLOSED: true,
@@ -402,6 +451,14 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "LOYALTY_BENEFIT_APPLIED",
   "CAMPAIGN_ATTRIBUTION_RECORDED",
   "STAFF_HIRED",
+  "END_EMPLOYMENT",
+  "SET_WAGE",
+  "PROMOTE",
+  "TRAINING_COMPLETED",
+  "LEAVE_APPROVED",
+  "SHIFT_CHANGED",
+  "ROSTER_SET",
+  "DEPARTMENT_AUTHORITY_CHANGED",
   "SUPPLY_ORDERED",
   "SUPPLY_DELIVERED",
   "MONTH_CLOSED",

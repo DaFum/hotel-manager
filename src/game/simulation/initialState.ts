@@ -70,6 +70,10 @@ import {
   type WorkforceState,
 } from "../staff/employeeLifecycle";
 import {
+  createDepartmentHeadAuthority,
+  type DepartmentHeadAuthority,
+} from "../management/managerAuthority";
+import {
   createProcurementState,
   type ProcurementState,
 } from "../purchasing/contracts";
@@ -347,6 +351,7 @@ export interface GameState {
   revenuePolicy: RevenuePolicy;
   technologyProjects: TechnologyProject[];
   technologyImplementations: string[];
+  departmentHeadAuthorities: Record<string, DepartmentHeadAuthority>;
   /**
    * The corporate layer above the hotels: portfolio, brands, development,
    * delegation, treasury and M&A. Hotels never read it; it reads their
@@ -536,6 +541,12 @@ export function createInitialGameState(seed: number): GameState {
     revenuePolicy: createRevenuePolicy(),
     technologyProjects: [],
     technologyImplementations: [],
+    departmentHeadAuthorities: {
+      housekeeping: createDepartmentHeadAuthority(),
+      reception: createDepartmentHeadAuthority(),
+      fnb: createDepartmentHeadAuthority(),
+      maintenance: createDepartmentHeadAuthority(),
+    },
     company: createCompanyState(),
     statements: {
       ...createStatements(),

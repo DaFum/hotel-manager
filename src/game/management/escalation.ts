@@ -14,7 +14,11 @@ export type LocalDecision =
   | { kind: "recovery"; amountMinor: number }
   | { kind: "hire"; monthlyWageMinor: number }
   | { kind: "reprice"; rateMinor: number }
-  | { kind: "sell-hotel" };
+  | { kind: "sell-hotel" }
+  | { kind: "overtime-cap"; departmentId: string; overtimeHours: number; capHours: number }
+  | { kind: "staffing-reserve"; departmentId: string; availableCount: number; reserveCount: number }
+  | { kind: "staffing-budget"; departmentId: string; budgetMinor: number; actualMinor: number }
+  | { kind: "service-level"; departmentId: string; actualBp: number; minBp: number };
 
 export type EscalationVerdict = "allow" | "escalate";
 
@@ -63,6 +67,22 @@ export function escalationReason(
       return authority.mayReprice
         ? null
         : `repricing to ${decision.rateMinor} is not delegated`;
+    case "overtime-cap":
+      return decision.overtimeHours > decision.capHours
+        ? `department ${decision.departmentId} overtime (${decision.overtimeHours}h) exceeds cap (${decision.capHours}h)`
+        : null;
+    case "staffing-reserve":
+      return decision.availableCount < decision.reserveCount
+        ? `department ${decision.departmentId} available staff (${decision.availableCount}) is below reserve requirement (${decision.reserveCount})`
+        : null;
+    case "staffing-budget":
+      return decision.actualMinor > decision.budgetMinor
+        ? `department ${decision.departmentId} staffing spend (${decision.actualMinor}) exceeds budget (${decision.budgetMinor})`
+        : null;
+    case "service-level":
+      return decision.actualBp < decision.minBp
+        ? `department ${decision.departmentId} service level (${decision.actualBp}bp) is below minimum (${decision.minBp}bp)`
+        : null;
   }
 }
 

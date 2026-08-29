@@ -193,12 +193,19 @@ export function takeLeave(
   if (!employee) throw new Error(`unknown employee ${id}`);
   if (employee.leaveDaysTaken + days > employee.contract.annualLeaveDays)
     throw new Error("leave exceeds the contracted entitlement");
-  return update(state, id, (e) => ({
+  const after = update(state, id, (e) => ({
     ...e,
     status: "onLeave" as const,
     leaveDaysTaken: e.leaveDaysTaken + days,
     statusCause: "annual leave",
   }));
+  return {
+    ...after,
+    employerEvents: [
+      ...after.employerEvents,
+      { cause: "annual leave approved", delta: 1 },
+    ],
+  };
 }
 
 export function returnToWork(
@@ -215,21 +222,30 @@ export function returnToWork(
 /** What training actually buys, per course, in skill points. */
 export const TRAINING_SKILL_GAIN = 8;
 
+/** Hourly overtime premium in Pfennig per hour. */
+export const OVERTIME_HOURLY_PREMIUM_MINOR = 1500;
+
 export function completeTraining(
   state: WorkforceState,
   id: string,
   courseId: string,
 ): WorkforceState {
-  return update(state, id, (employee) =>
-    employee.trainingCompleted.includes(courseId)
-      ? employee
-      : {
-          ...employee,
-          skill: Math.min(100, employee.skill + TRAINING_SKILL_GAIN),
-          morale: Math.min(100, employee.morale + 4),
-          trainingCompleted: [...employee.trainingCompleted, courseId].sort(),
-        },
-  );
+  const employee = state.employees.find((e) => e.id === id);
+  if (!employee) throw new Error(`unknown employee ${id}`);
+  if (employee.trainingCompleted.includes(courseId)) return state;
+  const after = update(state, id, (e) => ({
+    ...e,
+    skill: Math.min(100, e.skill + TRAINING_SKILL_GAIN),
+    morale: Math.min(100, e.morale + 4),
+    trainingCompleted: [...e.trainingCompleted, courseId].sort(),
+  }));
+  return {
+    ...after,
+    employerEvents: [
+      ...after.employerEvents,
+      { cause: `training completed: ${courseId}`, delta: 2 },
+    ],
+  };
 }
 
 /** A promotion is a new contract and a new wage, not a badge. */
@@ -243,11 +259,18 @@ export function promote(
   if (!employee) throw new Error(`unknown employee ${id}`);
   if (monthlyWageMinor <= employee.contract.monthlyWageMinor)
     throw new Error("a promotion must raise the wage");
-  return update(state, id, (e) => ({
+  const after = update(state, id, (e) => ({
     ...e,
     contract: { ...e.contract, monthlyWageMinor },
     morale: Math.min(100, e.morale + 10),
   }));
+  return {
+    ...after,
+    employerEvents: [
+      ...after.employerEvents,
+      { cause: "promotion granted", delta: 3 },
+    ],
+  };
 }
 
 /** Whether somebody has had enough. Low morale is the whole of the cause. */

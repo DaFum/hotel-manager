@@ -1,0 +1,349 @@
+/*
+ * The frame — one screen, three fixed places.
+ *
+ * Purpose: give the player a room that does not move. The command bar is
+ *   always at the top, the departments always down the left, the messages
+ *   always down the right, and the department they opened fills what is left.
+ *   Only that middle surface ever scrolls.
+ * Tone: the same poured concrete as everything else; the frame is structure,
+ *   not decoration, so it adds one hairline and no ornament of its own.
+ * Constraints: nothing outside the working surface may scroll the page, the
+ *   drawers must stay reachable by keyboard, and the whole frame has to fold
+ *   into a single column on a narrow viewport without losing a control.
+ *
+ * This file exists because the surface it replaces stacked every panel the
+ * game owns into one long document: the hotel itself began 1272 pixels below
+ * the fold, under the audio sliders and the notification filters. Chrome the
+ * player touches a few times a session now lives in drawers behind the command
+ * bar, and the game gets the screen.
+ */
+
+.hm-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--hm-ground);
+}
+
+.hm-root > .hm-topbar {
+  flex: 0 0 auto;
+}
+
+/* --- The working frame: departments | surface | messages ---------------- */
+
+.hm-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+  align-items: stretch;
+}
+
+/*
+ * The shell was written to own the whole viewport. Inside the frame it owns
+ * only the cell it is given, and the working surface — not the document —
+ * is what scrolls.
+ */
+.hm-root .hm-shell {
+  grid-column: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.hm-root .hm-shell__nav {
+  position: static;
+  height: 100%;
+  min-height: 0;
+}
+
+.hm-root .hm-main {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* --- The message rail --------------------------------------------------- */
+
+.hm-messages {
+  grid-column: 2;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--hm-space-4);
+  border-left: 1px solid var(--hm-rule-strong);
+  background: var(--hm-ground-deep);
+}
+
+/*
+ * With nothing waiting, the rail says so once and gets out of the way: an
+ * empty department of the interface should not look like a broken one.
+ */
+.hm-messages [data-empty="true"] > :is([role="log"], p) {
+  font-size: var(--hm-text-xs);
+  color: var(--hm-ink-faint);
+}
+
+.hm-messages [data-empty="true"] > h2 {
+  margin-bottom: var(--hm-space-2);
+}
+
+/* --- The status footer -------------------------------------------------- */
+
+/*
+ * Simulation status, last command and saves committed are diagnostics. They
+ * were the second thing on the page; they are now the last, at the size a
+ * diagnostic deserves, still live regions for anyone who needs them.
+ */
+.hm-root > .hm-telemetry {
+  flex: 0 0 auto;
+  gap: var(--hm-space-2) var(--hm-space-4);
+  padding: var(--hm-space-1) var(--hm-space-4);
+  border: 0;
+  border-top: 1px solid var(--hm-rule);
+  border-radius: 0;
+  font-size: var(--hm-text-xs);
+  color: var(--hm-ink-faint);
+  box-shadow: none;
+}
+
+/* --- Drawers ------------------------------------------------------------ */
+
+.hm-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--hm-z-overlay);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.hm-drawer[hidden] {
+  display: none;
+}
+
+.hm-drawer__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--hm-backdrop);
+}
+
+.hm-drawer__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(34rem, 100vw);
+  max-height: 100%;
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  background: var(--hm-surface);
+  box-shadow: var(--hm-shadow-lift);
+  animation: hm-drawer-in var(--hm-duration) var(--hm-ease-out) both;
+}
+
+@keyframes hm-drawer-in {
+  from {
+    transform: translateX(2rem);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-drawer__panel {
+    animation: none;
+  }
+}
+
+.hm-root[data-reduced-motion="true"] .hm-drawer__panel {
+  animation: none;
+}
+
+.hm-drawer__head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--hm-space-4);
+  padding: var(--hm-space-4) var(--hm-space-5);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  background: var(--hm-ground-deep);
+}
+
+.hm-drawer__head h2 {
+  margin: 0;
+  color: var(--hm-ink-bright);
+  font-size: var(--hm-text-lg);
+}
+
+.hm-drawer__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--hm-space-4);
+  padding: var(--hm-space-5);
+}
+
+/*
+ * Inside a drawer the panels are the drawer's contents, not sheets in their
+ * own right: they drop the card ground so the drawer reads as one surface.
+ */
+.hm-drawer__body > :is(section, fieldset, aside) {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* --- Narrow viewports: the frame folds into one column ------------------ */
+
+@media (width <= 60rem) {
+  .hm-root {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .hm-frame {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hm-root .hm-shell,
+  .hm-root .hm-main,
+  .hm-messages {
+    grid-column: 1;
+    height: auto;
+    overflow: visible;
+  }
+
+  .hm-messages {
+    border-left: 0;
+    border-top: 1px solid var(--hm-rule-strong);
+  }
+
+  /*
+   * The department rail becomes a horizontal strip. It scrolls sideways, so
+   * it says so with a fading edge rather than hiding half the departments
+   * off-screen with no hint that they are there.
+   */
+  .hm-root .hm-shell__nav {
+    position: sticky;
+    top: 0;
+    -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+
+  .hm-root .hm-shell__nav [role="tablist"] {
+    scroll-snap-type: x proximity;
+  }
+
+  .hm-root .hm-shell__nav [role="tab"] {
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+
+  .hm-drawer__panel {
+    width: 100vw;
+  }
+}
+
+/* --- The house's name in the command bar -------------------------------- */
+
+/*
+ * The name was a full-bleed poster line across the top of the document. In the
+ * command bar it is an identity plate: still the page's one `<h1>`, sized like
+ * the label it now is, so the bar stays one row deep and the hotel keeps the
+ * screen.
+ */
+.hm-root .hm-topbar__card--location {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.hm-root .hm-topbar__name {
+  margin: 0;
+  font-family: var(--hm-font-display);
+  font-size: var(--hm-text-lg);
+  font-weight: 400;
+  letter-spacing: var(--hm-tracking-display);
+  line-height: 1.1;
+  color: var(--hm-ink-bright);
+  white-space: nowrap;
+}
+
+.hm-root .hm-topbar__card--tools {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--hm-space-2);
+  padding: var(--hm-space-1) var(--hm-space-2);
+}
+
+.hm-topbar__tool {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--hm-space-2);
+  white-space: nowrap;
+}
+
+/*
+ * A message waiting is the one piece of chrome allowed to ask for the eye, so
+ * it takes the signal colour — and says the count in words as well, because
+ * status is never carried by hue alone.
+ */
+.hm-topbar__tool[data-attention="true"] {
+  border-color: var(--hm-signal);
+  color: var(--hm-signal-bright);
+  box-shadow: var(--hm-shadow-signal);
+}
+
+/* --- Noticeboard typography --------------------------------------------- */
+
+/*
+ * The board is a 20rem column, so the display sizes the working surface uses
+ * would wrap every heading onto three lines. Here headings are labels.
+ */
+.hm-messages > :is(section, aside, details) {
+  padding: var(--hm-space-3) var(--hm-space-4);
+  margin-bottom: var(--hm-space-3);
+  border: 1px solid var(--hm-rule);
+  border-left: var(--hm-rail) solid var(--hm-rule-strong);
+  border-radius: var(--hm-radius);
+  background: var(--hm-surface);
+}
+
+.hm-messages :is(h2, h3) {
+  margin: 0 0 var(--hm-space-2);
+  font-family: var(--hm-font-body);
+  font-size: var(--hm-text-sm);
+  font-weight: 700;
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-ink-bright);
+  border-bottom: 0;
+}
+
+.hm-messages :is(h2, h3)::after {
+  display: none;
+}
+
+.hm-messages p,
+.hm-messages li {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-ink-dim);
+}
+
+.hm-messages__filters > summary {
+  cursor: pointer;
+  font-size: var(--hm-text-xs);
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-ink-faint);
+}
+
+.hm-messages__filters[open] > summary {
+  margin-bottom: var(--hm-space-3);
+  color: var(--hm-signal);
+}

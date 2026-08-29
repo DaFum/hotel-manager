@@ -12,7 +12,17 @@ function trend(amountMinor: number): "gain" | "loss" | "flat" {
   return "flat";
 }
 
+/**
+ * The command bar: who you are, what time it is, what the house is worth, how
+ * fast the clock runs, and the way into the desk drawers.
+ *
+ * It is the only chrome that is always on screen, so it carries the house's
+ * name — the page's one `<h1>` — instead of leaving a full-bleed banner above
+ * it pushing the hotel off the first screen.
+ */
 export function TopBar(props: {
+  /** The house's own name; rendered as the document's heading. */
+  hotelName: string;
   city: string;
   dateKey: string;
   minuteOfDay: number;
@@ -28,19 +38,25 @@ export function TopBar(props: {
   onSpeed: (speed: Speed) => void;
   onSave: () => void;
   onLoad: () => void;
+  onOpenNotifications?: () => void;
+  onOpenSettings?: () => void;
+  onOpenSaves?: () => void;
   locale?: GameLocale;
 }) {
   const hours = String(Math.floor(props.minuteOfDay / 60)).padStart(2, "0");
   const minutes = String(props.minuteOfDay % 60).padStart(2, "0");
   const locale = props.locale ?? "de-DE";
+  const waiting = props.warningCount ?? 0;
   return (
     <section
       className="hm-topbar"
       aria-label={translateGame(locale, "topbar.status")}
     >
       <div className="hm-topbar__card hm-topbar__card--location">
+        <h1 className="hm-topbar__name">
+          {props.hotelName}, {props.city} 1991
+        </h1>
         <p className="hm-topbar__place">
-          <span className="hm-topbar__city">{props.city}</span>
           <time dateTime={props.dateKey}>
             {formatGameDate(props.dateKey, locale)}
             <span className="sr-only"> ({props.dateKey})</span>
@@ -53,7 +69,9 @@ export function TopBar(props: {
 
       <div className="hm-topbar__card hm-topbar__card--cash">
         <p className="hm-topbar__cash">
-          <span className="hm-topbar__label">{translateGame(locale, "topbar.cash")}</span>
+          <span className="hm-topbar__label">
+            {translateGame(locale, "topbar.cash")}
+          </span>
           <span
             className="hm-topbar__figure"
             data-testid="cash-value"
@@ -88,19 +106,14 @@ export function TopBar(props: {
               <dd>{Math.round(props.reputation)}</dd>
             </div>
           )}
-          {props.warningCount === undefined ? null : (
-            <div>
-              <dt>{translateGame(locale, "topbar.warnings")}</dt>
-              <dd data-trend={props.warningCount > 0 ? "loss" : "flat"}>
-                {props.warningCount}
-              </dd>
-            </div>
-          )}
         </dl>
       </div>
 
       <div className="hm-topbar__card hm-topbar__card--controls">
-        <nav className="hm-topbar__speed" aria-label="Speed">
+        <nav
+          className="hm-topbar__speed"
+          aria-label={translateGame(locale, "topbar.speed")}
+        >
           {SPEEDS.map((s) => (
             <button
               key={s}
@@ -108,19 +121,61 @@ export function TopBar(props: {
               aria-pressed={props.speed === s}
               onClick={() => props.onSpeed(s)}
             >
-              {s === 0 ? "Pause" : `${s}x`}
+              {s === 0 ? translateGame(locale, "topbar.pause") : `${s}x`}
             </button>
           ))}
         </nav>
         <div className="hm-topbar__io">
           <button type="button" onClick={props.onSave}>
-            Save
+            {translateGame(locale, "topbar.save")}
           </button>
           <button type="button" onClick={props.onLoad}>
-            Load
+            {translateGame(locale, "topbar.load")}
           </button>
         </div>
       </div>
+
+      {/*
+        The drawer handles. The message count rides on its own button rather
+        than as a fourth figure in the vitals list, because it is the only one
+        of them the player is meant to act on.
+      */}
+      <nav
+        className="hm-topbar__card hm-topbar__card--tools"
+        aria-label={translateGame(locale, "topbar.tools")}
+      >
+        <button
+          type="button"
+          className="hm-topbar__tool"
+          data-attention={waiting > 0}
+          onClick={props.onOpenNotifications}
+        >
+          <span aria-hidden="true">✉</span>
+          <span>
+            {waiting > 0
+              ? translateGame(locale, "topbar.openNotificationsCount", {
+                  count: waiting,
+                })
+              : translateGame(locale, "topbar.openNotifications")}
+          </span>
+        </button>
+        <button
+          type="button"
+          className="hm-topbar__tool"
+          onClick={props.onOpenSaves}
+        >
+          <span aria-hidden="true">▤</span>
+          <span>{translateGame(locale, "topbar.openSaves")}</span>
+        </button>
+        <button
+          type="button"
+          className="hm-topbar__tool"
+          onClick={props.onOpenSettings}
+        >
+          <span aria-hidden="true">⚙</span>
+          <span>{translateGame(locale, "topbar.openSettings")}</span>
+        </button>
+      </nav>
     </section>
   );
 }

@@ -20,6 +20,7 @@
 @import "./tokens.css";
 @import "./base.css";
 @import "./layout.css";
+@import "./shell.css";
 @import "./panels.css";
 @import "./topbar.css";
 @import "./data.css";

@@ -107,9 +107,8 @@ export function Drawer({
       }
     };
 
-    const node = panel.current;
-    node?.addEventListener("keydown", onKeyDown);
-    return () => node?.removeEventListener("keydown", onKeyDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [open]);
 
   return (

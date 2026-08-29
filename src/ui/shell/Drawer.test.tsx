@@ -135,8 +135,7 @@ describe("Drawer component", () => {
     triggerBtn.focus();
     fireEvent.click(triggerBtn);
 
-    const dialog = screen.getByRole("dialog");
-    fireEvent.keyDown(dialog, { key: "Escape" });
+    fireEvent.keyDown(document, { key: "Escape" });
 
     expect(document.activeElement).toBe(triggerBtn);
   });
@@ -156,17 +155,45 @@ describe("Drawer component", () => {
     const closeBtn = screen.getByRole("button", { name: "Close" });
     const btn1 = screen.getByTestId("btn-1");
     const btn2 = screen.getByTestId("btn-2");
-    const dialog = screen.getByRole("dialog");
 
     // Initially close button is focused
     expect(document.activeElement).toBe(closeBtn);
 
     // Shift+Tab from close button (first focusable) should cycle to btn2 (last focusable)
-    fireEvent.keyDown(dialog, { key: "Tab", shiftKey: true });
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
     expect(document.activeElement).toBe(btn2);
 
     // Tab from btn2 (last focusable) should cycle back to closeBtn (first focusable)
-    fireEvent.keyDown(dialog, { key: "Tab", shiftKey: false });
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: false });
     expect(document.activeElement).toBe(closeBtn);
+  });
+
+  it("traps focus even if current focus falls outside the drawer (e.g. disabled control)", () => {
+    render(
+      <div>
+        <button type="button" data-testid="outside-btn">
+          Outside
+        </button>
+        <Drawer id="test-drawer" title="Test Drawer" open={true} onClose={() => {}}>
+          <button type="button" data-testid="btn-1">
+            First Inside
+          </button>
+        </Drawer>
+      </div>,
+    );
+
+    // Focus an element outside the drawer (simulating focus loss when an inside control becomes disabled)
+    const outsideBtn = screen.getByTestId("outside-btn");
+    outsideBtn.focus();
+    expect(document.activeElement).toBe(outsideBtn);
+
+    // Pressing Tab should pull focus back into the drawer (first focusable)
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: false });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close" }));
+
+    // Focus outside again and Shift+Tab
+    outsideBtn.focus();
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(screen.getByTestId("btn-1"));
   });
 });

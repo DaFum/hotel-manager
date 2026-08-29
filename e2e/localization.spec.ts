@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openDrawer, openManagementArea, selectLocale } from "./management";
+import { closeDrawer, openDrawer, openManagementArea, selectLocale } from "./management";
 test("locale switch preserves authoritative cash", async ({ page }) => {
   await page.goto("/?renderer=off");
   await openManagementArea(page, "finance");
@@ -13,10 +13,12 @@ test("locale switch preserves authoritative cash", async ({ page }) => {
   ).toBeVisible();
   await openDrawer(page, "saves");
   await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByLabel("Saves committed")).toContainText("1");
+  await expect(page.getByLabel(/^(Saves committed|Gespeicherte Spielstände)$/)).toContainText("1");
+  await closeDrawer(page);
   await selectLocale(page, "de-DE");
   await openDrawer(page, "saves");
   await page.getByRole("button", { name: "Laden", exact: true }).click();
+  await closeDrawer(page);
   // The loaded save carries the language it was written with.
   await openDrawer(page, "settings");
   await expect(page.getByLabel(/Language|Sprache/)).toHaveValue("en-GB");

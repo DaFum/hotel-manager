@@ -25,7 +25,7 @@ test("operates the hotel while company and campaign state remain responsive", as
     .getByRole("button", { name: /Raise Single rate on/i })
     .first()
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
   // Accepted is what the worker said; the published rate is what it did.
   await expect(singleRateCell).not.toHaveText(rateBefore);
   await openManagementArea(page, "company");
@@ -36,7 +36,7 @@ test("operates the hotel while company and campaign state remain responsive", as
       name: /fly rheinstern collection over hotel mainblick/i,
     })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
   await expect(
     portfolio.getByRole("article", { name: "Hotel Mainblick" }),
   ).toContainText("Flag: Rheinstern Collection");

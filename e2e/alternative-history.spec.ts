@@ -12,7 +12,7 @@ test("derives the management era from simulated adoption", async ({ page }) => {
   await page
     .getByRole("button", { name: "Personal Computer einführen" })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
   await expect(
     page.getByRole("button", { name: "Personal Computer wird eingeführt" }),
   ).toBeDisabled();

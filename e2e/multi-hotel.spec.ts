@@ -38,7 +38,7 @@ test("flies a brand and reports the standards a house is breaking", async ({
       name: /fly rheinstern collection over hotel mainblick/i,
     })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
 
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await expect(
@@ -62,7 +62,7 @@ test("keeps delegated authority and the decisions it sent up on one panel", asyn
   await governance
     .getByRole("button", { name: /raise the repair limit/i })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
   await expect(governance).toContainText("repairs to 10000,00 DM");
 });
 
@@ -83,11 +83,11 @@ test("carries the group through a save and a reload", async ({ page }) => {
   await brands
     .getByRole("button", { name: /fly mainblick over hotel mainblick/i })
     .click();
-  await expect(page.getByLabel("Command status")).toContainText("accepted");
+  await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
 
   await openDrawer(page, "saves");
   await page.getByRole("button", { name: /^(save|speichern)$/i }).click();
-  await expect(page.getByLabel("Saves committed")).not.toContainText(": 0");
+  await expect(page.getByLabel(/^(Saves committed|Gespeicherte Spielstände)$/)).not.toContainText(": 0");
 
   await page.getByRole("button", { name: /^(load|laden)$/i }).click();
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });

@@ -459,6 +459,51 @@ describe("simulated operations", () => {
   });
 });
 
+describe("compliance and regulation", () => {
+  it("raises lead-time alert, handles breach with fine, reputation delta, facility constraint, and remedies when compliant", () => {
+    const state = createInitialGameState(555);
+    state.staff[0].monthlyWageMinor = 150_000;
+    const sim = new GameSimulation(state);
+
+    runQuanta(sim, QUANTA_PER_DAY);
+    let s = sim.snapshot();
+    expect(s.alerts.some((a) => a.id.startsWith("alert.compliance."))).toBe(true);
+
+    runQuanta(sim, QUANTA_PER_DAY * 32);
+    s = sim.snapshot();
+
+    expect(s.compliance.rules["regulation.de.labor.min_wage"]?.status).toBe("noncompliant");
+    expect(s.finance.ledger.some((e) => e.account === "fine")).toBe(true);
+
+    const events = sim.takeDomainEvents();
+    expect(events.some((e) => e.payload.type === "COMPLIANCE_BREACH_DETECTED")).toBe(true);
+
+    expect(
+      s.reputation.employer[s.hotel.id]?.contributors.some((c) =>
+        c.cause.includes("regulation.de.labor.min_wage"),
+      ),
+    ).toBe(true);
+
+    sim.state.assets.find((a) => a.id === "asset.boiler")!.condition = 1000;
+    runQuanta(sim, QUANTA_PER_DAY * 31);
+    s = sim.snapshot();
+
+    const breakfast = s.facilities.find((f) => f.id === "facility.breakfast_room");
+    expect(breakfast?.capacity).toBe(0);
+    expect(breakfast?.cause).toBe("regulatory closure");
+
+    sim.state.staff[0].monthlyWageMinor = 300_000;
+    sim.state.assets.find((a) => a.id === "asset.boiler")!.condition = 10000;
+    sim.state.stock["breakfast-portion"] = 500;
+    runQuanta(sim, QUANTA_PER_DAY * 31);
+    s = sim.snapshot();
+
+    const remedyEvents = sim.takeDomainEvents();
+    expect(remedyEvents.some((e) => e.payload.type === "COMPLIANCE_REMEDIED")).toBe(true);
+    expect(s.facilities.find((f) => f.id === "facility.breakfast_room")?.cause).not.toBe("regulatory closure");
+  });
+});
+
 describe("hotel depth", () => {
   function stateWith(mutate: (s: GameState) => void): GameSimulation {
     const state = createInitialGameState(424242);

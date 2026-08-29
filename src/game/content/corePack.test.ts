@@ -24,6 +24,7 @@ describe("core content pack", () => {
         "supplier",
         "rival",
         "brand",
+        "regulation",
       ]),
     );
   });

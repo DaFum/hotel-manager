@@ -202,6 +202,16 @@ function technologyAdoptionScenario(): DomainEvent[] {
   return collected;
 }
 
+function complianceScenario(): DomainEvent[] {
+  const s = sim(19);
+  const collected: DomainEvent[] = [];
+  s.state.staff[0].monthlyWageMinor = 150_000;
+  collected.push(...runDays(s, 35));
+  s.state.staff[0].monthlyWageMinor = 300_000;
+  collected.push(...runDays(s, 35));
+  return collected;
+}
+
 /**
  * The corporate layer end to end: flag a brand, delegate, fund, develop, buy,
  * and let a month close on top of it all. Everything here is a real player
@@ -740,6 +750,7 @@ describe("domain event buffer", () => {
     record(distributionAndTargetsScenario());
     record(staffScenario());
     record(utilityScenario());
+    record(complianceScenario());
 
     seen.add("TAX_ACCRUED");
     seen.add("TAX_PAID");

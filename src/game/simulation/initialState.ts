@@ -212,6 +212,28 @@ export interface MonthAccumulator {
   availableRoomNights: number;
 }
 
+export interface ComplianceRuleState {
+  status: "inactive" | "compliant" | "grace" | "noncompliant";
+  lastEvaluatedMinutes: number;
+}
+
+export interface ComplianceState {
+  rules: Record<string, ComplianceRuleState>;
+  activeRestrictions: Record<
+    string,
+    { capacityValue?: number; capacityFactorBp?: number; ruleId: string }
+  >;
+  activeClosures: Record<string, { ruleId: string }>;
+}
+
+export function createComplianceState(): ComplianceState {
+  return {
+    rules: {},
+    activeRestrictions: {},
+    activeClosures: {},
+  };
+}
+
 export interface GameState {
   seed: number;
   /**
@@ -235,7 +257,14 @@ export interface GameState {
    */
   eventJournal: EventJournal;
   calendar: { dateKey: string; minuteOfDay: number };
-  hotel: { id: string; name: string; cityId: string; rooms: RoomRecord[] };
+  hotel: {
+    id: string;
+    name: string;
+    cityId: string;
+    jurisdictionId: string;
+    rooms: RoomRecord[];
+  };
+  compliance: ComplianceState;
   rates: RateGrid;
   reservations: ReservationRecord[];
   stays: StayRecord[];
@@ -413,6 +442,7 @@ export function createInitialGameState(seed: number): GameState {
       id: STARTER_HOTEL.id,
       name: STARTER_HOTEL.name,
       cityId: FLAGSHIP_CITY_ID,
+      jurisdictionId: STARTER_HOTEL.jurisdictionId,
       rooms: Array.from({ length: STARTER_HOTEL.roomCount }, (_, i) => {
         const category = i < STARTER_HOTEL.singleRooms ? "single" : "double";
         return {
@@ -426,6 +456,7 @@ export function createInitialGameState(seed: number): GameState {
         };
       }),
     },
+    compliance: createComplianceState(),
     rates: {},
     reservations: [],
     stays: [],

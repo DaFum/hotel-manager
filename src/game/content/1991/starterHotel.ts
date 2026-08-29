@@ -22,6 +22,7 @@ const conference = CORE_CONTENT_REGISTRY.getByKind(
 export const STARTER_HOTEL = {
   id: "hotel.frankfurt.1",
   name: "Hotel Mainblick",
+  jurisdictionId: "de.he.frankfurt",
   roomCount: 24,
   /** Room ids run 101..124; the first twelve are singles. */
   firstRoomNumber: 101,

@@ -183,6 +183,12 @@
                 "minimum": 0,
                 "maximum": 10000
               },
+              "accessibilityBasisPoints": {
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
               "cleanMinutes": {
                 "type": "integer",
                 "minimum": 0,
@@ -910,6 +916,246 @@
               "demandUpliftBasisPoints",
               "monthlyFeeMinor"
             ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "kind": {
+                "type": "string",
+                "const": "regulation"
+              },
+              "simulationOrder": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "nameKey": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "jurisdictionId": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "area": {
+                "type": "string",
+                "enum": [
+                  "safety",
+                  "labor",
+                  "accessibility",
+                  "environment",
+                  "foodHygiene",
+                  "privacy",
+                  "construction",
+                  "tax"
+                ]
+              },
+              "requirement": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "effectiveAtMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "graceMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "noticeAtMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "inspectionRiskBp": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10000
+              },
+              "consequenceMinor": {
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "consequences": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "fine"
+                        },
+                        "amountMinor": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "amountMinor"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "restriction"
+                        },
+                        "facilityId": {
+                          "type": "string",
+                          "minLength": 3,
+                          "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                        },
+                        "capacityValue": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "capacityFactorBp": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 10000
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "facilityId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "closure"
+                        },
+                        "facilityId": {
+                          "type": "string",
+                          "minLength": 3,
+                          "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "facilityId"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "kind": {
+                          "type": "string",
+                          "const": "reputation"
+                        },
+                        "dimension": {
+                          "type": "string",
+                          "enum": [
+                            "hotel",
+                            "brand",
+                            "group",
+                            "employer",
+                            "media",
+                            "channel"
+                          ]
+                        },
+                        "delta": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "kind",
+                        "dimension",
+                        "delta"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "affectedFacilityId": {
+                "type": "string",
+                "minLength": 3,
+                "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+              },
+              "reputationDimension": {
+                "type": "string",
+                "enum": [
+                  "hotel",
+                  "brand",
+                  "group",
+                  "employer",
+                  "media",
+                  "channel"
+                ]
+              },
+              "reputationScope": {
+                "type": "string"
+              },
+              "requiredTechnologyIds": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 3,
+                  "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+                }
+              },
+              "activation": {
+                "type": "object",
+                "properties": {
+                  "worldMetric": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "minimum": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": [
+                  "worldMetric",
+                  "minimum"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "id",
+              "kind",
+              "simulationOrder",
+              "nameKey",
+              "jurisdictionId",
+              "area",
+              "requirement",
+              "effectiveAtMinutes",
+              "graceMinutes",
+              "noticeAtMinutes",
+              "inspectionRiskBp"
+            ],
+            "additionalProperties": false
           }
         ]
       }

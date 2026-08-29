@@ -56,6 +56,26 @@ function fields(
         ["requiredFacilityIds", record.requiredFacilityIds, ["facility"]],
         ["requiredTechnologyIds", record.requiredTechnologyIds, ["technology"]],
       ];
+    case "regulation": {
+      const facilityIds: string[] = [];
+      if (record.affectedFacilityId) {
+        facilityIds.push(record.affectedFacilityId);
+      }
+      for (const consequence of record.consequences) {
+        if (
+          consequence.kind === "restriction" ||
+          consequence.kind === "closure"
+        ) {
+          if (consequence.facilityId) {
+            facilityIds.push(consequence.facilityId);
+          }
+        }
+      }
+      return [
+        ["consequences", facilityIds, ["facility"]],
+        ["requiredTechnologyIds", record.requiredTechnologyIds, ["technology"]],
+      ];
+    }
     default:
       return [];
   }

@@ -196,9 +196,26 @@ export function validateEnvelope(envelope: SaveEnvelope): string[] {
     !state.hotel ||
     typeof state.hotel.cityId !== "string" ||
     !state.hotel.cityId ||
+    typeof state.hotel.jurisdictionId !== "string" ||
+    !state.hotel.jurisdictionId ||
     !Array.isArray(state.hotel.rooms)
   )
     problems.push("the state has no hotel");
+  if (
+    !state.compliance ||
+    typeof state.compliance !== "object" ||
+    Array.isArray(state.compliance) ||
+    !state.compliance.rules ||
+    typeof state.compliance.rules !== "object" ||
+    Array.isArray(state.compliance.rules) ||
+    !state.compliance.activeRestrictions ||
+    typeof state.compliance.activeRestrictions !== "object" ||
+    Array.isArray(state.compliance.activeRestrictions) ||
+    !state.compliance.activeClosures ||
+    typeof state.compliance.activeClosures !== "object" ||
+    Array.isArray(state.compliance.activeClosures)
+  )
+    problems.push("the state has no valid compliance section");
   if (!state.finance || !Number.isSafeInteger(state.finance.cashMinor))
     problems.push("cash is not whole Pfennig");
   if (

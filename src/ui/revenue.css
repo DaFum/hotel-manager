@@ -1,7 +1,51 @@
 .revenue-board {
   --revenue-ink: #172424;
   --revenue-paper: #e5e1d2;
-  --revenue-signal: #b7472d;
+  --revenue-signal: #99381f;
+
+  /*
+   * The board brings its own paper, so it must bring its own ink.
+   *
+   * Setting `color` alone was not enough: every ruled figure on this page is
+   * drawn by a rule in data.css or controls.css that names an ink token
+   * outright — `dd` takes --hm-ink, `dt` and `td` take --hm-ink-dim — and a
+   * declared colour beats an inherited one no matter how specific the board's
+   * own selectors are. The dark theme's ink therefore stayed on the light
+   * paper: ADR, RevPAR and GOPPAR read #ede9e0 on #e5e1d2, which is 1.03:1.
+   * The department's entire readout was invisible.
+   *
+   * Restating the semantic tokens fixes it at the source rather than in a
+   * specificity war: the shared rules keep asking for --hm-ink, and on this
+   * surface the answer is now the ink this paper takes. Every value below
+   * clears WCAG AA against the darkest tone the paper reaches (#ddd9ca),
+   * including the ruled stripe.
+   */
+  --hm-ink-bright: #0f1a1a;
+  --hm-ink: var(--revenue-ink);
+  --hm-ink-dim: #45514f;
+  --hm-ink-faint: #55605e;
+  --hm-signal: var(--revenue-signal);
+  --hm-signal-bright: #7d2a17;
+  --hm-signal-deep: #7d2a17;
+  --hm-signal-wash: rgb(153 56 31 / 12%);
+  --hm-signal-glow: rgb(153 56 31 / 20%);
+  --hm-steel: #24506f;
+  --hm-steel-wash: rgb(36 80 111 / 12%);
+  --hm-gain: #1b5c3c;
+  --hm-gain-wash: rgb(27 92 60 / 12%);
+  --hm-loss: #99381f;
+  --hm-loss-wash: rgb(153 56 31 / 12%);
+  --hm-warn: #6b4a08;
+  --hm-warn-wash: rgb(107 74 8 / 14%);
+  --hm-idle: #55605e;
+  --hm-rule: rgb(23 36 36 / 22%);
+  --hm-rule-strong: rgb(23 36 36 / 48%);
+  --hm-rule-faint: rgb(23 36 36 / 12%);
+  --hm-surface: #e9e5d8;
+  --hm-surface-raised: #f2eee2;
+  --hm-surface-sunken: #ddd8c8;
+  --hm-hover-bg: rgb(153 56 31 / 6%);
+  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
 
   background:
     repeating-linear-gradient(

@@ -29,13 +29,12 @@
   border-right: 1px solid var(--hm-rule-strong);
   height: 100vh;
   overflow-y: auto;
-  background:
-    linear-gradient(
-      180deg,
-      var(--hm-ground-deep),
-      var(--hm-surface-sunken) 60%,
-      var(--hm-ground-deep)
-    );
+  background: linear-gradient(
+    180deg,
+    var(--hm-ground-deep),
+    var(--hm-surface-sunken) 60%,
+    var(--hm-ground-deep)
+  );
   box-shadow: 2px 0 12px rgb(0 0 0 / 40%);
 }
 
@@ -96,6 +95,19 @@
   display: flex;
   flex-direction: column;
   gap: var(--hm-space-5);
+
+  /*
+   * The width is stated, not inferred. `margin: 0 auto` centres the surface,
+   * but auto margins also switch a grid item off `stretch` and onto
+   * shrink-to-fit — and shrink-to-fit takes its floor from the content's
+   * min-content width, which `min-width: 0` cannot lower. One wide register
+   * was therefore enough to inflate the whole working surface past its track:
+   * the staff table pushed it to 84rem, sliding 630px of the department under
+   * the noticeboard and off the right of the screen, where `overflow: hidden`
+   * on the root quietly swallowed it. Declaring the width keeps the surface in
+   * its column and leaves wide content to scroll in its own frame below.
+   */
+  width: 100%;
   max-width: 84rem;
   min-width: 0;
   margin: 0 auto;

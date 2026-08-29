@@ -2,7 +2,42 @@
   --guest-ink: #201e19;
   --guest-paper: #eee6d5;
   --guest-rule: #8c3229;
-  --guest-muted: #6a6256;
+  --guest-muted: #5b5449;
+
+  /*
+   * The ledger's paper needs the ledger's ink — see the note in revenue.css.
+   * The shared rules name --hm-ink and --hm-ink-dim outright, so a surface
+   * that changes its ground has to answer those names itself or keep the dark
+   * theme's paper-coloured ink on cream. Every value clears WCAG AA against
+   * the darkest tone this paper reaches (#ded3be), and --guest-muted moves off
+   * #6a6256, which only ever cleared AA for large text.
+   */
+  --hm-ink-bright: #16150f;
+  --hm-ink: var(--guest-ink);
+  --hm-ink-dim: #4f4940;
+  --hm-ink-faint: var(--guest-muted);
+  --hm-signal: var(--guest-rule);
+  --hm-signal-bright: #7d2a17;
+  --hm-signal-deep: #7d2a17;
+  --hm-signal-wash: rgb(140 50 41 / 12%);
+  --hm-signal-glow: rgb(140 50 41 / 20%);
+  --hm-steel: #24506f;
+  --hm-steel-wash: rgb(36 80 111 / 12%);
+  --hm-gain: #1b5c3c;
+  --hm-gain-wash: rgb(27 92 60 / 12%);
+  --hm-loss: #99381f;
+  --hm-loss-wash: rgb(153 56 31 / 12%);
+  --hm-warn: #6b4a08;
+  --hm-warn-wash: rgb(107 74 8 / 14%);
+  --hm-idle: #5b5449;
+  --hm-rule: rgb(32 30 25 / 22%);
+  --hm-rule-strong: rgb(32 30 25 / 48%);
+  --hm-rule-faint: rgb(32 30 25 / 12%);
+  --hm-surface: #eae1cd;
+  --hm-surface-raised: #f3ecdc;
+  --hm-surface-sunken: #ded3be;
+  --hm-hover-bg: rgb(140 50 41 / 6%);
+  --hm-shadow-signal: 0 0 0 1px var(--hm-signal-deep);
 
   color: var(--guest-ink);
   background:

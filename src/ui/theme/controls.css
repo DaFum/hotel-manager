@@ -68,6 +68,41 @@
   color: var(--hm-ground);
 }
 
+/*
+ * Fitts's Law, at two pointer sizes.
+ *
+ * The controls the player reaches for most were the smallest on the screen:
+ * the speed set — pause, 1x, 2x, 4x, 16x — stood 25px tall, and the
+ * preference checkboxes were 14px square, under even the 24px WCAG 2.2 AA
+ * minimum. The floor here is that AA minimum rather than the 44px touch
+ * figure, because a mouse is precise and this is a dense operations desk: at
+ * 44px everywhere the ledger stops being a ledger. Where the pointer is
+ * coarse there is no such trade — a thumb gets the full 44px.
+ */
+.hm-root :is(button, [role="tab"], summary, select, input) {
+  min-height: 1.5rem;
+}
+
+.hm-root input[type="checkbox"] {
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+}
+
+@media (pointer: coarse) {
+  .hm-root :is(button, [role="tab"], summary, select, input) {
+    min-height: 2.75rem;
+  }
+
+  .hm-root :is(button, select) {
+    min-width: 2.75rem;
+  }
+
+  .hm-root input[type="checkbox"] {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
 .hm-root button:disabled {
   --hm-button-edge: var(--hm-rule);
   --hm-button-ink: var(--hm-ink-faint);
@@ -258,12 +293,29 @@
   color: var(--hm-ink-dim);
 }
 
-.world-controls__floors-list,
-.world-controls__lifts-list,
 .world-controls__problems-list {
   display: flex;
   flex-direction: column;
   gap: var(--hm-space-2);
+}
+
+/*
+ * Floors and lifts are racks of switches, not registers of readings, so they
+ * lay out across the column the way the service areas already do. Stacked one
+ * per row they ran the camera controls to 640px inside a 430px frame, which
+ * put "Show service areas" completely below the fold of a panel that gives no
+ * hint it scrolls: a control the player had no way of knowing existed.
+ */
+.world-controls__floors-list,
+.world-controls__lifts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-2);
+}
+
+.world-controls__floors-list > li,
+.world-controls__lifts-list > li {
+  flex: 0 1 auto;
 }
 
 .world-controls__empty {

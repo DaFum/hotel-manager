@@ -224,3 +224,50 @@
   text-transform: uppercase;
   color: var(--hm-signal);
 }
+
+/* --- World Controls ----------------------------------------------------- */
+
+.world-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hm-space-4);
+  padding: var(--hm-space-3);
+}
+
+.world-controls__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hm-space-2);
+}
+
+.world-controls__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-2);
+}
+
+.world-controls__status {
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-sm);
+  color: var(--hm-ink-bright);
+}
+
+.world-controls__substatus {
+  font-family: var(--hm-font-body);
+  font-size: var(--hm-text-xs);
+  color: var(--hm-ink-dim);
+}
+
+.world-controls__floors-list,
+.world-controls__lifts-list,
+.world-controls__problems-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--hm-space-2);
+}
+
+.world-controls__empty {
+  font-style: italic;
+  color: var(--hm-ink-faint);
+  font-size: var(--hm-text-xs);
+}

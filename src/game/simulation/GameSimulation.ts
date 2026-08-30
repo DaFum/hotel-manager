@@ -1675,6 +1675,7 @@ export class GameSimulation implements CommandExecutor {
       s.receptionQueue.map((w) => w.bookingId),
       servable,
     );
+    if (processed.length === 0) return;
 
     const reservationById = new Map(
       s.reservations.map((b) => [b.id, b]),

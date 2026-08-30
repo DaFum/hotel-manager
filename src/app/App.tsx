@@ -251,13 +251,13 @@ export function App() {
     );
     if (!position) return;
     setCamera((current) => {
-      if (
-        current.followedAgentId !== agentId ||
-        (current.x === position.x &&
-          current.y === position.y &&
-          current.floor === position.floor)
-      )
-        return current;
+      if (current.followedAgentId !== agentId) return current;
+      const isSamePosition =
+        current.x === position.x &&
+        current.y === position.y &&
+        current.floor === position.floor;
+      if (isSamePosition) return current;
+
       return followCamera(current, {
         id: agentId,
         x: position.x,

@@ -239,6 +239,245 @@ function ensureTimer() {
   timer ??= setInterval(tick, TICK_MS);
 }
 
+function handleInitGame(seed: number) {
+  tickFailure = null;
+  lastSaveBytes = 0;
+  simulation = new GameSimulation(createInitialGameState(seed));
+  simulation.refreshDerivedState();
+  ensureTimer();
+  published = simulation.snapshot();
+  publication += 1;
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "READY",
+    snapshot: published,
+    publication,
+  });
+  publishDomainEvents();
+}
+
+function handleLoadGame(saveData: unknown) {
+  const accepted = acceptEnvelope(saveData);
+  if (!accepted.ok) {
+    reply(
+      simulationError("INVALID_SAVE", accepted.reason, {
+        recoverable: true,
+      }),
+    );
+    return;
+  }
+  const restored = new GameSimulation(accepted.state);
+  restored.refreshDerivedState();
+  for (const [commandId, requests] of correlation)
+    for (const requestId of requests)
+      reply({
+        protocolVersion: PROTOCOL_VERSION,
+        type: "COMMAND_REJECTED",
+        requestId,
+        commandId,
+        reason: "simulation replaced by load",
+      });
+  correlation.clear();
+  arrivedAt.clear();
+  simulation = restored;
+  tickFailure = null;
+  lastSaveBytes = 0;
+  ensureTimer();
+  publishSnapshot();
+  publishDomainEvents();
+}
+
+function handleCommand(
+  requestId: string,
+  commandId: string,
+  command: unknown,
+  expectedStateVersion?: number,
+) {
+  if (!simulation) {
+    reply({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND_REJECTED",
+      requestId,
+      commandId,
+      reason: "simulation not initialised",
+    });
+    return;
+  }
+  if (tickFailure !== null) {
+    reply({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND_REJECTED",
+      requestId,
+      commandId,
+      reason: `simulation halted after tick failure: ${tickFailure.message}`,
+    });
+    return;
+  }
+  let envelope;
+  try {
+    envelope = commandEnvelope({
+      commandId,
+      issuedAtMinutes: simulation.state.elapsedMinutes,
+      actor: "player",
+      payload: command as GameCommand,
+      expectedStateVersion,
+    });
+  } catch (error) {
+    reply({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND_REJECTED",
+      requestId,
+      commandId,
+      reason: (error as Error).message,
+    });
+    return;
+  }
+  correlation.set(envelope.commandId, [
+    ...(correlation.get(envelope.commandId) ?? []),
+    requestId,
+  ]);
+  if (!arrivedAt.has(envelope.commandId))
+    arrivedAt.set(envelope.commandId, now());
+  simulation.queueEnvelope(envelope);
+  if (speed === 0) {
+    simulation.applyPendingCommands();
+    publishCommandResults();
+    publishDomainEvents();
+    publishDelta();
+  }
+}
+
+function handlePause(requestId: string) {
+  if (!simulation || tickFailure !== null) {
+    reply({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND_REJECTED",
+      requestId,
+      commandId: "control.pause",
+      reason: !simulation
+        ? "simulation not initialised"
+        : "simulation halted",
+    });
+    return;
+  }
+  speed = 0;
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "COMMAND_ACCEPTED",
+    requestId,
+    commandId: "control.pause",
+    stateVersion: simulation.state.stateVersion,
+  });
+}
+
+function handleResume(requestId: string) {
+  if (!simulation || tickFailure !== null) {
+    reply({
+      protocolVersion: PROTOCOL_VERSION,
+      type: "COMMAND_REJECTED",
+      requestId,
+      commandId: "control.resume",
+      reason: !simulation
+        ? "simulation not initialised"
+        : "simulation halted",
+    });
+    return;
+  }
+  speed = speed || 1;
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "COMMAND_ACCEPTED",
+    requestId,
+    commandId: "control.resume",
+    stateVersion: simulation.state.stateVersion,
+  });
+}
+
+function handleRequestDetails(requestId: string, entityId: string) {
+  if (!simulation) {
+    reply(
+      simulationError("NOT_INITIALISED", "no game is running", {
+        recoverable: true,
+        requestId,
+      }),
+    );
+    return;
+  }
+  if (entityId === WHOLE_GAME_ENTITY_ID) {
+    publishSnapshot(requestId);
+    return;
+  }
+  const found = entityDetail(simulation.state, entityId);
+  if (!found) {
+    reply(
+      simulationError("ENTITY_NOT_FOUND", `no entity ${entityId}`, {
+        recoverable: true,
+        requestId,
+      }),
+    );
+    return;
+  }
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "ENTITY_DETAILS",
+    requestId,
+    entityId,
+    kind: found.kind,
+    detail: found.detail,
+  });
+}
+
+function handleRequestSave(requestId: string, preferences: PlayerPreferences) {
+  if (!simulation) {
+    reply(
+      simulationError("NOT_INITIALISED", "no game is running", {
+        recoverable: true,
+        requestId,
+      }),
+    );
+    return;
+  }
+  if (tickFailure !== null) {
+    reply(
+      simulationError(
+        "TICK_FAILED",
+        `cannot save a simulation halted after tick failure: ${tickFailure.message}`,
+        { recoverable: false, requestId },
+      ),
+    );
+    return;
+  }
+  const envelope = prepareEnvelope(simulation.snapshot(), preferences);
+  lastSaveBytes = serializedBytes(envelope);
+  const budget = evaluateSaveBudget(lastSaveBytes);
+  if (!budget.ok) {
+    reply(
+      simulationError(
+        "INVALID_SAVE",
+        `save exceeds ${budget.maxBytes} byte release budget`,
+        { recoverable: true, requestId },
+      ),
+    );
+    return;
+  }
+  const problems = validateEnvelope(envelope);
+  if (problems.length > 0) {
+    reply(
+      simulationError("INVALID_SAVE", problems.join("; "), {
+        recoverable: true,
+        requestId,
+      }),
+    );
+    return;
+  }
+  reply({
+    protocolVersion: PROTOCOL_VERSION,
+    type: "SAVE_DATA",
+    requestId,
+    saveData: envelope,
+  });
+}
+
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const m = event.data;
   if (m.protocolVersion !== PROTOCOL_VERSION) {
@@ -252,260 +491,28 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
     return;
   }
   switch (m.type) {
-    case "INIT_GAME": {
-      tickFailure = null;
-      lastSaveBytes = 0;
-      simulation = new GameSimulation(createInitialGameState(m.seed));
-      simulation.refreshDerivedState();
-      ensureTimer();
-      published = simulation.snapshot();
-      publication += 1;
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "READY",
-        snapshot: published,
-        publication,
-      });
-      publishDomainEvents();
-      return;
-    }
-    case "LOAD_GAME": {
-      const accepted = acceptEnvelope(m.saveData);
-      if (!accepted.ok) {
-        // The running game is untouched: an invalid load is refused, never
-        // half-applied.
-        reply(
-          simulationError("INVALID_SAVE", accepted.reason, {
-            recoverable: true,
-          }),
-        );
-        return;
-      }
-      // Built in full before it becomes the game, so a state that throws while
-      // deriving cannot leave the worker holding half a hotel.
-      const restored = new GameSimulation(accepted.state);
-      restored.refreshDerivedState();
-      for (const [commandId, requests] of correlation)
-        for (const requestId of requests)
-          reply({
-            protocolVersion: PROTOCOL_VERSION,
-            type: "COMMAND_REJECTED",
-            requestId,
-            commandId,
-            reason: "simulation replaced by load",
-          });
-      correlation.clear();
-      arrivedAt.clear();
-      simulation = restored;
-      tickFailure = null;
-      lastSaveBytes = 0;
-      ensureTimer();
-      publishSnapshot();
-      publishDomainEvents();
-      return;
-    }
-    case "COMMAND": {
-      if (!simulation) {
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "COMMAND_REJECTED",
-          requestId: m.requestId,
-          commandId: m.commandId,
-          reason: "simulation not initialised",
-        });
-        return;
-      }
-      if (tickFailure !== null) {
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "COMMAND_REJECTED",
-          requestId: m.requestId,
-          commandId: m.commandId,
-          reason: `simulation halted after tick failure: ${tickFailure.message}`,
-        });
-        return;
-      }
-      let envelope;
-      try {
-        envelope = commandEnvelope({
-          commandId: m.commandId,
-          // Game time is the Worker's to state; the issuer does not get to
-          // decide when, in the simulation, its command was issued.
-          issuedAtMinutes: simulation.state.elapsedMinutes,
-          actor: "player",
-          payload: m.command as GameCommand,
-          expectedStateVersion: m.expectedStateVersion,
-        });
-      } catch (error) {
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "COMMAND_REJECTED",
-          requestId: m.requestId,
-          commandId: m.commandId,
-          reason: (error as Error).message,
-        });
-        return;
-      }
-      // The correlation id is remembered, not stored on the envelope: it is a
-      // transport concern and must not become the command's identity.
-      correlation.set(envelope.commandId, [
-        ...(correlation.get(envelope.commandId) ?? []),
+    case "INIT_GAME":
+      return handleInitGame(m.seed);
+    case "LOAD_GAME":
+      return handleLoadGame(m.saveData);
+    case "COMMAND":
+      return handleCommand(
         m.requestId,
-      ]);
-      if (!arrivedAt.has(envelope.commandId))
-        arrivedAt.set(envelope.commandId, now());
-      simulation.queueEnvelope(envelope);
-      // A paused game applies the command without advancing the calendar; a
-      // running one decides it in the next commands phase. Either way the
-      // acknowledgement waits until it has actually been applied.
-      if (speed === 0) {
-        simulation.applyPendingCommands();
-        publishCommandResults();
-        publishDomainEvents();
-        publishDelta();
-      }
+        m.commandId,
+        m.command,
+        m.expectedStateVersion,
+      );
+    case "SET_SPEED":
+      if (tickFailure === null) speed = m.speed;
       return;
-    }
-    case "SET_SPEED": {
-      if (tickFailure !== null) return;
-      speed = m.speed;
-      return;
-    }
-    case "PAUSE": {
-      if (!simulation || tickFailure !== null) {
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "COMMAND_REJECTED",
-          requestId: m.requestId,
-          commandId: "control.pause",
-          reason: !simulation
-            ? "simulation not initialised"
-            : "simulation halted",
-        });
-        return;
-      }
-      speed = 0;
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "COMMAND_ACCEPTED",
-        requestId: m.requestId,
-        commandId: "control.pause",
-        stateVersion: simulation.state.stateVersion,
-      });
-      return;
-    }
-    case "RESUME": {
-      if (!simulation || tickFailure !== null) {
-        reply({
-          protocolVersion: PROTOCOL_VERSION,
-          type: "COMMAND_REJECTED",
-          requestId: m.requestId,
-          commandId: "control.resume",
-          reason: !simulation
-            ? "simulation not initialised"
-            : "simulation halted",
-        });
-        return;
-      }
-      speed = speed || 1;
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "COMMAND_ACCEPTED",
-        requestId: m.requestId,
-        commandId: "control.resume",
-        stateVersion: simulation.state.stateVersion,
-      });
-      return;
-    }
-    case "REQUEST_DETAILS": {
-      if (!simulation) {
-        reply(
-          simulationError("NOT_INITIALISED", "no game is running", {
-            recoverable: true,
-            requestId: m.requestId,
-          }),
-        );
-        return;
-      }
-      // The whole game is an entity too: this is how a client whose delta
-      // chain has broken asks to be put back in step.
-      if (m.entityId === WHOLE_GAME_ENTITY_ID) {
-        publishSnapshot(m.requestId);
-        return;
-      }
-      const found = entityDetail(simulation.state, m.entityId);
-      if (!found) {
-        reply(
-          simulationError("ENTITY_NOT_FOUND", `no entity ${m.entityId}`, {
-            recoverable: true,
-            requestId: m.requestId,
-          }),
-        );
-        return;
-      }
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "ENTITY_DETAILS",
-        requestId: m.requestId,
-        entityId: m.entityId,
-        kind: found.kind,
-        detail: found.detail,
-      });
-      return;
-    }
-    case "REQUEST_SAVE": {
-      if (!simulation) {
-        reply(
-          simulationError("NOT_INITIALISED", "no game is running", {
-            recoverable: true,
-            requestId: m.requestId,
-          }),
-        );
-        return;
-      }
-      if (tickFailure !== null) {
-        reply(
-          simulationError(
-            "TICK_FAILED",
-            `cannot save a simulation halted after tick failure: ${tickFailure.message}`,
-            { recoverable: false, requestId: m.requestId },
-          ),
-        );
-        return;
-      }
-      const envelope = prepareEnvelope(simulation.snapshot(), m.preferences);
-      lastSaveBytes = serializedBytes(envelope);
-      const budget = evaluateSaveBudget(lastSaveBytes);
-      if (!budget.ok) {
-        reply(
-          simulationError(
-            "INVALID_SAVE",
-            `save exceeds ${budget.maxBytes} byte release budget`,
-            { recoverable: true, requestId: m.requestId },
-          ),
-        );
-        return;
-      }
-      const problems = validateEnvelope(envelope);
-      if (problems.length > 0) {
-        // A save the worker would not accept back is not a save; refusing to
-        // hand it out beats storing a file that cannot be loaded.
-        reply(
-          simulationError("INVALID_SAVE", problems.join("; "), {
-            recoverable: true,
-            requestId: m.requestId,
-          }),
-        );
-        return;
-      }
-      reply({
-        protocolVersion: PROTOCOL_VERSION,
-        type: "SAVE_DATA",
-        requestId: m.requestId,
-        saveData: envelope,
-      });
-      return;
-    }
+    case "PAUSE":
+      return handlePause(m.requestId);
+    case "RESUME":
+      return handleResume(m.requestId);
+    case "REQUEST_DETAILS":
+      return handleRequestDetails(m.requestId, m.entityId);
+    case "REQUEST_SAVE":
+      return handleRequestSave(m.requestId, m.preferences);
     default:
       return;
   }

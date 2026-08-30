@@ -211,20 +211,23 @@ export function managedQualityStars(input: {
  * both act on capture, never on price: a young hotel sells fewer rooms, not
  * cheaper ones, and a flag that is out of compliance earns nothing.
  */
-export function managedHotelMonth(
+function validateManagedHotelInputs(
   hotel: ManagedHotelRecord,
-  input: {
-    periodStartDateKey: string;
-    brandUpliftBp: number;
-    treasury?: TreasuryState;
-  },
-): ManagedHotelMonth {
+  brandUpliftBp: number,
+): void {
   assertCount(hotel.rooms, "managed hotel rooms");
   assertNonNegativeMinor(hotel.adrMinor, "managed hotel adr");
   assertShareBp(hotel.occupancyBasisPoints, "managed hotel occupancy");
   assertShareBp(hotel.gopMarginBasisPoints, "managed hotel gop margin");
-  assertBasisPoints(input.brandUpliftBp, "brand uplift");
-  const nights = daysInMonth(input.periodStartDateKey);
+  assertBasisPoints(brandUpliftBp, "brand uplift");
+}
+
+function calculateManagedOccupancyAndNights(
+  hotel: ManagedHotelRecord,
+  periodStartDateKey: string,
+  brandUpliftBp: number,
+): { availableRoomNights: number; soldRoomNights: number; occupancyBasisPoints: number } {
+  const nights = daysInMonth(periodStartDateKey);
   if (hotel.rooms > Math.floor(Number.MAX_SAFE_INTEGER / (nights * 10_000)))
     throw new Error("invalid available room nights");
   const availableRoomNights = assertSafeInteger(
@@ -232,12 +235,12 @@ export function managedHotelMonth(
     "available room nights",
   );
   const rampBp = rampUpDemandFactorBasisPoints(
-    monthsOpen(hotel.openedDateKey, input.periodStartDateKey),
+    monthsOpen(hotel.openedDateKey, periodStartDateKey),
   );
   const captureBp = Math.min(
     10_000,
     Math.trunc(
-      (hotel.occupancyBasisPoints * rampBp * (10_000 + input.brandUpliftBp)) /
+      (hotel.occupancyBasisPoints * rampBp * (10_000 + brandUpliftBp)) /
         100_000_000,
     ),
   );
@@ -245,6 +248,23 @@ export function managedHotelMonth(
     scaleByBasisPoints(availableRoomNights, captureBp),
     "sold room nights",
   );
+  const occupancyBasisPoints =
+    availableRoomNights === 0
+      ? 0
+      : Math.round((soldRoomNights * 10_000) / availableRoomNights);
+  return { availableRoomNights, soldRoomNights, occupancyBasisPoints };
+}
+
+function calculateManagedRevenuesAndGop(
+  hotel: ManagedHotelRecord,
+  soldRoomNights: number,
+): {
+  roomRevenueMinor: number;
+  otherRevenueMinor: number;
+  revenueMinor: number;
+  grossOperatingProfitMinor: number;
+  operatingExpenseMinor: number;
+} {
   if (
     soldRoomNights > 0 &&
     hotel.adrMinor > Math.floor(Number.MAX_SAFE_INTEGER / soldRoomNights)
@@ -266,19 +286,52 @@ export function managedHotelMonth(
     scaleByBasisPoints(revenueMinor, hotel.gopMarginBasisPoints),
     "gross operating profit",
   );
-  const occupancyBasisPoints =
-    availableRoomNights === 0
-      ? 0
-      : Math.round((soldRoomNights * 10_000) / availableRoomNights);
+  const operatingExpenseMinor = assertSafeInteger(
+    revenueMinor - grossOperatingProfitMinor,
+    "operating expense",
+  );
+  return {
+    roomRevenueMinor,
+    otherRevenueMinor,
+    revenueMinor,
+    grossOperatingProfitMinor,
+    operatingExpenseMinor,
+  };
+}
+
+/**
+ * One month of trading for a portfolio house. Ramp-up and the brand's uplift
+ * both act on capture, never on price: a young hotel sells fewer rooms, not
+ * cheaper ones, and a flag that is out of compliance earns nothing.
+ */
+export function managedHotelMonth(
+  hotel: ManagedHotelRecord,
+  input: {
+    periodStartDateKey: string;
+    brandUpliftBp: number;
+    treasury?: TreasuryState;
+  },
+): ManagedHotelMonth {
+  validateManagedHotelInputs(hotel, input.brandUpliftBp);
+  const { availableRoomNights, soldRoomNights, occupancyBasisPoints } =
+    calculateManagedOccupancyAndNights(
+      hotel,
+      input.periodStartDateKey,
+      input.brandUpliftBp,
+    );
+  const {
+    roomRevenueMinor,
+    otherRevenueMinor,
+    grossOperatingProfitMinor,
+    operatingExpenseMinor,
+  } = calculateManagedRevenuesAndGop(hotel, soldRoomNights);
+
   return {
     soldRoomNights,
     availableRoomNights,
     roomRevenueMinor,
     otherRevenueMinor,
-    operatingExpenseMinor: assertSafeInteger(
-      revenueMinor - grossOperatingProfitMinor,
-      "operating expense",
-    ),
+    operatingExpenseMinor,
     grossOperatingProfitMinor,
     occupancyBasisPoints,
     cashNeedMinor: input.treasury

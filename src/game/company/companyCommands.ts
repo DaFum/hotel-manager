@@ -45,10 +45,12 @@ import {
   STARTER_REGION,
   UNDERWRITING_GOP_MARGIN_BP,
 } from "../content/1991/company";
-import { calculateCreditStanding } from "../finance/creditStanding";
+import {
+  calculateCreditStanding,
+  calculateCreditStandingForState,
+} from "../finance/creditStanding";
 import { drawLoan, repayLoan } from "../finance/loans";
 import { MAX_LOAN_TERM_MONTHS } from "../finance/debt";
-import { reputationFor } from "../reputation/dimensions";
 
 /** Command types this module owns; everything else belongs to the hotel. */
 const COMPANY_COMMAND_TYPES = [
@@ -325,31 +327,10 @@ export function validateCompanyCommand(
       if ((command.collateralValueMinor ?? 0) > unencumberedCollateralMinor)
         return no("declared collateral exceeds unencumbered asset value");
 
-      const totalCollateral =
-        totalPledgedCollateral + (command.collateralValueMinor ?? 0);
-
-      const standing = calculateCreditStanding({
-        operatingCashFlowMinor:
-          state.finance.month.roomRevenueMinor +
-          state.finance.month.otherRevenueMinor -
-          state.finance.month.operatingExpenseMinor,
-        totalOutstandingMinor: totalOutstanding,
-        cashMinor: state.finance.cashMinor,
-        equityMinor:
-          (state.statements?.contributedCapitalMinor ?? 0) +
-          (state.statements?.retainedEarningsMinor ?? 0),
-        hotelCount: state.company.portfolio.hotelIds.length || 1,
-        reputationScore: reputationFor(
-          state.reputation,
-          "group",
-          state.company.companyId,
-        ).score,
-        totalCollateralValueMinor: totalCollateral,
-        paymentHistory: state.finance.paymentHistory,
-        macroInterestBp: state.world.macro.interestBp,
-        creditSpreadMultiplierBp:
-          state.narrative?.campaign?.inputs?.creditSpreadBasisPoints ?? 10_000,
-      });
+      const standing = calculateCreditStandingForState(
+        state,
+        command.collateralValueMinor ?? 0,
+      );
 
       if (
         totalOutstanding + command.principalMinor >
@@ -430,15 +411,22 @@ function studyFor(
  * throwing anywhere in here discards every change the command had made — which
  * is what makes an acquisition atomic rather than merely careful.
  */
-export function applyCompanyCommand(
+function applyGovernanceAndOperationsCommand(
   state: GameState,
-  command: CompanyCommand,
+  command: Extract<
+    CompanyCommand,
+    | { type: "ASSIGN_BRAND" }
+    | { type: "REMOVE_BRAND" }
+    | { type: "SET_OPERATING_MODEL" }
+    | { type: "SET_HOTEL_BUDGET" }
+    | { type: "SET_GROUP_TARGETS" }
+    | { type: "SET_MANAGER_AUTHORITY" }
+    | { type: "RESOLVE_ESCALATION" }
+    | { type: "TRANSFER_INTERNAL_FUNDING" }
+  >,
   ctx: CompanyCommandContext,
 ): void {
-  const verdict = validateCompanyCommand(state, command);
-  if (!verdict.ok) throw new Error(verdict.reason);
   const c = state.company;
-
   switch (command.type) {
     case "ASSIGN_BRAND": {
       c.brandAssignments = assignBrand(c.brandAssignments, {
@@ -534,8 +522,6 @@ export function applyCompanyCommand(
         command.approve ? "approved" : "rejected",
         state.elapsedMinutes,
       );
-      // An approved spend is money the group has now agreed to; a rejected one
-      // costs nothing, which is the whole point of the limit.
       if (command.approve && "amountMinor" in escalation.decision)
         ctx.spend(
           escalation.decision.amountMinor,
@@ -546,27 +532,33 @@ export function applyCompanyCommand(
         const d = escalation.decision;
         if ("departmentId" in d) {
           const deptId = d.departmentId;
-          const currentAuth = state.departmentHeadAuthorities?.[deptId] ?? createDepartmentHeadAuthority();
+          const currentAuth =
+            state.departmentHeadAuthorities?.[deptId] ??
+            createDepartmentHeadAuthority();
           if (d.kind === "overtime-cap") {
-            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
-              ...currentAuth,
-              overtimeCapHours: d.overtimeHours + 10,
-            });
+            state.departmentHeadAuthorities[deptId] =
+              createDepartmentHeadAuthority({
+                ...currentAuth,
+                overtimeCapHours: d.overtimeHours + 10,
+              });
           } else if (d.kind === "staffing-reserve") {
-            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
-              ...currentAuth,
-              staffingReserveCount: d.availableCount,
-            });
+            state.departmentHeadAuthorities[deptId] =
+              createDepartmentHeadAuthority({
+                ...currentAuth,
+                staffingReserveCount: d.availableCount,
+              });
           } else if (d.kind === "staffing-budget") {
-            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
-              ...currentAuth,
-              staffingBudgetMinor: d.actualMinor + 10_000_00,
-            });
+            state.departmentHeadAuthorities[deptId] =
+              createDepartmentHeadAuthority({
+                ...currentAuth,
+                staffingBudgetMinor: d.actualMinor + 10_000_00,
+              });
           } else if (d.kind === "service-level") {
-            state.departmentHeadAuthorities[deptId] = createDepartmentHeadAuthority({
-              ...currentAuth,
-              minServiceLevelBasisPoints: d.actualBp,
-            });
+            state.departmentHeadAuthorities[deptId] =
+              createDepartmentHeadAuthority({
+                ...currentAuth,
+                minServiceLevelBasisPoints: d.actualBp,
+              });
           }
         }
       }
@@ -601,6 +593,21 @@ export function applyCompanyCommand(
       );
       return;
     }
+  }
+}
+
+function applyDevelopmentCommand(
+  state: GameState,
+  command: Extract<
+    CompanyCommand,
+    | { type: "START_DEVELOPMENT" }
+    | { type: "COMPLETE_PRE_OPENING_TASK" }
+    | { type: "OPEN_DEVELOPMENT" }
+  >,
+  ctx: CompanyCommandContext,
+): void {
+  const c = state.company;
+  switch (command.type) {
     case "START_DEVELOPMENT": {
       const hotelId = developmentHotelId(command.developmentId);
       ctx.spend(command.investmentMinor, "capex", command.name);
@@ -671,8 +678,6 @@ export function applyCompanyCommand(
         name: development.name,
         cityId: development.cityId,
         rooms: development.rooms,
-        // A new house is underwritten at the rate and occupancy its own
-        // feasibility study assumed, and then has to earn its ramp-up.
         adrMinor: Math.trunc(
           development.feasibility.baseAnnualRoomRevenueMinor /
             Math.max(1, development.rooms * 365),
@@ -692,6 +697,19 @@ export function applyCompanyCommand(
       );
       return;
     }
+  }
+}
+
+function applyAcquisitionCommand(
+  state: GameState,
+  command: Extract<
+    CompanyCommand,
+    { type: "RUN_DUE_DILIGENCE" } | { type: "ACQUIRE_HOTEL" }
+  >,
+  ctx: CompanyCommandContext,
+): void {
+  const c = state.company;
+  switch (command.type) {
     case "RUN_DUE_DILIGENCE": {
       const target = c.acquisitionTargets.find(
         (t) => t.id === command.targetId,
@@ -718,8 +736,6 @@ export function applyCompanyCommand(
       const target = c.acquisitionTargets.find(
         (t) => t.id === command.targetId,
       )!;
-      // One transaction: cash and ownership move together, and any throw from
-      // here on discards the whole draft the command was writing into.
       const moved = executeAcquisition(
         {
           cashMinor: state.finance.cashMinor,
@@ -752,11 +768,8 @@ export function applyCompanyCommand(
         ),
         occupancyBasisPoints: 6500,
         gopMarginBasisPoints: UNDERWRITING_GOP_MARGIN_BP,
-        // A trading house joins mature: it already has its market, which is
-        // most of what the buyer is paying for.
         openedDateKey: addDays(state.calendar.dateKey, -365 * 4),
       });
-      // The transaction's own arithmetic is the authority on what is owned.
       if (!moved.hotelIds.includes(target.hotelId))
         throw new Error("acquisition did not complete");
       ctx.emit(
@@ -770,38 +783,24 @@ export function applyCompanyCommand(
       );
       return;
     }
+  }
+}
+
+function applyLoanCommand(
+  state: GameState,
+  command: Extract<
+    CompanyCommand,
+    { type: "TAKE_LOAN" } | { type: "REPAY_LOAN" }
+  >,
+  ctx: CompanyCommandContext,
+): void {
+  switch (command.type) {
     case "TAKE_LOAN": {
       const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
-      const totalOutstanding = existingLoans.reduce(
-        (sum, l) => sum + l.principalMinor,
-        0,
+      const standing = calculateCreditStandingForState(
+        state,
+        command.collateralValueMinor ?? 0,
       );
-      const totalCollateral =
-        existingLoans.reduce((sum, l) => sum + l.collateralValueMinor, 0) +
-        (command.collateralValueMinor ?? 0);
-
-      const standing = calculateCreditStanding({
-        operatingCashFlowMinor:
-          state.finance.month.roomRevenueMinor +
-          state.finance.month.otherRevenueMinor -
-          state.finance.month.operatingExpenseMinor,
-        totalOutstandingMinor: totalOutstanding,
-        cashMinor: state.finance.cashMinor,
-        equityMinor:
-          (state.statements?.contributedCapitalMinor ?? 0) +
-          (state.statements?.retainedEarningsMinor ?? 0),
-        hotelCount: state.company.portfolio.hotelIds.length || 1,
-        reputationScore: reputationFor(
-          state.reputation,
-          "group",
-          state.company.companyId,
-        ).score,
-        totalCollateralValueMinor: totalCollateral,
-        paymentHistory: state.finance.paymentHistory,
-        macroInterestBp: state.world.macro.interestBp,
-        creditSpreadMultiplierBp:
-          state.narrative?.campaign?.inputs?.creditSpreadBasisPoints ?? 10_000,
-      });
 
       const offeredRate = standing.offeredRateBp;
       const spreadBasisPoints = standing.spreadBp;
@@ -874,6 +873,42 @@ export function applyCompanyCommand(
       );
       return;
     }
+  }
+}
+
+/**
+ * The write half. It runs against the command handler's private draft, so
+ * throwing anywhere in here discards every change the command had made — which
+ * is what makes an acquisition atomic rather than merely careful.
+ */
+export function applyCompanyCommand(
+  state: GameState,
+  command: CompanyCommand,
+  ctx: CompanyCommandContext,
+): void {
+  const verdict = validateCompanyCommand(state, command);
+  if (!verdict.ok) throw new Error(verdict.reason);
+
+  switch (command.type) {
+    case "ASSIGN_BRAND":
+    case "REMOVE_BRAND":
+    case "SET_OPERATING_MODEL":
+    case "SET_HOTEL_BUDGET":
+    case "SET_GROUP_TARGETS":
+    case "SET_MANAGER_AUTHORITY":
+    case "RESOLVE_ESCALATION":
+    case "TRANSFER_INTERNAL_FUNDING":
+      return applyGovernanceAndOperationsCommand(state, command, ctx);
+    case "START_DEVELOPMENT":
+    case "COMPLETE_PRE_OPENING_TASK":
+    case "OPEN_DEVELOPMENT":
+      return applyDevelopmentCommand(state, command, ctx);
+    case "RUN_DUE_DILIGENCE":
+    case "ACQUIRE_HOTEL":
+      return applyAcquisitionCommand(state, command, ctx);
+    case "TAKE_LOAN":
+    case "REPAY_LOAN":
+      return applyLoanCommand(state, command, ctx);
   }
 }
 

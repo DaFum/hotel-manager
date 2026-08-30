@@ -1,4 +1,6 @@
 import { collateralCoverageBasisPoints } from "./debt";
+import type { GameState } from "../simulation/initialState";
+import { reputationFor } from "../reputation/dimensions";
 
 export interface CreditStandingInputs {
   operatingCashFlowMinor: number;
@@ -109,4 +111,41 @@ export function calculateCreditStanding(
     offeredRateBp,
     borrowingLimitMinor,
   };
+}
+
+export function calculateCreditStandingForState(
+  state: GameState,
+  addedCollateralValueMinor = 0,
+): CreditStandingResult {
+  const existingLoans = state.loans ?? (state.loan ? [state.loan] : []);
+  const totalOutstanding = existingLoans.reduce(
+    (sum, l) => sum + l.principalMinor,
+    0,
+  );
+  const totalCollateral =
+    existingLoans.reduce((sum, l) => sum + l.collateralValueMinor, 0) +
+    addedCollateralValueMinor;
+
+  return calculateCreditStanding({
+    operatingCashFlowMinor:
+      state.finance.month.roomRevenueMinor +
+      state.finance.month.otherRevenueMinor -
+      state.finance.month.operatingExpenseMinor,
+    totalOutstandingMinor: totalOutstanding,
+    cashMinor: state.finance.cashMinor,
+    equityMinor:
+      (state.statements?.contributedCapitalMinor ?? 0) +
+      (state.statements?.retainedEarningsMinor ?? 0),
+    hotelCount: state.company.portfolio.hotelIds.length || 1,
+    reputationScore: reputationFor(
+      state.reputation,
+      "group",
+      state.company.companyId,
+    ).score,
+    totalCollateralValueMinor: totalCollateral,
+    paymentHistory: state.finance.paymentHistory,
+    macroInterestBp: state.world.macro.interestBp,
+    creditSpreadMultiplierBp:
+      state.narrative?.campaign?.inputs?.creditSpreadBasisPoints ?? 10_000,
+  });
 }

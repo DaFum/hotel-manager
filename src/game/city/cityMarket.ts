@@ -327,53 +327,12 @@ const UNDERCUT_BP = 9000;
  * month's results settle first, then owners act on what they see, then the
  * city itself moves under all of them.
  */
-export function advanceCityMonth(
-  market: CityMarketState,
+function settleCompetitorMonth(
   competitors: CompetitorRecord[],
-  player: PlayerHouse,
-  input: {
-    /** The month that just ended, for closing it. */
-    endedMonthKey: string;
-    /** The month now beginning, for the demand it will carry. */
-    dateKey: string;
-    economy: RollSource;
-    ai: RollSource;
-    /**
-     * The campaign's labour-scarcity and competitor-aggression levers.
-     * Defaulted to neutral so the city can still be advanced on its own in a
-     * test. Scarcity is applied to every house rather than only to the
-     * player's: a scarce market bids the wage everybody pays.
-     */
-    difficulty?: Pick<
-      DifficultyInputs,
-      | "laborScarcityBasisPoints"
-      | "competitorAggressionBasisPoints"
-      | "forecastAccuracyBasisPoints"
-    >;
-    sandbox?: Pick<
-      SandboxOptions,
-      "competitorAggressionBasisPoints" | "informationAccuracyBasisPoints"
-    >;
-  },
-): CompetitorRecord[] {
-  const nightsInMonth = daysInMonth(input.endedMonthKey);
-  // Season is known in advance, so no owner reads a busy trade-fair month as
-  // a structurally tight market.
-  const seasonBp = seasonalityBp(input.endedMonthKey);
-  const deseasoned = (occupancyBp: number) =>
-    Math.round((occupancyBp * 10000) / seasonBp);
-  // This is the supply that traded the ending month: later exits remain in
-  // its denominator, while rooms built during settlement do not appear in it.
-  const tradedRoomTotal =
-    competitors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
-    player.rooms;
-  const competitorRoomsBeforeActions = competitors.reduce(
-    (rooms, competitor) => rooms + competitor.rooms,
-    0,
-  );
-  const marketRateBeforeActions = averageRateMinor(competitors, player);
-
-  // --- 1. settle the month every house has just traded -------------------
+  market: CityMarketState,
+  nightsInMonth: number,
+  deseasoned: (bp: number) => number,
+): void {
   for (const c of competitors) {
     const available = c.rooms * nightsInMonth;
     c.occupancyBp =
@@ -387,9 +346,6 @@ export function advanceCityMonth(
       rooms: c.rooms,
       landPriceMinor: market.landPriceMinor,
     });
-    // A lender advances against the borrowing capacity that is left, not
-    // against the asset over and over: a house that has already borrowed to
-    // its tolerance cannot refinance its way out of a decade of losses.
     const headroom = Math.max(
       0,
       Math.round((capital * targetLeverageBp(c.strategy)) / 10000) -
@@ -405,7 +361,6 @@ export function advanceCityMonth(
       burn: Math.max(0, -month.profitMinor),
     });
 
-    // --- 2. what the owner does with the result --------------------------
     if (c.status === "operate") {
       const action = chooseInvestment({
         returnBp: returnOnCapitalBp(month.profitMinor * 12, capital),
@@ -424,8 +379,6 @@ export function advanceCityMonth(
           creditLineMinor(EXPANSION_ROOMS, market.landPriceMinor),
         ),
       );
-      // Rooms are only added by a house that is actually turning guests away,
-      // and no faster than a building can be put up.
       if (
         action === "expand" &&
         funding !== null &&
@@ -440,55 +393,52 @@ export function advanceCityMonth(
         const cost = Math.round(capital / 20);
         if (c.cashMinor >= cost) {
           c.cashMinor -= cost;
-          // A refit buys product, and product decays without one.
           c.appealBp = Math.min(15000, c.appealBp + 200);
         }
       }
     } else if (c.status === "restructure") {
-      // Distress is refinanced, not forgiven: the debt grows with the hole,
-      // and only as far as the lender will still go.
       c.cashMinor += credit;
       c.debtMinor += credit;
     }
     c.soldRoomNights = 0;
     c.monthsSinceBuild += 1;
   }
+}
 
-  const survivors = competitors.filter((c) => c.status !== "exit");
-  const survivorRoomTotal =
-    survivors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
-    player.rooms;
-
-  // --- 3. what each house remembers about the player ----------------------
-  const marketRate = averageRateMinor(survivors, player);
-  // How far under the market reads as undercutting is what the competitors are
-  // like, and that is a disclosed difficulty input: an aggressive field takes
-  // offence at a smaller cut than a relaxed one.
+function updateCompetitorRelations(
+  survivors: CompetitorRecord[],
+  player: PlayerHouse,
+  marketRate: number,
+  difficulty?: Pick<DifficultyInputs, "competitorAggressionBasisPoints">,
+): void {
   const undercutBp = aggressionAdjustedUndercutBp(
     UNDERCUT_BP,
-    input.difficulty ?? { competitorAggressionBasisPoints: 10_000 },
+    difficulty ?? { competitorAggressionBasisPoints: 10_000 },
   );
   for (const c of survivors)
     c.relation =
       player.rateMinor * 10000 < marketRate * undercutBp
         ? rememberPriceCut(c.relation)
         : rememberFairPlay(c.relation);
+}
 
-  // --- 4. next month's rates, off a market nobody sees exactly ------------
+function updateCompetitorRates(
+  survivors: CompetitorRecord[],
+  marketRate: number,
+  ai: RollSource,
+  sandbox?: Pick<SandboxOptions, "competitorAggressionBasisPoints">,
+): void {
   for (const c of survivors) {
     const observed = observedMarketRateMinor(
       marketRate,
-      input.ai.nextUint32() % 10000,
+      ai.nextUint32() % 10000,
     );
     const base = competitorRateMinor({
       observedMarketRateMinor: observed,
       strategy: c.strategy,
       occupancyBp: c.occupancyBp,
-      aggressionBp: input.sandbox?.competitorAggressionBasisPoints,
+      aggressionBp: sandbox?.competitorAggressionBasisPoints,
     });
-    // No house can ask more than the city's guests will pay, however dear the
-    // market looks: a better product raises that ceiling, it does not remove
-    // it. This is the same willingness the player's bookings are tested on.
     const ceilingMinor = Math.round(
       (topWillingnessMinor() * c.appealBp) / 10000,
     );
@@ -499,17 +449,27 @@ export function advanceCityMonth(
         Math.round((base * (10000 - retaliationBp(c.relation))) / 10000),
       ),
     );
-    // Product ages between refits, so standing still costs appeal.
     c.appealBp = Math.max(4000, c.appealBp - 20);
   }
+}
 
-  // --- 5. the city underneath them ---------------------------------------
+function advanceCityUnderlyingMarket(
+  market: CityMarketState,
+  player: PlayerHouse,
+  tradedRoomTotal: number,
+  competitorRoomsBeforeActions: number,
+  marketRateBeforeActions: number,
+  nightsInMonth: number,
+  deseasoned: (bp: number) => number,
+  economy: RollSource,
+): number {
   const cityOccupancyBp = occupancyBpOf(
     market.soldRoomNights,
     tradedRoomTotal * nightsInMonth,
   );
   const attribution = market.occupancyAttribution;
-  const occupancyMovementBp = cityOccupancyBp - attribution.previousOccupancyBp;
+  const occupancyMovementBp =
+    cityOccupancyBp - attribution.previousOccupancyBp;
   const ownPriceDeltaBp = marketRateBeforeActions
     ? Math.trunc(
         ((player.rateMinor - marketRateBeforeActions) * 10_000) /
@@ -542,11 +502,8 @@ export function advanceCityMonth(
       eventUpliftBp: market.eventUpliftBp,
     }),
   };
-  // Every structural decision — employers, land, entry — is taken on the
-  // season-adjusted figure rather than on the month just traded.
+
   const trendOccupancyBp = deseasoned(cityOccupancyBp);
-  // Employers and organisers react to how the city trades, but slowly and
-  // within bounds: one soft season must not be able to empty a city.
   const actorDemandIndex = Math.max(
     85,
     Math.min(
@@ -559,15 +516,14 @@ export function advanceCityMonth(
     scale: nextActorScale({
       scale: a.scale,
       demand: actorDemandIndex,
-      // The actor's own trade, drawn from the economy stream: ±500 bp.
-      profitBp: (input.economy.nextUint32() % 1001) - 500,
+      profitBp: (economy.nextUint32() % 1001) - 500,
     }),
   }));
 
-  if (input.economy.nextUint32() % 10000 < ROUTE_CHANGE_CHANCE_BP) {
+  if (economy.nextUint32() % 10000 < ROUTE_CHANGE_CHANCE_BP) {
     const mode =
-      TRANSPORT_MODES[input.economy.nextUint32() % TRANSPORT_MODES.length];
-    const delta = (input.economy.nextUint32() % 11) - 4;
+      TRANSPORT_MODES[economy.nextUint32() % TRANSPORT_MODES.length];
+    const delta = (economy.nextUint32() % 11) - 4;
     market.transport = applyRouteChange(market.transport, {
       mode,
       deltaPoints: delta,
@@ -578,13 +534,92 @@ export function advanceCityMonth(
     market.landPriceMinor,
     targetPriceMinor(
       STARTING_LAND_PRICE_MINOR,
-      // A city at its balanced occupancy is a city at its normal land price.
-      Math.max(1, Math.round((trendOccupancyBp * 10000) / TARGET_OCCUPANCY_BP)),
+      Math.max(
+        1,
+        Math.round((trendOccupancyBp * 10000) / TARGET_OCCUPANCY_BP),
+      ),
     ),
     MAX_MONTHLY_MOVE_BP,
   );
 
-  // --- 6. what the hotels have given back to the city ---------------------
+  return trendOccupancyBp;
+}
+
+/**
+ * One month of the city. Order is fixed and every step is deterministic: the
+ * month's results settle first, then owners act on what they see, then the
+ * city itself moves under all of them.
+ */
+export function advanceCityMonth(
+  market: CityMarketState,
+  competitors: CompetitorRecord[],
+  player: PlayerHouse,
+  input: {
+    /** The month that just ended, for closing it. */
+    endedMonthKey: string;
+    /** The month now beginning, for the demand it will carry. */
+    dateKey: string;
+    economy: RollSource;
+    ai: RollSource;
+    /**
+     * The campaign's labour-scarcity and competitor-aggression levers.
+     * Defaulted to neutral so the city can still be advanced on its own in a
+     * test. Scarcity is applied to every house rather than only to the
+     * player's: a scarce market bids the wage everybody pays.
+     */
+    difficulty?: Pick<
+      DifficultyInputs,
+      | "laborScarcityBasisPoints"
+      | "competitorAggressionBasisPoints"
+      | "forecastAccuracyBasisPoints"
+    >;
+    sandbox?: Pick<
+      SandboxOptions,
+      "competitorAggressionBasisPoints" | "informationAccuracyBasisPoints"
+    >;
+  },
+): CompetitorRecord[] {
+  const nightsInMonth = daysInMonth(input.endedMonthKey);
+  const seasonBp = seasonalityBp(input.endedMonthKey);
+  const deseasoned = (occupancyBp: number) =>
+    Math.round((occupancyBp * 10000) / seasonBp);
+  const tradedRoomTotal =
+    competitors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
+    player.rooms;
+  const competitorRoomsBeforeActions = competitors.reduce(
+    (rooms, competitor) => rooms + competitor.rooms,
+    0,
+  );
+  const marketRateBeforeActions = averageRateMinor(competitors, player);
+
+  // 1 & 2. Settle month for every competitor & owner actions
+  settleCompetitorMonth(competitors, market, nightsInMonth, deseasoned);
+
+  const survivors = competitors.filter((c) => c.status !== "exit");
+  const survivorRoomTotal =
+    survivors.reduce((rooms, competitor) => rooms + competitor.rooms, 0) +
+    player.rooms;
+  const marketRate = averageRateMinor(survivors, player);
+
+  // 3. Competitor relations
+  updateCompetitorRelations(survivors, player, marketRate, input.difficulty);
+
+  // 4. Next month's rates
+  updateCompetitorRates(survivors, marketRate, input.ai, input.sandbox);
+
+  // 5. Advance city underlying market
+  const trendOccupancyBp = advanceCityUnderlyingMarket(
+    market,
+    player,
+    tradedRoomTotal,
+    competitorRoomsBeforeActions,
+    marketRateBeforeActions,
+    nightsInMonth,
+    deseasoned,
+    input.economy,
+  );
+
+  // 6. Hotel feedback to city
   const matured = delayedEffect(
     market.feedbackPipeline,
     conferenceEffect(player.conferenceSeats),
@@ -615,7 +650,7 @@ export function advanceCityMonth(
     ),
   );
 
-  // --- 7. who else wants in ----------------------------------------------
+  // 7. New entrant check
   const wantsIn =
     entryOpportunity({
       occupancyBp: trendOccupancyBp,

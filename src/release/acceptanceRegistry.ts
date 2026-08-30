@@ -61,4 +61,36 @@ export const ACCEPTANCE_REGISTRY = [
       },
     ],
   },
+  {
+    id: 34,
+    title: "Compliance",
+    masterChapters: ["38"],
+    evidence: [
+      {
+        id: "regulation.compliance.model",
+        implementationPath: "src/game/regulation/compliance.ts",
+        evidence: {
+          path: "src/game/regulation/compliance.test.ts",
+          assertion: "explains jurisdictional compliance gaps and remediation",
+        },
+      },
+      {
+        id: "regulation.content.schema",
+        implementationPath: "src/content-schema/regulation.ts",
+        evidence: {
+          path: "src/content-schema/schemaSnapshot.test.ts",
+          assertion: "is the complete generated JSON schema for version 1",
+        },
+      },
+      {
+        id: "regulation.simulation.wiring",
+        implementationPath: "src/game/simulation/GameSimulation.ts",
+        evidence: {
+          path: "src/game/simulation/GameSimulation.test.ts",
+          assertion:
+            "raises lead-time alert, handles breach with fine, reputation delta, facility constraint, and remedies when compliant",
+        },
+      },
+    ],
+  },
 ];

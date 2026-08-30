@@ -12,7 +12,17 @@
       "baseDemandRoomNights": 4200,
       "baseMonthlyWageMinor": 200000,
       "seasonalityBasisPoints": [
-        8000, 9000, 11000, 12000, 11000, 10000, 8500, 8000, 11000, 12000, 10000,
+        8000,
+        9000,
+        11000,
+        12000,
+        11000,
+        10000,
+        8500,
+        8000,
+        11000,
+        12000,
+        10000,
         7000
       ]
     },
@@ -126,7 +136,8 @@
       "linenPieces": 4,
       "fitOutCostMinor": 1800000,
       "requiredTechnologyIds": [],
-      "simulationOrder": 0
+      "simulationOrder": 0,
+      "accessibilityBasisPoints": 6000
     },
     "room.standard.double": {
       "id": "room.standard.double",
@@ -142,7 +153,8 @@
       "linenPieces": 6,
       "fitOutCostMinor": 2400000,
       "requiredTechnologyIds": [],
-      "simulationOrder": 1
+      "simulationOrder": 1,
+      "accessibilityBasisPoints": 6000
     },
     "room.comfort.double": {
       "id": "room.comfort.double",
@@ -158,7 +170,8 @@
       "linenPieces": 7,
       "fitOutCostMinor": 3600000,
       "requiredTechnologyIds": [],
-      "simulationOrder": 2
+      "simulationOrder": 2,
+      "accessibilityBasisPoints": 8000
     },
     "room.suite.junior": {
       "id": "room.suite.junior",
@@ -174,7 +187,8 @@
       "linenPieces": 9,
       "fitOutCostMinor": 6200000,
       "requiredTechnologyIds": [],
-      "simulationOrder": 3
+      "simulationOrder": 3,
+      "accessibilityBasisPoints": 10000
     },
     "tech.personal-computer": {
       "id": "tech.personal-computer",
@@ -193,7 +207,9 @@
       "kind": "technology",
       "runtimeId": "internet",
       "nameKey": "tech.internet.name",
-      "prerequisiteIds": ["tech.personal-computer"],
+      "prerequisiteIds": [
+        "tech.personal-computer"
+      ],
       "competingStandardIds": [],
       "emergenceThresholdBasisPoints": 500,
       "initialAdoptionBasisPoints": 0,
@@ -205,7 +221,9 @@
       "kind": "technology",
       "runtimeId": "smartphone",
       "nameKey": "tech.smartphone.name",
-      "prerequisiteIds": ["tech.internet"],
+      "prerequisiteIds": [
+        "tech.internet"
+      ],
       "competingStandardIds": [],
       "emergenceThresholdBasisPoints": 1500,
       "initialAdoptionBasisPoints": 0,
@@ -217,7 +235,9 @@
       "kind": "technology",
       "runtimeId": "channel-manager",
       "nameKey": "tech.channel-manager.name",
-      "prerequisiteIds": ["tech.internet"],
+      "prerequisiteIds": [
+        "tech.internet"
+      ],
       "competingStandardIds": [],
       "emergenceThresholdBasisPoints": 1200,
       "initialAdoptionBasisPoints": 0,
@@ -229,7 +249,9 @@
       "kind": "trend",
       "runtimeId": "digital-booking",
       "nameKey": "trend.digital-booking.name",
-      "driverTechnologyIds": ["tech.internet"],
+      "driverTechnologyIds": [
+        "tech.internet"
+      ],
       "initialAdoptionBasisPoints": 0,
       "demandEffectBasisPoints": 1000,
       "simulationOrder": 0
@@ -285,7 +307,7 @@
     "menu.breakfast.buffet": {
       "id": "menu.breakfast.buffet",
       "kind": "recipe",
-      "name": "Frühstücksbuffet",
+      "name": "Fr\u00fchst\u00fccksbuffet",
       "nameKey": "menu.breakfast.buffet.name",
       "outlet": "breakfast",
       "ingredients": [
@@ -383,7 +405,9 @@
       "kind": "supplier",
       "name": "Hygiene Mainz",
       "nameKey": "supplier.hygiene-mainz.name",
-      "itemIds": ["item.cleaning-unit"],
+      "itemIds": [
+        "item.cleaning-unit"
+      ],
       "sku": "cleaning-unit",
       "unitCostMinor": 500,
       "leadTimeMinutes": 1440,
@@ -394,9 +418,11 @@
     "supplier.baecker-sachs": {
       "id": "supplier.baecker-sachs",
       "kind": "supplier",
-      "name": "Bäckerei Sachs",
+      "name": "B\u00e4ckerei Sachs",
       "nameKey": "supplier.baecker-sachs.name",
-      "itemIds": ["item.breakfast-portion"],
+      "itemIds": [
+        "item.breakfast-portion"
+      ],
       "sku": "breakfast-portion",
       "unitCostMinor": 450,
       "leadTimeMinutes": 720,
@@ -407,9 +433,11 @@
     "supplier.waeschehaus-offenbach": {
       "id": "supplier.waeschehaus-offenbach",
       "kind": "supplier",
-      "name": "Wäschehaus Offenbach",
+      "name": "W\u00e4schehaus Offenbach",
       "nameKey": "supplier.waeschehaus-offenbach.name",
-      "itemIds": ["item.linen-piece"],
+      "itemIds": [
+        "item.linen-piece"
+      ],
       "sku": "linen-piece",
       "unitCostMinor": 900,
       "leadTimeMinutes": 2880,
@@ -465,7 +493,9 @@
       "nameKey": "brand.mainblick.name",
       "minimumRoomQualityBasisPoints": 5500,
       "minimumGuestSatisfactionBasisPoints": 5500,
-      "requiredFacilityIds": ["facility.breakfast_room"],
+      "requiredFacilityIds": [
+        "facility.breakfast_room"
+      ],
       "requiredTechnologyIds": [],
       "demandUpliftBasisPoints": 400,
       "monthlyFeeMinor": 120000,
@@ -477,7 +507,10 @@
       "nameKey": "brand.rheinstern.name",
       "minimumRoomQualityBasisPoints": 7500,
       "minimumGuestSatisfactionBasisPoints": 7000,
-      "requiredFacilityIds": ["facility.breakfast_room", "facility.wellness"],
+      "requiredFacilityIds": [
+        "facility.breakfast_room",
+        "facility.wellness"
+      ],
       "requiredTechnologyIds": [],
       "demandUpliftBasisPoints": 900,
       "monthlyFeeMinor": 420000,
@@ -589,7 +622,9 @@
       ],
       "priority": 3,
       "cooldownMonths": 120,
-      "requiredTechnologyIds": ["tech.internet"],
+      "requiredTechnologyIds": [
+        "tech.internet"
+      ],
       "simulationOrder": 2
     },
     "item.rumpsteak-portion": {
@@ -605,6 +640,86 @@
       "nameKey": "item.aperitif-portion.name",
       "unitKey": "unit.each",
       "referenceCostMinor": 260
+    },
+    "regulation.de.labor.tariff_wage": {
+      "id": "regulation.de.labor.tariff_wage",
+      "kind": "regulation",
+      "simulationOrder": 0,
+      "nameKey": "regulation.de.labor.tariff_wage.name",
+      "jurisdictionId": "de.he.frankfurt",
+      "area": "labor",
+      "requirement": 200000,
+      "effectiveAtMinutes": 1000,
+      "graceMinutes": 20000,
+      "noticeAtMinutes": 0,
+      "inspectionRiskBp": 1000,
+      "consequenceMinor": 1000000,
+      "consequences": [
+        {
+          "kind": "fine",
+          "amountMinor": 1000000
+        },
+        {
+          "kind": "reputation",
+          "dimension": "employer",
+          "delta": -5
+        }
+      ],
+      "reputationDimension": "employer",
+      "requiredTechnologyIds": []
+    },
+    "regulation.de.safety.fire": {
+      "id": "regulation.de.safety.fire",
+      "kind": "regulation",
+      "simulationOrder": 1,
+      "nameKey": "regulation.de.safety.fire.name",
+      "jurisdictionId": "de.he.frankfurt",
+      "area": "safety",
+      "requirement": 60,
+      "effectiveAtMinutes": 1000,
+      "graceMinutes": 20000,
+      "noticeAtMinutes": 0,
+      "inspectionRiskBp": 2000,
+      "consequenceMinor": 2000000,
+      "consequences": [
+        {
+          "kind": "fine",
+          "amountMinor": 2000000
+        },
+        {
+          "kind": "closure",
+          "facilityId": "facility.breakfast_room"
+        }
+      ],
+      "affectedFacilityId": "facility.breakfast_room",
+      "requiredTechnologyIds": []
+    },
+    "regulation.de.accessibility.standards": {
+      "id": "regulation.de.accessibility.standards",
+      "kind": "regulation",
+      "simulationOrder": 2,
+      "nameKey": "regulation.de.accessibility.standards.name",
+      "jurisdictionId": "de.he.frankfurt",
+      "area": "accessibility",
+      "requirement": 50,
+      "effectiveAtMinutes": 1000,
+      "graceMinutes": 20000,
+      "noticeAtMinutes": 0,
+      "inspectionRiskBp": 1500,
+      "consequenceMinor": 1500000,
+      "consequences": [
+        {
+          "kind": "fine",
+          "amountMinor": 1500000
+        },
+        {
+          "kind": "reputation",
+          "dimension": "hotel",
+          "delta": -5
+        }
+      ],
+      "reputationDimension": "hotel",
+      "requiredTechnologyIds": []
     }
   }
 }

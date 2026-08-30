@@ -62,6 +62,7 @@ export const ACCOUNT_CLASSES: Record<string, AccountClass> = {
   loyaltyBenefit: "operating",
   groupDeposit: "settlement",
   serviceRecovery: "operating",
+  fine: "operating",
   receivableSettlement: "settlement",
   receivableCollection: "settlement",
   supplierSettlement: "settlement",

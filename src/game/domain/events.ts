@@ -357,6 +357,21 @@ export type DomainEventPayload =
       type: "UTILITY_OUTAGE_ENDED";
       kind: import("../utilities/consumption").UtilityKind;
       cause: string;
+    }
+  // --- regulation and compliance -----------------------------------------
+  | {
+      type: "COMPLIANCE_BREACH_DETECTED";
+      ruleId: string;
+      hotelId: string;
+      area: string;
+      gap: number;
+      consequenceMinor: number;
+    }
+  | {
+      type: "COMPLIANCE_REMEDIED";
+      ruleId: string;
+      hotelId: string;
+      area: string;
     };
 
 export type DomainEventType = DomainEventPayload["type"];
@@ -465,6 +480,8 @@ const EVENT_TYPE_REGISTRY: Record<DomainEventType, true> = {
   EFFICIENCY_INVESTMENT_COMPLETED: true,
   UTILITY_OUTAGE_STARTED: true,
   UTILITY_OUTAGE_ENDED: true,
+  COMPLIANCE_BREACH_DETECTED: true,
+  COMPLIANCE_REMEDIED: true,
 };
 
 export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
@@ -560,6 +577,8 @@ export const DOMAIN_EVENT_TYPES: readonly DomainEventType[] = [
   "EFFICIENCY_INVESTMENT_COMPLETED",
   "UTILITY_OUTAGE_STARTED",
   "UTILITY_OUTAGE_ENDED",
+  "COMPLIANCE_BREACH_DETECTED",
+  "COMPLIANCE_REMEDIED",
 ];
 
 // Retain the exhaustive record separately from the ordered public list. The

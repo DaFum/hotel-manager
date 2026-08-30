@@ -1,5 +1,5 @@
 {
-  "saveVersion": 18,
+  "saveVersion": 19,
   "contentVersion": "1991.1",
   "protocolVersion": 6,
   "rngState": {
@@ -15456,6 +15456,7 @@
       "id": "hotel.frankfurt.1",
       "name": "Hotel Mainblick",
       "cityId": "city.frankfurt",
+      "jurisdictionId": "de.he.frankfurt",
       "rooms": [
         {
           "id": "room.101",
@@ -15650,6 +15651,36 @@
           "styleAgeYears": 16
         }
       ]
+    },
+    "compliance": {
+      "rules": {
+        "regulation.de.labor.tariff_wage": {
+          "status": "compliant",
+          "lastEvaluatedMinutes": 44640,
+          "gap": 0,
+          "measured": 235000,
+          "requirement": 200000,
+          "remediation": []
+        },
+        "regulation.de.safety.fire": {
+          "status": "compliant",
+          "lastEvaluatedMinutes": 44640,
+          "gap": 0,
+          "measured": 87,
+          "requirement": 60,
+          "remediation": []
+        },
+        "regulation.de.accessibility.standards": {
+          "status": "compliant",
+          "lastEvaluatedMinutes": 44640,
+          "gap": 0,
+          "measured": 60,
+          "requirement": 50,
+          "remediation": []
+        }
+      },
+      "activeRestrictions": {},
+      "activeClosures": {}
     },
     "rates": {},
     "reservations": [
@@ -32206,32 +32237,6 @@
         "acknowledged": false
       },
       {
-        "id": "alert.security.spaces",
-        "severity": "warning",
-        "title": "alert.security.spaces.title",
-        "cause": "alert.security.spaces.cause",
-        "causeValues": {
-          "inHouseGuests": 9,
-          "eventGuests": 0,
-          "openSpaces": 3
-        },
-        "target": {
-          "entityId": "facility.security",
-          "kind": "facility"
-        },
-        "category": "security",
-        "groupId": "hotel.frankfurt.1:security",
-        "source": {
-          "companyId": "company.player",
-          "hotelId": "hotel.frankfurt.1",
-          "regionId": "region.de.hessen"
-        },
-        "gameTime": "1991-01-31:1080",
-        "actionEntityId": "alert.security.spaces",
-        "delegate": "Anna Keller",
-        "acknowledged": false
-      },
-      {
         "id": "alert.booking-refused.booking.45240.3",
         "severity": "info",
         "title": "alert.booking-refused.title",
@@ -32391,6 +32396,32 @@
         },
         "gameTime": "1991-02-05:600",
         "actionEntityId": "alert.booking-refused.booking.51000.5",
+        "delegate": "Anna Keller",
+        "acknowledged": false
+      },
+      {
+        "id": "alert.security.spaces",
+        "severity": "warning",
+        "title": "alert.security.spaces.title",
+        "cause": "alert.security.spaces.cause",
+        "causeValues": {
+          "inHouseGuests": 13,
+          "eventGuests": 88,
+          "openSpaces": 3
+        },
+        "target": {
+          "entityId": "facility.security",
+          "kind": "facility"
+        },
+        "category": "security",
+        "groupId": "hotel.frankfurt.1:security",
+        "source": {
+          "companyId": "company.player",
+          "hotelId": "hotel.frankfurt.1",
+          "regionId": "region.de.hessen"
+        },
+        "gameTime": "1991-02-05:1080",
+        "actionEntityId": "alert.security.spaces",
         "delegate": "Anna Keller",
         "acknowledged": false
       },

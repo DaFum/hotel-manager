@@ -18,6 +18,7 @@ export const RoomProductSchema = z.object({
   comfortBasisPoints: BasisPointsSchema,
   bathBasisPoints: BasisPointsSchema,
   technologyBasisPoints: BasisPointsSchema,
+  accessibilityBasisPoints: BasisPointsSchema.default(0),
   cleanMinutes: MinutesSchema,
   linenPieces: z.number().int().nonnegative(),
   fitOutCostMinor: MinorCurrencySchema.nonnegative(),

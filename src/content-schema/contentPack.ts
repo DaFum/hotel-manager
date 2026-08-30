@@ -7,6 +7,7 @@ import { FacilitySchema } from "./facility";
 import { GuestSegmentSchema } from "./guestSegment";
 import { ItemSchema } from "./item";
 import { RecipeSchema } from "./recipe";
+import { RegulationSchema } from "./regulation";
 import { RivalSchema } from "./rival";
 import { RoomProductSchema } from "./roomProduct";
 import { SupplierSchema } from "./supplier";
@@ -27,6 +28,7 @@ export const ContentEntrySchema = z.discriminatedUnion("kind", [
   SupplierSchema,
   RivalSchema,
   BrandSchema,
+  RegulationSchema,
 ]);
 
 export const ContentPackSchema = z

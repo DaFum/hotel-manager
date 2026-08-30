@@ -1,3 +1,9 @@
+import { REGULATION_RULES } from "../content/1991/regulation";
+import {
+  applicableRules,
+  evaluateCompliance,
+} from "../regulation/compliance";
+import { getMeasuredFacts } from "../regulation/measuredFacts";
 import { captureRngState, restoreRngStreams } from "../domain/rng";
 import { CITY, seasonalityBp } from "../content/1991/frankfurt";
 import { pickSegment } from "../content/1991/guestSegments";
@@ -1962,14 +1968,18 @@ export class GameSimulation implements CommandExecutor {
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
-    const constraints: FacilityConstraint[] = [
-      { label: "facility.cause.demand", value: demand },
-      { label: "facility.cause.seating", value: seating.capacity },
-      { label: "facility.cause.serviceStaff", value: serviceThroughput },
-      { label: "facility.cause.kitchenLine", value: kitchenThroughput },
-      { label: "facility.cause.stock", value: stock },
-      { label: "facility.cause.miseEnPlace", value: prepared },
-    ];
+    const constraints: FacilityConstraint[] = this.applyComplianceConstraints(
+      "facility.breakfast_room",
+      [
+        { label: "facility.cause.demand", value: demand },
+        { label: "facility.cause.seating", value: seating.capacity },
+        { label: "facility.cause.serviceStaff", value: serviceThroughput },
+        { label: "facility.cause.kitchenLine", value: kitchenThroughput },
+        { label: "facility.cause.stock", value: stock },
+        { label: "facility.cause.miseEnPlace", value: prepared },
+      ],
+      seating.capacity,
+    );
     const row = facilityRow({
       id: "fnb.breakfastRoom",
       name: "Breakfast room",
@@ -2041,11 +2051,9 @@ export class GameSimulation implements CommandExecutor {
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
-    const row = facilityRow({
-      id: "fnb.restaurant",
-      name: "Restaurant",
-      demand,
-      constraints: [
+    const constraints = this.applyComplianceConstraints(
+      "facility.restaurant",
+      [
         { label: "facility.cause.demand", value: demand },
         { label: "facility.cause.seating", value: seating.capacity },
         { label: "facility.cause.serviceStaff", value: serviceThroughput },
@@ -2053,6 +2061,13 @@ export class GameSimulation implements CommandExecutor {
         { label: "facility.cause.stock", value: stock },
         { label: "facility.cause.miseEnPlace", value: prepared },
       ],
+      seating.capacity,
+    );
+    const row = facilityRow({
+      id: "fnb.restaurant",
+      name: "Restaurant",
+      demand,
+      constraints,
     });
     const kitchen = runKitchenService({
       boardCovers: 0,
@@ -2123,11 +2138,9 @@ export class GameSimulation implements CommandExecutor {
     const kitchenThroughput = STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(demand, kitchenThroughput);
-    const row = facilityRow({
-      id: "fnb.bar",
-      name: "Bar and lounge",
-      demand,
-      constraints: [
+    const constraints = this.applyComplianceConstraints(
+      "facility.bar",
+      [
         { label: "facility.cause.demand", value: demand },
         { label: "facility.cause.seating", value: seating.capacity },
         { label: "facility.cause.serviceStaff", value: serviceThroughput },
@@ -2135,6 +2148,13 @@ export class GameSimulation implements CommandExecutor {
         { label: "facility.cause.stock", value: stock },
         { label: "facility.cause.miseEnPlace", value: prepared },
       ],
+      seating.capacity,
+    );
+    const row = facilityRow({
+      id: "fnb.bar",
+      name: "Bar and lounge",
+      demand,
+      constraints,
     });
     const kitchen = runKitchenService({
       boardCovers: 0,
@@ -2194,11 +2214,9 @@ export class GameSimulation implements CommandExecutor {
       this.workingLifts() * STARTER_HOTEL.kitchenCovers;
     const stock = s.stock[FNB_SERVICE_STOCK_SKU] ?? 0;
     const prepared = plannedFnbPreparation(orders, kitchenThroughput);
-    const row = facilityRow({
-      id: "fnb.roomService",
-      name: "Room service",
-      demand: orders,
-      constraints: [
+    const constraints = this.applyComplianceConstraints(
+      "facility.kitchen",
+      [
         { label: "facility.cause.demand", value: orders },
         { label: "facility.cause.kitchenLine", value: kitchenThroughput },
         { label: "facility.cause.serviceStaff", value: serviceThroughput },
@@ -2207,6 +2225,13 @@ export class GameSimulation implements CommandExecutor {
         { label: "facility.cause.stock", value: stock },
         { label: "facility.cause.miseEnPlace", value: prepared },
       ],
+      kitchenThroughput,
+    );
+    const row = facilityRow({
+      id: "fnb.roomService",
+      name: "Room service",
+      demand: orders,
+      constraints,
     });
     const kitchen = runKitchenService({
       boardCovers: 0,
@@ -2635,6 +2660,9 @@ export class GameSimulation implements CommandExecutor {
 
   private runSatisfaction(): void {
     const s = this.state;
+    if (this.dayRolled) {
+      this.checkComplianceAlerts();
+    }
     if (s.calendar.minuteOfDay === ARRIVAL_MINUTE) {
       // These describe a condition, not an event, so each evaluation clears
       // the previous verdict before deciding again; otherwise a warning the
@@ -4359,6 +4387,244 @@ export class GameSimulation implements CommandExecutor {
   }
 
   /** The board rows the UI and the Pixi layer both read. */
+  private applyComplianceConstraints(
+    facilityId: string,
+    constraints: FacilityConstraint[],
+    baseCapacity?: number,
+  ): FacilityConstraint[] {
+    const result = [...constraints];
+    const closure = this.state.compliance.activeClosures[facilityId];
+    if (closure) {
+      result.push({ label: "regulatory closure", value: 0 });
+    }
+    const restriction = this.state.compliance.activeRestrictions[facilityId];
+    if (restriction) {
+      if (restriction.capacityValue !== undefined) {
+        result.push({
+          label: "compliance restriction",
+          value: restriction.capacityValue,
+        });
+      } else if (
+        restriction.capacityFactorBp !== undefined &&
+        baseCapacity !== undefined
+      ) {
+        result.push({
+          label: "compliance restriction",
+          value: Math.trunc((baseCapacity * restriction.capacityFactorBp) / 10000),
+        });
+      }
+    }
+    return result;
+  }
+
+  private checkComplianceAlerts(): void {
+    const s = this.state;
+    const applicable = applicableRules(
+      REGULATION_RULES,
+      s.hotel.jurisdictionId,
+      { energyPriceIndexBp: s.world.macro.energyPriceIndexBp },
+      s.elapsedMinutes,
+    );
+    const applicableIds = new Set(applicable.map((r) => r.id));
+
+    // Clear alerts for tracked rules that are no longer applicable
+    for (const ruleId of Object.keys(s.compliance.rules).sort(compareIds)) {
+      if (!applicableIds.has(ruleId)) {
+        this.clearAlerts([`alert.compliance.${ruleId}`]);
+      }
+    }
+
+    for (const rule of applicable) {
+      const alertId = `alert.compliance.${rule.id}`;
+      const status = s.compliance.rules[rule.id]?.status ?? "inactive";
+
+      if (status === "inactive" && s.elapsedMinutes >= rule.noticeAtMinutes) {
+        this.pushAlert({
+          id: alertId,
+          severity: "warning",
+          title: "alert.compliance.notice.title",
+          cause: "alert.compliance.notice.cause",
+          causeValues: {
+            area: rule.area,
+            effectiveAtMinutes: rule.effectiveAtMinutes,
+          },
+          target: { entityId: "navigation.compliance", kind: "navigation" },
+        });
+      } else if (status === "noncompliant") {
+        const wasAcknowledged = s.alerts.find(
+          (a) => a.id === alertId,
+        )?.acknowledged;
+        this.clearAlerts([alertId]);
+        this.pushAlert({
+          id: alertId,
+          severity: "critical",
+          title: "alert.compliance.breach.title",
+          cause: "alert.compliance.breach.cause",
+          causeValues: { area: rule.area },
+          target: { entityId: "navigation.compliance", kind: "navigation" },
+        });
+      } else if (status === "compliant") {
+        this.clearAlerts([alertId]);
+      }
+    }
+  }
+
+  private runComplianceEvaluation(): void {
+    const s = this.state;
+    const measuredFacts = getMeasuredFacts(s);
+    const applicable = applicableRules(
+      REGULATION_RULES,
+      s.hotel.jurisdictionId,
+      { energyPriceIndexBp: s.world.macro.energyPriceIndexBp },
+      s.elapsedMinutes,
+    );
+    const applicableIds = new Set(applicable.map((r) => r.id));
+
+    // Reconcile tracked rules that are no longer applicable
+    for (const ruleId of Object.keys(s.compliance.rules).sort(compareIds)) {
+      if (!applicableIds.has(ruleId)) {
+        const previousStatus = s.compliance.rules[ruleId]?.status;
+        s.compliance.rules[ruleId] = {
+          status: "inactive",
+          lastEvaluatedMinutes: s.elapsedMinutes,
+          gap: 0,
+        };
+
+        // Clear active consequences
+        for (const facilityId of Object.keys(s.compliance.activeRestrictions).sort(compareIds)) {
+          if (s.compliance.activeRestrictions[facilityId]?.ruleId === ruleId) {
+            delete s.compliance.activeRestrictions[facilityId];
+          }
+        }
+        for (const facilityId of Object.keys(s.compliance.activeClosures).sort(compareIds)) {
+          if (s.compliance.activeClosures[facilityId]?.ruleId === ruleId) {
+            delete s.compliance.activeClosures[facilityId];
+          }
+        }
+
+        // Clear alerts
+        this.clearAlerts([`alert.compliance.${ruleId}`]);
+
+        if (previousStatus === "noncompliant") {
+          const ruleObj = REGULATION_RULES.find((r) => r.id === ruleId);
+          this.emit(
+            {
+              type: "COMPLIANCE_REMEDIED",
+              ruleId,
+              hotelId: s.hotel.id,
+              area: ruleObj?.area ?? "safety",
+            },
+            [s.hotel.id, ruleId],
+          );
+        }
+      }
+    }
+
+    for (const rule of applicable) {
+      const measured = measuredFacts[rule.area] ?? 0;
+      const evalCase = evaluateCompliance(rule, measured, s.elapsedMinutes);
+      const previousStatus =
+        s.compliance.rules[rule.id]?.status ?? "inactive";
+      const currentStatus = evalCase.status;
+
+      s.compliance.rules[rule.id] = {
+        status: currentStatus,
+        lastEvaluatedMinutes: s.elapsedMinutes,
+        gap: evalCase.gap,
+        measured: evalCase.measured,
+        requirement: evalCase.requirement,
+        remediation: evalCase.remediation,
+      };
+
+      if (currentStatus === "noncompliant") {
+        if (previousStatus !== "noncompliant") {
+          this.emit(
+            {
+              type: "COMPLIANCE_BREACH_DETECTED",
+              ruleId: rule.id,
+              hotelId: s.hotel.id,
+              area: rule.area,
+              gap: evalCase.gap,
+              consequenceMinor: evalCase.consequenceMinor,
+            },
+            [s.hotel.id, rule.id],
+          );
+          s.narrative.chronicle = appendChronicleEntry(
+            s.narrative.chronicle,
+            {
+              id: `compliance.${rule.id}.breach.${s.calendar.dateKey}`,
+              date: s.calendar.dateKey,
+              scope: "company",
+              textKey: `chronicle.compliance.breach.${rule.id}`,
+            },
+          );
+        }
+
+        for (const consequence of evalCase.consequences) {
+          if (consequence.kind === "fine") {
+            this.spend(
+              consequence.amountMinor,
+              "fine",
+              `regulatory fine for ${rule.id}`,
+            );
+          } else if (consequence.kind === "reputation") {
+            this.moveReputation(
+              consequence.dimension,
+              rule.reputationScope ?? s.hotel.id,
+              consequence.delta,
+              `regulatory noncompliance: ${rule.id}`,
+            );
+          } else if (consequence.kind === "restriction") {
+            s.compliance.activeRestrictions[consequence.facilityId] = {
+              capacityValue: consequence.capacityValue,
+              capacityFactorBp: consequence.capacityFactorBp,
+              ruleId: rule.id,
+            };
+          } else if (consequence.kind === "closure") {
+            s.compliance.activeClosures[consequence.facilityId] = {
+              ruleId: rule.id,
+            };
+          }
+        }
+      } else {
+        for (const facilityId of Object.keys(s.compliance.activeRestrictions).sort(compareIds)) {
+          if (s.compliance.activeRestrictions[facilityId]?.ruleId === rule.id) {
+            delete s.compliance.activeRestrictions[facilityId];
+          }
+        }
+        for (const facilityId of Object.keys(s.compliance.activeClosures).sort(compareIds)) {
+          if (s.compliance.activeClosures[facilityId]?.ruleId === rule.id) {
+            delete s.compliance.activeClosures[facilityId];
+          }
+        }
+
+        if (
+          previousStatus === "noncompliant" &&
+          currentStatus === "compliant"
+        ) {
+          this.emit(
+            {
+              type: "COMPLIANCE_REMEDIED",
+              ruleId: rule.id,
+              hotelId: s.hotel.id,
+              area: rule.area,
+            },
+            [s.hotel.id, rule.id],
+          );
+          s.narrative.chronicle = appendChronicleEntry(
+            s.narrative.chronicle,
+            {
+              id: `compliance.${rule.id}.remedy.${s.calendar.dateKey}`,
+              date: s.calendar.dateKey,
+              scope: "company",
+              textKey: `chronicle.compliance.remedy.${rule.id}`,
+            },
+          );
+        }
+      }
+    }
+  }
+
   private refreshFacilities(): void {
     const s = this.state;
     const previousCause = new Map(s.facilities.map((f) => [f.id, f.cause]));
@@ -4377,124 +4643,166 @@ export class GameSimulation implements CommandExecutor {
         id: "facility.breakfast_room",
         name: "Breakfast room",
         demand: inHouse + eventCovers,
-        constraints: [
-          { label: "seating", value: STARTER_HOTEL.breakfastSeats * 8 },
-          {
-            label: "facility.cause.kitchenLine",
-            value: STARTER_HOTEL.kitchenCovers,
-          },
-          {
-            label: "portions in stock",
-            value: s.stock["breakfast-portion"] ?? 0,
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.breakfast_room",
+          [
+            { label: "seating", value: STARTER_HOTEL.breakfastSeats * 8 },
+            {
+              label: "facility.cause.kitchenLine",
+              value: STARTER_HOTEL.kitchenCovers,
+            },
+            {
+              label: "portions in stock",
+              value: s.stock["breakfast-portion"] ?? 0,
+            },
+          ],
+          STARTER_HOTEL.breakfastSeats * 8,
+        ),
       }),
       facilityRow({
         id: "facility.bar",
         name: "Bar and lounge",
         demand: Math.floor((inHouse * BAR_TAKE_UP_BP) / 10000),
-        constraints: [
-          { label: "seating", value: STARTER_HOTEL.barSeats * 7 },
-          { label: "staffed throughput", value: this.onDuty("fnb") * 40 },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.bar",
+          [
+            { label: "seating", value: STARTER_HOTEL.barSeats * 7 },
+            { label: "staffed throughput", value: this.onDuty("fnb") * 40 },
+          ],
+          STARTER_HOTEL.barSeats * 7,
+        ),
       }),
       facilityRow({
         id: "facility.restaurant",
         name: "Restaurant",
         demand: restaurant?.demand ?? 0,
-        constraints: [
-          {
-            label: restaurant?.cause ?? "facility.cause.closed",
-            value: restaurant?.capacity ?? 0,
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.restaurant",
+          [
+            {
+              label: restaurant?.cause ?? "facility.cause.closed",
+              value: restaurant?.capacity ?? 0,
+            },
+          ],
+          restaurant?.capacity ?? 0,
+        ),
       }),
       facilityRow({
         id: "facility.wellness",
         name: "Wellness",
         demand: Math.floor((inHouse * WELLNESS_TAKE_UP_BP) / 10000),
-        constraints: [
-          {
-            label: "treatment rooms",
-            value: Math.floor(
-              s.wellness.treatmentRooms * (s.wellness.openMinutes / 45),
-            ),
-          },
-          {
-            label: "therapists on duty",
-            value: Math.floor(
-              this.onDuty("wellness") * (s.wellness.openMinutes / 45),
-            ),
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.wellness",
+          [
+            {
+              label: "treatment rooms",
+              value: Math.floor(
+                s.wellness.treatmentRooms * (s.wellness.openMinutes / 45),
+              ),
+            },
+            {
+              label: "therapists on duty",
+              value: Math.floor(
+                this.onDuty("wellness") * (s.wellness.openMinutes / 45),
+              ),
+            },
+          ],
+          Math.floor(s.wellness.treatmentRooms * (s.wellness.openMinutes / 45)),
+        ),
       }),
       facilityRow({
         id: "facility.fitness",
         name: "Fitness",
         demand: Math.floor(inHouse / 5),
-        constraints: [
-          {
-            label: "stations and floor area",
-            value: fitnessCapacity({
-              areaSqm: STARTER_HOTEL.fitnessSqm,
-              equipmentStations: STARTER_HOTEL.fitnessStations,
-            }),
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.fitness",
+          [
+            {
+              label: "stations and floor area",
+              value: fitnessCapacity({
+                areaSqm: STARTER_HOTEL.fitnessSqm,
+                equipmentStations: STARTER_HOTEL.fitnessStations,
+              }),
+            },
+          ],
+          fitnessCapacity({
+            areaSqm: STARTER_HOTEL.fitnessSqm,
+            equipmentStations: STARTER_HOTEL.fitnessStations,
+          }),
+        ),
       }),
       facilityRow({
         id: "facility.conference",
         name: "Conference",
         demand: this.runningEvents().reduce((n, e) => n + e.guests, 0),
-        constraints: [
-          {
-            label: "hall capacity",
-            value: Math.floor(
-              s.investedArea.conferenceSqm / STARTER_HOTEL.conferenceSqmPerSeat,
-            ),
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.conference",
+          [
+            {
+              label: "hall capacity",
+              value: Math.floor(
+                s.investedArea.conferenceSqm / STARTER_HOTEL.conferenceSqmPerSeat,
+              ),
+            },
+          ],
+          Math.floor(s.investedArea.conferenceSqm / STARTER_HOTEL.conferenceSqmPerSeat),
+        ),
       }),
       facilityRow({
         id: "facility.housekeeping",
         name: "Housekeeping",
         demand: dirtyRooms * ROOM_CLEAN_MINUTES + s.eventHousekeepingMinutes,
-        constraints: [
-          {
-            label: "housekeepers on duty",
-            value: housekeepers * MINUTES_PER_SHIFT,
-          },
-          { label: "clean linen", value: s.linen.clean * ROOM_CLEAN_MINUTES },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.housekeeping",
+          [
+            {
+              label: "housekeepers on duty",
+              value: housekeepers * MINUTES_PER_SHIFT,
+            },
+            { label: "clean linen", value: s.linen.clean * ROOM_CLEAN_MINUTES },
+          ],
+          housekeepers * MINUTES_PER_SHIFT,
+        ),
       }),
       facilityRow({
         id: "facility.laundry",
         name: "Laundry",
         demand: s.linen.dirty,
-        constraints: [
-          {
-            label: "machine capacity",
-            value: effectiveCapacity({
-              rated: STARTER_HOTEL.laundryMachinePieces,
-              condition: this.assetCondition("asset.boiler"),
-            }),
-          },
-          {
-            label: "laundry staff",
-            value: this.onDuty("laundry") * STARTER_HOTEL.laundryPiecesPerStaff,
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.laundry",
+          [
+            {
+              label: "machine capacity",
+              value: effectiveCapacity({
+                rated: STARTER_HOTEL.laundryMachinePieces,
+                condition: this.assetCondition("asset.boiler"),
+              }),
+            },
+            {
+              label: "laundry staff",
+              value: this.onDuty("laundry") * STARTER_HOTEL.laundryPiecesPerStaff,
+            },
+          ],
+          effectiveCapacity({
+            rated: STARTER_HOTEL.laundryMachinePieces,
+            condition: this.assetCondition("asset.boiler"),
+          }),
+        ),
       }),
       facilityRow({
         id: "facility.elevator",
         name: "Lifts",
         demand: s.elevatorTrips,
-        constraints: [
-          {
-            label: "cars in service",
-            value: this.workingLifts() * LIFT_TRIPS_PER_DAY,
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.elevator",
+          [
+            {
+              label: "cars in service",
+              value: this.workingLifts() * LIFT_TRIPS_PER_DAY,
+            },
+          ],
+          this.workingLifts() * LIFT_TRIPS_PER_DAY,
+        ),
       }),
       facilityRow({
         id: "facility.security",
@@ -4504,20 +4812,28 @@ export class GameSimulation implements CommandExecutor {
           eventGuests: this.runningEvents().reduce((n, e) => n + e.guests, 0),
           vipLevel: 0,
         }),
-        constraints: [
-          { label: "guards rostered", value: this.onDuty("security") },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.security",
+          [
+            { label: "guards rostered", value: this.onDuty("security") },
+          ],
+          this.onDuty("security"),
+        ),
       }),
       facilityRow({
         id: "facility.staff_area",
         name: "Staff areas",
         demand: s.staff.filter((m) => !m.absent).length,
-        constraints: [
-          {
-            label: "changing room space",
-            value: staffAreaCapacity({ areaSqm: STARTER_HOTEL.staffAreaSqm }),
-          },
-        ],
+        constraints: this.applyComplianceConstraints(
+          "facility.staff_area",
+          [
+            {
+              label: "changing room space",
+              value: staffAreaCapacity({ areaSqm: STARTER_HOTEL.staffAreaSqm }),
+            },
+          ],
+          staffAreaCapacity({ areaSqm: STARTER_HOTEL.staffAreaSqm }),
+        ),
       }),
     ];
 
@@ -4684,6 +5000,7 @@ export class GameSimulation implements CommandExecutor {
     s.efficiencyProjects = s.efficiencyProjects.filter(
       (project) => project.status !== "complete",
     );
+    this.runComplianceEvaluation();
     this.runCommercialSpaceMonth();
     this.runEmploymentMonth();
     this.runCommercialMonth();

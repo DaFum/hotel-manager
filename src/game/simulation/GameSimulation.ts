@@ -1447,46 +1447,55 @@ export class GameSimulation implements CommandExecutor {
       const leaving = s.stays.filter(
         (stay) => stay.departureDateKey <= s.calendar.dateKey,
       );
-      const turned: { moduleId: string }[] = [];
-      for (const stay of leaving) {
-        const booking = s.reservations.find((b) => b.id === stay.bookingId);
-        if (booking && booking.status === "checkedIn") {
-          const completed = checkOut(booking, s.elapsedMinutes);
-          booking.status = completed.status;
-          booking.history = completed.history;
+      if (leaving.length > 0) {
+        const reservationById = new Map(
+          s.reservations.map((b) => [b.id, b]),
+        );
+        const roomById = new Map(
+          s.hotel.rooms.map((r) => [r.id, r]),
+        );
+        const turned: { moduleId: string }[] = [];
+        for (const stay of leaving) {
+          const booking = reservationById.get(stay.bookingId);
+          if (booking && booking.status === "checkedIn") {
+            const completed = checkOut(booking, s.elapsedMinutes);
+            booking.status = completed.status;
+            booking.history = completed.history;
+          }
+          const room = roomById.get(stay.roomId);
+          if (room) {
+            const from = room.state;
+            room.state = "VacantDirty";
+            room.cleanliness = 40;
+            turned.push({ moduleId: room.moduleId });
+            this.emit(
+              {
+                type: "GUEST_CHECKED_OUT",
+                bookingId: stay.bookingId,
+                roomId: room.id,
+              },
+              [stay.bookingId, room.id],
+            );
+            this.emit(
+              {
+                type: "ROOM_STATE_CHANGED",
+                roomId: room.id,
+                from,
+                to: room.state,
+              },
+              [room.id],
+            );
+          }
         }
-        const room = s.hotel.rooms.find((r) => r.id === stay.roomId);
-        if (room) {
-          const from = room.state;
-          room.state = "VacantDirty";
-          room.cleanliness = 40;
-          turned.push({ moduleId: room.moduleId });
-          this.emit(
-            {
-              type: "GUEST_CHECKED_OUT",
-              bookingId: stay.bookingId,
-              roomId: room.id,
-            },
-            [stay.bookingId, room.id],
-          );
-          this.emit(
-            {
-              type: "ROOM_STATE_CHANGED",
-              roomId: room.id,
-              from,
-              to: room.state,
-            },
-            [room.id],
-          );
-        }
+        s.linen.dirty += linenSoiled(turned);
+        s.elevatorTrips += elevatorTrips({
+          arrivals: 0,
+          departures: leaving.length,
+          serviceRuns: 0,
+        });
+        const leavingSet = new Set(leaving);
+        s.stays = s.stays.filter((stay) => !leavingSet.has(stay));
       }
-      s.linen.dirty += linenSoiled(turned);
-      s.elevatorTrips += elevatorTrips({
-        arrivals: 0,
-        departures: leaving.length,
-        serviceRuns: 0,
-      });
-      s.stays = s.stays.filter((stay) => !leaving.includes(stay));
     }
 
     if (s.calendar.minuteOfDay === ARRIVAL_MINUTE) {
@@ -1591,59 +1600,61 @@ export class GameSimulation implements CommandExecutor {
     const roomsThisQuantum = Math.floor(
       s.housekeepingMinutes / ROOM_CLEAN_MINUTES,
     );
-    for (let i = 0; i < roomsThisQuantum; i++) {
-      const dirty = s.hotel.rooms.find((r) => r.state === "VacantDirty");
-      if (!dirty) return;
-      if ((s.stock["cleaning-unit"] ?? 0) < 1) {
-        this.pushAlert({
-          id: "alert.cleaning-stockout",
-          severity: "critical",
-          title: "alert.cleaning-stockout.title",
-          cause: "alert.cleaning-stockout.cause",
-          target: { entityId: "facility.housekeeping", kind: "facility" },
+    if (roomsThisQuantum > 0) {
+      const dirtyRooms = s.hotel.rooms.filter((r) => r.state === "VacantDirty");
+      for (let i = 0; i < roomsThisQuantum && i < dirtyRooms.length; i++) {
+        const dirty = dirtyRooms[i];
+        if ((s.stock["cleaning-unit"] ?? 0) < 1) {
+          this.pushAlert({
+            id: "alert.cleaning-stockout",
+            severity: "critical",
+            title: "alert.cleaning-stockout.title",
+            cause: "alert.cleaning-stockout.cause",
+            target: { entityId: "facility.housekeeping", kind: "facility" },
+          });
+          return;
+        }
+        const pieces = roomModule(dirty.moduleId).linenPieces;
+        if (s.linen.clean < pieces) {
+          this.clearAlerts(["alert.linen-short"]);
+          this.pushAlert({
+            id: "alert.linen-short",
+            severity: "warning",
+            title: "alert.linen-short.title",
+            cause: "alert.linen-short.cause",
+            target: { entityId: "facility.housekeeping", kind: "facility" },
+          });
+          return;
+        }
+        const cleaned = cleanRoom(
+          { state: dirty.state, cleanliness: dirty.cleanliness },
+          {
+            minutes: ROOM_CLEAN_MINUTES,
+            cleaningUnits: s.stock["cleaning-unit"],
+          },
+        );
+        s.housekeepingMinutes -= ROOM_CLEAN_MINUTES;
+        const wasState = dirty.state;
+        dirty.state = cleaned.room.state;
+        this.emit(
+          {
+            type: "ROOM_STATE_CHANGED",
+            roomId: dirty.id,
+            from: wasState,
+            to: dirty.state,
+          },
+          [dirty.id],
+        );
+        dirty.cleanliness = cleaned.room.cleanliness;
+        s.stock = consume(s.stock, "cleaning-unit", 1);
+        s.linen.clean -= pieces;
+        // Trolleys and linen ride the same lift the guests do.
+        s.elevatorTrips += elevatorTrips({
+          arrivals: 0,
+          departures: 0,
+          serviceRuns: 1,
         });
-        return;
       }
-      const pieces = roomModule(dirty.moduleId).linenPieces;
-      if (s.linen.clean < pieces) {
-        this.clearAlerts(["alert.linen-short"]);
-        this.pushAlert({
-          id: "alert.linen-short",
-          severity: "warning",
-          title: "alert.linen-short.title",
-          cause: "alert.linen-short.cause",
-          target: { entityId: "facility.housekeeping", kind: "facility" },
-        });
-        return;
-      }
-      const cleaned = cleanRoom(
-        { state: dirty.state, cleanliness: dirty.cleanliness },
-        {
-          minutes: ROOM_CLEAN_MINUTES,
-          cleaningUnits: s.stock["cleaning-unit"],
-        },
-      );
-      s.housekeepingMinutes -= ROOM_CLEAN_MINUTES;
-      const wasState = dirty.state;
-      dirty.state = cleaned.room.state;
-      this.emit(
-        {
-          type: "ROOM_STATE_CHANGED",
-          roomId: dirty.id,
-          from: wasState,
-          to: dirty.state,
-        },
-        [dirty.id],
-      );
-      dirty.cleanliness = cleaned.room.cleanliness;
-      s.stock = consume(s.stock, "cleaning-unit", 1);
-      s.linen.clean -= pieces;
-      // Trolleys and linen ride the same lift the guests do.
-      s.elevatorTrips += elevatorTrips({
-        arrivals: 0,
-        departures: 0,
-        serviceRuns: 1,
-      });
     }
   }
 
@@ -1664,9 +1675,28 @@ export class GameSimulation implements CommandExecutor {
       s.receptionQueue.map((w) => w.bookingId),
       servable,
     );
+    if (processed.length === 0) return;
+
+    const reservationById = new Map(
+      s.reservations.map((b) => [b.id, b]),
+    );
+    const availableCleanByCategory = new Map<string, RoomRecord[]>();
+    for (const room of s.hotel.rooms) {
+      if (room.state === "VacantClean") {
+        let list = availableCleanByCategory.get(room.category);
+        if (!list) {
+          list = [];
+          availableCleanByCategory.set(room.category, list);
+        }
+        list.push(room);
+      }
+    }
+    for (const list of availableCleanByCategory.values()) {
+      list.sort((a, b) => a.id.localeCompare(b.id));
+    }
 
     for (const bookingId of processed) {
-      const booking = s.reservations.find((b) => b.id === bookingId);
+      const booking = reservationById.get(bookingId);
       if (!booking || booking.status !== "confirmed") {
         s.receptionQueue = s.receptionQueue.filter(
           (w) => w.bookingId !== bookingId,
@@ -1677,18 +1707,8 @@ export class GameSimulation implements CommandExecutor {
       // three-room booking one room would leave the other two held out of
       // sale for the whole stay and never billed, so the assignment is all
       // or nothing.
-      const assigned: RoomRecord[] = [];
-      for (let i = 0; i < booking.roomsRequested; i++) {
-        const free = assignRoom(
-          s.hotel.rooms.filter((r) => !assigned.some((a) => a.id === r.id)),
-          booking.category,
-        );
-        if (!free) break;
-        assigned.push(
-          s.hotel.rooms.find((r) => r.id === free.id) as RoomRecord,
-        );
-      }
-      if (assigned.length < booking.roomsRequested) {
+      const categoryAvailable = availableCleanByCategory.get(booking.category) ?? [];
+      if (categoryAvailable.length < booking.roomsRequested) {
         const waited =
           s.receptionQueue.find((item) => item.bookingId === bookingId)
             ?.waitedMinutes ?? 0;
@@ -1728,6 +1748,8 @@ export class GameSimulation implements CommandExecutor {
         }
         continue;
       }
+
+      const assigned = categoryAvailable.splice(0, booking.roomsRequested);
 
       // Read the wait before the party leaves the queue: how long check-in
       // took is part of what just happened to this guest.
@@ -3119,10 +3141,11 @@ export class GameSimulation implements CommandExecutor {
       }
     }
     // The rota is the employment record's shadow, never its own truth.
+    const employeeByStaffId = new Map(
+      s.workforce.employees.map((e) => [e.staffId, e]),
+    );
     for (const member of s.staff) {
-      const employee = s.workforce.employees.find(
-        (e) => e.staffId === member.id,
-      );
+      const employee = employeeByStaffId.get(member.id);
       member.absent = employee
         ? employee.status !== "working" || Boolean(employee.activeTraining)
         : member.absent;
@@ -3315,10 +3338,12 @@ export class GameSimulation implements CommandExecutor {
     if (!this.dayRolled) return;
     const s = this.state;
 
+    const reservationById = new Map(
+      s.reservations.map((candidate) => [candidate.id, candidate]),
+    );
+
     for (const stay of s.stays) {
-      const booking = s.reservations.find(
-        (candidate) => candidate.id === stay.bookingId,
-      );
+      const booking = reservationById.get(stay.bookingId);
       const recognized = netChannelRevenueMinor(
         stay.rateMinor,
         booking?.commissionBp ?? 0,

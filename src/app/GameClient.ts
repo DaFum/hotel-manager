@@ -261,72 +261,112 @@ export class GameClient {
     switch (message.type) {
       case "READY":
       case "SNAPSHOT":
-        this.held = message.snapshot;
-        this.publication = message.publication;
-        this.resyncPending = false;
-        for (const l of this.snapshotListeners) l(message.snapshot);
+        this.handleSnapshot(message.snapshot, message.publication);
         return;
-      case "STATE_DELTA": {
-        if (!this.held) {
-          // Nothing to apply it to; ask to be put back in step.
-          this.resynchronise();
-          return;
-        }
-        try {
-          this.held = applyStateDelta(
-            this.held,
-            message.delta,
-            this.publication,
-          );
-        } catch (error) {
-          if (!(error instanceof DeltaBaseMismatchError)) throw error;
-          // A delta computed against a state this client never held would
-          // produce a hotel that never existed. Refuse it and resynchronise.
-          this.resynchronise();
-          return;
-        }
-        this.publication = message.delta.publication;
-        for (const l of this.snapshotListeners) l(this.held);
+      case "STATE_DELTA":
+        this.handleStateDelta(message.delta);
         return;
-      }
       case "ENTITY_DETAILS":
-        for (const l of this.detailsListeners)
-          l({
-            requestId: message.requestId,
-            entityId: message.entityId,
-            kind: message.kind,
-            detail: message.detail,
-          });
+        this.handleEntityDetails(message);
         return;
       case "COMMAND_REJECTED":
-        for (const l of this.rejectionListeners)
-          l({
-            requestId: message.requestId,
-            commandId: message.commandId,
-            reason: message.reason,
-          });
+        this.handleCommandRejected(message);
         return;
       case "COMMAND_ACCEPTED":
-        for (const l of this.acceptanceListeners)
-          l({
-            requestId: message.requestId,
-            commandId: message.commandId,
-            stateVersion: message.stateVersion,
-          });
+        this.handleCommandAccepted(message);
         return;
       case "DOMAIN_EVENTS":
-        for (const l of this.domainEventListeners) l(message.events);
+        this.handleDomainEvents(message);
         return;
       case "SAVE_DATA":
-        for (const l of this.saveListeners)
-          l(message.saveData, message.requestId);
+        this.handleSaveData(message);
         return;
       case "SIMULATION_ERROR":
-        for (const l of this.errorListeners) l(message.message);
-        for (const l of this.simulationErrorListeners) l(message);
+        this.handleSimulationError(message);
         return;
       default:
         return;
     }
+  }
+
+  private handleSnapshot(snapshot: GameSnapshot, publication: number): void {
+    this.held = snapshot;
+    this.publication = publication;
+    this.resyncPending = false;
+    for (const l of this.snapshotListeners) l(snapshot);
+  }
+
+  private handleStateDelta(
+    delta: Extract<WorkerResponse, { type: "STATE_DELTA" }>["delta"],
+  ): void {
+    if (!this.held) {
+      // Nothing to apply it to; ask to be put back in step.
+      this.resynchronise();
+      return;
+    }
+    try {
+      this.held = applyStateDelta(this.held, delta, this.publication);
+    } catch (error) {
+      if (!(error instanceof DeltaBaseMismatchError)) throw error;
+      // A delta computed against a state this client never held would
+      // produce a hotel that never existed. Refuse it and resynchronise.
+      this.resynchronise();
+      return;
+    }
+    this.publication = delta.publication;
+    for (const l of this.snapshotListeners) l(this.held);
+  }
+
+  private handleEntityDetails(
+    message: Extract<WorkerResponse, { type: "ENTITY_DETAILS" }>,
+  ): void {
+    for (const l of this.detailsListeners)
+      l({
+        requestId: message.requestId,
+        entityId: message.entityId,
+        kind: message.kind,
+        detail: message.detail,
+      });
+  }
+
+  private handleCommandRejected(
+    message: Extract<WorkerResponse, { type: "COMMAND_REJECTED" }>,
+  ): void {
+    for (const l of this.rejectionListeners)
+      l({
+        requestId: message.requestId,
+        commandId: message.commandId,
+        reason: message.reason,
+      });
+  }
+
+  private handleCommandAccepted(
+    message: Extract<WorkerResponse, { type: "COMMAND_ACCEPTED" }>,
+  ): void {
+    for (const l of this.acceptanceListeners)
+      l({
+        requestId: message.requestId,
+        commandId: message.commandId,
+        stateVersion: message.stateVersion,
+      });
+  }
+
+  private handleDomainEvents(
+    message: Extract<WorkerResponse, { type: "DOMAIN_EVENTS" }>,
+  ): void {
+    for (const l of this.domainEventListeners) l(message.events);
+  }
+
+  private handleSaveData(
+    message: Extract<WorkerResponse, { type: "SAVE_DATA" }>,
+  ): void {
+    for (const l of this.saveListeners) l(message.saveData, message.requestId);
+  }
+
+  private handleSimulationError(
+    message: Extract<WorkerResponse, { type: "SIMULATION_ERROR" }>,
+  ): void {
+    for (const l of this.errorListeners) l(message.message);
+    for (const l of this.simulationErrorListeners) l(message);
   }
 }

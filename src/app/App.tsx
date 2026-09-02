@@ -332,6 +332,7 @@ export function App() {
       rows={s.competitors}
       playerRateMinor={singleRateMinor}
       playerOccupancyBp={s.metrics.occupancyBasisPoints}
+      locale={preferences.locale}
     />
   );
 
@@ -829,6 +830,7 @@ export function App() {
           difficulty={s.narrative.campaign.difficulty}
           sandbox={s.narrative.campaign.sandbox}
           locked={s.elapsedMinutes > 0}
+          locale={preferences.locale}
           onDifficulty={(difficulty) =>
             game.send({ type: "SET_CAMPAIGN_DIFFICULTY", difficulty })
           }

@@ -21,8 +21,8 @@ export function StoryInbox({
     translateGame(locale, key, values);
 
   return (
-    <section aria-label={t("story.inbox")}>
-      <h2>{t("story.inbox")}</h2>
+    <section aria-label={t("story.inbox.title")}>
+      <h2>{t("story.inbox.title")}</h2>
       {events.length === 0 ? (
         <p>{t("story.inbox.empty")}</p>
       ) : (

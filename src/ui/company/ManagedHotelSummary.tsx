@@ -29,7 +29,7 @@ export function ManagedHotelSummary(props: {
       <dl>
         <dt>{t("topbar.occupancy")}</dt>
         <dd>{formatBasisPoints(hotel.occupancyBasisPoints, locale)}</dd>
-        <dt>{t("finance.profit")}</dt>
+        <dt>{t("topbar.monthProfit")}</dt>
         <dd>{formatDm(hotel.monthlyProfitMinor, locale)}</dd>
         <dt>{t("company.portfolio.cashNeedLabel")}</dt>
         <dd>{formatDm(hotel.cashNeedMinor, locale)}</dd>

@@ -58,7 +58,10 @@ export function BrandDashboard(props: {
         <ul>
           {props.audits.map((audit) => (
             <li key={`${audit.hotelId}.${audit.dateKey}`}>
-              {audit.hotelName} on {audit.dateKey}:{" "}
+              {t("company.brands.auditRow", {
+                hotel: audit.hotelName,
+                date: audit.dateKey,
+              })}{" "}
               {audit.compliant
                 ? t("company.brands.meetsEveryStandard")
                 : t("company.brands.fails", {

@@ -179,10 +179,9 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       // Staff tab
       await openManagementArea(page, "staff");
       const staffTable = page.locator("table.hm-responsive-table").first();
-      if (await staffTable.isVisible()) {
-        const box = await staffTable.boundingBox();
-        expect(box!.width).toBeLessThanOrEqual(375);
-      }
+      await expect(staffTable).toBeVisible();
+      const box = await staffTable.boundingBox();
+      expect(box!.width).toBeLessThanOrEqual(375);
 
       // Revenue tab
       await openManagementArea(page, "revenue");

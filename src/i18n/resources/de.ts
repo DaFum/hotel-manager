@@ -1016,8 +1016,10 @@ export const de = {
       "Erreichbarkeit {index}/100 — Bahn, Flug, Straße und Nahverkehr, gewichtet nach Reiseaufkommen.",
   },
   story: {
-    inbox: "Posteingang",
-    "inbox.empty": "Keine neuen Ereignisse.",
+    inbox: {
+      title: "Posteingang",
+      empty: "Keine neuen Ereignisse.",
+    },
     raised: "Eingegangen am",
   },
   chronicle: {
@@ -1061,6 +1063,7 @@ export const de = {
       title: "Marken",
       item: "{name}: {uplift} Nachfragezuwachs für {cost} im Monat pro Haus, geführt von {count} {hotelsText}",
       auditsTitle: "Letzte Audits",
+      auditRow: "{hotel} am {date}:",
       noAudits: "Bisher wurde kein Haus auditiert.",
       meetsEveryStandard: "erfüllt jeden Standard",
       fails: "fällt durch bei {failures}",

@@ -50,7 +50,9 @@ export async function openNotificationsDrawer(page: Page): Promise<void> {
       await expect(collapsible).toBeVisible();
     }
   }
-  await page.getByRole("button", { name: /open notifications|messages/i }).click();
+  await page
+    .getByRole("button", { name: /open notifications|messages|meldungen/i })
+    .click();
   await expect(page.locator("#hm-drawer-notifications")).toBeVisible();
 }
 

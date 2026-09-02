@@ -41,7 +41,7 @@ export function PortfolioDashboard(props: {
   return (
     <section aria-label={t("company.portfolio.title")}>
       <h2>{t("company.portfolio.title")}</h2>
-      <p aria-label="Portfolio summary">
+      <p aria-label={t("company.portfolio.title")}>
         {t("company.portfolio.summary", {
           count: props.hotels.length,
           hotelsText: t(

@@ -1001,8 +1001,10 @@ export const en = {
       "Connectivity {index}/100 — rail, air, road and local transit, weighted by how much travel each carries.",
   },
   story: {
-    inbox: "Story inbox",
-    "inbox.empty": "The telex is quiet.",
+    inbox: {
+      title: "Story inbox",
+      empty: "The telex is quiet.",
+    },
     raised: "Raised",
   },
   chronicle: {
@@ -1046,6 +1048,7 @@ export const en = {
       title: "Brands",
       item: "{name}: {uplift} demand uplift for {cost} a month per house, flown by {count} {hotelsText}",
       auditsTitle: "Latest audits",
+      auditRow: "{hotel} on {date}:",
       noAudits: "No house has been audited yet.",
       meetsEveryStandard: "meets every standard",
       fails: "fails {failures}",

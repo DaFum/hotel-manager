@@ -283,7 +283,7 @@ describe("App", () => {
       ],
       campaign: [
         translateGame("de-DE", "campaignSetup.setup"),
-        translateGame("de-DE", "story.inbox"),
+        translateGame("de-DE", "story.inbox.title"),
         translateGame("de-DE", "chronicle.title"),
       ],
     };

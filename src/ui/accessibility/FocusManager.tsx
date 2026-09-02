@@ -1,4 +1,15 @@
 import { useRef, type PropsWithChildren } from "react";
+function checkPrefersReducedMotion(): boolean {
+  if (typeof window === "undefined") return false;
+  const mediaQuery =
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const inGameAttr =
+    typeof document !== "undefined" &&
+    document.querySelector('[data-reduced-motion="true"]') !== null;
+  return Boolean(mediaQuery || inGameAttr);
+}
+
 export function FocusManager({
   labels,
   selected = 0,
@@ -11,8 +22,17 @@ export function FocusManager({
   targets?: string[];
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
+
   const move = (index: number) => {
-    refs.current[index]?.focus();
+    const el = refs.current[index];
+    if (el) {
+      el.focus();
+      el.scrollIntoView?.({
+        behavior: checkPrefersReducedMotion() ? "auto" : "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
     onSelect?.(index);
   };
   return (
@@ -28,7 +48,14 @@ export function FocusManager({
           aria-controls={targets?.[index]}
           aria-selected={selected === index}
           tabIndex={selected === index ? 0 : -1}
-          onClick={() => onSelect?.(index)}
+          onClick={() => {
+            refs.current[index]?.scrollIntoView?.({
+              behavior: checkPrefersReducedMotion() ? "auto" : "smooth",
+              block: "nearest",
+              inline: "center",
+            });
+            onSelect?.(index);
+          }}
           onKeyDown={(event) => {
             const last = labels.length - 1;
             let next: number | null = null;

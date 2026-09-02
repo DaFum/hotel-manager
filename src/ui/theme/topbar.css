@@ -229,35 +229,79 @@
   gap: var(--hm-space-2);
 }
 
+.hm-topbar__mobile-toggle {
+  display: none;
+}
+
+.hm-topbar__collapsible {
+  display: contents;
+}
+
 @media (width <= 60rem) {
+  .hm-topbar__mobile-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--hm-space-1);
+    padding: var(--hm-space-1) var(--hm-space-2);
+    font-size: var(--hm-text-xs);
+    flex: 0 0 auto;
+  }
+
+  .hm-topbar__collapsible {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    gap: var(--hm-space-2);
+    width: 100%;
+  }
+
+  .hm-topbar__collapsible[data-open="true"] {
+    display: flex;
+  }
+  .hm-root .hm-topbar {
+    position: static;
+    padding: var(--hm-space-1) var(--hm-space-2);
+    gap: var(--hm-space-1);
+  }
+
+  .hm-root .hm-topbar__card {
+    min-width: 0;
+    max-width: 100%;
+    padding: var(--hm-space-1) var(--hm-space-2);
+  }
+
   .hm-root .hm-topbar__card--location,
   .hm-root .hm-topbar__card--vitals {
     flex-basis: 100%;
   }
 
-  /*
-   * The strip wraps, but until now its cards did not, and a card that cannot
-   * wrap cannot be narrower than its widest row of controls. On a 375px
-   * handset the tools nav measured 462px and the speed set 397px, so the bar
-   * pushed the document 102px wider than the screen — which left the top bar
-   * and the department rail drawn at 375px against a 477px page, and the torn
-   * black margin down the right of every department was that gap.
-   *
-   * Each cluster may now break onto another row, and the house's name may set
-   * on two lines here, where the bar is already several rows deep and the one
-   * thing it must not do is decide the width of the game.
-   */
-  .hm-root .hm-topbar__card {
-    min-width: 0;
-    max-width: 100%;
+  .hm-root .hm-topbar__vitals {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .hm-root .hm-topbar__vitals > div {
+    padding: 0 var(--hm-space-1);
   }
 
   .hm-root :is(.hm-topbar__card--controls, .hm-topbar__card--tools),
   .hm-root :is(.hm-topbar__speed, .hm-topbar__io) {
     flex-wrap: wrap;
+    gap: var(--hm-space-1);
+  }
+
+  .hm-root .hm-topbar__speed button {
+    padding: var(--hm-space-1) var(--hm-space-2);
+  }
+
+  .hm-topbar__tool {
+    padding: var(--hm-space-1) var(--hm-space-2);
+    font-size: var(--hm-text-xs);
   }
 
   .hm-root .hm-topbar__name {
     white-space: normal;
+    font-size: var(--hm-text-base);
   }
 }

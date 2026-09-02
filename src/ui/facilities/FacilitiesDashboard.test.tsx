@@ -21,7 +21,7 @@ const rows = [
 
 it("shows bottleneck causes", () => {
   render(<FacilitiesDashboard rows={rows.slice(0, 1)} />);
-  expect(screen.getByText(/staffed throughput/)).toBeTruthy();
+  expect(screen.getByText(/service staff/)).toBeTruthy();
 });
 
 it("marks an over-subscribed facility without relying on colour alone", () => {

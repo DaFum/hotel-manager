@@ -57,6 +57,14 @@
   background: var(--hm-surface);
 }
 
+@media (width <= 60rem) {
+  .hm-root > .hm-nextaction > aside {
+    padding: var(--hm-space-1) var(--hm-space-2);
+    gap: var(--hm-space-1) var(--hm-space-2);
+    font-size: var(--hm-text-xs);
+  }
+}
+
 .hm-root > .hm-nextaction h2 {
   margin: 0;
   flex: 0 1 auto;
@@ -259,16 +267,14 @@
   }
 
   .hm-root .hm-shell,
-  .hm-root .hm-main,
-  .hm-messages {
+  .hm-root .hm-main {
     grid-column: 1;
     height: auto;
     overflow: visible;
   }
 
   .hm-messages {
-    border-left: 0;
-    border-top: 1px solid var(--hm-rule-strong);
+    display: none;
   }
 
   /*
@@ -289,12 +295,19 @@
   }
 
   .hm-root .hm-shell__nav [role="tablist"] {
-    scroll-snap-type: x proximity;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--hm-space-3);
   }
 
   .hm-root .hm-shell__nav [role="tab"] {
     flex: 0 0 auto;
-    scroll-snap-align: start;
+    scroll-snap-align: center;
+  }
+
+  .hm-root .hm-shell__nav [role="tab"][aria-selected="true"] {
+    border-bottom: 2px solid var(--hm-signal);
+    color: var(--hm-signal-bright);
+    font-weight: 700;
   }
 
   .hm-drawer__panel {

@@ -97,7 +97,7 @@ export function RevenueDashboard(props: {
         {empty ? (
           <p>{t("revenue.ui.noTimeline")}</p>
         ) : (
-          <table>
+          <table className="hm-responsive-table">
             <caption>
               {props.rates.length
                 ? formatGameDateRange(
@@ -125,12 +125,12 @@ export function RevenueDashboard(props: {
                 const booking = bookingsByDate.get(row.dateKey);
                 return (
                   <tr key={row.dateKey} data-date-state={row.state}>
-                    <th scope="row">
+                    <th scope="row" data-label={t("revenue.ui.date")}>
                       {formatGameDate(row.dateKey, locale)} —{" "}
                       {t(`revenue.ui.dateState.${row.state}`)}
                     </th>
                     {row.cells.map((cell) => (
-                      <td key={cell.key}>
+                      <td key={cell.key} data-label={translateGame(locale, `revenue.category.${cell.category}`)}>
                         <span>{formatDm(cell.rateMinor, locale)}</span>
                         <button
                           type="button"
@@ -150,7 +150,7 @@ export function RevenueDashboard(props: {
                         </button>
                       </td>
                     ))}
-                    <td>
+                    <td data-label={t("revenue.ui.onBooks")}>
                       {booking
                         ? t("revenue.ui.roomsBooked", {
                             confirmed: booking.confirmedRooms,
@@ -162,7 +162,7 @@ export function RevenueDashboard(props: {
                           })
                         : t("revenue.ui.noBookings")}
                     </td>
-                    <td>
+                    <td data-label={t("revenue.ui.forecast")}>
                       {booking
                         ? t("revenue.ui.roomNights", {
                             low: booking.forecastLow,
@@ -170,7 +170,7 @@ export function RevenueDashboard(props: {
                           })
                         : t("revenue.ui.noForecast")}
                     </td>
-                    <td>
+                    <td data-label={t("revenue.ui.pickup")}>
                       {t("revenue.ui.rooms", {
                         count: pickupByDate.get(row.dateKey)?.rooms ?? 0,
                       })}
@@ -186,31 +186,37 @@ export function RevenueDashboard(props: {
       <section aria-label={t("revenue.ui.channelMix")}>
         <h3>{t("revenue.ui.channelMix")}</h3>
         {props.channels.length ? (
-          <table>
-            <caption>Confirmed business by channel</caption>
+          <table className="hm-responsive-table">
+            <caption>{t("revenue.ui.channelMixCaption")}</caption>
             <thead>
               <tr>
-                <th scope="col">Channel</th>
-                <th scope="col">Rooms</th>
-                <th scope="col">Room share</th>
-                <th scope="col">Revenue</th>
-                <th scope="col">Revenue share</th>
-                <th scope="col">Segments</th>
+                <th scope="col">{t("revenue.ui.channel")}</th>
+                <th scope="col">{t("revenue.ui.roomsHeader")}</th>
+                <th scope="col">{t("revenue.ui.roomShare")}</th>
+                <th scope="col">{t("revenue.ui.revenue")}</th>
+                <th scope="col">{t("revenue.ui.revenueShare")}</th>
+                <th scope="col">{t("revenue.ui.segments")}</th>
               </tr>
             </thead>
             <tbody>
               {props.channels.map((row) => (
                 <tr key={row.channel}>
-                  <th scope="row">
+                  <th scope="row" data-label={t("revenue.ui.channel")}>
                     {translateGame(locale, `revenue.channel.${row.channel}`)}
                   </th>
-                  <td>{row.rooms}</td>
-                  <td>{formatBasisPoints(row.roomShareBasisPoints, locale)}</td>
-                  <td>{formatDm(row.revenueMinor, locale)}</td>
-                  <td>
+                  <td data-label={t("revenue.ui.roomsHeader")}>{row.rooms}</td>
+                  <td data-label={t("revenue.ui.roomShare")}>
+                    {formatBasisPoints(row.roomShareBasisPoints, locale)}
+                  </td>
+                  <td data-label={t("revenue.ui.revenue")}>
+                    {formatDm(row.revenueMinor, locale)}
+                  </td>
+                  <td data-label={t("revenue.ui.revenueShare")}>
                     {formatBasisPoints(row.revenueShareBasisPoints, locale)}
                   </td>
-                  <td>{row.segmentLabels.map(segmentLabel).join(", ")}</td>
+                  <td data-label={t("revenue.ui.segments")}>
+                    {row.segmentLabels.map(segmentLabel).join(", ")}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -223,40 +229,42 @@ export function RevenueDashboard(props: {
       <section aria-label={t("revenue.ui.ratePlans")}>
         <h3>{t("revenue.ui.ratePlans")}</h3>
         {props.ratePlans.length ? (
-          <table>
-            <caption>Current read-only rate plans</caption>
+          <table className="hm-responsive-table">
+            <caption>{t("revenue.ui.ratePlansCaption")}</caption>
             <thead>
               <tr>
-                <th scope="col">Plan</th>
-                <th scope="col">Modifier</th>
-                <th scope="col">Refund</th>
-                <th scope="col">Stay</th>
-                <th scope="col">Arrival</th>
+                <th scope="col">{t("revenue.ui.plan")}</th>
+                <th scope="col">{t("revenue.ui.modifier")}</th>
+                <th scope="col">{t("revenue.ui.refund")}</th>
+                <th scope="col">{t("revenue.ui.stay")}</th>
+                <th scope="col">{t("revenue.ui.arrival")}</th>
               </tr>
             </thead>
             <tbody>
               {props.ratePlans.map((row) => (
                 <tr key={row.id}>
-                  <th scope="row">{row.id}</th>
-                  <td>
+                  <th scope="row" data-label={t("revenue.ui.plan")}>
+                    {row.id}
+                  </th>
+                  <td data-label={t("revenue.ui.modifier")}>
                     {formatSignedBasisPoints(
                       row.modifierBasisPoints - 10_000,
                       locale,
                     )}
                   </td>
-                  <td>
+                  <td data-label={t("revenue.ui.refund")}>
                     {t(
                       row.refundable
                         ? "revenue.ui.refundable"
                         : "revenue.ui.nonRefundable",
                     )}
                   </td>
-                  <td>
+                  <td data-label={t("revenue.ui.stay")}>
                     {row.minimumStayNights}–
                     {row.maximumStayNights ?? t("revenue.ui.unlimited")}{" "}
                     {t("revenue.ui.nights")}
                   </td>
-                  <td>
+                  <td data-label={t("revenue.ui.arrival")}>
                     {row.closedToArrival
                       ? t("revenue.ui.closedArrival")
                       : t("revenue.ui.openArrival")}
@@ -338,7 +346,10 @@ export function RevenueDashboard(props: {
             .filter((row) => row.exposureRooms > 0)
             .map((row) => (
               <li key={row.dateKey}>
-                {row.dateKey}: {row.exposureRooms} rooms above physical capacity
+                {t("revenue.ui.exposureMessage", {
+                  date: row.dateKey,
+                  count: row.exposureRooms,
+                })}
               </li>
             ))}
         </ul>
@@ -351,25 +362,33 @@ export function RevenueDashboard(props: {
       <section aria-label={t("revenue.ui.competitionLabel")}>
         <h3>{t("revenue.ui.competition")}</h3>
         {props.competition.length ? (
-          <table>
-            <caption>Comparable city hotels</caption>
+          <table className="hm-responsive-table">
+            <caption>{t("revenue.ui.competitionCaption")}</caption>
             <thead>
               <tr>
-                <th scope="col">Hotel</th>
-                <th scope="col">Rooms</th>
-                <th scope="col">Rate</th>
-                <th scope="col">Occupancy</th>
-                <th scope="col">Status</th>
+                <th scope="col">{t("revenue.ui.hotel")}</th>
+                <th scope="col">{t("revenue.ui.roomsHeader")}</th>
+                <th scope="col">{t("revenue.ui.rate")}</th>
+                <th scope="col">{t("revenue.ui.occupancyHeader")}</th>
+                <th scope="col">{t("revenue.ui.statusHeader")}</th>
               </tr>
             </thead>
             <tbody>
               {props.competition.map((row) => (
                 <tr key={row.id}>
-                  <th scope="row">{translateKey(row.name)}</th>
-                  <td>{row.rooms}</td>
-                  <td>{formatDm(row.rateMinor, locale)}</td>
-                  <td>{formatBasisPoints(row.occupancyBasisPoints, locale)}</td>
-                  <td>{t(`revenue.ui.status.${row.status}`)}</td>
+                  <th scope="row" data-label={t("revenue.ui.hotel")}>
+                    {translateKey(row.name)}
+                  </th>
+                  <td data-label={t("revenue.ui.roomsHeader")}>{row.rooms}</td>
+                  <td data-label={t("revenue.ui.rate")}>
+                    {formatDm(row.rateMinor, locale)}
+                  </td>
+                  <td data-label={t("revenue.ui.occupancyHeader")}>
+                    {formatBasisPoints(row.occupancyBasisPoints, locale)}
+                  </td>
+                  <td data-label={t("revenue.ui.statusHeader")}>
+                    {t(`revenue.ui.status.${row.status}`)}
+                  </td>
                 </tr>
               ))}
             </tbody>

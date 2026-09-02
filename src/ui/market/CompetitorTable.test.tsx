@@ -29,11 +29,12 @@ it("puts each rival's rate and occupancy beside the player's own", () => {
       rows={RIVALS}
       playerRateMinor={18000}
       playerOccupancyBp={6000}
+      locale="en-GB"
     />,
   );
   const table = screen.getByRole("table", { name: /Competitors/ });
   const stern = within(table).getByRole("row", { name: /Pension Stern/ });
-  expect(stern.textContent).toContain("90,00 DM");
+  expect(stern.textContent).toContain("DEM\u00a090.00");
   expect(stern.textContent).toContain("41.0%");
   expect(within(table).getByRole("row", { name: /This hotel/ })).toBeTruthy();
 });
@@ -44,6 +45,7 @@ it("says in words how each rival sits against this hotel", () => {
       rows={RIVALS}
       playerRateMinor={18000}
       playerOccupancyBp={6000}
+      locale="en-GB"
     />,
   );
   const table = screen.getByRole("table", { name: /Competitors/ });
@@ -61,6 +63,7 @@ it("marks a rival in distress without relying on colour", () => {
       rows={RIVALS}
       playerRateMinor={18000}
       playerOccupancyBp={6000}
+      locale="en-GB"
     />,
   );
   expect(
@@ -76,6 +79,7 @@ it("translates authoritative strategy keys for display", () => {
       rows={RIVALS}
       playerRateMinor={18000}
       playerOccupancyBp={6000}
+      locale="en-GB"
     />,
   );
   expect(screen.getByText("Luxury house")).toBeTruthy();
@@ -88,6 +92,7 @@ it("says so plainly when the player has the city to themselves", () => {
       rows={[]}
       playerRateMinor={18000}
       playerOccupancyBp={6000}
+      locale="en-GB"
     />,
   );
   expect(screen.getByText(/no other hotels/i)).toBeTruthy();

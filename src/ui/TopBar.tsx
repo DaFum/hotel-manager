@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { formatMinorCurrency, formatGameDate } from "../i18n/formatters";
 import { formatBasisPoints, formatDm } from "./money";
 import { translateGame, type GameLocale } from "../i18n";
@@ -43,6 +44,7 @@ export function TopBar(props: {
   onOpenSaves?: () => void;
   locale?: GameLocale;
 }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const hours = String(Math.floor(props.minuteOfDay / 60)).padStart(2, "0");
   const minutes = String(props.minuteOfDay % 60).padStart(2, "0");
   const locale = props.locale ?? "de-DE";
@@ -109,73 +111,85 @@ export function TopBar(props: {
         </dl>
       </div>
 
-      <div className="hm-topbar__card hm-topbar__card--controls">
-        <nav
-          className="hm-topbar__speed"
-          aria-label={translateGame(locale, "topbar.speed")}
-        >
-          {SPEEDS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              aria-pressed={props.speed === s}
-              onClick={() => props.onSpeed(s)}
-            >
-              {s === 0 ? translateGame(locale, "topbar.pause") : `${s}x`}
-            </button>
-          ))}
-        </nav>
-        <div className="hm-topbar__io">
-          <button type="button" onClick={props.onSave}>
-            {translateGame(locale, "topbar.save")}
-          </button>
-          <button type="button" onClick={props.onLoad}>
-            {translateGame(locale, "topbar.load")}
-          </button>
-        </div>
-      </div>
-
-      {/*
-        The drawer handles. The message count rides on its own button rather
-        than as a fourth figure in the vitals list, because it is the only one
-        of them the player is meant to act on.
-      */}
-      <nav
-        className="hm-topbar__card hm-topbar__card--tools"
-        aria-label={translateGame(locale, "topbar.tools")}
+      <button
+        type="button"
+        className="hm-topbar__mobile-toggle"
+        aria-expanded={mobileMenuOpen}
+        onClick={() => setMobileMenuOpen((open) => !open)}
       >
-        <button
-          type="button"
-          className="hm-topbar__tool"
-          data-attention={waiting > 0}
-          onClick={props.onOpenNotifications}
+        <span aria-hidden="true">⚙</span>
+        <span>{translateGame(locale, "topbar.tools")}</span>
+      </button>
+
+      <div className="hm-topbar__collapsible" data-open={mobileMenuOpen}>
+        <div className="hm-topbar__card hm-topbar__card--controls">
+          <nav
+            className="hm-topbar__speed"
+            aria-label={translateGame(locale, "topbar.speed")}
+          >
+            {SPEEDS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={props.speed === s}
+                onClick={() => props.onSpeed(s)}
+              >
+                {s === 0 ? translateGame(locale, "topbar.pause") : `${s}x`}
+              </button>
+            ))}
+          </nav>
+          <div className="hm-topbar__io">
+            <button type="button" onClick={props.onSave}>
+              {translateGame(locale, "topbar.save")}
+            </button>
+            <button type="button" onClick={props.onLoad}>
+              {translateGame(locale, "topbar.load")}
+            </button>
+          </div>
+        </div>
+
+        {/*
+          The drawer handles. The message count rides on its own button rather
+          than as a fourth figure in the vitals list, because it is the only one
+          of them the player is meant to act on.
+        */}
+        <nav
+          className="hm-topbar__card hm-topbar__card--tools"
+          aria-label={translateGame(locale, "topbar.tools")}
         >
-          <span aria-hidden="true">✉</span>
-          <span>
-            {waiting > 0
-              ? translateGame(locale, "topbar.openNotificationsCount", {
-                  count: waiting,
-                })
-              : translateGame(locale, "topbar.openNotifications")}
-          </span>
-        </button>
-        <button
-          type="button"
-          className="hm-topbar__tool"
-          onClick={props.onOpenSaves}
-        >
-          <span aria-hidden="true">▤</span>
-          <span>{translateGame(locale, "topbar.openSaves")}</span>
-        </button>
-        <button
-          type="button"
-          className="hm-topbar__tool"
-          onClick={props.onOpenSettings}
-        >
-          <span aria-hidden="true">⚙</span>
-          <span>{translateGame(locale, "topbar.openSettings")}</span>
-        </button>
-      </nav>
+          <button
+            type="button"
+            className="hm-topbar__tool"
+            data-attention={waiting > 0}
+            onClick={props.onOpenNotifications}
+          >
+            <span aria-hidden="true">✉</span>
+            <span>
+              {waiting > 0
+                ? translateGame(locale, "topbar.openNotificationsCount", {
+                    count: waiting,
+                  })
+                : translateGame(locale, "topbar.openNotifications")}
+            </span>
+          </button>
+          <button
+            type="button"
+            className="hm-topbar__tool"
+            onClick={props.onOpenSaves}
+          >
+            <span aria-hidden="true">▤</span>
+            <span>{translateGame(locale, "topbar.openSaves")}</span>
+          </button>
+          <button
+            type="button"
+            className="hm-topbar__tool"
+            onClick={props.onOpenSettings}
+          >
+            <span aria-hidden="true">⚙</span>
+            <span>{translateGame(locale, "topbar.openSettings")}</span>
+          </button>
+        </nav>
+      </div>
     </section>
   );
 }

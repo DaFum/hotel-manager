@@ -4,7 +4,7 @@ import {
   type DifficultyId,
   type SandboxOptions,
 } from "../../game/campaign/campaignConfig";
-import { translate, translateKey } from "../localization";
+import { translateGame, type GameLocale } from "../../i18n";
 
 /**
  * The brief the player agreed to. Every difficulty input is disclosed here
@@ -17,6 +17,7 @@ export function CampaignSetup({
   locked = false,
   onDifficulty,
   onSandbox,
+  locale = "en-GB",
 }: {
   difficulty: DifficultyId;
   sandbox?: SandboxOptions;
@@ -24,13 +25,16 @@ export function CampaignSetup({
   locked?: boolean;
   onDifficulty?: (difficulty: DifficultyId) => void;
   onSandbox?: (sandbox: CampaignSandboxDraft) => void;
+  locale?: GameLocale;
 }) {
+  const t = (k: string) => translateGame(locale, k);
   const inputs = DIFFICULTY_PRESETS[difficulty];
+  const numberFormat = new Intl.NumberFormat(locale);
   return (
-    <section aria-label={translate("campaign.setup")}>
-      <h2>{translate("campaign.title")}</h2>
+    <section aria-label={t("campaignSetup.setup")}>
+      <h2>{t("campaignSetup.title")}</h2>
       <label>
-        {translate("campaign.difficulty")}{" "}
+        {t("campaignSetup.difficulty")}{" "}
         <select
           value={difficulty}
           onChange={(event) =>
@@ -40,24 +44,25 @@ export function CampaignSetup({
         >
           {DIFFICULTY_IDS.map((id) => (
             <option key={id} value={id}>
-              {translateKey(`campaign.difficulty.${id}`)}
+              {t(`campaignSetup.difficultyOption.${id}`)}
             </option>
           ))}
         </select>
       </label>
       <ul>
         <li>
-          {translate("campaign.capital")}: {inputs.startingCapitalBasisPoints}{" "}
-          bp
+          {t("campaignSetup.capital")}:{" "}
+          {numberFormat.format(inputs.startingCapitalBasisPoints)} bp
         </li>
         <li>
-          {translate("campaign.credit")}: {inputs.creditSpreadBasisPoints} bp
+          {t("campaignSetup.credit")}:{" "}
+          {numberFormat.format(inputs.creditSpreadBasisPoints)} bp
         </li>
-        <li>{translate("campaign.fairness")}</li>
+        <li>{t("campaignSetup.fairness")}</li>
       </ul>
       {sandbox ? (
         <fieldset>
-          <legend>{translate("campaign.sandbox")}</legend>
+          <legend>{t("campaignSetup.sandbox")}</legend>
           {(
             [
               "economicVolatilityBasisPoints",
@@ -69,12 +74,16 @@ export function CampaignSetup({
               "informationAccuracyBasisPoints",
             ] as const
           ).map((lever) => {
-            const label = translateKey(`campaign.sandbox.${lever}`);
+            const labelText = t(`campaignSetup.sandboxLever.${lever}`);
+            const valueText = `${numberFormat.format(sandbox[lever] ?? 0)} bp`;
             return (
-              <label key={lever}>
-                {label} {sandbox[lever]} bp
+              <div key={lever} className="campaign-slider">
+                <div className="campaign-slider__header">
+                  <span className="campaign-slider__label">{labelText}</span>
+                  <span className="campaign-slider__value">{valueText}</span>
+                </div>
                 <input
-                  aria-label={label}
+                  aria-label={`${labelText} ${valueText}`}
                   type="range"
                   min={lever === "technologySpeedBasisPoints" ? "1" : "0"}
                   max="20000"
@@ -88,7 +97,7 @@ export function CampaignSetup({
                     })
                   }
                 />
-              </label>
+              </div>
             );
           })}
         </fieldset>

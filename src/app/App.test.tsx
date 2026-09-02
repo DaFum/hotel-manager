@@ -251,19 +251,19 @@ describe("App", () => {
       guests: ["Gäste"],
       staff: ["Personal"],
       finance: ["Finanzen", translateGame("de-DE", "panels.purchasing.title")],
-      revenue: ["Umsatz", "Competitors"],
+      revenue: ["Umsatz", translateGame("de-DE", "competitors.title")],
       marketing: [
         "Vertriebspipeline",
         "CRM und Einwilligung",
         "Zielgruppen und Reichweite",
-        "Commercial",
+        translateGame("de-DE", "commercialDashboard.title"),
       ],
       market: [
         "Stadtwirtschaft",
         "Stadtaktivität",
         "Weltlage",
-        "City market",
-        "Competitors",
+        translateGame("de-DE", "cityDashboard.title"),
+        translateGame("de-DE", "competitors.title"),
       ],
       company: [
         "Konzernfinanzen",
@@ -275,7 +275,11 @@ describe("App", () => {
         "Development pipeline",
         "Manager governance",
       ],
-      campaign: ["Campaign setup", "Story inbox", "Company chronicle"],
+      campaign: [
+        translateGame("de-DE", "campaignSetup.setup"),
+        "Story inbox",
+        "Company chronicle",
+      ],
     };
 
     for (const id of AREA_ORDER) {
@@ -290,7 +294,7 @@ describe("App", () => {
       for (const label of expectedContent[id])
         expect(panel?.querySelector(`[aria-label="${label}"]`)).not.toBeNull();
       expect(
-        container.querySelectorAll('[aria-label="Competitors"]'),
+        container.querySelectorAll(`[aria-label="${translateGame("de-DE", "competitors.title")}"]`),
       ).toHaveLength(id === "revenue" || id === "market" ? 1 : 0);
     }
   });

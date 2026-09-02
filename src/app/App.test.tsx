@@ -256,13 +256,13 @@ describe("App", () => {
         "Vertriebspipeline",
         "CRM und Einwilligung",
         "Zielgruppen und Reichweite",
-        "Commercial",
+        translateGame("de-DE", "commercialDashboard.title"),
       ],
       market: [
         "Stadtwirtschaft",
         "Stadtaktivität",
         "Weltlage",
-        "City market",
+        translateGame("de-DE", "cityDashboard.title"),
         translateGame("de-DE", "competitors.title"),
       ],
       company: [

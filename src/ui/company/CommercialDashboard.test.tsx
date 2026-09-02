@@ -64,9 +64,9 @@ describe("CommercialDashboard", () => {
   it("names every concession an account was given, and what it is worth", () => {
     render(<CommercialDashboard {...EMPTY} accounts={[ACCOUNT]} />);
     const text = screen.getByRole("region", { name: "Commercial" }).textContent;
-    expect(text).toMatch(/Hoechst AG at 90,00 DM for 900 room nights/);
+    expect(text).toMatch(/Hoechst AG at (?:90,00 DM|DEM\s*90\.00) for 900 room nights/);
     expect(text).toMatch(/plus breakfast, late-checkout/);
-    expect(text).toMatch(/45000,00 DM over the year, renewing/);
+    expect(text).toMatch(/(?:45000,00 DM|DEM\s*45,000\.00) over the year, renewing/);
   });
 
   it("omits the concession clause for an account that got none", () => {
@@ -124,7 +124,7 @@ describe("CommercialDashboard", () => {
       />,
     );
     expect(screen.getByLabelText("Loyalty liability").textContent).toMatch(
-      /42 members, 1280,00 DM owed in points, 7 guests who agreed to be contacted/,
+      /42 members, (?:1280,00 DM|DEM\s*1,280\.00) owed in points, 7 guests who agreed to be contacted/,
     );
   });
 });

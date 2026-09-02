@@ -1,3 +1,4 @@
+import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
 
 /**
@@ -27,48 +28,65 @@ export function CityDashboard(p: {
   /** Cost and command callback are supplied together when research is available. */
   researchCostMinor?: number;
   onBuyResearch?: () => void;
+  locale?: GameLocale;
 }) {
+  const locale = p.locale ?? "en-GB";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   const event = p.event ?? 0;
   const group = p.group ?? 0;
   const total = p.business + p.leisure + event + group;
   const sources: readonly [string, number][] = [
-    ["Business", p.business],
-    ["Leisure", p.leisure],
-    ["Event", event],
-    ["Group", group],
+    [t("cityDashboard.sources.business"), p.business],
+    [t("cityDashboard.sources.leisure"), p.leisure],
+    [t("cityDashboard.sources.event"), event],
+    [t("cityDashboard.sources.group"), group],
   ];
 
   return (
-    <section aria-label="City market">
-      <h2>City market</h2>
-      <p aria-label="City room nights">{total} room nights this month</p>
+    <section aria-label={t("cityDashboard.title")}>
+      <h2>{t("cityDashboard.title")}</h2>
+      <p aria-label={t("cityDashboard.nightsThisMonthLabel")}>
+        {t("cityDashboard.nightsThisMonth", { total })}
+      </p>
       <ul>
         {sources.map(([name, nights]) => (
           <li key={name}>
-            {name} {nights} (
-            {formatBasisPoints(
-              total ? Math.round((nights * 10000) / total) : 0,
-            )}
-            )
+            {t("cityDashboard.sourceRow", {
+              name,
+              nights,
+              share: formatBasisPoints(
+                total ? Math.round((nights * 10000) / total) : 0,
+                locale,
+              ),
+            })}
           </li>
         ))}
       </ul>
-      <p aria-label="Room-night forecast">
-        Forecast {p.low}–{p.high} room nights
-        {p.informationQuality === undefined
-          ? ""
-          : ` at information quality ${p.informationQuality}/100`}
+      <p aria-label={t("cityDashboard.forecastLabel")}>
+        {t("cityDashboard.forecast", {
+          low: p.low,
+          high: p.high,
+          quality:
+            p.informationQuality === undefined
+              ? ""
+              : t("cityDashboard.infoQuality", {
+                  quality: p.informationQuality,
+                }),
+        })}
       </p>
       {p.onBuyResearch === undefined ||
       p.researchCostMinor === undefined ? null : (
         <button type="button" onClick={p.onBuyResearch}>
-          Buy market research — {formatDm(p.researchCostMinor)}
+          {t("cityDashboard.buyResearch", {
+            cost: formatDm(p.researchCostMinor, locale),
+          })}
         </button>
       )}
       {p.connectivityIndex === undefined ? null : (
-        <p aria-label="Connectivity">
-          Connectivity {p.connectivityIndex}/100 — rail, air, road and local
-          transit, weighted by how much travel each carries.
+        <p aria-label={t("cityDashboard.connectivityLabel")}>
+          {t("cityDashboard.connectivity", { index: p.connectivityIndex })}
         </p>
       )}
     </section>

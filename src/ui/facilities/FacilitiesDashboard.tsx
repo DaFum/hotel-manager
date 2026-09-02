@@ -2,6 +2,8 @@ import { utilizationBp } from "../../game/facilities/capacity";
 import { formatBasisPoints } from "../money";
 import { useLocale } from "../localeContext";
 import { translateGame } from "../../i18n";
+import { entityLabel } from "../entityNames";
+import { facilityCauseKey } from "../localization";
 
 export interface FacilityRow {
   id: string;
@@ -39,26 +41,25 @@ export function FacilitiesDashboard({
       <h2>{t("panels.facilities.title")}</h2>
       <ul>
         {rows.map((r) => {
+          const name = entityLabel(r.id, locale) || r.name;
+          const cause = translateGame(locale, facilityCauseKey(r.cause));
           const loadBp = utilizationBp(
             Math.max(0, Math.round(r.demand)),
             Math.max(0, Math.round(r.capacity)),
           );
           const over = r.demand > r.capacity;
           return (
-            <li key={r.id} aria-label={r.name}>
-              <h3>{r.name}</h3>
+            <li key={r.id} aria-label={name}>
+              <h3>{name}</h3>
               <p>
                 {t("panels.facilities.load", {
                   demand: r.demand,
                   capacity: r.capacity,
-                  share: formatBasisPoints(loadBp),
+                  share: formatBasisPoints(loadBp, locale),
                 })}
                 {over ? ` — ${t("panels.facilities.overCapacity")}` : ""}
               </p>
-              {/* The binding cause is already a catalogue key when the
-                  simulation knows one, so it resolves in the player's
-                  language rather than reaching them as English. */}
-              <p>{t("panels.facilities.limitedBy", { cause: r.cause })}</p>
+              <p>{t("panels.facilities.limitedBy", { cause })}</p>
             </li>
           );
         })}

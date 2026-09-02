@@ -1,3 +1,4 @@
+import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
 
 export interface CampaignRow {
@@ -50,64 +51,92 @@ export function CommercialDashboard(props: {
   loyaltyLiabilityMinor: number;
   loyaltyMembers: number;
   marketableGuests: number;
+  locale?: GameLocale;
 }) {
-  return (
-    <section aria-label="Commercial">
-      <h2>Commercial</h2>
+  const locale = props.locale ?? "en-GB";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
 
-      <h3>Campaigns</h3>
+  return (
+    <section aria-label={t("commercialDashboard.title")}>
+      <h2>{t("commercialDashboard.title")}</h2>
+
+      <h3>{t("commercialDashboard.campaigns")}</h3>
       {props.campaigns.length === 0 ? (
-        <p>Nothing is being advertised.</p>
+        <p>{t("commercialDashboard.noCampaigns")}</p>
       ) : (
         <ul>
           {props.campaigns.map((campaign) => (
             <li key={campaign.id}>
-              {campaign.objective} on {campaign.channel} to{" "}
-              {campaign.targetSegmentId} for {formatDm(campaign.budgetMinor)} —
-              expected {formatBasisPoints(campaign.lowBasisPoints)} to{" "}
-              {formatBasisPoints(campaign.highBasisPoints)} extra capture,{" "}
-              {campaign.daysUntilAttribution > 0
-                ? `${campaign.daysUntilAttribution} days before it shows`
-                : "already showing"}{" "}
-              ({campaign.status})
+              {t("commercialDashboard.campaignRow", {
+                objective: campaign.objective,
+                channel: campaign.channel,
+                targetSegmentId: campaign.targetSegmentId,
+                budget: formatDm(campaign.budgetMinor, locale),
+                low: formatBasisPoints(campaign.lowBasisPoints, locale),
+                high: formatBasisPoints(campaign.highBasisPoints, locale),
+                days:
+                  campaign.daysUntilAttribution > 0
+                    ? t("commercialDashboard.daysRemaining", {
+                        count: campaign.daysUntilAttribution,
+                      })
+                    : t("commercialDashboard.alreadyShowing"),
+                status: campaign.status,
+              })}
             </li>
           ))}
         </ul>
       )}
 
-      <h3>Negotiated accounts</h3>
+      <h3>{t("commercialDashboard.accounts")}</h3>
       {props.accounts.length === 0 ? (
-        <p>No rate has been agreed with an account.</p>
+        <p>{t("commercialDashboard.noAccounts")}</p>
       ) : (
         <ul>
           {props.accounts.map((account) => (
             <li key={account.id}>
-              {account.accountName} at {formatDm(account.negotiatedRateMinor)}{" "}
-              for {account.expectedRoomNights} room nights
-              {account.concessions.length > 0
-                ? `, plus ${account.concessions.join(", ")}`
-                : ""}{" "}
-              — {formatDm(account.profitabilityMinor)} over the year,{" "}
-              {account.renewalIntent}
+              {t("commercialDashboard.accountRow", {
+                accountName: account.accountName,
+                rate: formatDm(account.negotiatedRateMinor, locale),
+                nights: account.expectedRoomNights,
+                concessions:
+                  account.concessions.length > 0
+                    ? t("commercialDashboard.concessions", {
+                        list: account.concessions.join(", "),
+                      })
+                    : "",
+                profitability: formatDm(account.profitabilityMinor, locale),
+                renewalIntent: account.renewalIntent,
+              })}
             </li>
           ))}
         </ul>
       )}
 
-      <h3>Loyalty</h3>
-      <p aria-label="Loyalty liability">
-        {props.loyaltyMembers} members, {formatDm(props.loyaltyLiabilityMinor)}{" "}
-        owed in points, {props.marketableGuests} guests who agreed to be
-        contacted
+      <h3>{t("commercialDashboard.loyalty")}</h3>
+      <p aria-label={t("commercialDashboard.loyaltyLabel")}>
+        {t("commercialDashboard.loyaltySummary", {
+          members: props.loyaltyMembers,
+          liability: formatDm(props.loyaltyLiabilityMinor, locale),
+          marketable: props.marketableGuests,
+        })}
       </p>
 
-      <h3>Reputation</h3>
+      <h3>{t("commercialDashboard.reputation")}</h3>
       <ul>
         {props.reputation.map((row) => (
           <li key={`${row.dimension}.${row.scopeId}`}>
-            {row.dimension} ({row.scopeId}): {row.score}/100 — affects{" "}
-            {row.effect}
-            {row.topCause ? `; latest: ${row.topCause}` : ""}
+            {t("commercialDashboard.reputationRow", {
+              dimension: row.dimension,
+              scopeId: row.scopeId,
+              score: row.score,
+              effect: row.effect,
+              topCause: row.topCause
+                ? t("commercialDashboard.latestCause", {
+                    cause: row.topCause,
+                  })
+                : "",
+            })}
           </li>
         ))}
       </ul>

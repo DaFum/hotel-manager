@@ -41,6 +41,7 @@ describe("ChronicleView", () => {
             text: "chronicle.milestone.first-profitable-year",
           },
         ]}
+        locale="en-GB"
       />,
     );
     expect(

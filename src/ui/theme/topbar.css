@@ -72,7 +72,7 @@
   justify-content: center;
 }
 
-.hm-root .hm-topbar__card--controls {
+.hm-root :is(.hm-topbar__card--controls, .hm-topbar__card--speed, .hm-topbar__card--io) {
   flex: 0 0 auto;
   gap: var(--hm-space-3);
   background: transparent;
@@ -285,7 +285,7 @@
     padding: 0 var(--hm-space-1);
   }
 
-  .hm-root :is(.hm-topbar__card--controls, .hm-topbar__card--tools),
+  .hm-root :is(.hm-topbar__card--controls, .hm-topbar__card--speed, .hm-topbar__card--io, .hm-topbar__card--tools),
   .hm-root :is(.hm-topbar__speed, .hm-topbar__io) {
     flex-wrap: wrap;
     gap: var(--hm-space-1);

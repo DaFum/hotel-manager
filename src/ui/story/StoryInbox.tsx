@@ -1,10 +1,5 @@
-import { translate, translateKey } from "../localization";
+import { translateGame, type GameLocale } from "../../i18n";
 
-/**
- * What is waiting for a decision. Titles, bodies and choice labels arrive as
- * keys from the worker and are resolved here: the simulation never holds a
- * sentence in a language.
- */
 interface InboxEvent {
   id: string;
   titleKey: string;
@@ -16,22 +11,27 @@ interface InboxEvent {
 export function StoryInbox({
   events,
   onChoose,
+  locale = "de-DE",
 }: {
   events: readonly InboxEvent[];
   onChoose?: (eventId: string, choiceId: string) => void;
+  locale?: GameLocale;
 }) {
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   return (
-    <section aria-label={translate("story.inbox")}>
-      <h2>{translate("story.inbox")}</h2>
+    <section aria-label={t("story.inbox.title")}>
+      <h2>{t("story.inbox.title")}</h2>
       {events.length === 0 ? (
-        <p>{translate("story.inbox.empty")}</p>
+        <p>{t("story.inbox.empty")}</p>
       ) : (
         events.map((event) => (
           <article key={event.id}>
-            <h3>{translateKey(event.titleKey)}</h3>
-            <p>{translateKey(event.bodyKey)}</p>
+            <h3>{t(event.titleKey)}</h3>
+            <p>{t(event.bodyKey)}</p>
             <p>
-              {translate("story.raised")}{" "}
+              {t("story.raised")}{" "}
               <time dateTime={event.raisedDateKey}>{event.raisedDateKey}</time>
             </p>
             {event.choices.map((choice) => (
@@ -40,7 +40,7 @@ export function StoryInbox({
                 type="button"
                 onClick={() => onChoose?.(event.id, choice.id)}
               >
-                {translateKey(choice.labelKey)}
+                {t(choice.labelKey)}
               </button>
             ))}
           </article>

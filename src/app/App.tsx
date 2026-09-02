@@ -368,6 +368,7 @@ export function App() {
     <ManagedHotelUnavailable
       hotelName={selectedHotel.name}
       level="department"
+      locale={preferences.locale}
     />
   ) : null;
 
@@ -378,6 +379,7 @@ export function App() {
           <ManagedHotelUnavailable
             hotelName={selectedHotel.name}
             level="room"
+            locale={preferences.locale}
           />
         ) : null}
         <HotelView
@@ -520,7 +522,7 @@ export function App() {
         />
       </>
     ) : selectedHotel ? (
-      <ManagedHotelSummary hotel={selectedHotel} />
+      <ManagedHotelSummary hotel={selectedHotel} locale={preferences.locale} />
     ) : null,
     guests: flagshipSelected ? (
       <GuestsDashboard
@@ -785,9 +787,12 @@ export function App() {
         <PortfolioDashboard
           hotels={portfolioRows(s)}
           onOpenHotel={setOpenHotel}
+          locale={preferences.locale}
         />
-        <p aria-label="Selected hotel">
-          Viewing: {hotelName(s, selectedHotelId)}
+        <p aria-label={translateGame(preferences.locale, "company.portfolio.selectedHotel")}>
+          {translateGame(preferences.locale, "company.portfolio.viewing", {
+            name: hotelName(s, selectedHotelId),
+          })}
         </p>
         <BrandDashboard
           brands={brandRows(s)}
@@ -796,6 +801,7 @@ export function App() {
           onAssignBrand={(hotelId, brandId) =>
             game.send({ type: "ASSIGN_BRAND", hotelId, brandId })
           }
+          locale={preferences.locale}
         />
         <DevelopmentDashboard
           developments={developmentRows(s)}
@@ -809,6 +815,7 @@ export function App() {
           onOpen={(developmentId) =>
             game.send({ type: "OPEN_DEVELOPMENT", developmentId })
           }
+          locale={preferences.locale}
         />
         <ManagerGovernancePanel
           managers={managerRows(s)}
@@ -823,6 +830,7 @@ export function App() {
           onResolve={(escalationId, approve) =>
             game.send({ type: "RESOLVE_ESCALATION", escalationId, approve })
           }
+          locale={preferences.locale}
         />
       </>
     ),
@@ -854,6 +862,7 @@ export function App() {
           onChoose={(eventId, choiceId) =>
             game.send({ type: "RESOLVE_NARRATIVE_EVENT", eventId, choiceId })
           }
+          locale={preferences.locale}
         />
         <ChronicleView
           entries={s.narrative.chronicle.map((entry) => ({
@@ -862,6 +871,7 @@ export function App() {
             text: entry.textKey,
             scope: entry.scope,
           }))}
+          locale={preferences.locale}
         />
       </>
     ),
@@ -1139,6 +1149,45 @@ export function App() {
               setOpenDrawer(null);
             }}
             onAcknowledge={game.acknowledgeAlert}
+            locale={preferences.locale}
+          />
+          <details className="hm-messages__filters">
+            <summary>
+              {translateGame(
+                preferences.locale,
+                "notifications.filtersToggle",
+              )}
+            </summary>
+            <NotificationFilters
+              value={preferences.notifications}
+              locale={preferences.locale}
+              categories={[
+                ...new Set(s.alerts.map((alert) => alert.category)),
+              ]}
+              hotels={s.company.portfolio.hotelIds.map((id) => ({
+                id,
+                name: hotelName(s, id),
+              }))}
+              regions={[
+                ...new Set(Object.values(s.company.portfolio.hotelRegion)),
+              ].map((id) => {
+                const hotelId = s.company.portfolio.hotelIds.find(
+                  (candidate) =>
+                    s.company.portfolio.hotelRegion[candidate] === id,
+                );
+                return { id, name: hotelId ? cityName(s, hotelId) : id };
+              })}
+              onChange={(notifications) =>
+                game.setPreferences({ ...preferences, notifications })
+              }
+            />
+          </details>
+          <ContextHelp
+            title={translateGame(
+              preferences.locale,
+              "help.guestSatisfaction",
+            )}
+            drivers={s.guestSatisfaction.causes.map((key) => ({ key }))}
             locale={preferences.locale}
           />
         </Drawer>

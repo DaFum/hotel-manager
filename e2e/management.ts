@@ -23,12 +23,35 @@ export async function openDrawer(
   page: Page,
   drawer: "settings" | "saves",
 ): Promise<void> {
+  await expect(page.locator(".hm-topbar")).toBeVisible();
+  const toggle = page.locator(".hm-topbar__mobile-toggle");
+  if (await toggle.isVisible()) {
+    const collapsible = page.locator(".hm-topbar__collapsible");
+    if (!(await collapsible.isVisible())) {
+      await toggle.click();
+      await expect(collapsible).toBeVisible();
+    }
+  }
   const name =
     drawer === "settings"
-      ? /^(Einstellungen|Settings)$/
-      : /^(Spielstände|Saved games)$/;
+      ? /Settings|Einstellungen/i
+      : /Saved games|Spielstände/i;
   await page.getByRole("button", { name }).click();
   await expect(page.locator(`#hm-drawer-${drawer}`)).toBeVisible();
+}
+
+export async function openNotificationsDrawer(page: Page): Promise<void> {
+  await expect(page.locator(".hm-topbar")).toBeVisible();
+  const toggle = page.locator(".hm-topbar__mobile-toggle");
+  if (await toggle.isVisible()) {
+    const collapsible = page.locator(".hm-topbar__collapsible");
+    if (!(await collapsible.isVisible())) {
+      await toggle.click();
+      await expect(collapsible).toBeVisible();
+    }
+  }
+  await page.getByRole("button", { name: /open notifications|messages/i }).click();
+  await expect(page.locator("#hm-drawer-notifications")).toBeVisible();
 }
 
 export async function closeDrawer(page: Page): Promise<void> {

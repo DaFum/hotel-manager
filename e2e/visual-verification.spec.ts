@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import fs from "fs";
 import path from "path";
-import { openManagementArea, selectLocale } from "./management";
+import { openManagementArea, openNotificationsDrawer, selectLocale } from "./management";
 
 const SCREENSHOT_DIR = path.join(process.cwd(), "screenshots");
 
@@ -145,8 +145,7 @@ test.describe("Visual Verification Screenshot Suite", () => {
     }
 
     // Capture open Notification Drawer on mobile
-    await page.getByRole("button", { name: /open notifications|messages/i }).click();
-    await expect(page.locator("#hm-drawer-notifications")).toBeVisible();
+    await openNotificationsDrawer(page);
     await page.screenshot({
       path: path.join(SCREENSHOT_DIR, "mobile-11-notification-drawer.png"),
       fullPage: true,

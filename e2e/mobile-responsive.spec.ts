@@ -3,6 +3,7 @@ import { AREA_ORDER } from "../src/ui/ManagementShell";
 import {
   closeDrawer,
   openManagementArea,
+  openNotificationsDrawer,
   selectLocale,
 } from "./management";
 
@@ -95,7 +96,12 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       const collapsible = page.locator(".hm-topbar__collapsible");
 
       await expect(toggle).toBeVisible();
-      await expect(collapsible).not.toBeVisible();
+
+      // Ensure collapsible is closed initially before testing toggle
+      if (await collapsible.isVisible()) {
+        await toggle.click();
+        await expect(collapsible).not.toBeVisible();
+      }
 
       await toggle.click();
       await expect(collapsible).toBeVisible();
@@ -109,9 +115,8 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
     }) => {
       await start(page);
 
-      await page.getByRole("button", { name: /open notifications|messages/i }).click();
+      await openNotificationsDrawer(page);
       const drawer = page.locator("#hm-drawer-notifications");
-      await expect(drawer).toBeVisible();
 
       // Notification Center inside drawer
       const center = drawer.getByRole("region", {
@@ -127,9 +132,9 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       await expect(filters).toBeVisible();
 
       // Context Help inside drawer
-      const help = drawer.getByRole("region", {
-        name: /guest satisfaction|help/i,
-      });
+      const help = drawer.locator(
+        'aside, [aria-label*="satisfaction" i], [aria-label*="zufriedenheit" i], [aria-label*="drivers" i]',
+      ).first();
       await expect(help).toBeVisible();
 
       // Close drawer

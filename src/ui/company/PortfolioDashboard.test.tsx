@@ -371,6 +371,29 @@ describe("ManagerGovernancePanel", () => {
     expect(portfolioContainer.textContent).toMatch(/Manager: Unbesetzt/);
     expect(portfolioContainer.textContent).toMatch(/geführt als Eigentum/);
 
+    const { container: mgmtContainer } = render(
+      <PortfolioDashboard
+        hotels={[
+          {
+            id: "h2",
+            name: "Frankfurt South",
+            cityName: "Frankfurt",
+            qualityStars: 4,
+            occupancyBasisPoints: 7000,
+            monthlyProfitMinor: 150000,
+            cashNeedMinor: 0,
+            renovationNeedMinor: 0,
+            warnings: 0,
+            managerName: "Anna Keller",
+            operatingModel: "management",
+          },
+        ]}
+        onOpenHotel={() => {}}
+        locale="de-DE"
+      />,
+    );
+    expect(mgmtContainer.textContent).toMatch(/geführt als Managementvertrag/);
+
     const { container: devContainer } = render(
       <DevelopmentDashboard
         developments={[

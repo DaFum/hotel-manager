@@ -1120,7 +1120,7 @@ export const en = {
       owned: "owned",
       lease: "leased",
       franchise: "franchised",
-      managementContract: "managed",
+      management: "managed",
     },
     manager: {
       unmanaged: "unmanaged",

@@ -1135,7 +1135,7 @@ export const de = {
       owned: "Eigentum",
       lease: "Pacht",
       franchise: "Franchise",
-      managementContract: "Managementvertrag",
+      management: "Managementvertrag",
     },
     manager: {
       unmanaged: "Unbesetzt",

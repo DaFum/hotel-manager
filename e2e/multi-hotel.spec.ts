@@ -5,6 +5,7 @@ test("shows the group as a portfolio the player can drill into", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "company");
   const portfolio = page.getByRole("region", { name: "Hotel portfolio" });
   await expect(portfolio).toBeVisible();
@@ -27,6 +28,7 @@ test("flies a brand and reports the standards a house is breaking", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "company");
   const brands = page.getByRole("region", { name: "Brands" });
   await expect(brands).toBeVisible();
@@ -50,26 +52,27 @@ test("keeps delegated authority and the decisions it sent up on one panel", asyn
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "company");
   const governance = page.getByRole("region", { name: "Manager governance" });
   await expect(governance).toBeVisible();
-  await expect(governance).toContainText(/repairs to .*DM/);
-  await expect(governance).toContainText(/service recovery to .*DM/);
+  await expect(governance).toContainText(/repairs to .*(DEM|DM)/);
+  await expect(governance).toContainText(/service recovery to .*(DEM|DM)/);
 
-  // The starter manager may commission 5000,00 DM of repairs; raising the
-  // limit doubles it to a value the panel then states.
-  await expect(governance).toContainText("repairs to 5000,00 DM");
+  // The starter manager may commission repairs; raising the limit doubles it.
+  await expect(governance).toContainText(/repairs to .*(5,000|5000)/);
   await governance
     .getByRole("button", { name: /raise the repair limit/i })
     .click();
   await expect(page.getByLabel(/^(Command status|Befehlsstatus)$/)).toContainText("accepted");
-  await expect(governance).toContainText("repairs to 10000,00 DM");
+  await expect(governance).toContainText(/repairs to .*(10,000|10000)/);
 });
 
 test("says plainly that no scheme is in the pipeline before one is started", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "company");
   const pipeline = page.getByRole("region", { name: "Development pipeline" });
   await expect(pipeline).toBeVisible();
@@ -78,6 +81,7 @@ test("says plainly that no scheme is in the pipeline before one is started", asy
 
 test("carries the group through a save and a reload", async ({ page }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "company");
   const brands = page.getByRole("region", { name: "Brands" });
   await brands
@@ -100,6 +104,7 @@ test("shows what is advertised, what is agreed, and what loyalty owes", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "marketing");
   // Exact: "Commercial spaces" is a different region on the same page.
   const commercial = page.getByRole("region", {
@@ -110,7 +115,7 @@ test("shows what is advertised, what is agreed, and what loyalty owes", async ({
   await expect(commercial).toContainText("Nothing is being advertised");
   await expect(commercial).toContainText("No rate has been agreed");
   await expect(commercial.getByLabel("Loyalty liability")).toContainText(
-    /members, .*DM owed in points/,
+    /members, .*(DM|DEM) owed in points/,
   );
 
   // Nothing has been scored yet on a fresh game: reputation only moves when
@@ -133,7 +138,7 @@ test("shows the parts of the hotel that are not bedrooms as a business", async (
   await expect(spaces).toContainText(/Car park/);
   await expect(spaces).toContainText(/18 at a time/);
   await expect(spaces).toContainText("00:00–24:00");
-  await expect(spaces).toContainText("self");
+  await expect(spaces).toContainText(/Self-operated|self/i);
   await expect(spaces).toContainText("Everything goes through the desk");
 });
 

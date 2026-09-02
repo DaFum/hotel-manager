@@ -127,4 +127,59 @@ describe("CommercialDashboard", () => {
       /42 members, (?:1280,00 DM|DEM\s*1,280\.00) owed in points, 7 guests who agreed to be contacted/,
     );
   });
+
+  it("localizes rate and segmentShift objectives, directMail/travelAgent/onlineListing channels, and German reputation effects", () => {
+    render(
+      <CommercialDashboard
+        {...EMPTY}
+        campaigns={[
+          {
+            id: "c1",
+            objective: "rate",
+            channel: "directMail",
+            targetSegmentId: "segment.business",
+            budgetMinor: 100_000,
+            status: "running",
+            lowBasisPoints: 100,
+            highBasisPoints: 200,
+            daysUntilAttribution: 0,
+          },
+          {
+            id: "c2",
+            objective: "segmentShift",
+            channel: "onlineListing",
+            targetSegmentId: "segment.corporate",
+            budgetMinor: 200_000,
+            status: "running",
+            lowBasisPoints: 300,
+            highBasisPoints: 500,
+            daysUntilAttribution: 0,
+          },
+        ]}
+        reputation={[
+          {
+            dimension: "hotel",
+            scopeId: "hotel.1",
+            score: 75,
+            effect: "commercial.effect.hotel",
+            topCause: null,
+          },
+          {
+            dimension: "media",
+            scopeId: "hotel.1",
+            score: 80,
+            effect: "commercial.effect.media",
+            topCause: null,
+          },
+        ]}
+        locale="de-DE"
+      />,
+    );
+
+    const regionText = screen.getByRole("region", { name: "Kommerzielle Aktivitäten" }).textContent;
+    expect(regionText).toMatch(/Durchschnittsrate auf Direktwerbung/);
+    expect(regionText).toMatch(/Segmentverschiebung auf Online-Verzeichnis/);
+    expect(regionText).toMatch(/Hotel \(hotel\.1\): 75\/100 — wirkt auf Gästenachfrage für dieses Haus/);
+    expect(regionText).toMatch(/Medien \(hotel\.1\): 80\/100 — wirkt auf Reichweite und Resonanz von Vorfällen/);
+  });
 });

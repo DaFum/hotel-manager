@@ -16,6 +16,19 @@ export interface PortfolioHotelRow {
   operatingModel?: string;
 }
 
+function localizeOperatingModel(model: string, locale: GameLocale): string {
+  const key = `company.operatingModel.${model}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : model;
+}
+
+function localizeManagerName(managerName: string, locale: GameLocale): string {
+  if (managerName === "unmanaged") {
+    return translateGame(locale, "company.manager.unmanaged");
+  }
+  return managerName;
+}
+
 export function PortfolioDashboard(props: {
   hotels: readonly PortfolioHotelRow[];
   onOpenHotel: (id: string) => void;
@@ -103,7 +116,7 @@ export function PortfolioDashboard(props: {
                         ? "company.portfolio.warning"
                         : "company.portfolio.warnings",
                     ),
-                    manager: hotel.managerName,
+                    manager: localizeManagerName(hotel.managerName, locale),
                   })}
                 </p>
                 <p>
@@ -111,7 +124,9 @@ export function PortfolioDashboard(props: {
                     ? t("company.portfolio.flag", { brand: hotel.brandName })
                     : t("company.portfolio.unbranded")}
                   {hotel.operatingModel
-                    ? t("company.portfolio.held", { model: hotel.operatingModel })
+                    ? t("company.portfolio.held", {
+                        model: localizeOperatingModel(hotel.operatingModel, locale),
+                      })
                     : ""}
                 </p>
                 <button

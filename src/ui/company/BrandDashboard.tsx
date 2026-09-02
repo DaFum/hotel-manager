@@ -19,6 +19,28 @@ export interface BrandAuditRow {
   remediationDueDateKey: string | null;
 }
 
+function localizeAuditFailure(failure: string, locale: GameLocale): string {
+  if (failure === "room-quality")
+    return translateGame(locale, "brand.audit.failure.roomQuality");
+  if (failure === "guest-satisfaction")
+    return translateGame(locale, "brand.audit.failure.guestSatisfaction");
+  if (failure === "stars")
+    return translateGame(locale, "brand.audit.failure.stars");
+
+  const cleanId = failure.replace(/^facility\./, "");
+  const entityFacKey = `entity.facility.${cleanId}`;
+  const translatedEntityFac = translateGame(locale, entityFacKey);
+  if (translatedEntityFac !== entityFacKey) return translatedEntityFac;
+
+  const rawFacKey = `facility.${cleanId}`;
+  const translatedRawFac = translateGame(locale, rawFacKey);
+  if (translatedRawFac !== rawFacKey) return translatedRawFac;
+
+  const brandKey = `brand.audit.failure.${cleanId}`;
+  const translatedBrand = translateGame(locale, brandKey);
+  return translatedBrand !== brandKey ? translatedBrand : failure;
+}
+
 export function BrandDashboard(props: {
   brands: readonly BrandRow[];
   audits: readonly BrandAuditRow[];
@@ -65,7 +87,9 @@ export function BrandDashboard(props: {
               {audit.compliant
                 ? t("company.brands.meetsEveryStandard")
                 : t("company.brands.fails", {
-                    failures: audit.failures.join(", "),
+                    failures: audit.failures
+                      .map((f) => localizeAuditFailure(f, locale))
+                      .join(", "),
                   })}
               {audit.remediationDueDateKey
                 ? t("company.brands.remediation", {

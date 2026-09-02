@@ -15,6 +15,15 @@ export interface DevelopmentRow {
   openedDateKey: string | null;
 }
 
+function localizeChecklistItem(
+  item: OpeningChecklistItem,
+  locale: GameLocale,
+): string {
+  const key = `development.checklist.${item}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : item;
+}
+
 export function DevelopmentDashboard(props: {
   developments: readonly DevelopmentRow[];
   onCompleteTask: (developmentId: string, item: OpeningChecklistItem) => void;
@@ -76,22 +85,27 @@ export function DevelopmentDashboard(props: {
                 {development.missing.length === 0
                   ? t("company.development.ready")
                   : t("company.development.outstanding", {
-                      missing: development.missing.join(", "),
+                      missing: development.missing
+                        .map((item) => localizeChecklistItem(item, locale))
+                        .join(", "),
                     })}
               </p>
-              {development.missing.map((item) => (
-                <button
-                  type="button"
-                  key={item}
-                  onClick={() => props.onCompleteTask(development.id, item)}
-                  aria-label={t("company.development.signOffAria", {
-                    item,
-                    name: development.name,
-                  })}
-                >
-                  {t("company.development.signOff", { item })}
-                </button>
-              ))}
+              {development.missing.map((item) => {
+                const localizedItem = localizeChecklistItem(item, locale);
+                return (
+                  <button
+                    type="button"
+                    key={item}
+                    onClick={() => props.onCompleteTask(development.id, item)}
+                    aria-label={t("company.development.signOffAria", {
+                      item: localizedItem,
+                      name: development.name,
+                    })}
+                  >
+                    {t("company.development.signOff", { item: localizedItem })}
+                  </button>
+                );
+              })}
               <button
                 type="button"
                 disabled={development.missing.length > 0}

@@ -50,4 +50,72 @@ describe("ChronicleView", () => {
       ),
     ).toBeTruthy();
   });
+
+  it("resolves narrative choice chronicle keys in German and English", () => {
+    const { rerender } = render(
+      <ChronicleView
+        entries={[
+          {
+            id: "c1",
+            date: "1992-06-01",
+            text: "chronicle.narrative.overbooking-scandal.compensate",
+          },
+          {
+            id: "c2",
+            date: "1993-01-15",
+            text: "chronicle.opportunity.paid-off",
+          },
+          {
+            id: "c3",
+            date: "1994-03-20",
+            text: "chronicle.compliance.breach.regulation.de.labor.tariff_wage",
+          },
+        ]}
+        locale="de-DE"
+      />,
+    );
+
+    expect(
+      screen.getByText("Das Haus entschädigte die abgewiesenen Gäste."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Eine alte Beteiligung wurde gewinnbringend verkauft."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Tariflohnvorgaben wurden unterschritten."),
+    ).toBeTruthy();
+
+    rerender(
+      <ChronicleView
+        entries={[
+          {
+            id: "c1",
+            date: "1992-06-01",
+            text: "chronicle.narrative.overbooking-scandal.compensate",
+          },
+          {
+            id: "c2",
+            date: "1993-01-15",
+            text: "chronicle.opportunity.paid-off",
+          },
+          {
+            id: "c3",
+            date: "1994-03-20",
+            text: "chronicle.compliance.breach.regulation.de.labor.tariff_wage",
+          },
+        ]}
+        locale="en-GB"
+      />,
+    );
+
+    expect(
+      screen.getByText("The house paid for the guests it turned away."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("An old stake was sold at a profit."),
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Tariff wage regulations were breached."),
+    ).toBeTruthy();
+  });
 });

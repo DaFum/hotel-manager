@@ -209,7 +209,7 @@ export function reputationRows(state: GameState): ReputationRow[] {
         dimension,
         scopeId,
         score: state.reputation[dimension][scopeId].score,
-        effect: DIMENSION_EFFECTS[dimension],
+        effect: `commercial.effect.${dimension}`,
         topCause:
           reputationCauses(state.reputation, dimension, scopeId)[0]?.cause ??
           null,

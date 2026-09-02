@@ -937,16 +937,21 @@ export const de = {
   },
   commercial: {
     objective: {
+      awareness: "Bekanntheit",
       occupancy: "Belegung",
+      rate: "Durchschnittsrate",
+      segmentShift: "Segmentverschiebung",
       revenue: "Umsatz",
       reputation: "Reputation",
       brand: "Marke",
-      awareness: "Bekanntheit",
     },
     channel: {
-      print: "Print",
+      print: "Printpresse",
       radio: "Rundfunk",
-      billboard: "Plakatwand",
+      billboard: "Plakatwerbung",
+      directMail: "Direktwerbung",
+      travelAgent: "Reisebüro",
+      onlineListing: "Online-Verzeichnis",
       tv: "Fernsehen",
       digital: "Digital",
       direct: "Direkt",
@@ -972,6 +977,16 @@ export const de = {
       employer: "Arbeitgeber",
       group: "Gruppe",
       brand: "Marke",
+      media: "Medien",
+      channel: "Vertriebskanal",
+    },
+    effect: {
+      hotel: "Gästenachfrage für dieses Haus",
+      brand: "Nachfrage für alle Häuser unter dieser Marke",
+      group: "Kapitalkosten und Verhandlungsbereitschaft der Verkäufer",
+      employer: "Bewerberfeld und Lohnerwartungen",
+      media: "Reichweite und Resonanz von Vorfällen",
+      channel: "Platzierung und Provisionen bei Vermittlern",
     },
   },
   commercialDashboard: {
@@ -1015,6 +1030,32 @@ export const de = {
     connectivity:
       "Erreichbarkeit {index}/100 — Bahn, Flug, Straße und Nahverkehr, gewichtet nach Reiseaufkommen.",
   },
+  narrative: {
+    "overbooking-scandal": {
+      title: "Gäste abgewiesen",
+      body: "Das Haus war überbucht und Gäste mussten woanders untergebracht werden. Die Presse fragt nach.",
+      choice: {
+        compensate: "Abgewiesene Gäste entschädigen",
+        decline: "Stillschweigen bewahren",
+      },
+    },
+    "press-profile": {
+      title: "Anfrage eines Reisejournalisten",
+      body: "Ein Reiseführer bereitet ein Porträt des Hauses vor und bittet um einen Aufenthalt.",
+      choice: {
+        host: "Reisejournalisten einladen",
+        decline: "Anfrage ablehnen",
+      },
+    },
+    "digital-bet": {
+      title: "Beteiligung an Online-Agentur",
+      body: "Eine kleine Buchungsagentur sucht Kapital. Ob sich das lohnt, hängt von der Entwicklung dieser Technologie ab.",
+      choice: {
+        invest: "Beteiligung eingehen",
+        decline: "Ablehnen",
+      },
+    },
+  },
   story: {
     inbox: {
       title: "Posteingang",
@@ -1032,8 +1073,73 @@ export const de = {
       "career-2026":
         "Fünfunddreißig Jahre nach Frankfurt erreichte die Karriere das Jahr 2026.",
     },
+    narrative: {
+      "overbooking-scandal": {
+        compensate: "Das Haus entschädigte die abgewiesenen Gäste.",
+        decline: "Das Haus ließ die Überbuchung unkommentiert.",
+      },
+      "press-profile": {
+        host: "Das Haus beherbergte einen Reisejournalisten.",
+        decline: "Das Haus lehnte ein Reiseporträt ab.",
+      },
+      "digital-bet": {
+        invest: "Das Unternehmen beteiligte sich an einer Online-Buchungsagentur.",
+        decline: "Das Unternehmen lehnte eine Beteiligung an der Buchungsagentur ab.",
+      },
+    },
+    opportunity: {
+      "paid-off": "Eine alte Beteiligung wurde gewinnbringend verkauft.",
+      "written-off": "Eine alte Beteiligung wurde abgeschrieben.",
+    },
+    compliance: {
+      breach: {
+        regulation: {
+          de: {
+            accessibility: { standards: "Barrierefreiheitsstandards wurden verletzt." },
+            labor: { tariff_wage: "Tariflohnvorgaben wurden unterschritten." },
+            safety: { fire: "Brandschutzauflagen wurden nicht erfüllt." },
+          },
+        },
+      },
+      remedy: {
+        regulation: {
+          de: {
+            accessibility: { standards: "Barrierefreiheitsstandards wurden wiederhergestellt." },
+            labor: { tariff_wage: "Tariflohnvorgaben wurden wieder eingehalten." },
+            safety: { fire: "Brandschutzauflagen wurden wieder erfüllt." },
+          },
+        },
+      },
+    },
+  },
+  brand: {
+    audit: {
+      failure: {
+        roomQuality: "Zimmerqualität",
+        guestSatisfaction: "Gästezufriedenheit",
+        stars: "Sterne-Klassifizierung",
+      },
+    },
+  },
+  development: {
+    checklist: {
+      staff: "Personal",
+      suppliers: "Lieferanten",
+      inventory: "Inventar",
+      technology: "Technologie",
+      sales: "Vertriebswege",
+    },
   },
   company: {
+    operatingModel: {
+      owned: "Eigentum",
+      lease: "Pacht",
+      franchise: "Franchise",
+      managementContract: "Managementvertrag",
+    },
+    manager: {
+      unmanaged: "Unbesetzt",
+    },
     portfolio: {
       title: "Hotelportfolio",
       empty: "Die Gruppe führt keine Hotels.",
@@ -1106,6 +1212,18 @@ export const de = {
       approveAria: "{reason} genehmigen",
       refuse: "Ablehnen",
       refuseAria: "{reason} ablehnen",
+      reason: {
+        sellHotel: "Verkauf eines Hotels wird nie delegiert",
+        repair: "Reparatur von {amount} übersteigt Limit von {limit}",
+        capex: "Investition von {amount} übersteigt Limit von {limit}",
+        recovery: "Kulanz von {amount} übersteigt Limit von {limit}",
+        hire: "Neueinstellungen ab {amount} nicht delegiert",
+        reprice: "Preisanpassung auf {amount} nicht delegiert",
+        overtime: "Überstunden in Abteilung {department} ({hours}h) übersteigen Obergrenze ({cap}h)",
+        reserve: "Personalreserve in Abteilung {department} ({available}) unter Mindestreserve ({reserve})",
+        budget: "Personalausgaben in Abteilung {department} ({actual}) übersteigen Budget ({budget})",
+        service: "Servicelevel in Abteilung {department} ({actual} BP) unter Minimum ({min} BP)",
+      },
     },
   },
   alerts: { liquidityCritical: "Liquidität ist kritisch" },

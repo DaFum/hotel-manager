@@ -6,7 +6,7 @@
 
   min-width: 0;
   overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: normal;
   color: var(--guest-ink);
   background:
     linear-gradient(90deg, rgb(140 50 41 / 7%) 1px, transparent 1px) 0 0 / 28px

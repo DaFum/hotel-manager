@@ -219,9 +219,12 @@ export function LoanPanel({
       </div>
 
       <div className="loan-list">
-        <h3>{t("loans.panel.activeLoans")}</h3>
+        <h3 id="active-loans-heading">{t("loans.panel.activeLoans")}</h3>
         {loans.length > 0 ? (
-          <table className="register-table hm-responsive-table">
+          <table
+            className="register-table hm-responsive-table"
+            aria-labelledby="active-loans-heading"
+          >
             <thead>
               <tr>
                 <th>{t("loans.panel.table.id")}</th>

@@ -275,7 +275,11 @@ describe("App", () => {
         "Development pipeline",
         "Manager governance",
       ],
-      campaign: ["Campaign setup", "Story inbox", "Company chronicle"],
+      campaign: [
+        translateGame("de-DE", "campaignSetup.setup"),
+        "Story inbox",
+        "Company chronicle",
+      ],
     };
 
     for (const id of AREA_ORDER) {

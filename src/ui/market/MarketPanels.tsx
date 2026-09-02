@@ -22,25 +22,25 @@ export function CityEconomyPanel({
         <div className="hm-city-economy__item">
           <dt>{t("market.economy.land")}</dt>
           <dd>{formatDm(view.landPriceMinor, locale)}</dd>
-          <p className="hm-city-economy__explanation">
+          <dd className="hm-city-economy__explanation">
             {t(`market.trend.${view.landTrend}`)}
-          </p>
+          </dd>
         </div>
         <div className="hm-city-economy__item">
           <dt>{t("market.economy.build")}</dt>
           <dd>{formatDm(view.buildCostPerRoomMinor, locale)}</dd>
-          <p className="hm-city-economy__explanation">
+          <dd className="hm-city-economy__explanation">
             {t("market.economy.perRoom")}
-          </p>
+          </dd>
         </div>
         <div className="hm-city-economy__item">
           <dt>{t("market.economy.wages")}</dt>
           <dd>{formatBasisPoints(view.wagePressureBp, locale)}</dd>
-          <p className="hm-city-economy__explanation">
+          <dd className="hm-city-economy__explanation">
             {t("market.economy.baseWage")} (
             {formatBasisPoints(view.wagePressureMinBp, locale)}–
             {formatBasisPoints(view.wagePressureMaxBp, locale)})
-          </p>
+          </dd>
         </div>
         <div className="hm-city-economy__item">
           <dt>{t("market.economy.connectivity")}</dt>

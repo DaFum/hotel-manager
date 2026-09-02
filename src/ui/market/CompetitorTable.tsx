@@ -101,7 +101,7 @@ export function CompetitorTable(props: {
                 {translateKey(r.name)}
               </th>
               <td data-label={t("competitors.headers.strategy")}>
-                {translateKey(strategyProfile(r.strategy).nameKey)}
+                {t(strategyProfile(r.strategy).nameKey)}
               </td>
               <td data-label={t("competitors.headers.rooms")}>{r.rooms}</td>
               <td data-label={t("competitors.headers.rate")}>

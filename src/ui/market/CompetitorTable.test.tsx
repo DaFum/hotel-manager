@@ -34,7 +34,7 @@ it("puts each rival's rate and occupancy beside the player's own", () => {
   );
   const table = screen.getByRole("table", { name: /Competitors/ });
   const stern = within(table).getByRole("row", { name: /Pension Stern/ });
-  expect(stern.textContent).toContain("90");
+  expect(stern.textContent).toContain("DEM\u00a090.00");
   expect(stern.textContent).toContain("41.0%");
   expect(within(table).getByRole("row", { name: /This hotel/ })).toBeTruthy();
 });

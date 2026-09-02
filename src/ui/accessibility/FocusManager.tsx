@@ -1,4 +1,12 @@
 import { useRef, type PropsWithChildren } from "react";
+function checkPrefersReducedMotion(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
 export function FocusManager({
   labels,
   selected = 0,
@@ -11,17 +19,13 @@ export function FocusManager({
   targets?: string[];
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
-  const prefersReducedMotion =
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const move = (index: number) => {
     const el = refs.current[index];
     if (el) {
       el.focus();
       el.scrollIntoView?.({
-        behavior: prefersReducedMotion ? "auto" : "smooth",
+        behavior: checkPrefersReducedMotion() ? "auto" : "smooth",
         block: "nearest",
         inline: "center",
       });
@@ -43,7 +47,7 @@ export function FocusManager({
           tabIndex={selected === index ? 0 : -1}
           onClick={() => {
             refs.current[index]?.scrollIntoView?.({
-              behavior: prefersReducedMotion ? "auto" : "smooth",
+              behavior: checkPrefersReducedMotion() ? "auto" : "smooth",
               block: "nearest",
               inline: "center",
             });

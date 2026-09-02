@@ -21,6 +21,38 @@ export const en = {
     conference: "Conference hotel",
     wellness: "Wellness hotel",
   },
+  campaignSetup: {
+    setup: "Campaign setup",
+    title: "Campaign brief — Frankfurt, 1 January 1991",
+    difficulty: "Difficulty",
+    capital: "Starting capital",
+    credit: "Credit spread",
+    fairness: "Competition: No hidden money or knowledge",
+    sandbox: "Sandbox options",
+    difficultyOption: {
+      beginner: "Beginner",
+      standard: "Standard",
+      expert: "Expert",
+    },
+    sandboxLever: {
+      economicVolatilityBasisPoints: "Economic volatility",
+      crisisFrequencyBasisPoints: "Crisis frequency",
+      competitorAggressionBasisPoints: "Competitor aggression",
+      startingCapitalBasisPoints: "Sandbox starting capital",
+      technologySpeedBasisPoints: "Technology speed",
+      constructionVolatilityBasisPoints: "Construction volatility",
+      informationAccuracyBasisPoints: "Information accuracy",
+    },
+  },
+  competitor: {
+    strategy: {
+      budget: "Budget operator",
+      luxury: "Luxury house",
+      family: "Family hotel",
+      lifestyle: "Lifestyle boutique",
+      aggressive: "Aggressive discounter",
+    },
+  },
   trend: { "digital-booking": { name: "Digital booking" } },
   macro: { credit: { name: "Credit-market pressure" } },
   app: {

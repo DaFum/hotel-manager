@@ -314,8 +314,13 @@
   }
 
   .hm-city-economy__explanation {
+    border-bottom: 0;
     margin: var(--hm-space-1) 0 0;
+    padding: 0;
     font-size: var(--hm-text-sm);
+    font-weight: 400;
+    text-align: left;
+    white-space: normal;
     color: var(--hm-ink-dim);
   }
 

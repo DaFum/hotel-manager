@@ -7,7 +7,7 @@
 
   min-width: 0;
   overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: normal;
   background:
     repeating-linear-gradient(
       0deg,

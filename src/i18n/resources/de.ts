@@ -22,6 +22,38 @@ export const de = {
     conference: "Tagungshotel",
     wellness: "Wellnesshotel",
   },
+  campaignSetup: {
+    setup: "Kampagnen-Einstellungen",
+    title: "Kampagnen-Briefing — Frankfurt, 1. Januar 1991",
+    difficulty: "Schwierigkeit",
+    capital: "Startkapital",
+    credit: "Kreditaufschlag",
+    fairness: "Wettbewerb: Keine versteckten Mittel oder Informationen",
+    sandbox: "Sandbox-Optionen",
+    difficultyOption: {
+      beginner: "Anfänger",
+      standard: "Standard",
+      expert: "Experte",
+    },
+    sandboxLever: {
+      economicVolatilityBasisPoints: "Wirtschaftliche Volatilität",
+      crisisFrequencyBasisPoints: "Krisenhäufigkeit",
+      competitorAggressionBasisPoints: "Konkurrenz-Aggressivität",
+      startingCapitalBasisPoints: "Sandbox-Startkapital",
+      technologySpeedBasisPoints: "Technologie-Geschwindigkeit",
+      constructionVolatilityBasisPoints: "Bau-Volatilität",
+      informationAccuracyBasisPoints: "Informationsgenauigkeit",
+    },
+  },
+  competitor: {
+    strategy: {
+      budget: "Budget-Anbieter",
+      luxury: "Luxushotel",
+      family: "Familienhotel",
+      lifestyle: "Lifestyle-Hotel",
+      aggressive: "Preiskämpfer",
+    },
+  },
   trend: { "digital-booking": { name: "Digitale Buchung" } },
   macro: { credit: { name: "Druck am Kreditmarkt" } },
   app: {

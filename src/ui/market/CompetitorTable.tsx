@@ -2,7 +2,8 @@ import type { Strategy } from "../../game/competitors/strategies";
 import type { LifecycleAction } from "../../game/competitors/lifecycle";
 import { strategyProfile } from "../../game/competitors/strategies";
 import { formatBasisPoints, formatDm } from "../money";
-import { translate, translateKey } from "../localization";
+import { translateGame, type GameLocale } from "../../i18n";
+import { translateKey } from "../localization";
 
 export interface CompetitorRow {
   id: string;
@@ -13,12 +14,6 @@ export interface CompetitorRow {
   occupancyBp: number;
   status: LifecycleAction;
 }
-
-const STATUS_WORDS: Record<LifecycleAction, string> = {
-  operate: "trading",
-  restructure: "restructuring",
-  exit: "leaving the market",
-};
 
 /**
  * Design intent (AGENTS §13)
@@ -35,12 +30,17 @@ export function CompetitorTable(props: {
   rows: readonly CompetitorRow[];
   playerRateMinor: number;
   playerOccupancyBp: number;
+  locale?: GameLocale;
 }) {
+  const locale = props.locale ?? "de-DE";
+  const t = (k: string, values?: Record<string, string | number>) =>
+    translateGame(locale, k, values);
+
   if (props.rows.length === 0)
     return (
-      <section aria-label="Competitors">
-        <h2>Competitors</h2>
-        <p>There are no other hotels trading in this city.</p>
+      <section aria-label={t("competitors.title")}>
+        <h2>{t("competitors.title")}</h2>
+        <p>{t("competitors.empty")}</p>
       </section>
     );
 
@@ -48,47 +48,74 @@ export function CompetitorTable(props: {
     const deltaBp = Math.round(
       ((rateMinor - props.playerRateMinor) * 10000) / props.playerRateMinor,
     );
-    if (deltaBp > 250) return `${formatBasisPoints(deltaBp)} above this hotel`;
+    if (deltaBp > 250)
+      return t("competitors.above", {
+        delta: formatBasisPoints(deltaBp, locale),
+      });
     if (deltaBp < -250)
-      return `${formatBasisPoints(-deltaBp)} below this hotel`;
-    return "level with this hotel";
+      return t("competitors.below", {
+        delta: formatBasisPoints(-deltaBp, locale),
+      });
+    return t("competitors.level");
   };
 
   return (
-    <section aria-label="Competitors">
-      <h2>Competitors</h2>
-      <table>
-        <caption>Competitors in this city</caption>
+    <section aria-label={t("competitors.title")}>
+      <h2>{t("competitors.title")}</h2>
+      <table className="hm-responsive-table">
+        <caption>{t("competitors.caption")}</caption>
         <thead>
           <tr>
-            <th scope="col">Hotel</th>
-            <th scope="col">Strategy</th>
-            <th scope="col">Rooms</th>
-            <th scope="col">Rate</th>
-            <th scope="col">Occupancy</th>
-            <th scope="col">Position</th>
-            <th scope="col">Status</th>
+            <th scope="col">{t("competitors.headers.hotel")}</th>
+            <th scope="col">{t("competitors.headers.strategy")}</th>
+            <th scope="col">{t("competitors.headers.rooms")}</th>
+            <th scope="col">{t("competitors.headers.rate")}</th>
+            <th scope="col">{t("competitors.headers.occupancy")}</th>
+            <th scope="col">{t("competitors.headers.position")}</th>
+            <th scope="col">{t("competitors.headers.status")}</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <th scope="row">This hotel</th>
-            <td>Player</td>
-            <td>—</td>
-            <td>{formatDm(props.playerRateMinor)}</td>
-            <td>{formatBasisPoints(props.playerOccupancyBp)}</td>
-            <td>—</td>
-            <td>trading</td>
+            <th scope="row" data-label={t("competitors.headers.hotel")}>
+              {t("competitors.playerHotel")}
+            </th>
+            <td data-label={t("competitors.headers.strategy")}>
+              {t("competitors.playerStrategy")}
+            </td>
+            <td data-label={t("competitors.headers.rooms")}>—</td>
+            <td data-label={t("competitors.headers.rate")}>
+              {formatDm(props.playerRateMinor, locale)}
+            </td>
+            <td data-label={t("competitors.headers.occupancy")}>
+              {formatBasisPoints(props.playerOccupancyBp, locale)}
+            </td>
+            <td data-label={t("competitors.headers.position")}>—</td>
+            <td data-label={t("competitors.headers.status")}>
+              {t("competitors.status.operate")}
+            </td>
           </tr>
           {props.rows.map((r) => (
             <tr key={r.id}>
-              <th scope="row">{translateKey(r.name)}</th>
-              <td>{translate(strategyProfile(r.strategy).nameKey)}</td>
-              <td>{r.rooms}</td>
-              <td>{formatDm(r.rateMinor)}</td>
-              <td>{formatBasisPoints(r.occupancyBp)}</td>
-              <td>{position(r.rateMinor)}</td>
-              <td>{STATUS_WORDS[r.status]}</td>
+              <th scope="row" data-label={t("competitors.headers.hotel")}>
+                {translateKey(r.name)}
+              </th>
+              <td data-label={t("competitors.headers.strategy")}>
+                {translateKey(strategyProfile(r.strategy).nameKey)}
+              </td>
+              <td data-label={t("competitors.headers.rooms")}>{r.rooms}</td>
+              <td data-label={t("competitors.headers.rate")}>
+                {formatDm(r.rateMinor, locale)}
+              </td>
+              <td data-label={t("competitors.headers.occupancy")}>
+                {formatBasisPoints(r.occupancyBp, locale)}
+              </td>
+              <td data-label={t("competitors.headers.position")}>
+                {position(r.rateMinor)}
+              </td>
+              <td data-label={t("competitors.headers.status")}>
+                {t(`competitors.status.${r.status}`)}
+              </td>
             </tr>
           ))}
         </tbody>

@@ -97,7 +97,7 @@ export function RevenueDashboard(props: {
         {empty ? (
           <p>{t("revenue.ui.noTimeline")}</p>
         ) : (
-          <table>
+          <table className="hm-responsive-table">
             <caption>
               {props.rates.length
                 ? formatGameDateRange(
@@ -125,12 +125,12 @@ export function RevenueDashboard(props: {
                 const booking = bookingsByDate.get(row.dateKey);
                 return (
                   <tr key={row.dateKey} data-date-state={row.state}>
-                    <th scope="row">
+                    <th scope="row" data-label={t("revenue.ui.date")}>
                       {formatGameDate(row.dateKey, locale)} —{" "}
                       {t(`revenue.ui.dateState.${row.state}`)}
                     </th>
                     {row.cells.map((cell) => (
-                      <td key={cell.key}>
+                      <td key={cell.key} data-label={translateGame(locale, `revenue.category.${cell.category}`)}>
                         <span>{formatDm(cell.rateMinor, locale)}</span>
                         <button
                           type="button"
@@ -150,7 +150,7 @@ export function RevenueDashboard(props: {
                         </button>
                       </td>
                     ))}
-                    <td>
+                    <td data-label={t("revenue.ui.onBooks")}>
                       {booking
                         ? t("revenue.ui.roomsBooked", {
                             confirmed: booking.confirmedRooms,
@@ -162,7 +162,7 @@ export function RevenueDashboard(props: {
                           })
                         : t("revenue.ui.noBookings")}
                     </td>
-                    <td>
+                    <td data-label={t("revenue.ui.forecast")}>
                       {booking
                         ? t("revenue.ui.roomNights", {
                             low: booking.forecastLow,
@@ -170,7 +170,7 @@ export function RevenueDashboard(props: {
                           })
                         : t("revenue.ui.noForecast")}
                     </td>
-                    <td>
+                    <td data-label={t("revenue.ui.pickup")}>
                       {t("revenue.ui.rooms", {
                         count: pickupByDate.get(row.dateKey)?.rooms ?? 0,
                       })}

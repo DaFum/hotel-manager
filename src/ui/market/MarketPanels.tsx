@@ -16,30 +16,38 @@ export function CityEconomyPanel({
 }) {
   const t = (k: string) => translateGame(locale, k);
   return (
-    <section aria-label={t("market.economy.title")}>
+    <section className="hm-city-economy" aria-label={t("market.economy.title")}>
       <h2>{t("market.economy.title")}</h2>
-      <dl>
-        <dt>{t("market.economy.land")}</dt>
-        <dd>
-          {formatDm(view.landPriceMinor, locale)} —{" "}
-          {t(`market.trend.${view.landTrend}`)}
-        </dd>
-        <dt>{t("market.economy.build")}</dt>
-        <dd>
-          {formatDm(view.buildCostPerRoomMinor, locale)}{" "}
-          {t("market.economy.perRoom")}
-        </dd>
-        <dt>{t("market.economy.wages")}</dt>
-        <dd>
-          {formatBasisPoints(view.wagePressureBp, locale)}{" "}
-          {t("market.economy.baseWage")} (
-          {formatBasisPoints(view.wagePressureMinBp, locale)}–
-          {formatBasisPoints(view.wagePressureMaxBp, locale)})
-        </dd>
-        <dt>{t("market.economy.connectivity")}</dt>
-        <dd>{view.connectivity}/100</dd>
+      <dl className="hm-city-economy__metrics">
+        <div className="hm-city-economy__item">
+          <dt>{t("market.economy.land")}</dt>
+          <dd>{formatDm(view.landPriceMinor, locale)}</dd>
+          <p className="hm-city-economy__explanation">
+            {t(`market.trend.${view.landTrend}`)}
+          </p>
+        </div>
+        <div className="hm-city-economy__item">
+          <dt>{t("market.economy.build")}</dt>
+          <dd>{formatDm(view.buildCostPerRoomMinor, locale)}</dd>
+          <p className="hm-city-economy__explanation">
+            {t("market.economy.perRoom")}
+          </p>
+        </div>
+        <div className="hm-city-economy__item">
+          <dt>{t("market.economy.wages")}</dt>
+          <dd>{formatBasisPoints(view.wagePressureBp, locale)}</dd>
+          <p className="hm-city-economy__explanation">
+            {t("market.economy.baseWage")} (
+            {formatBasisPoints(view.wagePressureMinBp, locale)}–
+            {formatBasisPoints(view.wagePressureMaxBp, locale)})
+          </p>
+        </div>
+        <div className="hm-city-economy__item">
+          <dt>{t("market.economy.connectivity")}</dt>
+          <dd>{view.connectivity}/100</dd>
+        </div>
       </dl>
-      <ul>
+      <ul className="hm-city-economy__transport">
         {view.transport.map((x) => (
           <li key={x.mode}>
             {t(`market.transport.${x.mode}`)}: {x.rating}/100

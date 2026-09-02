@@ -4,6 +4,9 @@
   --guest-rule: #8c3229;
   --guest-muted: #5b5449;
 
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
   color: var(--guest-ink);
   background:
     linear-gradient(90deg, rgb(140 50 41 / 7%) 1px, transparent 1px) 0 0 / 28px
@@ -81,11 +84,12 @@
 
 .guest-ledger__masthead h2 {
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2.7rem, 7vw, 5.8rem);
+  font-size: clamp(1.8rem, 6vw, 5.8rem);
   font-weight: 400;
   letter-spacing: -0.055em;
-  line-height: 0.78;
+  line-height: 0.85;
   margin: 0;
+  overflow-wrap: break-word;
 }
 
 .guest-ledger > section {

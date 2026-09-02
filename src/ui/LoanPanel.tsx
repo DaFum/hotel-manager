@@ -221,7 +221,7 @@ export function LoanPanel({
       <div className="loan-list">
         <h3>{t("loans.panel.activeLoans")}</h3>
         {loans.length > 0 ? (
-          <table className="register-table">
+          <table className="register-table hm-responsive-table">
             <thead>
               <tr>
                 <th>{t("loans.panel.table.id")}</th>
@@ -235,16 +235,22 @@ export function LoanPanel({
             <tbody>
               {loans.map((loan) => (
                 <tr key={loan.id}>
-                  <td>{entityLabel(loan.id, locale)}</td>
-                  <td>{formatDm(loan.principalMinor, locale)}</td>
-                  <td>
+                  <td data-label={t("loans.panel.table.id")}>
+                    {entityLabel(loan.id, locale)}
+                  </td>
+                  <td data-label={t("loans.panel.table.principal")}>
+                    {formatDm(loan.principalMinor, locale)}
+                  </td>
+                  <td data-label={t("loans.panel.table.rate")}>
                     {formatBasisPoints(loan.annualRateBasisPoints, locale)}
                   </td>
-                  <td>
+                  <td data-label={t("loans.panel.table.profile")}>
                     {t(`loans.panel.amortisationOption.${loan.amortisation}`)}
                   </td>
-                  <td>{t(`loans.panel.rateTypeOption.${loan.rateType}`)}</td>
-                  <td>
+                  <td data-label={t("loans.panel.table.rateType")}>
+                    {t(`loans.panel.rateTypeOption.${loan.rateType}`)}
+                  </td>
+                  <td data-label={t("loans.panel.table.repay")}>
                     <button
                       type="button"
                       disabled={isPending}

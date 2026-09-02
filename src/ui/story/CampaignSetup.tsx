@@ -4,6 +4,7 @@ import {
   type DifficultyId,
   type SandboxOptions,
 } from "../../game/campaign/campaignConfig";
+import type { GameLocale } from "../../i18n";
 import { translate, translateKey } from "../localization";
 
 /**
@@ -17,6 +18,7 @@ export function CampaignSetup({
   locked = false,
   onDifficulty,
   onSandbox,
+  locale = "en-GB",
 }: {
   difficulty: DifficultyId;
   sandbox?: SandboxOptions;
@@ -24,8 +26,10 @@ export function CampaignSetup({
   locked?: boolean;
   onDifficulty?: (difficulty: DifficultyId) => void;
   onSandbox?: (sandbox: CampaignSandboxDraft) => void;
+  locale?: GameLocale;
 }) {
   const inputs = DIFFICULTY_PRESETS[difficulty];
+  const numberFormat = new Intl.NumberFormat(locale);
   return (
     <section aria-label={translate("campaign.setup")}>
       <h2>{translate("campaign.title")}</h2>
@@ -47,11 +51,11 @@ export function CampaignSetup({
       </label>
       <ul>
         <li>
-          {translate("campaign.capital")}: {inputs.startingCapitalBasisPoints}{" "}
+          {translate("campaign.capital")}: {numberFormat.format(inputs.startingCapitalBasisPoints)}{" "}
           bp
         </li>
         <li>
-          {translate("campaign.credit")}: {inputs.creditSpreadBasisPoints} bp
+          {translate("campaign.credit")}: {numberFormat.format(inputs.creditSpreadBasisPoints)} bp
         </li>
         <li>{translate("campaign.fairness")}</li>
       </ul>
@@ -69,12 +73,16 @@ export function CampaignSetup({
               "informationAccuracyBasisPoints",
             ] as const
           ).map((lever) => {
-            const label = translateKey(`campaign.sandbox.${lever}`);
+            const labelText = translateKey(`campaign.sandbox.${lever}`);
+            const valueText = `${numberFormat.format(sandbox[lever] ?? 0)} bp`;
             return (
-              <label key={lever}>
-                {label} {sandbox[lever]} bp
+              <div key={lever} className="campaign-slider">
+                <div className="campaign-slider__header">
+                  <span className="campaign-slider__label">{labelText}</span>
+                  <span className="campaign-slider__value">{valueText}</span>
+                </div>
                 <input
-                  aria-label={label}
+                  aria-label={`${labelText} ${valueText}`}
                   type="range"
                   min={lever === "technologySpeedBasisPoints" ? "1" : "0"}
                   max="20000"
@@ -88,7 +96,7 @@ export function CampaignSetup({
                     })
                   }
                 />
-              </label>
+              </div>
             );
           })}
         </fieldset>

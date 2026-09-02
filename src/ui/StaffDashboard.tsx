@@ -33,7 +33,7 @@ export function StaffDashboard(props: {
               : t("staff.staffed"),
           })}
         </p>
-        <table>
+        <table className="hm-responsive-table">
           <caption>{t("staff.roster.caption")}</caption>
           <thead>
             <tr>
@@ -60,34 +60,48 @@ export function StaffDashboard(props: {
           <tbody>
             {props.view.rows.map((row) => (
               <tr key={row.employeeId}>
-                <th scope="row">{entityLabel(row.staffId, locale)}</th>
-                <td>
+                <th scope="row" data-label={t("staff.roster.employee")}>
+                  {entityLabel(row.staffId, locale)}
+                </th>
+                <td data-label={t("staff.roster.role")}>
                   {t(
                     row.role.startsWith("staff.")
                       ? row.role
                       : `staff.role.${row.role}`,
                   )}
                 </td>
-                <td>
+                <td data-label={t("staff.roster.shift")}>
                   {t(
                     row.shift.startsWith("staff.")
                       ? row.shift
                       : `staff.shift.${row.shift}`,
                   )}
                 </td>
-                <td>{t(`staff.contract.${row.contractKind}`)}</td>
-                <td>{t(`staff.status.${row.status}`)}</td>
-                <td>{row.statusCause ?? t("staff.cause.none")}</td>
-                <td>{row.skill}</td>
-                <td>{row.morale}</td>
-                <td>{row.overtimeHours}</td>
-                <td>{row.leaveDaysTaken}</td>
-                <td>
+                <td data-label={t("staff.roster.contract")}>
+                  {t(`staff.contract.${row.contractKind}`)}
+                </td>
+                <td data-label={t("staff.roster.status")}>
+                  {t(`staff.status.${row.status}`)}
+                </td>
+                <td data-label={t("staff.roster.cause")}>
+                  {row.statusCause ?? t("staff.cause.none")}
+                </td>
+                <td data-label={t("staff.roster.skill")}>{row.skill}</td>
+                <td data-label={t("staff.roster.morale")}>{row.morale}</td>
+                <td data-label={t("staff.roster.overtime")}>
+                  {row.overtimeHours}
+                </td>
+                <td data-label={t("staff.roster.leave")}>
+                  {row.leaveDaysTaken}
+                </td>
+                <td data-label={t("staff.roster.training")}>
                   {row.trainingCompleted.length
                     ? row.trainingCompleted.join(", ")
                     : t("staff.training.none")}
                 </td>
-                <td>{formatDm(row.monthlyWageMinor, locale)}</td>
+                <td data-label={t("staff.roster.wage")}>
+                  {formatDm(row.monthlyWageMinor, locale)}
+                </td>
               </tr>
             ))}
           </tbody>

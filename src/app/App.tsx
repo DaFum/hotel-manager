@@ -186,9 +186,9 @@ export function App() {
    * Which desk drawer is open, if any. Chrome the player opens on purpose:
    * never more than one at a time, and never in front of the hotel by default.
    */
-  const [openDrawer, setOpenDrawer] = useState<"settings" | "saves" | null>(
-    null,
-  );
+  const [openDrawer, setOpenDrawer] = useState<
+    "settings" | "saves" | "notifications" | null
+  >(null);
   /** The noticeboard column, so the message button can put focus on it. */
   const messages = useRef<HTMLElement | null>(null);
   const preferences = game.preferences;
@@ -899,7 +899,13 @@ export function App() {
           onLoad={() => game.load()}
           onOpenSettings={() => setOpenDrawer("settings")}
           onOpenSaves={() => setOpenDrawer("saves")}
-          onOpenNotifications={() => messages.current?.focus()}
+          onOpenNotifications={() => {
+            if (window.innerWidth <= 960) {
+              setOpenDrawer("notifications");
+            } else {
+              messages.current?.focus();
+            }
+          }}
           locale={preferences.locale}
         />
         {/*
@@ -1085,6 +1091,53 @@ export function App() {
             })}
           </p>
         </div>
+        <Drawer
+          id="hm-drawer-notifications"
+          title={translateGame(preferences.locale, "notifications.heading")}
+          open={openDrawer === "notifications"}
+          onClose={() => setOpenDrawer(null)}
+          locale={preferences.locale}
+        >
+          <NotificationCenter
+            notifications={s.alerts.map((alert): NotificationRecord => ({
+              id: alert.id,
+              type: alert.id,
+              category: alert.category,
+              severity: alert.severity,
+              gameTime: alert.gameTime,
+              source: alert.source,
+              causes: [{ key: alert.cause, values: alert.causeValues }],
+              read: openAlert === alert.id,
+              acknowledged: alert.acknowledged,
+              groupId: alert.groupId,
+              delegate: alert.delegate,
+              message: { key: alert.title, values: alert.causeValues },
+              actionTarget: alert.actionEntityId
+                ? {
+                    label: {
+                      key: "notifications.open",
+                      values: {
+                        title: translateGame(
+                          preferences.locale,
+                          alert.title,
+                          alert.causeValues,
+                        ),
+                      },
+                    },
+                    entityId: alert.target?.entityId ?? alert.actionEntityId,
+                  }
+                : undefined,
+            }))}
+            preferences={preferences.notifications}
+            pauseState={game.pauseStatus}
+            onAction={(entityId, alertId) => {
+              openNotificationTarget(entityId, alertId);
+              setOpenDrawer(null);
+            }}
+            onAcknowledge={game.acknowledgeAlert}
+            locale={preferences.locale}
+          />
+        </Drawer>
         <Drawer
           id="hm-drawer-saves"
           title={translateGame(preferences.locale, "topbar.openSaves")}

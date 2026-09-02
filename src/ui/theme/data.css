@@ -279,4 +279,139 @@
   .ledger-row {
     grid-template-columns: minmax(0, 1fr) auto;
   }
+
+  /*
+   * City Economy & Responsive Stacked Cards Layout for narrow viewports (< 60rem)
+   */
+  .hm-city-economy .hm-city-economy__metrics {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hm-space-3);
+  }
+
+  .hm-city-economy__item {
+    display: flex;
+    flex-direction: column;
+    padding: var(--hm-space-3);
+    border: 1px solid var(--hm-rule);
+    border-radius: var(--hm-radius);
+    background: var(--hm-surface);
+  }
+
+  .hm-city-economy__item dt {
+    border-bottom: 0;
+    font-size: var(--hm-text-xs);
+    letter-spacing: var(--hm-tracking-label);
+    text-transform: uppercase;
+    color: var(--hm-ink-faint);
+  }
+
+  .hm-city-economy__item dd {
+    border-bottom: 0;
+    text-align: left;
+    font-size: var(--hm-text-xl);
+    font-weight: 700;
+  }
+
+  .hm-city-economy__explanation {
+    margin: var(--hm-space-1) 0 0;
+    font-size: var(--hm-text-sm);
+    color: var(--hm-ink-dim);
+  }
+
+  /* Responsive Stacked Cards for Tables on Mobile */
+  .hm-root table.hm-responsive-table,
+  .hm-root table.hm-responsive-table thead,
+  .hm-root table.hm-responsive-table tbody,
+  .hm-root table.hm-responsive-table tr,
+  .hm-root table.hm-responsive-table th,
+  .hm-root table.hm-responsive-table td {
+    display: block;
+  }
+
+  .hm-root table.hm-responsive-table thead {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .hm-root table.hm-responsive-table tbody tr {
+    margin-bottom: var(--hm-space-3);
+    padding: var(--hm-space-3);
+    border: 1px solid var(--hm-rule);
+    border-radius: var(--hm-radius);
+    background: var(--hm-surface);
+  }
+
+  .hm-root table.hm-responsive-table th[scope="row"],
+  .hm-root table.hm-responsive-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--hm-space-2) 0;
+    border-bottom: 1px dotted var(--hm-rule-faint);
+    text-align: right;
+  }
+
+  .hm-root table.hm-responsive-table th[scope="row"]:last-child,
+  .hm-root table.hm-responsive-table td:last-child {
+    border-bottom: 0;
+  }
+
+  .hm-root table.hm-responsive-table th[scope="row"]::before,
+  .hm-root table.hm-responsive-table td::before {
+    content: attr(data-label);
+    font-family: var(--hm-font-body);
+    font-size: var(--hm-text-xs);
+    font-weight: 600;
+    letter-spacing: var(--hm-tracking-label);
+    text-transform: uppercase;
+    color: var(--hm-ink-faint);
+    text-align: left;
+    padding-right: var(--hm-space-2);
+  }
+
+  .hm-root .hm-stacked-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hm-space-3);
+  }
+
+  .hm-root .hm-stacked-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--hm-space-2);
+    padding: var(--hm-space-3);
+    border: 1px solid var(--hm-rule);
+    border-radius: var(--hm-radius);
+    background: var(--hm-surface);
+  }
+
+  .hm-root .hm-stacked-card__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--hm-space-2);
+    border-bottom: 1px dotted var(--hm-rule-faint);
+    padding-bottom: var(--hm-space-1);
+  }
+
+  .hm-root .hm-stacked-card__row:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .hm-root .hm-stacked-card__label {
+    font-size: var(--hm-text-xs);
+    letter-spacing: var(--hm-tracking-label);
+    text-transform: uppercase;
+    color: var(--hm-ink-faint);
+  }
+
+  .hm-root .hm-stacked-card__value {
+    font-size: var(--hm-text-sm);
+    font-weight: 600;
+    color: var(--hm-ink);
+    text-align: right;
+  }
 }

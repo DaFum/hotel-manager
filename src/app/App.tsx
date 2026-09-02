@@ -718,6 +718,7 @@ export function App() {
           loyaltyLiabilityMinor={s.commercial.loyalty.liabilityMinor}
           loyaltyMembers={s.commercial.loyalty.members.length}
           marketableGuests={marketableGuestCount(s)}
+          locale={preferences.locale}
         />
       </>
     ) : (
@@ -748,6 +749,7 @@ export function App() {
           informationQuality={s.cityMarket.informationQuality}
           researchCostMinor={REPORT_COST_MINOR}
           onBuyResearch={() => game.send({ type: "BUY_MARKET_RESEARCH" })}
+          locale={preferences.locale}
         />
         {competitorTable}
       </>

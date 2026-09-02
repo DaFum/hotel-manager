@@ -1,10 +1,13 @@
 import { useRef, type PropsWithChildren } from "react";
 function checkPrefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
+  if (typeof window === "undefined") return false;
+  const mediaQuery =
     typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const inGameAttr =
+    typeof document !== "undefined" &&
+    document.querySelector('[data-reduced-motion="true"]') !== null;
+  return Boolean(mediaQuery || inGameAttr);
 }
 
 export function FocusManager({

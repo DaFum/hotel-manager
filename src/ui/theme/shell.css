@@ -267,16 +267,14 @@
   }
 
   .hm-root .hm-shell,
-  .hm-root .hm-main,
-  .hm-messages {
+  .hm-root .hm-main {
     grid-column: 1;
     height: auto;
     overflow: visible;
   }
 
   .hm-messages {
-    border-left: 0;
-    border-top: 1px solid var(--hm-rule-strong);
+    display: none;
   }
 
   /*

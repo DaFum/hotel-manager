@@ -77,4 +77,23 @@ describe("FocusManager", () => {
       window.matchMedia = originalMatchMedia;
     }
   });
+
+  it("calls scrollIntoView with auto behavior when document has data-reduced-motion=true attribute", () => {
+    document.documentElement.setAttribute("data-reduced-motion", "true");
+    try {
+      render(<FocusManager labels={["Hotel", "Staff", "Finance"]} />);
+      const staff = screen.getByRole("tab", { name: "Staff" });
+      const scrollIntoViewSpy = vi.fn();
+      staff.scrollIntoView = scrollIntoViewSpy;
+
+      fireEvent.click(staff);
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({
+        behavior: "auto",
+        block: "nearest",
+        inline: "center",
+      });
+    } finally {
+      document.documentElement.removeAttribute("data-reduced-motion");
+    }
+  });
 });

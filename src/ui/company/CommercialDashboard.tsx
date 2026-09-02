@@ -1,3 +1,4 @@
+import { GUEST_SEGMENTS } from "../../game/content/1991/guestSegments";
 import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
 
@@ -31,6 +32,56 @@ export interface ReputationRow {
   score: number;
   effect: string;
   topCause: string | null;
+}
+
+function localizeObjective(objective: string, locale: GameLocale): string {
+  const key = `commercial.objective.${objective}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : objective;
+}
+
+function localizeChannel(channel: string, locale: GameLocale): string {
+  const key = `commercial.channel.${channel}`;
+  const translated = translateGame(locale, key);
+  if (translated !== key) return translated;
+  const revKey = `revenue.channel.${channel}`;
+  const revTranslated = translateGame(locale, revKey);
+  return revTranslated !== revKey ? revTranslated : channel;
+}
+
+function localizeSegment(segmentId: string, locale: GameLocale): string {
+  const cleanId = segmentId.replace(/^segment\./, "");
+  const nameKey = GUEST_SEGMENTS.find(
+    (segment) => segment.id === segmentId || segment.id === cleanId,
+  )?.nameKey;
+  if (nameKey) return translateGame(locale, nameKey);
+  const fallbackKey = `segment.${cleanId}.name`;
+  const translated = translateGame(locale, fallbackKey);
+  return translated !== fallbackKey ? translated : segmentId;
+}
+
+function localizeStatus(status: string, locale: GameLocale): string {
+  const key = `commercial.status.${status}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : status;
+}
+
+function localizeConcession(concession: string, locale: GameLocale): string {
+  const key = `commercial.concession.${concession}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : concession;
+}
+
+function localizeRenewalIntent(intent: string, locale: GameLocale): string {
+  const key = `commercial.renewalIntent.${intent}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : intent;
+}
+
+function localizeDimension(dimension: string, locale: GameLocale): string {
+  const key = `commercial.dimension.${dimension}`;
+  const translated = translateGame(locale, key);
+  return translated !== key ? translated : dimension;
 }
 
 /**
@@ -69,9 +120,9 @@ export function CommercialDashboard(props: {
           {props.campaigns.map((campaign) => (
             <li key={campaign.id}>
               {t("commercialDashboard.campaignRow", {
-                objective: campaign.objective,
-                channel: campaign.channel,
-                targetSegmentId: campaign.targetSegmentId,
+                objective: localizeObjective(campaign.objective, locale),
+                channel: localizeChannel(campaign.channel, locale),
+                targetSegmentId: localizeSegment(campaign.targetSegmentId, locale),
                 budget: formatDm(campaign.budgetMinor, locale),
                 low: formatBasisPoints(campaign.lowBasisPoints, locale),
                 high: formatBasisPoints(campaign.highBasisPoints, locale),
@@ -81,7 +132,7 @@ export function CommercialDashboard(props: {
                         count: campaign.daysUntilAttribution,
                       })
                     : t("commercialDashboard.alreadyShowing"),
-                status: campaign.status,
+                status: localizeStatus(campaign.status, locale),
               })}
             </li>
           ))}
@@ -102,11 +153,13 @@ export function CommercialDashboard(props: {
                 concessions:
                   account.concessions.length > 0
                     ? t("commercialDashboard.concessions", {
-                        list: account.concessions.join(", "),
+                        list: account.concessions
+                          .map((c) => localizeConcession(c, locale))
+                          .join(", "),
                       })
                     : "",
                 profitability: formatDm(account.profitabilityMinor, locale),
-                renewalIntent: account.renewalIntent,
+                renewalIntent: localizeRenewalIntent(account.renewalIntent, locale),
               })}
             </li>
           ))}
@@ -127,13 +180,13 @@ export function CommercialDashboard(props: {
         {props.reputation.map((row) => (
           <li key={`${row.dimension}.${row.scopeId}`}>
             {t("commercialDashboard.reputationRow", {
-              dimension: row.dimension,
+              dimension: localizeDimension(row.dimension, locale),
               scopeId: row.scopeId,
               score: row.score,
-              effect: row.effect,
+              effect: translateGame(locale, row.effect),
               topCause: row.topCause
                 ? t("commercialDashboard.latestCause", {
-                    cause: row.topCause,
+                    cause: translateGame(locale, row.topCause),
                   })
                 : "",
             })}

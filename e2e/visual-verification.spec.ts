@@ -123,21 +123,34 @@ test.describe("Visual Verification Screenshot Suite", () => {
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
 
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, "mobile-01-mainView.png"),
-      fullPage: true,
-    });
+    const areas = [
+      { id: "mainView", name: "01-mainView" },
+      { id: "hotel", name: "02-hotel" },
+      { id: "guests", name: "03-guests" },
+      { id: "staff", name: "04-staff" },
+      { id: "finance", name: "05-finance" },
+      { id: "revenue", name: "06-revenue" },
+      { id: "marketing", name: "07-marketing" },
+      { id: "market", name: "08-market" },
+      { id: "company", name: "09-company" },
+      { id: "campaign", name: "10-campaign" },
+    ] as const;
 
-    await openManagementArea(page, "finance");
-    await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, "mobile-02-finance.png"),
-      fullPage: true,
-    });
+    for (const area of areas) {
+      await openManagementArea(page, area.id);
+      await page.screenshot({
+        path: path.join(SCREENSHOT_DIR, `mobile-${area.name}.png`),
+        fullPage: true,
+      });
+    }
 
-    await openManagementArea(page, "market");
+    // Capture open Notification Drawer on mobile
+    await page.getByRole("button", { name: /open notifications|messages/i }).click();
+    await expect(page.locator("#hm-drawer-notifications")).toBeVisible();
     await page.screenshot({
-      path: path.join(SCREENSHOT_DIR, "mobile-03-market.png"),
+      path: path.join(SCREENSHOT_DIR, "mobile-11-notification-drawer.png"),
       fullPage: true,
     });
+    await page.keyboard.press("Escape");
   });
 });

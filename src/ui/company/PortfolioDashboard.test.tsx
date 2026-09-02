@@ -20,23 +20,34 @@ const HOTEL = {
 
 describe("PortfolioDashboard", () => {
   it("shows each hotel with occupancy, profit, warning count, and manager", () => {
-    render(<PortfolioDashboard hotels={[HOTEL]} onOpenHotel={() => {}} />);
+    render(
+      <PortfolioDashboard
+        hotels={[HOTEL]}
+        onOpenHotel={() => {}}
+        locale="en-GB"
+      />,
+    );
     expect(screen.getByText("Frankfurt Central")).toBeTruthy();
     expect(screen.getAllByText("Frankfurt")).toHaveLength(2);
     expect(screen.getByText(/4-star quality/)).toBeTruthy();
     expect(screen.getByText("78.0% occupancy")).toBeTruthy();
-    expect(screen.getByText(/5000,00 DM cash need/)).toBeTruthy();
-    expect(screen.getByText(/20000,00 DM renovation need/)).toBeTruthy();
+    expect(screen.getByText(/5,000\.00 cash need/)).toBeTruthy();
+    expect(screen.getByText(/20,000\.00 renovation need/)).toBeTruthy();
     expect(
       screen.getByRole("button", { name: /open frankfurt central/i }),
     ).toBeTruthy();
   });
 
   it("names the warning count and the manager accountable for it", () => {
-    render(<PortfolioDashboard hotels={[HOTEL]} onOpenHotel={() => {}} />);
+    render(
+      <PortfolioDashboard
+        hotels={[HOTEL]}
+        onOpenHotel={() => {}}
+        locale="en-GB"
+      />,
+    );
     expect(screen.getByText(/1 warning - Manager: Anna Keller/)).toBeTruthy();
-    // The row and the group summary both carry it: one hotel is the group.
-    expect(screen.getAllByText(/71000,00 DM/)).toHaveLength(2);
+    expect(screen.getAllByText(/71,000\.00/)).toHaveLength(2);
   });
 
   it("drills down to the hotel the player asked for", () => {
@@ -45,6 +56,7 @@ describe("PortfolioDashboard", () => {
       <PortfolioDashboard
         hotels={[HOTEL, { ...HOTEL, id: "h2", name: "Munich Ost" }]}
         onOpenHotel={onOpenHotel}
+        locale="en-GB"
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: /open munich ost/i }));
@@ -52,7 +64,9 @@ describe("PortfolioDashboard", () => {
   });
 
   it("says so plainly when the group holds nothing", () => {
-    render(<PortfolioDashboard hotels={[]} onOpenHotel={() => {}} />);
+    render(
+      <PortfolioDashboard hotels={[]} onOpenHotel={() => {}} locale="en-GB" />,
+    );
     expect(screen.getByText(/holds no hotels/i)).toBeTruthy();
   });
 
@@ -63,6 +77,7 @@ describe("PortfolioDashboard", () => {
           { ...HOTEL, brandName: "Rheinstern", operatingModel: "lease" },
         ]}
         onOpenHotel={() => {}}
+        locale="en-GB"
       />,
     );
     expect(screen.getByText(/Flag: Rheinstern - held lease/)).toBeTruthy();
@@ -95,6 +110,7 @@ describe("BrandDashboard", () => {
         ]}
         hotels={[{ id: "h1", name: "Frankfurt Central" }]}
         onAssignBrand={() => {}}
+        locale="en-GB"
       />,
     );
     expect(
@@ -120,6 +136,7 @@ describe("BrandDashboard", () => {
         audits={[]}
         hotels={[{ id: "h1", name: "Frankfurt Central" }]}
         onAssignBrand={onAssignBrand}
+        locale="en-GB"
       />,
     );
     fireEvent.click(
@@ -151,11 +168,12 @@ describe("DevelopmentDashboard", () => {
         developments={[DEVELOPMENT]}
         onCompleteTask={() => {}}
         onOpen={() => {}}
+        locale="en-GB"
       />,
     );
     expect(screen.getByText(/Outstanding: inventory/)).toBeTruthy();
     expect(screen.getByLabelText("Hanau Park forecast").textContent).toMatch(
-      /10000,00 DM to 14000,00 DM/,
+      /10,000\.00 to .*14,000\.00/,
     );
     expect(
       screen.getByRole("button", { name: /open hanau park/i }),
@@ -169,6 +187,7 @@ describe("DevelopmentDashboard", () => {
         developments={[{ ...DEVELOPMENT, missing: [] as const }]}
         onCompleteTask={() => {}}
         onOpen={onOpen}
+        locale="en-GB"
       />,
     );
     const button = screen.getByRole("button", { name: /open hanau park/i });
@@ -184,6 +203,7 @@ describe("DevelopmentDashboard", () => {
         developments={[DEVELOPMENT]}
         onCompleteTask={onCompleteTask}
         onOpen={() => {}}
+        locale="en-GB"
       />,
     );
     fireEvent.click(
@@ -198,13 +218,12 @@ describe("DevelopmentDashboard", () => {
   });
 
   it("tells a screen reader why the open button is disabled", () => {
-    // A disabled control has to say why, or it is a dead end to anybody who
-    // cannot see the checklist sitting above it.
     const { rerender } = render(
       <DevelopmentDashboard
         developments={[DEVELOPMENT]}
         onCompleteTask={() => {}}
         onOpen={() => {}}
+        locale="en-GB"
       />,
     );
     const blocked = screen.getByRole("button", { name: /open hanau park/i });
@@ -214,13 +233,12 @@ describe("DevelopmentDashboard", () => {
       "Outstanding: inventory",
     );
 
-    // The same description stays wired up once the scheme is ready, so the
-    // button explains its enabled state too rather than going silent.
     rerender(
       <DevelopmentDashboard
         developments={[{ ...DEVELOPMENT, missing: [] as const }]}
         onCompleteTask={() => {}}
         onOpen={() => {}}
+        locale="en-GB"
       />,
     );
     const ready = screen.getByRole("button", { name: /open hanau park/i });
@@ -258,9 +276,10 @@ describe("ManagerGovernancePanel", () => {
         ]}
         onSetRepairLimit={() => {}}
         onResolve={() => {}}
+        locale="en-GB"
       />,
     );
-    expect(screen.getByText(/repairs to 5000,00 DM/)).toBeTruthy();
+    expect(screen.getByText(/repairs to .*5,000\.00/)).toBeTruthy();
     expect(screen.getByText(/exceeds the 0 capex limit/)).toBeTruthy();
   });
 
@@ -280,6 +299,7 @@ describe("ManagerGovernancePanel", () => {
         ]}
         onSetRepairLimit={() => {}}
         onResolve={onResolve}
+        locale="en-GB"
       />,
     );
     fireEvent.click(screen.getByRole("button", { name: /^approve/i }));
@@ -296,6 +316,7 @@ describe("ManagerGovernancePanel", () => {
         escalations={[]}
         onSetRepairLimit={onSetRepairLimit}
         onResolve={() => {}}
+        locale="en-GB"
       />,
     );
     fireEvent.click(
@@ -319,6 +340,7 @@ describe("ManagerGovernancePanel", () => {
         ]}
         onSetRepairLimit={() => {}}
         onResolve={() => {}}
+        locale="en-GB"
       />,
     );
     expect(screen.getByText(/Nothing has been escalated/)).toBeTruthy();

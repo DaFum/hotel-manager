@@ -92,14 +92,16 @@ export function TopBar(props: {
             <div>
               <dt>{translateGame(locale, "topbar.monthProfit")}</dt>
               <dd data-trend={trend(props.monthProfitMinor)}>
-                {formatDm(props.monthProfitMinor)}
+                {locale === "de-DE"
+                  ? formatDm(props.monthProfitMinor)
+                  : formatMinorCurrency(props.monthProfitMinor, "DEM", locale)}
               </dd>
             </div>
           )}
           {props.occupancyBasisPoints === undefined ? null : (
             <div>
               <dt>{translateGame(locale, "topbar.occupancy")}</dt>
-              <dd>{formatBasisPoints(props.occupancyBasisPoints)}</dd>
+              <dd>{formatBasisPoints(props.occupancyBasisPoints, locale)}</dd>
             </div>
           )}
           {props.reputation === undefined ? null : (
@@ -109,6 +111,24 @@ export function TopBar(props: {
             </div>
           )}
         </dl>
+      </div>
+
+      <div className="hm-topbar__card hm-topbar__card--speed">
+        <nav
+          className="hm-topbar__speed"
+          aria-label={translateGame(locale, "topbar.speed")}
+        >
+          {SPEEDS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              aria-pressed={props.speed === s}
+              onClick={() => props.onSpeed(s)}
+            >
+              {s === 0 ? translateGame(locale, "topbar.pause") : `${s}x`}
+            </button>
+          ))}
+        </nav>
       </div>
 
       <button
@@ -122,22 +142,7 @@ export function TopBar(props: {
       </button>
 
       <div className="hm-topbar__collapsible" data-open={mobileMenuOpen}>
-        <div className="hm-topbar__card hm-topbar__card--controls">
-          <nav
-            className="hm-topbar__speed"
-            aria-label={translateGame(locale, "topbar.speed")}
-          >
-            {SPEEDS.map((s) => (
-              <button
-                key={s}
-                type="button"
-                aria-pressed={props.speed === s}
-                onClick={() => props.onSpeed(s)}
-              >
-                {s === 0 ? translateGame(locale, "topbar.pause") : `${s}x`}
-              </button>
-            ))}
-          </nav>
+        <div className="hm-topbar__card hm-topbar__card--io">
           <div className="hm-topbar__io">
             <button type="button" onClick={props.onSave}>
               {translateGame(locale, "topbar.save")}

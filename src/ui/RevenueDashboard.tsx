@@ -2,7 +2,6 @@ import { translateGame, type GameLocale } from "../i18n";
 import "./revenue.css";
 import { formatGameDate, formatGameDateRange } from "../i18n/formatters";
 import { GUEST_SEGMENTS } from "../game/content/1991/guestSegments";
-import { translateKey } from "./localization";
 import { formatBasisPoints, formatDm, formatSignedBasisPoints } from "./money";
 import type {
   BookingsRow,
@@ -18,11 +17,15 @@ import type {
 import type { RevenuePolicyChange } from "../game/revenue/revenuePolicy";
 import type { GroupTargets } from "../game/company/groupTargets";
 
-const segmentLabel = (segmentId: string): string =>
-  translateKey(
-    GUEST_SEGMENTS.find((segment) => segment.id === segmentId)?.nameKey ??
-      segmentId,
-  );
+const segmentLabel = (segmentId: string, locale: GameLocale): string => {
+  const nameKey = GUEST_SEGMENTS.find((segment) => segment.id === segmentId)?.nameKey;
+  if (nameKey) {
+    return translateGame(locale, nameKey);
+  }
+  const fallbackKey = `segment.${segmentId}.name`;
+  const translated = translateGame(locale, fallbackKey);
+  return translated !== fallbackKey ? translated : segmentId;
+};
 
 /**
  * Design intent (AGENTS §13)
@@ -215,7 +218,9 @@ export function RevenueDashboard(props: {
                     {formatBasisPoints(row.revenueShareBasisPoints, locale)}
                   </td>
                   <td data-label={t("revenue.ui.segments")}>
-                    {row.segmentLabels.map(segmentLabel).join(", ")}
+                    {row.segmentLabels
+                      .map((id) => segmentLabel(id, locale))
+                      .join(", ")}
                   </td>
                 </tr>
               ))}
@@ -377,7 +382,7 @@ export function RevenueDashboard(props: {
               {props.competition.map((row) => (
                 <tr key={row.id}>
                   <th scope="row" data-label={t("revenue.ui.hotel")}>
-                    {translateKey(row.name)}
+                    {translateGame(locale, row.name)}
                   </th>
                   <td data-label={t("revenue.ui.roomsHeader")}>{row.rooms}</td>
                   <td data-label={t("revenue.ui.rate")}>

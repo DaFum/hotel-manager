@@ -1,3 +1,4 @@
+import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
 
 export interface BrandRow {
@@ -5,7 +6,6 @@ export interface BrandRow {
   name: string;
   demandUpliftBasisPoints: number;
   monthlyProgrammeCostMinor: number;
-  /** Hotel ids currently flying the flag. */
   hotelIds: readonly string[];
 }
 
@@ -19,56 +19,62 @@ export interface BrandAuditRow {
   remediationDueDateKey: string | null;
 }
 
-/**
- * Design intent (AGENTS §13)
- * - Purpose: turn a failed brand audit into a to-do list, not a verdict.
- * - Tone: an inspection report — the standard on the left, what the house
- *   actually did on the right, and a date by which it has to be put right.
- * - Constraints: every failure is a named, readable item; no score bar, no
- *   colour-only pass/fail.
- * - Differentiator: the flag's demand uplift is quoted next to its cost, so
- *   the player can see a brand as the trade it is rather than a reward.
- */
 export function BrandDashboard(props: {
   brands: readonly BrandRow[];
   audits: readonly BrandAuditRow[];
   onAssignBrand: (hotelId: string, brandId: string) => void;
   hotels: readonly { id: string; name: string }[];
+  locale?: GameLocale;
 }) {
+  const locale = props.locale ?? "de-DE";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   return (
-    <section aria-label="Brands">
-      <h2>Brands</h2>
+    <section aria-label={t("company.brands.title")}>
+      <h2>{t("company.brands.title")}</h2>
       <ul>
         {props.brands.map((brand) => (
           <li key={brand.id}>
-            {brand.name}: {formatBasisPoints(brand.demandUpliftBasisPoints)}{" "}
-            demand uplift for {formatDm(brand.monthlyProgrammeCostMinor)} a
-            month per house, flown by {brand.hotelIds.length}{" "}
-            {brand.hotelIds.length === 1 ? "hotel" : "hotels"}
+            {t("company.brands.item", {
+              name: brand.name,
+              uplift: formatBasisPoints(brand.demandUpliftBasisPoints, locale),
+              cost: formatDm(brand.monthlyProgrammeCostMinor, locale),
+              count: brand.hotelIds.length,
+              hotelsText: t(
+                brand.hotelIds.length === 1
+                  ? "company.portfolio.hotel"
+                  : "company.portfolio.hotels",
+              ),
+            })}
           </li>
         ))}
       </ul>
 
-      <h3>Latest audits</h3>
+      <h3>{t("company.brands.auditsTitle")}</h3>
       {props.audits.length === 0 ? (
-        <p>No house has been audited yet.</p>
+        <p>{t("company.brands.noAudits")}</p>
       ) : (
         <ul>
           {props.audits.map((audit) => (
             <li key={`${audit.hotelId}.${audit.dateKey}`}>
               {audit.hotelName} on {audit.dateKey}:{" "}
               {audit.compliant
-                ? "meets every standard"
-                : `fails ${audit.failures.join(", ")}`}
+                ? t("company.brands.meetsEveryStandard")
+                : t("company.brands.fails", {
+                    failures: audit.failures.join(", "),
+                  })}
               {audit.remediationDueDateKey
-                ? ` - put right by ${audit.remediationDueDateKey}`
+                ? t("company.brands.remediation", {
+                    date: audit.remediationDueDateKey,
+                  })
                 : ""}
             </li>
           ))}
         </ul>
       )}
 
-      <h3>Fly a flag</h3>
+      <h3>{t("company.brands.flyFlagTitle")}</h3>
       {props.hotels.map((hotel) => (
         <p key={hotel.id}>
           {hotel.name}:{" "}
@@ -77,7 +83,10 @@ export function BrandDashboard(props: {
               type="button"
               key={brand.id}
               onClick={() => props.onAssignBrand(hotel.id, brand.id)}
-              aria-label={`Fly ${brand.name} over ${hotel.name}`}
+              aria-label={t("company.brands.flyFlagAria", {
+                brand: brand.name,
+                hotel: hotel.name,
+              })}
             >
               {brand.name}
             </button>

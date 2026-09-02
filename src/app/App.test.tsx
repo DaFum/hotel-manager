@@ -95,14 +95,20 @@ describe("App", () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("tab", { name: "Unternehmen" }));
-    fireEvent.click(screen.getByRole("button", { name: /open hafenhaus/i }));
-    expect(screen.getByLabelText("Selected hotel").textContent).toContain(
-      "Hafenhaus",
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: new RegExp(translateGame("de-DE", "company.portfolio.openHotelAria", { name: "Hafenhaus" }), "i"),
+      }),
     );
+    expect(
+      screen.getByLabelText(translateGame("de-DE", "company.portfolio.selectedHotel")).textContent,
+    ).toContain("Hafenhaus");
 
     fireEvent.click(screen.getByRole("tab", { name: "Hauptansicht" }));
     expect(
-      screen.getByText("No per-room state exists for this managed hotel."),
+      screen.getByText(
+        translateGame("de-DE", "company.managed.roomUnavailableNote"),
+      ),
     ).toBeTruthy();
     expect(
       screen.queryByRole("button", {
@@ -269,16 +275,16 @@ describe("App", () => {
         "Konzernfinanzen",
         "Fusionen und Übernahmen",
         "Konzernzentrale",
-        "Hotel portfolio",
-        "Selected hotel",
-        "Brands",
-        "Development pipeline",
-        "Manager governance",
+        translateGame("de-DE", "company.portfolio.title"),
+        translateGame("de-DE", "company.portfolio.selectedHotel"),
+        translateGame("de-DE", "company.brands.title"),
+        translateGame("de-DE", "company.development.title"),
+        translateGame("de-DE", "company.governance.title"),
       ],
       campaign: [
         translateGame("de-DE", "campaignSetup.setup"),
-        "Story inbox",
-        "Company chronicle",
+        translateGame("de-DE", "story.inbox"),
+        translateGame("de-DE", "chronicle.title"),
       ],
     };
 

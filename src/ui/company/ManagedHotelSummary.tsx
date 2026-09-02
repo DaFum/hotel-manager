@@ -1,3 +1,4 @@
+import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
 
 export interface ManagedHotelSummaryRow {
@@ -11,24 +12,30 @@ export interface ManagedHotelSummaryRow {
   managerName: string;
 }
 
-/** Aggregate hotel-level facts for houses without minute-by-minute state. */
-export function ManagedHotelSummary(props: { hotel: ManagedHotelSummaryRow }) {
+export function ManagedHotelSummary(props: {
+  hotel: ManagedHotelSummaryRow;
+  locale?: GameLocale;
+}) {
   const hotel = props.hotel;
+  const locale = props.locale ?? "de-DE";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   return (
-    <section aria-label={`${hotel.name} summary`}>
+    <section aria-label={t("company.managed.summaryAria", { name: hotel.name })}>
       <h2>{hotel.name}</h2>
       <p>{hotel.cityName}</p>
-      <p>This hotel is managed as a monthly aggregate, not minute by minute.</p>
+      <p>{t("company.managed.summaryNote")}</p>
       <dl>
-        <dt>Occupancy</dt>
-        <dd>{formatBasisPoints(hotel.occupancyBasisPoints)}</dd>
-        <dt>Profit</dt>
-        <dd>{formatDm(hotel.monthlyProfitMinor)}</dd>
-        <dt>Cash need</dt>
-        <dd>{formatDm(hotel.cashNeedMinor)}</dd>
-        <dt>Renovation need</dt>
-        <dd>{formatDm(hotel.renovationNeedMinor)}</dd>
-        <dt>Manager</dt>
+        <dt>{t("topbar.occupancy")}</dt>
+        <dd>{formatBasisPoints(hotel.occupancyBasisPoints, locale)}</dd>
+        <dt>{t("finance.profit")}</dt>
+        <dd>{formatDm(hotel.monthlyProfitMinor, locale)}</dd>
+        <dt>{t("company.portfolio.cashNeedLabel")}</dt>
+        <dd>{formatDm(hotel.cashNeedMinor, locale)}</dd>
+        <dt>{t("company.portfolio.renovationNeedLabel")}</dt>
+        <dd>{formatDm(hotel.renovationNeedMinor, locale)}</dd>
+        <dt>{t("company.managed.manager")}</dt>
         <dd>{hotel.managerName}</dd>
       </dl>
     </section>
@@ -38,16 +45,26 @@ export function ManagedHotelSummary(props: { hotel: ManagedHotelSummaryRow }) {
 export function ManagedHotelUnavailable(props: {
   hotelName: string;
   level: "department" | "room";
+  locale?: GameLocale;
 }) {
+  const locale = props.locale ?? "de-DE";
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   return (
-    <section aria-label={`${props.hotelName} ${props.level} unavailable`}>
+    <section
+      aria-label={t("company.managed.unavailableAria", {
+        name: props.hotelName,
+        level: props.level,
+      })}
+    >
       <h2>{props.hotelName}</h2>
       <p>
         {props.level === "room"
-          ? "No per-room state exists for this managed hotel."
-          : "Department detail is unavailable because this managed hotel has no staff or department state."}
+          ? t("company.managed.roomUnavailableNote")
+          : t("company.managed.departmentUnavailableNote")}
       </p>
-      <p>This hotel is managed as a monthly aggregate, not minute by minute.</p>
+      <p>{t("company.managed.summaryNote")}</p>
     </section>
   );
 }

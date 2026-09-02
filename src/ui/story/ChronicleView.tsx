@@ -1,4 +1,4 @@
-import { translate, translateKey } from "../localization";
+import { translateGame, type GameLocale } from "../../i18n";
 
 export interface ChronicleViewEntry {
   id: string;
@@ -8,29 +8,29 @@ export interface ChronicleViewEntry {
   scope?: "company" | "world";
 }
 
-/**
- * The company's history, oldest first. Ordering repeats the worker's rule —
- * date, then id, both compared as plain strings — so what the player reads is
- * in the same order on every machine.
- */
 export function ChronicleView({
   entries,
+  locale = "de-DE",
 }: {
   entries: readonly ChronicleViewEntry[];
+  locale?: GameLocale;
 }) {
+  const t = (key: string, values: Record<string, string | number> = {}) =>
+    translateGame(locale, key, values);
+
   const sorted = [...entries].sort(
     (a, b) => compare(a.date, b.date) || compare(a.id, b.id),
   );
   return (
-    <section aria-label={translate("chronicle.title")}>
-      <h2>{translate("chronicle.title")}</h2>
+    <section aria-label={t("chronicle.title")}>
+      <h2>{t("chronicle.title")}</h2>
       {sorted.length === 0 ? (
-        <p>{translate("chronicle.empty")}</p>
+        <p>{t("chronicle.empty")}</p>
       ) : (
         sorted.map((entry) => (
           <article key={entry.id}>
             <time dateTime={entry.date}>{entry.date}</time>
-            <p>{translateKey(entry.text)}</p>
+            <p>{t(entry.text)}</p>
           </article>
         ))
       )}

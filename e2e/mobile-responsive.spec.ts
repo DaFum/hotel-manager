@@ -335,14 +335,18 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       }
 
       const staffControls = page.locator(
-        "#management-staff button, #management-staff input, #management-staff select",
+        "#management-content button, #management-content input, #management-content select",
       );
-      if ((await staffControls.count()) > 0) {
-        const ctrlBox = await staffControls.first().boundingBox();
-        if (ctrlBox) {
-          expect(ctrlBox.x).toBeGreaterThanOrEqual(0);
-          expect(ctrlBox.x + ctrlBox.width).toBeLessThanOrEqual(375);
-        }
+      const staffControlCount = await staffControls.count();
+      expect(staffControlCount).toBeGreaterThan(0);
+      for (let i = 0; i < Math.min(staffControlCount, 5); i++) {
+        const ctrl = staffControls.nth(i);
+        await expect(ctrl).toBeVisible();
+        await expect(ctrl).toBeEnabled();
+        const ctrlBox = await ctrl.boundingBox();
+        expect(ctrlBox).not.toBeNull();
+        expect(ctrlBox!.x).toBeGreaterThanOrEqual(0);
+        expect(ctrlBox!.x + ctrlBox!.width).toBeLessThanOrEqual(375);
       }
 
       // Revenue tab
@@ -354,28 +358,32 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       expect(box!.x + box!.width).toBeLessThanOrEqual(375);
 
       const revenueRows = revenueTable.locator("tbody tr");
-      if ((await revenueRows.count()) > 0) {
-        const revCells = revenueRows
-          .first()
-          .locator("td[data-label], th[data-label]");
-        const revCellCount = await revCells.count();
-        expect(revCellCount).toBeGreaterThan(0);
-        for (let i = 0; i < revCellCount; i++) {
-          const cell = revCells.nth(i);
-          await expect(cell).toBeVisible();
-          const cellBox = await cell.boundingBox();
-          expect(cellBox!.x).toBeGreaterThanOrEqual(0);
-          expect(cellBox!.x + cellBox!.width).toBeLessThanOrEqual(375);
-        }
+      const revenueRowCount = await revenueRows.count();
+      expect(revenueRowCount).toBeGreaterThan(0);
+      const revCells = revenueRows
+        .first()
+        .locator("td[data-label], th[data-label]");
+      const revCellCount = await revCells.count();
+      expect(revCellCount).toBeGreaterThan(0);
+      for (let i = 0; i < revCellCount; i++) {
+        const cell = revCells.nth(i);
+        await expect(cell).toBeVisible();
+        const cellBox = await cell.boundingBox();
+        expect(cellBox!.x).toBeGreaterThanOrEqual(0);
+        expect(cellBox!.x + cellBox!.width).toBeLessThanOrEqual(375);
       }
 
       const revenueControls = page.locator(
-        "#management-revenue button, #management-revenue input",
+        "#management-content button, #management-content input, #management-content select",
       );
-      if ((await revenueControls.count()) > 0) {
-        const ctrl = revenueControls.first();
+      const revControlCount = await revenueControls.count();
+      expect(revControlCount).toBeGreaterThan(0);
+      for (let i = 0; i < Math.min(revControlCount, 5); i++) {
+        const ctrl = revenueControls.nth(i);
         await expect(ctrl).toBeVisible();
+        await expect(ctrl).toBeEnabled();
         const ctrlBox = await ctrl.boundingBox();
+        expect(ctrlBox).not.toBeNull();
         expect(ctrlBox!.x).toBeGreaterThanOrEqual(0);
         expect(ctrlBox!.x + ctrlBox!.width).toBeLessThanOrEqual(375);
       }
@@ -432,6 +440,16 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       box = await loansSection.boundingBox();
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+
+      const repayButton = page
+        .getByRole("button", { name: /repay full|vollständig tilgen/i })
+        .first();
+      await expect(repayButton).toBeVisible();
+      await expect(repayButton).toBeEnabled();
+      const repayBox = await repayButton.boundingBox();
+      expect(repayBox).not.toBeNull();
+      expect(repayBox!.x).toBeGreaterThanOrEqual(0);
+      expect(repayBox!.x + repayBox!.width).toBeLessThanOrEqual(375);
     });
   });
 });

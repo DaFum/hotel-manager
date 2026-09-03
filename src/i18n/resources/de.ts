@@ -296,6 +296,7 @@ export const de = {
   facility: {
     cause: {
       closed: "geschlossen",
+      complianceRestriction: "behördliche Kapazitätsbeschränkung",
       demand: "aktuelle Nachfrage",
       seating: "Sitzplätze",
       serviceStaff: "Servicepersonal",
@@ -479,6 +480,40 @@ export const de = {
       guestSatisfaction: "Gästezufriedenheit zum Monatsende: {score}%",
       supplyChoice: "Lieferantenwahl ({tier})",
       story: "Ereignis: {cause}",
+    },
+    reason: {
+      morale: "Moral bei {score}",
+      "constant overtime": "Dauerhafte Überstunden",
+      restructuring: "Restrukturierung",
+      "gross misconduct": "Schweres Fehlverhalten",
+      "end of season": "Saisonende",
+      "dismissed by player": "Entlassung durch Geschäftsführung",
+    },
+    course: {
+      customer_service_101: "Grundlagen Kundenservice",
+      advanced_hospitality: "Erweitertes Gastronomiemanagement",
+      technical_maintenance: "Anlagen- & Gebäudesicherheit",
+      fnb_hygiene: "Hygiene- & Sicherheitsstandards F&B",
+    },
+    supplyTier: {
+      standard: "Standard",
+      regional: "Regional",
+      sustainable: "Nachhaltig",
+    },
+    rule: {
+      regulation: {
+        de: {
+          labor: {
+            tariff_wage: "Tariflohnvereinbarung",
+          },
+          safety: {
+            fire: "Brandschutzverordnung",
+          },
+          accessibility: {
+            standards: "Barrierefreiheitsstandards",
+          },
+        },
+      },
     },
   },
   staff: {

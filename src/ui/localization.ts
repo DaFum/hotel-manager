@@ -208,7 +208,7 @@ const FACILITY_CAUSE_KEYS: Readonly<Record<string, string>> = {
   "stations and floor area": "facility.cause.space",
   "hall capacity": "facility.cause.space",
   "regulatory closure": "facility.cause.closed",
-  "compliance restriction": "facility.cause.closed",
+  "compliance restriction": "facility.cause.complianceRestriction",
 };
 
 export function facilityCauseKey(cause: string): string {
@@ -291,8 +291,12 @@ export function localizeReputationCause(
 
   const complianceMatch = cause.match(/^regulatory noncompliance: (.+)$/);
   if (complianceMatch) {
+    const ruleId = complianceMatch[1];
+    const ruleKey = `reputation.rule.${ruleId}`;
+    const translatedRule = translateGame(locale, ruleKey);
+    const ruleLabel = translatedRule !== ruleKey ? translatedRule : ruleId;
     return translateGame(locale, "reputation.cause.regulatoryNoncompliance", {
-      ruleId: complianceMatch[1],
+      ruleId: ruleLabel,
     });
   }
 
@@ -307,29 +311,56 @@ export function localizeReputationCause(
 
   const supplyMatch = cause.match(/^supply choice (.+)$/);
   if (supplyMatch) {
+    const tier = supplyMatch[1];
+    const tierKey = `reputation.supplyTier.${tier}`;
+    const translatedTier = translateGame(locale, tierKey);
+    const tierLabel = translatedTier !== tierKey ? translatedTier : tier;
     return translateGame(locale, "reputation.cause.supplyChoice", {
-      tier: supplyMatch[1],
+      tier: tierLabel,
     });
   }
 
   const trainingMatch = cause.match(/^training completed: (.+)$/);
   if (trainingMatch) {
+    const courseId = trainingMatch[1];
+    const courseKey = `reputation.course.${courseId}`;
+    const translatedCourse = translateGame(locale, courseKey);
+    const courseLabel =
+      translatedCourse !== courseKey ? translatedCourse : courseId;
     return translateGame(locale, "reputation.cause.trainingCompleted", {
-      course: trainingMatch[1],
+      course: courseLabel,
     });
   }
 
   const resignationMatch = cause.match(/^resignation: (.+)$/);
   if (resignationMatch) {
+    const rawReason = resignationMatch[1];
+    const moraleMatch = rawReason.match(/^morale at (\d+)$/);
+    let reasonLabel: string;
+    if (moraleMatch) {
+      reasonLabel = translateGame(locale, "reputation.reason.morale", {
+        score: moraleMatch[1],
+      });
+    } else {
+      const reasonKey = `reputation.reason.${rawReason}`;
+      const translatedReason = translateGame(locale, reasonKey);
+      reasonLabel =
+        translatedReason !== reasonKey ? translatedReason : rawReason;
+    }
     return translateGame(locale, "reputation.cause.resignation", {
-      reason: resignationMatch[1],
+      reason: reasonLabel,
     });
   }
 
   const dismissalMatch = cause.match(/^dismissal: (.+)$/);
   if (dismissalMatch) {
+    const rawReason = dismissalMatch[1];
+    const reasonKey = `reputation.reason.${rawReason}`;
+    const translatedReason = translateGame(locale, reasonKey);
+    const reasonLabel =
+      translatedReason !== reasonKey ? translatedReason : rawReason;
     return translateGame(locale, "reputation.cause.dismissal", {
-      reason: dismissalMatch[1],
+      reason: reasonLabel,
     });
   }
 

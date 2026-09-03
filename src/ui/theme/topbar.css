@@ -109,6 +109,8 @@
 }
 
 .hm-root .hm-topbar__clock {
+  display: inline-flex;
+  align-items: center;
   padding: 0.15rem var(--hm-space-2);
   border: 1px solid var(--hm-signal-deep);
   border-radius: var(--hm-radius);
@@ -117,6 +119,17 @@
   box-shadow: 0 0 10px var(--hm-signal-wash);
   font-family: var(--hm-font-data);
   font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.hm-root .hm-topbar__tool {
+  border-radius: var(--hm-radius);
+  transition: all var(--hm-duration) var(--hm-ease);
+}
+
+.hm-root .hm-topbar__tool:hover {
+  border-color: rgba(232, 163, 61, 0.45);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
 /* The cash pill */

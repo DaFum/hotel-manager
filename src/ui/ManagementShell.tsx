@@ -18,6 +18,19 @@ export const AREA_ORDER = Object.freeze([
 
 export type ManagementAreaId = (typeof AREA_ORDER)[number];
 
+const AREA_CATEGORIES: Record<ManagementAreaId, string> = {
+  mainView: "operations",
+  hotel: "operations",
+  guests: "operations",
+  staff: "operations",
+  finance: "finance",
+  revenue: "finance",
+  marketing: "strategy",
+  market: "strategy",
+  company: "strategy",
+  campaign: "campaign",
+};
+
 export interface ManagementArea {
   id: ManagementAreaId;
   content: ReactNode;
@@ -70,6 +83,8 @@ export function ManagementShell({
         <FocusManager
           labels={labels}
           targets={orderedAreas.map((area) => `management-${area.id}`)}
+          areaIds={orderedAreas.map((area) => area.id)}
+          categories={orderedAreas.map((area) => AREA_CATEGORIES[area.id])}
           selected={selected}
           onSelect={setSelected}
         />
@@ -83,6 +98,17 @@ export function ManagementShell({
             role="tabpanel"
             aria-label={labels[selected]}
           >
+            <div className="hm-department-header">
+              <span
+                className="hm-department-header__badge"
+                data-category={AREA_CATEGORIES[activeArea.id]}
+              >
+                {AREA_CATEGORIES[activeArea.id].toUpperCase()}
+              </span>
+              <span className="hm-department-header__title">
+                {labels[selected]}
+              </span>
+            </div>
             {activeArea.content}
           </section>
         ) : null}

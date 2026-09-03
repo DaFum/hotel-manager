@@ -990,6 +990,22 @@ export function App() {
               "notifications.board",
             )}
           >
+            <header className="hm-messages__briefing-head">
+              <div className="hm-messages__briefing-title">
+                <span className="hm-messages__briefing-icon" aria-hidden="true">
+                  ✉
+                </span>
+                <span className="hm-messages__briefing-label">
+                  {translateGame(preferences.locale, "notifications.board")}
+                </span>
+              </div>
+              <span
+                className="hm-messages__briefing-badge"
+                data-count={s.alerts.length}
+              >
+                {s.alerts.length}
+              </span>
+            </header>
             <NotificationCenter
               notifications={s.alerts.map((alert): NotificationRecord => ({
                 id: alert.id,

@@ -105,7 +105,7 @@ describe("CommercialDashboard", () => {
     );
     const text = screen.getByRole("region", { name: "Commercial" }).textContent;
     expect(text).toMatch(
-      /hotel \(hotel.frankfurt.1\): 62\/100 — affects guest demand for this house; latest: guest satisfaction 71/,
+      /hotel \(hotel.frankfurt.1\): 62\/100 — affects guest demand for this house; latest: Guest satisfaction 71% at close/i,
     );
     // A dimension with no cause yet says nothing rather than "latest: null".
     expect(text).toMatch(

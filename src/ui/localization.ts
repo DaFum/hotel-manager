@@ -1,4 +1,5 @@
 import type { Phase as RenovationPhase } from "../game/renovation/projects";
+import { translateGame, type GameLocale } from "../i18n";
 
 export type { RenovationPhase };
 
@@ -202,6 +203,12 @@ const FACILITY_CAUSE_KEYS: Readonly<Record<string, string>> = {
   "cars in service": "facility.cause.elevator",
   "guards rostered": "facility.cause.serviceStaff",
   "changing room space": "facility.cause.space",
+  "therapists on duty": "facility.cause.serviceStaff",
+  "treatment rooms": "facility.cause.space",
+  "stations and floor area": "facility.cause.space",
+  "hall capacity": "facility.cause.space",
+  "regulatory closure": "facility.cause.closed",
+  "compliance restriction": "facility.cause.closed",
 };
 
 export function facilityCauseKey(cause: string): string {
@@ -242,4 +249,75 @@ export function translateAlertCause(
   return template.replace(/\{([^}]+)\}/g, (_, k) =>
     String(values[k] ?? `{${k}}`),
   );
+}
+
+export function localizeReputationCause(
+  cause: string,
+  locale: GameLocale,
+): string {
+  if (!cause) return "";
+
+  const directKey = `reputation.cause.${cause}`;
+  const directTranslated = translateGame(locale, directKey);
+  if (directTranslated !== directKey) return directTranslated;
+
+  const saleMatch = cause.match(/^sale of ([^:]+): (\d+) jobs$/);
+  if (saleMatch) {
+    const [, hotelId, jobs] = saleMatch;
+    const hotelKey = `hotel.${hotelId}.name`;
+    const hotel = translateGame(locale, hotelKey);
+    const hotelName = hotel !== hotelKey ? hotel : hotelId;
+    return translateGame(locale, "reputation.cause.saleOf", {
+      hotel: hotelName,
+      jobs,
+    });
+  }
+
+  const closureMatch = cause.match(/^closure of (.+) in (.+)$/);
+  if (closureMatch) {
+    const [, hotelId, cityId] = closureMatch;
+    const hotelKey = `hotel.${hotelId}.name`;
+    const hotel = translateGame(locale, hotelKey);
+    const hotelName = hotel !== hotelKey ? hotel : hotelId;
+
+    const cityKey = cityId.endsWith(".name") ? cityId : `${cityId}.name`;
+    const cityTranslated = translateGame(locale, cityKey);
+    const city = cityTranslated !== cityKey ? cityTranslated : cityId;
+    return translateGame(locale, "reputation.cause.closureOf", {
+      hotel: hotelName,
+      city,
+    });
+  }
+
+  const complianceMatch = cause.match(/^regulatory noncompliance: (.+)$/);
+  if (complianceMatch) {
+    return translateGame(locale, "reputation.cause.regulatoryNoncompliance", {
+      ruleId: complianceMatch[1],
+    });
+  }
+
+  const satisfactionMatch = cause.match(
+    /^guest satisfaction (\d+) at the close$/,
+  );
+  if (satisfactionMatch) {
+    return translateGame(locale, "reputation.cause.guestSatisfaction", {
+      score: satisfactionMatch[1],
+    });
+  }
+
+  const supplyMatch = cause.match(/^supply choice (.+)$/);
+  if (supplyMatch) {
+    return translateGame(locale, "reputation.cause.supplyChoice", {
+      tier: supplyMatch[1],
+    });
+  }
+
+  const storyMatch = cause.match(/^story:? (.+)$/i);
+  if (storyMatch) {
+    return translateGame(locale, "reputation.cause.story", {
+      cause: storyMatch[1],
+    });
+  }
+
+  return translateGame(locale, cause);
 }

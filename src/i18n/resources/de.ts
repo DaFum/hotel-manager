@@ -54,6 +54,7 @@ export const de = {
       aggressive: "Preiskämpfer",
     },
   },
+  city: { frankfurt: { name: "Frankfurt" } },
   trend: { "digital-booking": { name: "Digitale Buchung" } },
   macro: { credit: { name: "Druck am Kreditmarkt" } },
   app: {
@@ -446,7 +447,34 @@ export const de = {
       reputationEffect: "Reputationseffekt",
     },
   },
+  reputation: {
+    cause: {
+      "diluting equity injection": "Verwässerte Eigenkapitalzufuhr",
+      "debt turnaround": "Schuldenrestrukturierung",
+      "overbooking walk": "Gästeumleitung wegen Überbuchung",
+      "energy outage": "Energieausfall",
+      "monthly rota": "Monatlicher Schichtplan",
+      "flooded bathroom": "Überflutetes Badezimmer",
+      "unpaid overtime": "Unbezahlte Überstunden",
+      "training programme": "Schulungsprogramm",
+      "a very good year": "Ein sehr gutes Jahr",
+      "a very bad year": "Ein sehr schlechtes Jahr",
+      "a bad review": "Schlechte Bewertung",
+      saleOf: "Verkauf von {hotel}: {jobs} Stellen",
+      closureOf: "Schließung von {hotel} in {city}",
+      regulatoryNoncompliance: "Regulatorische Nichteinhaltung: {ruleId}",
+      guestSatisfaction: "Gästezufriedenheit zum Monatsende: {score}%",
+      supplyChoice: "Lieferantenwahl ({tier})",
+      story: "Ereignis: {cause}",
+    },
+  },
   staff: {
+    department: {
+      housekeeping: "Housekeeping",
+      reception: "Rezeption",
+      fnb: "Gastronomie",
+      maintenance: "Instandhaltung",
+    },
     role: {
       reception: "Rezeption",
       housekeeping: "Housekeeping",
@@ -958,6 +986,7 @@ export const de = {
     },
     status: {
       running: "läuft",
+      finished: "beendet",
       ended: "beendet",
       planned: "geplant",
     },

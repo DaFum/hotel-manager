@@ -1,5 +1,6 @@
 import "./guests.css";
 import { translateGame, type GameLocale } from "../../i18n";
+import { localizeReputationCause } from "../localization";
 
 export interface SatisfactionRow {
   score: number;
@@ -324,7 +325,9 @@ export function GuestsDashboard(props: {
                   score: row.score,
                   effect: row.effect,
                   latest: row.topCause
-                    ? t("guests.reputation.latest", { cause: row.topCause })
+                    ? t("guests.reputation.latest", {
+                        cause: localizeReputationCause(row.topCause, locale),
+                      })
                     : "",
                 })}
               </li>

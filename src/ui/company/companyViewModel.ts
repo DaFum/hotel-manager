@@ -20,7 +20,6 @@ import {
 import { contractProfitabilityMinor } from "../../game/commercial/salesPipeline";
 import { marketableGuestIds } from "../../game/commercial/crm";
 import {
-  DIMENSION_EFFECTS,
   REPUTATION_DIMENSIONS,
   reputationCauses,
 } from "../../game/reputation/dimensions";

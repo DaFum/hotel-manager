@@ -1,6 +1,7 @@
 import { GUEST_SEGMENTS } from "../../game/content/1991/guestSegments";
 import { translateGame, type GameLocale } from "../../i18n";
 import { formatBasisPoints, formatDm } from "../money";
+import { localizeReputationCause } from "../localization";
 
 export interface CampaignRow {
   id: string;
@@ -186,7 +187,7 @@ export function CommercialDashboard(props: {
               effect: translateGame(locale, row.effect),
               topCause: row.topCause
                 ? t("commercialDashboard.latestCause", {
-                    cause: translateGame(locale, row.topCause),
+                    cause: localizeReputationCause(row.topCause, locale),
                   })
                 : "",
             })}

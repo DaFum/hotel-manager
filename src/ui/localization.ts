@@ -312,11 +312,49 @@ export function localizeReputationCause(
     });
   }
 
+  const trainingMatch = cause.match(/^training completed: (.+)$/);
+  if (trainingMatch) {
+    return translateGame(locale, "reputation.cause.trainingCompleted", {
+      course: trainingMatch[1],
+    });
+  }
+
+  const resignationMatch = cause.match(/^resignation: (.+)$/);
+  if (resignationMatch) {
+    return translateGame(locale, "reputation.cause.resignation", {
+      reason: resignationMatch[1],
+    });
+  }
+
+  const dismissalMatch = cause.match(/^dismissal: (.+)$/);
+  if (dismissalMatch) {
+    return translateGame(locale, "reputation.cause.dismissal", {
+      reason: dismissalMatch[1],
+    });
+  }
+
+  const outageMatch = cause.match(/^(.+) outage: (.+) for (\d+) minutes$/);
+  if (outageMatch) {
+    const [, kind, reason, minutes] = outageMatch;
+    return translateGame(locale, "reputation.cause.outageDetailed", {
+      kind,
+      reason,
+      minutes,
+    });
+  }
+
   const storyMatch = cause.match(/^story:? (.+)$/i);
   if (storyMatch) {
-    return translateGame(locale, "reputation.cause.story", {
-      cause: storyMatch[1],
-    });
+    const rawCause = storyMatch[1];
+    if (rawCause.startsWith("narrative.")) {
+      const titleKey = `${rawCause}.title`;
+      const translatedTitle = translateGame(locale, titleKey);
+      const title = translatedTitle !== titleKey ? translatedTitle : rawCause;
+      return translateGame(locale, "reputation.cause.story", { cause: title });
+    }
+    const translatedRaw = translateGame(locale, rawCause);
+    const title = translatedRaw !== rawCause ? translatedRaw : rawCause;
+    return translateGame(locale, "reputation.cause.story", { cause: title });
   }
 
   return translateGame(locale, cause);

@@ -417,12 +417,11 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       const loanDrawSubmit = page
         .getByRole("button", { name: /draw loan|draw on credit/i })
         .first();
-      if (await loanDrawSubmit.isVisible()) {
-        await expect(loanDrawSubmit).toBeEnabled();
-        const drawBox = await loanDrawSubmit.boundingBox();
-        expect(drawBox!.x).toBeGreaterThanOrEqual(0);
-        expect(drawBox!.x + drawBox!.width).toBeLessThanOrEqual(375);
-      }
+      await expect(loanDrawSubmit).toBeVisible();
+      await expect(loanDrawSubmit).toBeEnabled();
+      const drawBox = await loanDrawSubmit.boundingBox();
+      expect(drawBox!.x).toBeGreaterThanOrEqual(0);
+      expect(drawBox!.x + drawBox!.width).toBeLessThanOrEqual(375);
 
       const loansSection = page
         .locator(

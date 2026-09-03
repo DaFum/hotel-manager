@@ -1,32 +1,38 @@
 /*
- * Motion.
+ * Motion — Orchestrated Executive Atmosphere.
  *
- * One orchestrated arrival, then stillness. The shell rail, the masthead and
- * each panel in turn rise into place on first paint, which tells the player the
- * order in which this interface wants to be read. After that the only movement
- * left is the movement that explains something: a control being pressed, a
- * command still in flight, a notice arriving.
- *
- * Nothing here touches the simulation. These are compositor-only properties on
- * the presentation layer; the worker's quantum is never waiting on a frame.
- *
- * The arrival moves; it does not fade. Animating opacity would mean that for
- * the length of the sequence every label on the page is rendered against its
- * ground at a reduced contrast ratio — which an automated audit reads, quite
- * correctly, as a serious contrast failure, and which a player on a slow
- * machine reads as text that is briefly hard to see. Transform costs nothing
- * in legibility and carries the same sense of the page assembling itself.
+ * Smooth entrance animations, tab transitions, and feedback micro-interactions.
+ * Respects user preferences for reduced motion.
  */
 
 @keyframes hm-rise {
   from {
-    transform: translateY(0.9rem);
+    transform: translateY(1.2rem);
+    opacity: 0.85;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
 @keyframes hm-rail-in {
   from {
-    transform: translateX(-0.9rem);
+    transform: translateX(-1.2rem);
+    opacity: 0.85;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes hm-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--hm-signal-wash);
+  }
+  50% {
+    box-shadow: 0 0 18px var(--hm-signal-glow);
   }
 }
 
@@ -39,40 +45,33 @@
 }
 
 /*
- * The staggered reveal. Six steps is enough to read as a sequence; everything
- * after the sixth panel arrives with the sixth, so a long management page never
- * makes the player wait for its own interface.
+ * Staggered reveal sequence for department panels.
  */
 .hm-main > :nth-child(1) {
-  animation-delay: 40ms;
+  animation-delay: 30ms;
 }
 
 .hm-main > :nth-child(2) {
-  animation-delay: 90ms;
+  animation-delay: 80ms;
 }
 
 .hm-main > :nth-child(3) {
-  animation-delay: 140ms;
+  animation-delay: 130ms;
 }
 
 .hm-main > :nth-child(4) {
-  animation-delay: 190ms;
+  animation-delay: 180ms;
 }
 
 .hm-main > :nth-child(5) {
-  animation-delay: 240ms;
+  animation-delay: 230ms;
 }
 
 .hm-main > :nth-child(n + 6) {
-  animation-delay: 290ms;
+  animation-delay: 280ms;
 }
 
-/*
- * Reduced motion. The accessibility layer already collapses every duration to
- * nothing; this block removes the delays as well, so a player who has asked for
- * stillness gets the finished page immediately rather than a staggered set of
- * instant jumps.
- */
+/* Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   .hm-root *,
   .hm-root *::before,

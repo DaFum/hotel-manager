@@ -1,79 +1,71 @@
 /*
- * Design tokens — "Bankenviertel 1991" (AGENTS §13)
+ * Design tokens — "Bankenviertel Executive 1991" (AGENTS §13)
  *
- * Purpose: give every management surface one vocabulary of colour, type,
- *   spacing and motion, so the operations desk and the isometric hotel read as
- *   two views of the same reality rather than two products.
- * Tone: tactile early-nineties Frankfurt business character — poured concrete,
- *   ledger hairlines, dot-matrix figures, a single Deutschmark-amber signal.
- * Constraints: dark ground at AA contrast, high-contrast mode must be able to
- *   override every one of these, figures must stay tabular at any text scale.
- * Differentiator: the Leitplanke — the signal rail on the left edge of a panel,
- *   the way an operations binder carries its status on its spine.
- *
- * Semantic tokens only. Components never reach for a raw hex value.
- *
- * Declared on :root so the document ground inherits them, and re-declared by
- * .hm-root.high-contrast below, whose higher specificity lets the
- * accessibility preference override the whole vocabulary in one place.
+ * Purpose: give every management surface one cohesive vocabulary of colour, type,
+ *   spacing, glassmorphic depth and motion.
+ * Tone: executive 1991 Frankfurt hospitality operating system — polished obsidian,
+ *   brass/amber signal highlights, slate glass overlays, and tactile telemetry.
+ * Constraints: dark ground at WCAG AA contrast, high-contrast mode override,
+ *   tabular figures for financial and simulation data.
  */
 
 :root {
-  /* --- Ground: obsidian concrete, lit from above ------------------------- */
-  --hm-ground: #090b0e;
-  --hm-ground-deep: #050608;
-  --hm-hover-bg: rgb(232 163 61 / 4%);
-  --hm-surface: #12161b;
-  --hm-surface-raised: #1a2027;
-  --hm-surface-sunken: #0b0d10;
+  /* --- Ground & Surfaces: obsidian slate, lit with metallic depth -------- */
+  --hm-ground: #080a0e;
+  --hm-ground-deep: #040508;
+  --hm-hover-bg: rgba(232, 163, 61, 0.06);
+  --hm-surface: #10141a;
+  --hm-surface-raised: #171d26;
+  --hm-surface-sunken: #090c0f;
 
-  /* --- Rules: executive ledger hairlines -------------------------------- */
-  --hm-rule: #232c34;
-  --hm-rule-strong: #35424e;
-  --hm-rule-faint: #182026;
+  /* Glassmorphism overlays */
+  --hm-glass-bg: rgba(16, 20, 26, 0.78);
+  --hm-glass-surface: rgba(23, 29, 38, 0.85);
+  --hm-glass-border: rgba(232, 163, 61, 0.22);
+  --hm-glass-blur: blur(12px);
 
-  /*
-   * Paper: executive ivory bone. All three tones clear WCAG AA body
-   * text against the darkest ground in the system — the quietest of them,
-   * --hm-ink-faint, sits at >5.5:1 contrast ratio.
-   */
-  --hm-ink-bright: #fffdf8;
-  --hm-ink: #ede9e0;
-  --hm-ink-dim: #aaaeb5;
-  --hm-ink-faint: #8e9499;
+  /* --- Rules: metallic executive hairlines & borders ------------------- */
+  --hm-rule: #222b36;
+  --hm-rule-strong: #364454;
+  --hm-rule-faint: #141a22;
 
-  /* --- The Deutschmark gold signal note under executive desk light ------- */
+  /* --- Typography & Paper: executive ivory & silver ink ----------------- */
+  --hm-ink-bright: #ffffff;
+  --hm-ink: #ede9e1;
+  --hm-ink-dim: #aab0b8;
+  --hm-ink-faint: #8a9199;
+
+  /* --- Deutschmark Amber / Gold Signal note --------------------------- */
   --hm-signal: #e8a33d;
   --hm-signal-bright: #ffc86b;
   --hm-signal-deep: #9e6918;
-  --hm-signal-wash: rgb(232 163 61 / 14%);
-  --hm-signal-glow: rgb(232 163 61 / 25%);
+  --hm-signal-wash: rgba(232, 163, 61, 0.14);
+  --hm-signal-glow: rgba(232, 163, 61, 0.30);
 
-  /* --- Cold steel counter-accent for financial telemetry & market ------- */
+  /* --- Cold Steel Counter-Accent for Market & Financial Telemetry ------- */
   --hm-steel: #74a6d4;
-  --hm-steel-wash: rgb(116 166 212 / 14%);
+  --hm-steel-wash: rgba(116, 166, 212, 0.14);
 
-  /* --- Atmospheric accents --------------------------------------------- */
-  --hm-atmosphere: rgb(116 166 212 / 12%);
-  --hm-atmosphere-wash: rgb(232 163 61 / 9%);
+  /* --- Atmospheric Accents --------------------------------------------- */
+  --hm-atmosphere: rgba(116, 166, 212, 0.12);
+  --hm-atmosphere-wash: rgba(232, 163, 61, 0.09);
 
-  /* --- Operational status. Never carried by hue alone. ----------------- */
+  /* --- Operational Status --------------------------------------------- */
   --hm-gain: #5cc98f;
-  --hm-gain-wash: rgb(92 201 143 / 12%);
+  --hm-gain-wash: rgba(92, 201, 143, 0.14);
   --hm-loss: #e2543c;
-  --hm-loss-wash: rgb(226 84 60 / 14%);
+  --hm-loss-wash: rgba(226, 84, 60, 0.16);
   --hm-warn: #e8b53a;
-  --hm-warn-wash: rgb(232 181 58 / 12%);
+  --hm-warn-wash: rgba(232, 181, 58, 0.14);
   --hm-idle: #8a8f8b;
 
-  /* --- Type: Anton poster grotesque over IBM Plex ---------------------- */
+  /* --- Typography ----------------------------------------------------- */
   --hm-font-display: "Anton", "Haettenschweiler", "Oswald", "Impact", fantasy;
   --hm-font-body:
     "IBM Plex Sans", "Frutiger", "Gill Sans Nova", "Avenir Next", sans-serif;
   --hm-font-data: "IBM Plex Mono", "Courier Prime", "Nimbus Mono PS", monospace;
 
-  /* A minor-third scale, anchored on the inherited root size so the
-     accessibility text-scale preference keeps scaling everything. */
+  /* Minor-third scale anchored on root */
   --hm-text-xs: 0.72rem;
   --hm-text-sm: 0.84rem;
   --hm-text-base: 1rem;
@@ -82,10 +74,10 @@
   --hm-text-2xl: 2.1rem;
   --hm-text-display: clamp(2.2rem, 1.4rem + 2.6vw, 3.6rem);
 
-  --hm-tracking-display: 0.01em;
-  --hm-tracking-label: 0.16em;
+  --hm-tracking-display: 0.02em;
+  --hm-tracking-label: 0.14em;
 
-  /* --- Spacing: a 4px operational grid --------------------------------- */
+  /* --- Spacing: 4px operational grid ----------------------------------- */
   --hm-space-1: 0.25rem;
   --hm-space-2: 0.5rem;
   --hm-space-3: 0.75rem;
@@ -94,23 +86,26 @@
   --hm-space-6: 2rem;
   --hm-space-7: 3rem;
 
-  /* --- Edges: cut, not rounded. This building is concrete. ------------- */
-  --hm-radius: 2px;
-  --hm-radius-lg: 6px;
-  --hm-rail: 3px;
+  /* --- Edges & Corners: refined tactile radius -------------------------- */
+  --hm-radius: 4px;
+  --hm-radius-lg: 8px;
+  --hm-rail: 4px;
 
-  /* --- Depth ----------------------------------------------------------- */
+  /* --- Depth & Multi-Layered Shadows ----------------------------------- */
   --hm-shadow-panel:
-    0 1px 0 rgb(255 255 255 / 6%) inset, 0 14px 32px -16px rgb(0 0 0 / 92%),
-    0 0 1px rgb(232 163 61 / 10%);
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 16px 36px -12px rgba(0, 0, 0, 0.88),
+    0 0 1px rgba(232, 163, 61, 0.20);
   --hm-shadow-lift:
-    0 20px 50px -20px rgb(0 0 0 / 96%), 0 0 24px -8px rgb(232 163 61 / 15%);
+    0 24px 56px -12px rgba(0, 0, 0, 0.96),
+    0 0 28px -6px rgba(232, 163, 61, 0.22);
   --hm-shadow-signal:
-    0 0 0 1px var(--hm-signal-deep), 0 0 12px var(--hm-signal-wash);
-  --hm-shadow-drop: 0 8px 20px -12px rgb(0 0 0 / 88%);
-  --hm-shadow-rail: rgb(0 0 0 / 50%);
+    0 0 0 1px var(--hm-signal-deep),
+    0 0 16px var(--hm-signal-wash);
+  --hm-shadow-drop: 0 8px 24px -10px rgba(0, 0, 0, 0.85);
+  --hm-shadow-rail: rgba(0, 0, 0, 0.60);
 
-  /* --- Motion: brisk, mechanical, never bouncy ------------------------- */
+  /* --- Motion ---------------------------------------------------------- */
   --hm-ease: cubic-bezier(0.2, 0.8, 0.3, 1);
   --hm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --hm-duration-fast: 120ms;
@@ -121,42 +116,44 @@
   --hm-z-chrome: 20;
   --hm-z-overlay: 40;
   --hm-z-grain: 60;
-  --hm-backdrop: rgb(4 5 6 / 72%);
+  --hm-backdrop: rgba(4, 5, 8, 0.75);
 }
 
 /*
- * High contrast is a promise, not a filter: it must win over every decorative
- * token above. The accessibility layer sets pure black and white; here the
- * semantic accents follow it into an unambiguous, texture-free palette.
+ * High contrast overrides: enforces strict pure black, white and yellow/cyan
+ * for maximum legibility without decorative filters or gradients.
  */
 .hm-root.high-contrast {
-  --hm-ground: #000;
-  --hm-ground-deep: #000;
-  --hm-surface: #000;
-  --hm-surface-raised: #000;
-  --hm-surface-sunken: #000;
-  --hm-rule: #fff;
-  --hm-rule-strong: #fff;
-  --hm-rule-faint: #fff;
-  --hm-ink-bright: #fff;
-  --hm-ink: #fff;
-  --hm-ink-dim: #fff;
-  --hm-ink-faint: #fff;
-  --hm-signal: #ff0;
-  --hm-signal-bright: #ff0;
-  --hm-signal-deep: #ff0;
+  --hm-ground: #000000;
+  --hm-ground-deep: #000000;
+  --hm-surface: #000000;
+  --hm-surface-raised: #000000;
+  --hm-surface-sunken: #000000;
+  --hm-glass-bg: #000000;
+  --hm-glass-surface: #000000;
+  --hm-glass-border: #ffffff;
+  --hm-rule: #ffffff;
+  --hm-rule-strong: #ffffff;
+  --hm-rule-faint: #ffffff;
+  --hm-ink-bright: #ffffff;
+  --hm-ink: #ffffff;
+  --hm-ink-dim: #ffffff;
+  --hm-ink-faint: #ffffff;
+  --hm-signal: #ffff00;
+  --hm-signal-bright: #ffff00;
+  --hm-signal-deep: #ffff00;
   --hm-signal-wash: transparent;
-  --hm-steel: #0ff;
+  --hm-steel: #00ffff;
   --hm-steel-wash: transparent;
   --hm-atmosphere: transparent;
   --hm-atmosphere-wash: transparent;
-  --hm-gain: #0f0;
+  --hm-gain: #00ff00;
   --hm-gain-wash: transparent;
-  --hm-loss: #f66;
+  --hm-loss: #ff6666;
   --hm-loss-wash: transparent;
-  --hm-warn: #ff0;
+  --hm-warn: #ffff00;
   --hm-warn-wash: transparent;
-  --hm-idle: #fff;
+  --hm-idle: #ffffff;
   --hm-shadow-panel: none;
   --hm-shadow-lift: none;
   --hm-shadow-drop: none;

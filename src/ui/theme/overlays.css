@@ -1,22 +1,18 @@
 /*
- * Overlays — the things that arrive.
+ * Overlays — Modals, Drawers & Toasts
  *
- * A modal in this game is a document that has been put in front of the player:
- * the monthly close is a printed statement, an outcome is a notice. They are
- * treated as paper laid on the desk, not as floating cards.
+ * Polished glassmorphic overlays with backdrop blur, tactile borders,
+ * clear action buttons, and smooth entry animations.
  */
 
 .hm-root dialog {
   max-width: min(34rem, 92vw);
   padding: var(--hm-space-6);
-  border: 1px solid var(--hm-rule-strong);
-  border-top: var(--hm-rail) solid var(--hm-signal);
-  border-radius: var(--hm-radius);
-  background: linear-gradient(
-    180deg,
-    var(--hm-surface-raised),
-    var(--hm-surface) 60%
-  );
+  border: 1px solid var(--hm-glass-border);
+  border-top: var(--hm-rail) solid var(--hm-signal-bright);
+  border-radius: var(--hm-radius-lg);
+  background: var(--hm-glass-surface);
+  backdrop-filter: var(--hm-glass-blur);
   color: var(--hm-ink);
   box-shadow: var(--hm-shadow-lift), 0 0 30px var(--hm-signal-wash);
 }
@@ -24,7 +20,7 @@
 .hm-root dialog h2 {
   margin-bottom: var(--hm-space-5);
   padding-bottom: var(--hm-space-2);
-  border-bottom: 1px solid var(--hm-rule);
+  border-bottom: 1px solid var(--hm-rule-strong);
 }
 
 .hm-root dialog dd {
@@ -35,16 +31,13 @@
   margin-top: var(--hm-space-5);
 }
 
-/* The desk goes dark around the document that is being read. */
+/* Modal Backdrop */
 .hm-root dialog::backdrop {
   background: var(--hm-backdrop);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(8px);
 }
 
-/*
- * The milestone toast. It announces once and leaves, so it is anchored out of
- * the reading column, bottom right, where a stamp would land on a page.
- */
+/* Milestone Toast */
 .hm-root aside[role="status"] {
   position: fixed;
   right: var(--hm-space-5);
@@ -52,15 +45,12 @@
   z-index: var(--hm-z-overlay);
   max-width: min(24rem, calc(100vw - 2 * var(--hm-space-5)));
   padding: var(--hm-space-4);
-  border: 1px solid var(--hm-signal-deep);
-  border-left: var(--hm-rail) solid var(--hm-signal);
-  border-radius: var(--hm-radius);
-  background: linear-gradient(
-    180deg,
-    var(--hm-surface-raised),
-    var(--hm-ground)
-  );
-  box-shadow: var(--hm-shadow-lift);
+  border: 1px solid var(--hm-glass-border);
+  border-left: var(--hm-rail) solid var(--hm-signal-bright);
+  border-radius: var(--hm-radius-lg);
+  background: var(--hm-glass-surface);
+  backdrop-filter: var(--hm-glass-blur);
+  box-shadow: var(--hm-shadow-lift), 0 0 20px var(--hm-signal-wash);
   animation: hm-toast var(--hm-duration-slow) var(--hm-ease-out) both;
 }
 
@@ -71,7 +61,7 @@
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-signal);
+  color: var(--hm-signal-bright);
 }
 
 .hm-root aside[role="status"] p {
@@ -83,10 +73,13 @@
   margin-top: var(--hm-space-3);
 }
 
-/* Movement, not a fade — for the same reason the page's arrival avoids one:
-   a milestone announcement must be readable from its first frame. */
 @keyframes hm-toast {
   from {
     transform: translateY(1.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }

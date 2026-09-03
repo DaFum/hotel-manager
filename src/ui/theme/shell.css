@@ -1,21 +1,12 @@
 /*
- * The frame — one screen, three fixed places.
+ * The frame — Executive Command Center.
  *
- * Purpose: give the player a room that does not move. The command bar is
- *   always at the top, the departments always down the left, the messages
- *   always down the right, and the department they opened fills what is left.
- *   Only that middle surface ever scrolls.
- * Tone: the same poured concrete as everything else; the frame is structure,
- *   not decoration, so it adds one hairline and no ornament of its own.
- * Constraints: nothing outside the working surface may scroll the page, the
- *   drawers must stay reachable by keyboard, and the whole frame has to fold
- *   into a single column on a narrow viewport without losing a control.
- *
- * This file exists because the surface it replaces stacked every panel the
- * game owns into one long document: the hotel itself began 1272 pixels below
- * the fold, under the audio sliders and the notification filters. Chrome the
- * player touches a few times a session now lives in drawers behind the command
- * bar, and the game gets the screen.
+ * Structure:
+ * - TopBar: Floating Glass Status Bar
+ * - Frame Grid:
+ *   - Column 1: Management Shell (Departments Sidebar + Main Working Surface)
+ *   - Column 2: Intelligence Noticeboard (.hm-messages)
+ * - Telemetry Ribbon at footer
  */
 
 .hm-root {
@@ -31,17 +22,8 @@
   flex: 0 0 auto;
 }
 
-/* --- The next action ---------------------------------------------------- */
+/* --- The next action banner --------------------------------------------- */
 
-/*
- * One slot, one action, directly under the vitals.
- *
- * It is a band, not a card: a row of heading, sentence and controls, so the
- * whole prompt costs one line of the screen rather than a block of it. The
- * dismissal sits at the far end, where a trailing control belongs, and the
- * band disappears entirely once the player has no next action — this strip is
- * borrowed space, not owned space.
- */
 .hm-root > .hm-nextaction {
   flex: 0 0 auto;
 }
@@ -49,17 +31,23 @@
 .hm-root > .hm-nextaction > aside {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--hm-space-2) var(--hm-space-4);
-  padding: var(--hm-space-2) var(--hm-space-4);
-  border-bottom: 1px solid var(--hm-rule-strong);
-  border-left: var(--hm-rail) solid var(--hm-signal);
-  background: var(--hm-surface);
+  padding: var(--hm-space-2) var(--hm-space-5);
+  border-bottom: 1px solid var(--hm-glass-border);
+  border-left: var(--hm-rail) solid var(--hm-signal-bright);
+  background: linear-gradient(
+    90deg,
+    rgba(232, 163, 61, 0.12) 0%,
+    rgba(18, 24, 33, 0.90) 100%
+  );
+  backdrop-filter: var(--hm-glass-blur);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
 @media (width <= 60rem) {
   .hm-root > .hm-nextaction > aside {
-    padding: var(--hm-space-1) var(--hm-space-2);
+    padding: var(--hm-space-2) var(--hm-space-3);
     gap: var(--hm-space-1) var(--hm-space-2);
     font-size: var(--hm-text-xs);
   }
@@ -73,7 +61,8 @@
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-signal);
+  color: var(--hm-signal-bright);
+  text-shadow: 0 0 8px var(--hm-signal-wash);
 }
 
 .hm-root > .hm-nextaction p {
@@ -81,6 +70,7 @@
   flex: 1 1 auto;
   min-width: 0;
   color: var(--hm-ink-bright);
+  font-weight: 500;
 }
 
 .hm-root > .hm-nextaction button {
@@ -93,15 +83,10 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(15rem, 20rem);
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
   align-items: stretch;
 }
 
-/*
- * The shell was written to own the whole viewport. Inside the frame it owns
- * only the cell it is given, and the working surface — not the document —
- * is what scrolls.
- */
 .hm-root .hm-shell {
   grid-column: 1;
   min-height: 0;
@@ -131,13 +116,14 @@
   overscroll-behavior: contain;
   padding: var(--hm-space-4);
   border-left: 1px solid var(--hm-rule-strong);
-  background: var(--hm-ground-deep);
+  background: linear-gradient(
+    180deg,
+    var(--hm-ground-deep) 0%,
+    var(--hm-surface-sunken) 100%
+  );
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.40);
 }
 
-/*
- * With nothing waiting, the rail says so once and gets out of the way: an
- * empty department of the interface should not look like a broken one.
- */
 .hm-messages [data-empty="true"] > :is([role="log"], p) {
   font-size: var(--hm-text-xs);
   color: var(--hm-ink-faint);
@@ -147,22 +133,21 @@
   margin-bottom: var(--hm-space-2);
 }
 
-/* --- The status footer -------------------------------------------------- */
+/* --- The status footer / telemetry -------------------------------------- */
 
-/*
- * Simulation status, last command and saves committed are diagnostics. They
- * were the second thing on the page; they are now the last, at the size a
- * diagnostic deserves, still live regions for anyone who needs them.
- */
 .hm-root > .hm-telemetry {
   flex: 0 0 auto;
-  gap: var(--hm-space-2) var(--hm-space-4);
-  padding: var(--hm-space-1) var(--hm-space-4);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--hm-space-2) var(--hm-space-5);
+  padding: var(--hm-space-1) var(--hm-space-5);
   border: 0;
   border-top: 1px solid var(--hm-rule);
   border-radius: 0;
   font-size: var(--hm-text-xs);
   color: var(--hm-ink-faint);
+  background: var(--hm-ground-deep);
   box-shadow: none;
 }
 
@@ -184,6 +169,7 @@
   position: absolute;
   inset: 0;
   background: var(--hm-backdrop);
+  backdrop-filter: blur(6px);
 }
 
 .hm-drawer__panel {
@@ -200,7 +186,7 @@
 
 @keyframes hm-drawer-in {
   from {
-    transform: translateX(2rem);
+    transform: translateX(2.5rem);
     opacity: 0;
   }
 }
@@ -242,10 +228,6 @@
   padding: var(--hm-space-5);
 }
 
-/*
- * Inside a drawer the panels are the drawer's contents, not sheets in their
- * own right: they drop the card ground so the drawer reads as one surface.
- */
 .hm-drawer__body > :is(section, fieldset, aside) {
   padding: 0;
   border: 0;
@@ -253,7 +235,7 @@
   box-shadow: none;
 }
 
-/* --- Narrow viewports: the frame folds into one column ------------------ */
+/* --- Narrow viewports: frame folds into one column ---------------------- */
 
 @media (width <= 60rem) {
   .hm-root {
@@ -277,11 +259,6 @@
     display: none;
   }
 
-  /*
-   * The department rail becomes a horizontal strip. It scrolls sideways, so
-   * it says so with a fading edge rather than hiding half the departments
-   * off-screen with no hint that they are there.
-   */
   .hm-root .hm-shell__nav {
     position: sticky;
     top: 0;
@@ -315,62 +292,8 @@
   }
 }
 
-/* --- The house's name in the command bar -------------------------------- */
-
-/*
- * The name was a full-bleed poster line across the top of the document. In the
- * command bar it is an identity plate: still the page's one `<h1>`, sized like
- * the label it now is, so the bar stays one row deep and the hotel keeps the
- * screen.
- */
-.hm-root .hm-topbar__card--location {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
-}
-
-.hm-root .hm-topbar__name {
-  margin: 0;
-  font-family: var(--hm-font-display);
-  font-size: var(--hm-text-lg);
-  font-weight: 400;
-  letter-spacing: var(--hm-tracking-display);
-  line-height: 1.1;
-  color: var(--hm-ink-bright);
-  white-space: nowrap;
-}
-
-.hm-root .hm-topbar__card--tools {
-  display: flex;
-  flex: 0 0 auto;
-  gap: var(--hm-space-2);
-  padding: var(--hm-space-1) var(--hm-space-2);
-}
-
-.hm-topbar__tool {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--hm-space-2);
-  white-space: nowrap;
-}
-
-/*
- * A message waiting is the one piece of chrome allowed to ask for the eye, so
- * it takes the signal colour — and says the count in words as well, because
- * status is never carried by hue alone.
- */
-.hm-topbar__tool[data-attention="true"] {
-  border-color: var(--hm-signal);
-  color: var(--hm-signal-bright);
-  box-shadow: var(--hm-shadow-signal);
-}
-
 /* --- Noticeboard typography --------------------------------------------- */
 
-/*
- * The board is a 20rem column, so the display sizes the working surface uses
- * would wrap every heading onto three lines. Here headings are labels.
- */
 .hm-messages > :is(section, aside, details) {
   padding: var(--hm-space-3) var(--hm-space-4);
   margin-bottom: var(--hm-space-3);
@@ -378,6 +301,7 @@
   border-left: var(--hm-rail) solid var(--hm-rule-strong);
   border-radius: var(--hm-radius);
   background: var(--hm-surface);
+  box-shadow: var(--hm-shadow-panel);
 }
 
 .hm-messages :is(h2, h3) {
@@ -407,6 +331,11 @@
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
   color: var(--hm-ink-faint);
+  transition: color var(--hm-duration) var(--hm-ease);
+}
+
+.hm-messages__filters > summary:hover {
+  color: var(--hm-signal-bright);
 }
 
 .hm-messages__filters[open] > summary {
@@ -414,21 +343,11 @@
   color: var(--hm-signal);
 }
 
-/* --- The main view's stage ---------------------------------------------- */
+/* --- The main view stage ------------------------------------------------ */
 
-/*
- * The building and the controls that move it, side by side.
- *
- * Pan, zoom, floor and layer used to sit at the very bottom of the department,
- * roughly fifteen hundred pixels under the picture they change: the player
- * scrolled away from the hotel to turn a floor on, then scrolled back to see
- * what happened. A control belongs within sight of its effect.
- */
 .hm-hotel-view__stage {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(13rem, 17rem);
-  /* One row, and both halves are as tall as it: the controls scroll inside
-     their own column rather than setting the height of the building. */
   grid-template-rows: minmax(0, clamp(22rem, 48vh, 34rem));
   gap: var(--hm-space-4);
   align-items: stretch;
@@ -443,37 +362,12 @@
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-gutter: stable;
-  border: 1px solid var(--hm-rule);
-  border-left: var(--hm-rail) solid var(--hm-rule-strong);
-  border-radius: var(--hm-radius);
-
-  /*
-   * A scrolling panel has to say so. This column is shorter than the controls
-   * it holds, and with a plain fill the content simply stopped at the bottom
-   * edge — a floor button sliced through the middle read as a rendering fault
-   * rather than as an invitation to scroll. The two `local` gradients paint the
-   * panel's own ground and travel with the content; the two `scroll` shadows
-   * stay with the frame, so a shadow is visible exactly when there is more in
-   * that direction and gone when there is not.
-   */
-  background:
-    linear-gradient(var(--hm-surface-sunken) 30%, rgb(11 13 16 / 0%)) top / 100%
-      1.5rem no-repeat local,
-    linear-gradient(rgb(11 13 16 / 0%), var(--hm-surface-sunken) 70%) bottom /
-      100% 1.5rem no-repeat local,
-    radial-gradient(
-        farthest-side at 50% 0,
-        var(--hm-shadow-rail),
-        rgb(0 0 0 / 0%)
-      )
-      top / 100% 0.6rem no-repeat scroll,
-    radial-gradient(
-        farthest-side at 50% 100%,
-        var(--hm-shadow-rail),
-        rgb(0 0 0 / 0%)
-      )
-      bottom / 100% 0.6rem no-repeat scroll,
-    var(--hm-surface-sunken);
+  border: 1px solid var(--hm-glass-border);
+  border-left: var(--hm-rail) solid var(--hm-signal);
+  border-radius: var(--hm-radius-lg);
+  background: var(--hm-glass-bg);
+  backdrop-filter: var(--hm-glass-blur);
+  box-shadow: var(--hm-shadow-panel);
 }
 
 .hm-hotel-view__controls h3 {
@@ -482,28 +376,13 @@
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-signal);
+  color: var(--hm-signal-bright);
 }
 
 .hm-hotel-view__controls button {
   font-size: var(--hm-text-xs);
 }
 
-/*
- * The stage folds on the width it is given, not the width of the screen.
- *
- * This used to fold below a 68rem viewport, and the department it lives in is
- * never that wide: on a 1280px screen the stage gets 609px once the rail and
- * the noticeboard are paid for, so the fold never fired and the building was
- * dealt 321px with the camera controls taking the other 272px. The subject of
- * the screen came second to its own switches, and the switches still did not
- * fit — 661px of them in a 430px frame, with "Show service areas" below the
- * fold entirely.
- *
- * Asking the department how wide it is answers both at once: the building gets
- * the full width, and the controls, no longer trapped in a fixed row, show
- * every one of themselves.
- */
 .hm-shell__panel {
   container: hm-department / inline-size;
 }
@@ -520,14 +399,6 @@
   }
 }
 
-/* --- Service areas: chips, not a column of identical buttons ------------ */
-
-/*
- * Eleven full-width buttons reading "Focus breakfast room", "Focus bar and
- * lounge", … made a wall in which no single area could be found. The verb is
- * the same on every one of them, so it belongs in the heading, and the names
- * are short enough to sit side by side.
- */
 .hm-hotel-view__grid .hm-card__list {
   display: flex;
   flex-wrap: wrap;

@@ -1,10 +1,8 @@
 /*
- * Controls — every interactive element, with the full state set AGENTS §13
- * requires: default, hover, focus-visible, pressed, selected, disabled and
- * pending. A control that has only a default state is an unfinished control.
+ * Controls — Pressed metal and glass controls.
  *
- * The material is pressed metal on concrete: a cut rectangle, a hairline edge,
- * and a signal rail that lights when the control carries the current state.
+ * Full interaction set: default, hover, focus-visible, pressed, selected,
+ * disabled and pending.
  */
 
 /* --- Buttons ------------------------------------------------------------ */
@@ -16,14 +14,15 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--hm-space-2);
   padding: var(--hm-space-2) var(--hm-space-4);
   border: 1px solid var(--hm-button-edge);
   border-radius: var(--hm-radius);
   background: linear-gradient(
     180deg,
-    var(--hm-surface-raised),
-    var(--hm-surface)
+    var(--hm-surface-raised) 0%,
+    var(--hm-surface) 100%
   );
   color: var(--hm-button-ink);
   font-family: var(--hm-font-body);
@@ -33,11 +32,13 @@
   line-height: 1.3;
   text-transform: uppercase;
   cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   transition:
     border-color var(--hm-duration-fast) var(--hm-ease),
     background-color var(--hm-duration-fast) var(--hm-ease),
     color var(--hm-duration-fast) var(--hm-ease),
-    transform var(--hm-duration-fast) var(--hm-ease);
+    transform var(--hm-duration-fast) var(--hm-ease),
+    box-shadow var(--hm-duration-fast) var(--hm-ease);
 }
 
 .hm-root button:hover:not(:disabled) {
@@ -45,20 +46,22 @@
   --hm-button-ink: var(--hm-signal-bright);
 
   background: var(--hm-signal-wash);
-  box-shadow: 0 0 10px var(--hm-signal-wash);
+  box-shadow: 0 0 12px var(--hm-signal-wash), 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 .hm-root button:active:not(:disabled) {
   transform: translateY(1px);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .hm-root button[aria-pressed="true"],
 .hm-root button[aria-selected="true"],
 .hm-root button[aria-expanded="true"] {
-  --hm-button-edge: var(--hm-signal);
+  --hm-button-edge: var(--hm-signal-bright);
 
   background: var(--hm-signal);
   color: var(--hm-ground);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
 .hm-root button[aria-pressed="true"]:hover,
@@ -68,19 +71,9 @@
   color: var(--hm-ground);
 }
 
-/*
- * Fitts's Law, at two pointer sizes.
- *
- * The controls the player reaches for most were the smallest on the screen:
- * the speed set — pause, 1x, 2x, 4x, 16x — stood 25px tall, and the
- * preference checkboxes were 14px square, under even the 24px WCAG 2.2 AA
- * minimum. The floor here is that AA minimum rather than the 44px touch
- * figure, because a mouse is precise and this is a dense operations desk: at
- * 44px everywhere the ledger stops being a ledger. Where the pointer is
- * coarse there is no such trade — a thumb gets the full 44px.
- */
+/* Fitts's Law minimum touch target sizing */
 .hm-root :is(button, [role="tab"], summary, select, input) {
-  min-height: 1.5rem;
+  min-height: 1.65rem;
 }
 
 .hm-root input[type="checkbox"] {
@@ -108,6 +101,7 @@
   --hm-button-ink: var(--hm-ink-faint);
 
   background: var(--hm-surface-sunken);
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -131,7 +125,7 @@
   }
 }
 
-/* --- Tabs: the department rail ------------------------------------------ */
+/* --- Tabs: Department Rail Tabs ---------------------------------------- */
 
 .hm-root [role="tablist"] {
   display: flex;
@@ -164,14 +158,14 @@
 
 .hm-root [role="tab"][aria-selected="true"] {
   border-left-color: var(--hm-signal);
-  background: linear-gradient(90deg, rgb(232 163 61 / 20%), transparent 85%);
+  background: linear-gradient(90deg, rgba(232, 163, 61, 0.20), transparent 85%);
   color: var(--hm-signal-bright);
   font-weight: 700;
   text-shadow: 0 0 10px var(--hm-signal-wash);
 }
 
 .hm-root [role="tab"][aria-selected="true"]:hover {
-  background: linear-gradient(90deg, rgb(232 163 61 / 30%), transparent 80%);
+  background: linear-gradient(90deg, rgba(232, 163, 61, 0.30), transparent 80%);
   color: var(--hm-signal-bright);
 }
 
@@ -197,7 +191,7 @@
   }
 }
 
-/* --- Fields ------------------------------------------------------------- */
+/* --- Fields & Form Controls --------------------------------------------- */
 
 .hm-root label {
   display: inline-flex;
@@ -247,7 +241,7 @@
   margin: 0;
   padding: var(--hm-space-3) var(--hm-space-4);
   border: 1px solid var(--hm-rule);
-  border-radius: var(--hm-radius);
+  border-radius: var(--hm-radius-lg);
   background: var(--hm-surface-sunken);
 }
 
@@ -257,7 +251,7 @@
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-signal);
+  color: var(--hm-signal-bright);
 }
 
 /* --- World Controls ----------------------------------------------------- */
@@ -299,13 +293,6 @@
   gap: var(--hm-space-2);
 }
 
-/*
- * Floors and lifts are racks of switches, not registers of readings, so they
- * lay out across the column the way the service areas already do. Stacked one
- * per row they ran the camera controls to 640px inside a 430px frame, which
- * put "Show service areas" completely below the fold of a panel that gives no
- * hint it scrolls: a control the player had no way of knowing existed.
- */
 .world-controls__floors-list,
 .world-controls__lifts-list {
   display: flex;

@@ -1,15 +1,14 @@
 /*
- * Layout — the building, before the furniture.
+ * Layout — Executive Operations Floor
  *
- * The management shell is read as an operations floor: a fixed vertical rail of
- * departments on the left, the working surface to its right. The rail never
- * moves between eras, which is the navigation promise AGENTS §13 makes; only
- * its material changes as technology is adopted.
+ * The management shell represents a command bridge / executive suite:
+ * a sticky sidebar rail on the left, the primary management workspace in the middle,
+ * and the intelligence noticeboard on the right.
  */
 
 .hm-shell {
   display: grid;
-  grid-template-columns: minmax(14rem, 16rem) minmax(0, 1fr);
+  grid-template-columns: minmax(14rem, 16.5rem) minmax(0, 1fr);
   align-items: start;
   min-height: 100vh;
   height: 100vh;
@@ -25,17 +24,17 @@
   top: 0;
   z-index: var(--hm-z-chrome);
   align-self: stretch;
-  padding: var(--hm-space-6) 0 var(--hm-space-6);
+  padding: var(--hm-space-5) 0 var(--hm-space-6);
   border-right: 1px solid var(--hm-rule-strong);
   height: 100vh;
   overflow-y: auto;
   background: linear-gradient(
     180deg,
-    var(--hm-ground-deep),
-    var(--hm-surface-sunken) 60%,
-    var(--hm-ground-deep)
+    var(--hm-ground-deep) 0%,
+    var(--hm-surface-sunken) 50%,
+    var(--hm-ground-deep) 100%
   );
-  box-shadow: 2px 0 12px rgb(0 0 0 / 40%);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.45);
 }
 
 .hm-shell__plate {
@@ -52,17 +51,70 @@
 .hm-shell__plate::before {
   content: "";
   display: block;
-  width: 2.5rem;
+  width: 2.75rem;
   height: var(--hm-rail);
   margin-bottom: var(--hm-space-3);
-  background: var(--hm-signal);
-  box-shadow: 0 0 8px var(--hm-signal-wash);
+  background: linear-gradient(90deg, var(--hm-signal-bright), var(--hm-signal));
+  box-shadow: 0 0 10px var(--hm-signal-wash);
+  border-radius: var(--hm-radius);
 }
 
 .hm-shell__nav [role="tablist"] {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  padding: 0 var(--hm-space-2);
+}
+
+/* Department Tab Button Styling */
+.hm-shell__nav [role="tab"] {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: var(--hm-space-3) var(--hm-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--hm-radius);
+  background: transparent;
+  color: var(--hm-ink-dim);
+  font-family: var(--hm-font-body);
+  font-size: var(--hm-text-sm);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-align: left;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--hm-duration) var(--hm-ease);
+}
+
+.hm-shell__nav [role="tab"]:hover {
+  color: var(--hm-ink-bright);
+  background: var(--hm-hover-bg);
+  border-color: rgba(232, 163, 61, 0.15);
+}
+
+.hm-shell__nav [role="tab"][aria-selected="true"] {
+  color: var(--hm-signal-bright);
+  background: linear-gradient(
+    90deg,
+    rgba(232, 163, 61, 0.16) 0%,
+    rgba(232, 163, 61, 0.04) 100%
+  );
+  border-color: rgba(232, 163, 61, 0.35);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35), 0 0 12px rgba(232, 163, 61, 0.12);
+  font-weight: 700;
+}
+
+.hm-shell__nav [role="tab"][aria-selected="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: var(--hm-rail);
+  background: var(--hm-signal-bright);
+  border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
+  box-shadow: 0 0 10px var(--hm-signal);
 }
 
 /* --- The working surface ------------------------------------------------ */
@@ -95,18 +147,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--hm-space-5);
-
-  /*
-   * The width is stated, not inferred. `margin: 0 auto` centres the surface,
-   * but auto margins also switch a grid item off `stretch` and onto
-   * shrink-to-fit — and shrink-to-fit takes its floor from the content's
-   * min-content width, which `min-width: 0` cannot lower. One wide register
-   * was therefore enough to inflate the whole working surface past its track:
-   * the staff table pushed it to 84rem, sliding 630px of the department under
-   * the noticeboard and off the right of the screen, where `overflow: hidden`
-   * on the root quietly swallowed it. Declaring the width keeps the surface in
-   * its column and leaves wide content to scroll in its own frame below.
-   */
   width: 100%;
   max-width: 84rem;
   min-width: 0;
@@ -120,7 +160,8 @@
   border-bottom: 1px solid var(--hm-rule-strong);
   color: var(--hm-ink-bright);
   font-family: var(--hm-font-display);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .hm-main > h1::after {
@@ -128,21 +169,24 @@
   position: absolute;
   bottom: -1px;
   left: 0;
-  width: 7rem;
+  width: 8rem;
   height: 3px;
-  background: var(--hm-signal);
-  box-shadow: 0 0 10px var(--hm-signal-wash);
+  background: linear-gradient(90deg, var(--hm-signal-bright), var(--hm-signal));
+  box-shadow: 0 0 12px var(--hm-signal-wash);
+  border-radius: var(--hm-radius);
 }
 
 .hm-telemetry {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: var(--hm-space-2) var(--hm-space-5);
-  padding: var(--hm-space-3) var(--hm-space-4);
+  padding: var(--hm-space-2) var(--hm-space-4);
   border: 1px solid var(--hm-rule);
   border-left: var(--hm-rail) solid var(--hm-signal);
   border-radius: var(--hm-radius);
-  background: var(--hm-surface-sunken);
+  background: var(--hm-glass-bg);
+  backdrop-filter: var(--hm-glass-blur);
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
   letter-spacing: 0.04em;
@@ -187,7 +231,7 @@
   .hm-shell__nav {
     grid-column: 1;
     grid-row: 1;
-    padding: var(--hm-space-3) 0 0;
+    padding: var(--hm-space-2) 0 0;
     border-right: 0;
     border-bottom: 1px solid var(--hm-rule-strong);
     min-height: auto;
@@ -196,12 +240,13 @@
   }
 
   .hm-shell__plate {
-    padding-bottom: var(--hm-space-3);
+    padding-bottom: var(--hm-space-2);
   }
 
   .hm-shell__nav [role="tablist"] {
     flex-direction: row;
     overflow-x: auto;
+    padding-bottom: var(--hm-space-2);
   }
 
   .hm-shell__panel {

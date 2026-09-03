@@ -1,16 +1,9 @@
 /*
- * The operations strip.
+ * TopBar HUD — Executive Status Bar
  *
- * Purpose: what a manager checks without thinking — where and when we are,
- *   what is in the bank, how the month and the house are doing, how fast time
- *   is running, and whether the run is safe on disk.
- * Tone: the status line of a dot-matrix back-office terminal, bolted across the
- *   top of the desk.
- * Constraints: sticky at any scroll depth, readable at every text scale, and it
- *   must not swallow the page on a narrow viewport.
- * Differentiator: the vitals are instruments, each labelled and ruled apart, so
- *   the strip reads as a panel of gauges rather than a sentence of numbers —
- *   and the reading a player wants is always in the same place on it.
+ * Floating glassmorphic HUD bar featuring hotel identity, date/clock badge,
+ * Deutschmark ledger pill, key vitals indicators, playback speed cluster,
+ * and quick drawer action buttons.
  */
 
 .hm-root .hm-topbar {
@@ -21,25 +14,21 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--hm-space-3);
-  padding: var(--hm-space-2) var(--hm-space-3);
-  border: 1px solid var(--hm-rule-strong);
-  border-left: var(--hm-rail) solid var(--hm-signal);
-  border-radius: var(--hm-radius);
+  gap: var(--hm-space-2) var(--hm-space-3);
+  padding: var(--hm-space-2) var(--hm-space-4);
+  border: 1px solid var(--hm-glass-border);
+  border-left: var(--hm-rail) solid var(--hm-signal-bright);
+  border-radius: 0 0 var(--hm-radius-lg) var(--hm-radius-lg);
 
-  /* Deep luxury executive telemetry bar ground */
-  background-color: var(--hm-ground-deep);
-  background-image:
-    radial-gradient(var(--hm-rule-strong) 1px, transparent 1px),
-    linear-gradient(180deg, rgb(232 163 61 / 6%), transparent 70%);
-  background-size:
-    6px 6px,
-    auto;
-  box-shadow: var(--hm-shadow-lift);
+  /* Glassmorphism executive ground */
+  background: var(--hm-glass-bg);
+  backdrop-filter: var(--hm-glass-blur);
+  box-shadow: var(--hm-shadow-lift), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
 
 .hm-root.high-contrast .hm-topbar {
-  background-image: none;
+  background: var(--hm-ground);
+  backdrop-filter: none;
 }
 
 /* Telemetry Cards */
@@ -47,10 +36,15 @@
   display: flex;
   align-items: center;
   padding: var(--hm-space-1) var(--hm-space-3);
-  background: var(--hm-surface-sunken);
-  border: 1px solid var(--hm-rule);
-  border-radius: var(--hm-radius);
-  box-shadow: inset 0 1px 3px rgb(0 0 0 / 30%);
+  background: var(--hm-glass-surface);
+  border: 1px solid var(--hm-rule-strong);
+  border-radius: var(--hm-radius-lg);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.25);
+  transition: border-color var(--hm-duration) var(--hm-ease);
+}
+
+.hm-root .hm-topbar__card:hover {
+  border-color: rgba(232, 163, 61, 0.35);
 }
 
 .hm-root .hm-topbar__card--location {
@@ -60,11 +54,12 @@
 .hm-root .hm-topbar__card--cash {
   flex: 0 0 auto;
   background: linear-gradient(
-    180deg,
-    rgb(232 163 61 / 8%),
-    var(--hm-surface-sunken)
+    135deg,
+    rgba(232, 163, 61, 0.16) 0%,
+    rgba(16, 20, 26, 0.85) 100%
   );
-  border-color: rgb(232 163 61 / 30%);
+  border-color: rgba(232, 163, 61, 0.45);
+  box-shadow: 0 0 14px rgba(232, 163, 61, 0.15), inset 0 1px 2px rgba(255, 255, 255, 0.1);
 }
 
 .hm-root .hm-topbar__card--vitals {
@@ -84,11 +79,11 @@
 .hm-root .hm-topbar__place {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: var(--hm-space-2);
   margin: 0;
   font-family: var(--hm-font-data);
-  font-size: var(--hm-text-sm);
+  font-size: var(--hm-text-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--hm-ink-dim);
@@ -100,17 +95,17 @@
 }
 
 .hm-root .hm-topbar__clock {
-  padding: 0.1rem var(--hm-space-2);
+  padding: 0.15rem var(--hm-space-2);
   border: 1px solid var(--hm-signal-deep);
   border-radius: var(--hm-radius);
-  background: var(--hm-surface);
+  background: var(--hm-surface-sunken);
   color: var(--hm-signal-bright);
-  box-shadow: 0 0 8px var(--hm-signal-wash);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
   font-family: var(--hm-font-data);
   font-weight: 700;
 }
 
-/* The money column. */
+/* The cash pill */
 .hm-root .hm-topbar__cash {
   display: flex;
   align-items: baseline;
@@ -120,11 +115,12 @@
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-ink-faint);
+  color: var(--hm-ink-dim);
 }
 
 .hm-root .hm-topbar__label {
   font-weight: 600;
+  color: var(--hm-ink-faint);
 }
 
 .hm-root .hm-topbar__figure {
@@ -134,14 +130,10 @@
   text-transform: none;
   white-space: nowrap;
   color: var(--hm-signal-bright);
-  text-shadow: 0 0 10px var(--hm-signal-wash);
+  text-shadow: 0 0 12px var(--hm-signal-wash);
 }
 
-/*
- * The vitals. Four readings the player consults constantly, set as small
- * stacked pairs so the label never competes with the figure, and ruled apart
- * so the row reads as instruments rather than as a sentence.
- */
+/* Vitals Instruments */
 .hm-root .hm-topbar__vitals {
   display: flex;
   align-items: center;
@@ -151,7 +143,7 @@
 
 .hm-root .hm-topbar__vitals > div {
   padding: 0 var(--hm-space-3);
-  border-left: 1px solid var(--hm-rule);
+  border-left: 1px solid var(--hm-rule-strong);
 }
 
 .hm-root .hm-topbar__vitals > div:first-child {
@@ -182,11 +174,13 @@
 .hm-root .hm-topbar__vitals dd[data-trend="gain"] {
   color: var(--hm-gain);
   font-weight: 700;
+  text-shadow: 0 0 8px var(--hm-gain-wash);
 }
 
 .hm-root .hm-topbar__vitals dd[data-trend="loss"] {
   color: var(--hm-loss);
   font-weight: 700;
+  text-shadow: 0 0 8px var(--hm-loss-wash);
 }
 
 @media (width <= 60rem) {
@@ -195,9 +189,11 @@
   }
 }
 
-/* Speed and IO Controls */
+/* Speed Controls */
 .hm-root .hm-topbar__speed {
   display: flex;
+  border-radius: var(--hm-radius);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .hm-root .hm-topbar__speed button {
@@ -206,6 +202,7 @@
   font-family: var(--hm-font-data);
   font-size: var(--hm-text-xs);
   font-weight: 600;
+  border-color: var(--hm-rule-strong);
 }
 
 .hm-root .hm-topbar__speed button + button {
@@ -220,8 +217,12 @@
   border-radius: 0 var(--hm-radius) var(--hm-radius) 0;
 }
 
-.hm-root .hm-topbar__speed button[aria-pressed="true"] + button {
-  border-left-width: 1px;
+.hm-root .hm-topbar__speed button[aria-pressed="true"] {
+  background: var(--hm-signal);
+  color: var(--hm-ground);
+  border-color: var(--hm-signal-bright);
+  box-shadow: 0 0 10px var(--hm-signal-wash);
+  font-weight: 700;
 }
 
 .hm-root .hm-topbar__io {
@@ -258,6 +259,7 @@
   .hm-topbar__collapsible[data-open="true"] {
     display: flex;
   }
+
   .hm-root .hm-topbar {
     position: static;
     padding: var(--hm-space-1) var(--hm-space-2);

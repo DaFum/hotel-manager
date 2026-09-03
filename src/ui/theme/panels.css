@@ -1,47 +1,36 @@
 /*
- * Panels — the Leitplanke.
+ * Panels — Executive Cards & Leitplanke
  *
- * Every management surface is a sheet in an operations binder: a cut rectangle
- * of lighter concrete, a hairline edge, and a coloured rail down its left side
- * carrying the department's state. The rail is the one form this game repeats
- * everywhere — rail on a panel, rail on a selected department, rail on an
- * alert — so a player learns to read status at the left edge once and for all.
- *
- * Status on a rail is never carried by hue alone: the panel that owns it also
- * says so in words, and the rail changes weight as well as colour.
+ * Every management surface is a sleek card in the executive suite:
+ * a dark metallic ground, subtle glass border, and a glowing signal rail down its left edge.
  */
 
 .hm-main > :is(section, aside),
 .hm-panel {
   position: relative;
   padding: var(--hm-space-5) var(--hm-space-6);
-  border: 1px solid var(--hm-rule);
-  border-left: var(--hm-rail) solid var(--hm-rule-strong);
-  border-radius: var(--hm-radius);
-  background: linear-gradient(
-    180deg,
-    var(--hm-surface-raised),
-    var(--hm-surface) 50%
-  );
+  border: 1px solid var(--hm-glass-border);
+  border-left: var(--hm-rail) solid var(--hm-signal-bright);
+  border-radius: var(--hm-radius-lg);
+  background: var(--hm-glass-surface);
+  backdrop-filter: var(--hm-glass-blur);
   box-shadow: var(--hm-shadow-panel);
   transition:
     border-color var(--hm-duration) var(--hm-ease),
-    box-shadow var(--hm-duration) var(--hm-ease);
+    box-shadow var(--hm-duration) var(--hm-ease),
+    transform var(--hm-duration) var(--hm-ease);
 }
 
 .hm-main > :is(section, aside):hover,
 .hm-panel:hover {
-  border-left-color: var(--hm-signal);
+  border-color: rgba(232, 163, 61, 0.35);
+  border-left-color: var(--hm-signal-bright);
   box-shadow:
     var(--hm-shadow-panel),
-    -2px 0 12px var(--hm-signal-wash);
+    0 0 20px var(--hm-signal-wash);
 }
 
-/*
- * The panel header. A rule runs the full width under the heading and stops at
- * a short amber tick, which is the only ornament in the interface — the mark a
- * clerk makes in the margin of a page they have already worked through.
- */
+/* Panel Header */
 .hm-main > :is(section, aside) > h2,
 .hm-panel > h2 {
   position: relative;
@@ -49,6 +38,7 @@
   padding-bottom: var(--hm-space-2);
   border-bottom: 1px solid var(--hm-rule-strong);
   color: var(--hm-ink-bright);
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .hm-main > :is(section, aside) > h2::after,
@@ -57,10 +47,11 @@
   position: absolute;
   bottom: -1px;
   left: 0;
-  width: 3.5rem;
+  width: 4.5rem;
   height: 2px;
-  background: var(--hm-signal);
-  box-shadow: 0 0 8px var(--hm-signal-wash);
+  background: linear-gradient(90deg, var(--hm-signal-bright), var(--hm-signal));
+  box-shadow: 0 0 10px var(--hm-signal-wash);
+  border-radius: var(--hm-radius);
 }
 
 .hm-main > :is(section, aside) > h3,
@@ -70,22 +61,11 @@
   color: var(--hm-ink-bright);
 }
 
-/*
- * A panel nested inside a panel is a drawer, not another sheet: it loses the
- * shadow and the ground, and keeps only the rail, so nesting never reads as a
- * stack of identical cards.
- *
- * These are defaults, not rulings, so the selector is wrapped in :where() and
- * carries no specificity of its own. A panel that brings its own surface — the
- * guest ledger's cream paper, say — states it with a single class and wins.
- * Before this was scoped, `background: none` stripped that paper while the
- * ledger's near-black ink survived, and the whole department rendered at about
- * 1.1:1 contrast: legible to nobody.
- */
+/* Nested section panels */
 :where(.hm-main > :is(section, aside), .hm-panel) section {
   padding: var(--hm-space-3) 0 var(--hm-space-3) var(--hm-space-4);
   border: 0;
-  border-left: 1px solid var(--hm-rule);
+  border-left: 2px solid var(--hm-rule);
   background: none;
   box-shadow: none;
 }
@@ -103,23 +83,7 @@
   display: none;
 }
 
-/*
- * A dormant register says its subject and its silence on one line.
- *
- * At the start of a run almost nothing has happened yet, and each subject that
- * has nothing to report was spending a full block to say so: the guest
- * department opened with six of its eight sections reading "no complaints have
- * been raised yet", "no guests have left a review yet", and so on down a
- * screenful. That is a page of structure carrying almost no information — the
- * player pays the scanning cost of eight registers to learn that two of them
- * are live.
- *
- * A section holding nothing but a heading and one line of prose — no table, no
- * list, no control, so nothing to act on and nothing to read down — lays that
- * pair out as a row instead of a column. The subject stays legible, stays in
- * the heading outline, and stays in the same place it will occupy once it has
- * something to say. Only its height collapses.
- */
+/* Single-line dormant registers */
 .hm-root
   :is(
     .hm-main > section,
@@ -151,10 +115,6 @@
   gap: var(--hm-space-2) var(--hm-space-4);
 }
 
-/*
- * The heading no longer owns a line of its own, so it stops reserving the
- * space under it that a block heading needs.
- */
 .hm-root
   :is(
     .hm-main > section,
@@ -182,17 +142,11 @@
   )
   > :is(h2, h3, h4) {
   margin: 0;
-
-  /* It may hold its line, but it may not refuse to give ground: a heading
-     that cannot shrink sizes the row to its own longest word and takes the
-     page sideways with it. */
   flex: 0 1 auto;
   min-width: 0;
 }
 
-/*
- * Articles are single records — an alert, a story, a rival's move.
- */
+/* Articles and Record Cards */
 .hm-main > :is(section, aside) article,
 .hm-panel article {
   display: flex;
@@ -223,23 +177,20 @@
   color: var(--hm-ink-dim);
 }
 
-/*
- * The isometric hotel is the other view of this same reality, so its frame is
- * built from the same materials as a panel — never a floating game window.
- */
+/* Isometric Canvas Container */
 .hm-canvas {
   position: relative;
   overflow: hidden;
   min-height: 24rem;
   margin-bottom: var(--hm-space-5);
-  border: 1px solid var(--hm-rule-strong);
-  border-radius: var(--hm-radius);
+  border: 1px solid var(--hm-glass-border);
+  border-radius: var(--hm-radius-lg);
   background:
     radial-gradient(70% 60% at 50% 0%, var(--hm-atmosphere), transparent 70%),
     var(--hm-surface-sunken);
   box-shadow:
     var(--hm-shadow-drop),
-    inset 0 0 20px rgb(0 0 0 / 50%);
+    inset 0 0 24px rgba(0, 0, 0, 0.6);
 }
 
 .hm-canvas canvas {
@@ -251,8 +202,7 @@
   display: none;
 }
 
-/* --- Hotel View Structured Card Grid ----------------------------------- */
-
+/* Hotel View Card Grid */
 .hm-hotel-view__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
@@ -264,7 +214,7 @@
   padding: var(--hm-space-4);
   border: 1px solid var(--hm-rule-strong);
   border-left: 3px solid var(--hm-signal);
-  border-radius: var(--hm-radius);
+  border-radius: var(--hm-radius-lg);
   background: var(--hm-surface-sunken);
   box-shadow: var(--hm-shadow-panel);
 }
@@ -284,7 +234,7 @@
   font-size: var(--hm-text-xs);
   letter-spacing: var(--hm-tracking-label);
   text-transform: uppercase;
-  color: var(--hm-signal);
+  color: var(--hm-signal-bright);
 }
 
 .hm-card__list {

@@ -1,11 +1,7 @@
 /*
- * Data surfaces — the ledger.
+ * Data surfaces — Executive Ledger & Registers.
  *
- * This game is played on figures, so the figures get the care usually spent on
- * hero imagery: one column, one width per digit, a dotted leader carrying the
- * eye from the label to the amount. Definition lists become ledger rows and
- * tables become register pages, without a single change to the markup the
- * components already emit.
+ * Tabular precision, crisp rows, sticky headers, subtle row hover accents.
  */
 
 /* --- Ledger rows (dl) --------------------------------------------------- */
@@ -21,7 +17,7 @@
   grid-column: 1;
   align-self: end;
   padding: var(--hm-space-2) 0;
-  border-bottom: 1px dotted var(--hm-rule);
+  border-bottom: 1px dotted var(--hm-rule-strong);
   font-size: var(--hm-text-sm);
   color: var(--hm-ink-dim);
 }
@@ -31,7 +27,7 @@
   align-self: end;
   margin: 0;
   padding: var(--hm-space-2) 0;
-  border-bottom: 1px dotted var(--hm-rule);
+  border-bottom: 1px dotted var(--hm-rule-strong);
   font-size: var(--hm-text-lg);
   font-weight: 500;
   text-align: right;
@@ -62,7 +58,7 @@
   top: 0;
   z-index: 1;
   padding: var(--hm-space-2) var(--hm-space-3);
-  border-bottom: 1px solid var(--hm-rule-strong);
+  border-bottom: 2px solid var(--hm-rule-strong);
   background: var(--hm-surface-sunken);
   font-family: var(--hm-font-body);
   font-size: var(--hm-text-xs);
@@ -74,8 +70,6 @@
   color: var(--hm-ink-dim);
 }
 
-/* The first column names the row; it reads left, everything else is a figure
-   and reads right, so the decimal points line up down the page. */
 .hm-root thead th:first-child,
 .hm-root tbody th[scope="row"] {
   text-align: left;
@@ -101,18 +95,13 @@
 
 .hm-root tbody tr:hover {
   background: var(--hm-signal-wash);
-  box-shadow: inset 2px 0 0 var(--hm-signal);
+  box-shadow: inset 3px 0 0 var(--hm-signal-bright);
 }
 
 .hm-root tbody tr:hover th[scope="row"] {
   color: var(--hm-signal-bright);
 }
 
-/*
- * The player's own house sits on the same rows as its rivals — that is the
- * point of the competitive set — so it is marked by weight and a rail rather
- * than pulled out into a box of its own.
- */
 .hm-root tbody tr:first-child {
   border-left: var(--hm-rail) solid var(--hm-signal);
   background: var(--hm-signal-wash);
@@ -140,20 +129,10 @@
   border-bottom: 0;
 }
 
-/*
- * A register entry reads label first, action last. Pushing a trailing control
- * to the right edge gives the list a straight action column, instead of letting
- * every button land wherever its neighbour's text happened to stop.
- */
 .hm-root li > button:last-child:not(:first-child) {
   margin-left: auto;
 }
 
-/*
- * The room register runs to every room in the house, which on a large hotel is
- * longer than the screen and would bury everything under it. It scrolls in its
- * own frame, ruled at top and bottom so it is legible as a bounded list.
- */
 .hm-register {
   max-height: 28rem;
   overflow-y: auto;
@@ -161,8 +140,6 @@
   border-bottom: 1px solid var(--hm-rule);
 }
 
-/* Scrolling a tall house should never leave you unsure which floor you are
-   reading, so each storey's heading holds the top of the frame. */
 .hm-register h3 {
   position: sticky;
   top: 0;
@@ -172,11 +149,6 @@
   border-bottom: 1px solid var(--hm-rule);
 }
 
-/*
- * A list of controls is a rack of switches, not a register of readings: it lays
- * out across the panel rather than down it, so a dozen service areas cost one
- * band of the page instead of a screenful.
- */
 .hm-root ul:has(> li > button:only-child) {
   display: flex;
   flex-wrap: wrap;
@@ -188,38 +160,17 @@
   border-bottom: 0;
 }
 
-/* --- Wide content never pushes the page sideways ------------------------ */
+/* --- Responsive Table & Card Wrappers ------------------------------------ */
 
 .hm-root :is(table, pre) {
   max-width: 100%;
 }
 
-/*
- * A register wider than its column scrolls inside its own frame.
- *
- * This guard used to require the table to be a direct child of `.hm-main` or
- * of a panel, and the departments that needed it most do not nest that way:
- * the staff register sits in a section inside the panel, one level too deep
- * for `.hm-main > …`, so nothing framed it and its 1264px of columns pushed
- * the whole department sideways instead. The frame is now claimed by whatever
- * element actually holds the table, at whatever depth it sits.
- *
- * `max-width: 100%` above cannot do this job alone: it caps the drawn width
- * but not the min-content contribution a table makes to its ancestors, which
- * is what does the pushing.
- */
 .hm-root :is(section, aside, article, div, details, figure):has(> table) {
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
 
-/*
- * A ledger value holds one line so the decimal points stay in a column — but
- * not every value is a figure. "DEM 100,000.00 — at the neutral market" is a
- * figure with a sentence after it, and held on one line it measured 439px on
- * a 375px handset and pushed the city market sideways. Where there is no
- * column to protect, the reading wraps instead of moving the page.
- */
 @media (width <= 60rem) {
   .hm-root dd {
     white-space: normal;
@@ -260,17 +211,6 @@
   gap: 1rem;
 }
 
-/*
- * A ledger row is a whole row, not a cell.
- *
- * The list it sits in is itself a two-column grid, built for bare dt/dd pairs,
- * so a wrapped row auto-placed into the list's `auto` column and sized that
- * track to its own max-content: 359px of row inside a 290px list, which is
- * what pushed the finance department off a 375px screen. Spanning both tracks
- * puts the row back in charge of its own width. The 10rem floor on the label
- * goes with it where there is no room for one, so the row can reach the width
- * it is given rather than insisting on a minimum the screen cannot pay.
- */
 .hm-root dl > .ledger-row {
   grid-column: 1 / -1;
 }
@@ -280,9 +220,6 @@
     grid-template-columns: minmax(0, 1fr) auto;
   }
 
-  /*
-   * City Economy & Responsive Stacked Cards Layout for narrow viewports (< 60rem)
-   */
   .hm-city-economy .hm-city-economy__metrics {
     display: flex;
     flex-direction: column;
@@ -324,7 +261,6 @@
     color: var(--hm-ink-dim);
   }
 
-  /* Responsive Stacked Cards for Tables on Mobile */
   .hm-root table.hm-responsive-table,
   .hm-root table.hm-responsive-table thead,
   .hm-root table.hm-responsive-table tbody,

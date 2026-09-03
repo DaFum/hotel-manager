@@ -5,6 +5,7 @@ test("shows the city's demand sources and the uncertainty around them", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "market");
   const city = page.getByRole("region", { name: "City market" });
   await expect(city).toBeVisible();
@@ -34,6 +35,7 @@ test("puts the rival houses beside this hotel on the same terms", async ({
   page,
 }) => {
   await page.goto("/?seed=424242");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "market");
   const competitors = page.getByRole("region", { name: "Competitors" });
   await expect(competitors).toBeVisible();

@@ -22,6 +22,99 @@ export interface EscalationRow {
   status: "open" | "approved" | "rejected";
 }
 
+export function localizeEscalationReason(
+  reason: string,
+  locale: GameLocale,
+): string {
+  if (reason === "selling a hotel is never delegated") {
+    return translateGame(locale, "company.governance.reason.sellHotel");
+  }
+
+  const limitMatch = reason.match(
+    /^(repair|capex|recovery) of (\d+) exceeds the (\d+) \1 limit$/,
+  );
+  if (limitMatch) {
+    const [, kind, amountStr, limitStr] = limitMatch;
+    const amount = formatDm(Number(amountStr), locale);
+    const limit = formatDm(Number(limitStr), locale);
+    return translateGame(locale, `company.governance.reason.${kind}`, {
+      amount,
+      limit,
+    });
+  }
+
+  const hireMatch = reason.match(/^hiring at (\d+) is not delegated$/);
+  if (hireMatch) {
+    const amount = formatDm(Number(hireMatch[1]), locale);
+    return translateGame(locale, "company.governance.reason.hire", { amount });
+  }
+
+  const repriceMatch = reason.match(/^repricing to (\d+) is not delegated$/);
+  if (repriceMatch) {
+    const amount = formatDm(Number(repriceMatch[1]), locale);
+    return translateGame(locale, "company.governance.reason.reprice", {
+      amount,
+    });
+  }
+
+  const overtimeMatch = reason.match(
+    /^department (.+) overtime \((\d+)h\) exceeds cap \((\d+)h\)$/,
+  );
+  if (overtimeMatch) {
+    const [, dept, hours, cap] = overtimeMatch;
+    const department = translateGame(locale, `staff.role.${dept}`);
+    return translateGame(locale, "company.governance.reason.overtime", {
+      department,
+      hours,
+      cap,
+    });
+  }
+
+  const reserveMatch = reason.match(
+    /^department (.+) available staff \((\d+)\) is below reserve requirement \((\d+)\)$/,
+  );
+  if (reserveMatch) {
+    const [, dept, available, reserve] = reserveMatch;
+    const department = translateGame(locale, `staff.role.${dept}`);
+    return translateGame(locale, "company.governance.reason.reserve", {
+      department,
+      available,
+      reserve,
+    });
+  }
+
+  const budgetMatch = reason.match(
+    /^department (.+) staffing spend \((\d+)\) exceeds budget \((\d+)\)$/,
+  );
+  if (budgetMatch) {
+    const [, dept, actualStr, budgetStr] = budgetMatch;
+    const department = translateGame(locale, `staff.role.${dept}`);
+    const actual = formatDm(Number(actualStr), locale);
+    const budget = formatDm(Number(budgetStr), locale);
+    return translateGame(locale, "company.governance.reason.budget", {
+      department,
+      actual,
+      budget,
+    });
+  }
+
+  const serviceMatch = reason.match(
+    /^department (.+) service level \((\d+)bp\) is below minimum \((\d+)bp\)$/,
+  );
+  if (serviceMatch) {
+    const [, dept, actual, min] = serviceMatch;
+    const department = translateGame(locale, `staff.role.${dept}`);
+    return translateGame(locale, "company.governance.reason.service", {
+      department,
+      actual,
+      min,
+    });
+  }
+
+  const translated = translateGame(locale, reason);
+  return translated;
+}
+
 export function ManagerGovernancePanel(props: {
   managers: readonly ManagerRow[];
   escalations: readonly EscalationRow[];
@@ -76,29 +169,35 @@ export function ManagerGovernancePanel(props: {
         <p>{t("company.governance.noEscalations")}</p>
       ) : (
         <ul>
-          {open.map((escalation) => (
-            <li key={escalation.id}>
-              {escalation.hotelName}: {escalation.reason}{" "}
-              <button
-                type="button"
-                onClick={() => props.onResolve(escalation.id, true)}
-                aria-label={t("company.governance.approveAria", {
-                  reason: escalation.reason,
-                })}
-              >
-                {t("company.governance.approve")}
-              </button>
-              <button
-                type="button"
-                onClick={() => props.onResolve(escalation.id, false)}
-                aria-label={t("company.governance.refuseAria", {
-                  reason: escalation.reason,
-                })}
-              >
-                {t("company.governance.refuse")}
-              </button>
-            </li>
-          ))}
+          {open.map((escalation) => {
+            const reasonText = localizeEscalationReason(
+              escalation.reason,
+              locale,
+            );
+            return (
+              <li key={escalation.id}>
+                {escalation.hotelName}: {reasonText}{" "}
+                <button
+                  type="button"
+                  onClick={() => props.onResolve(escalation.id, true)}
+                  aria-label={t("company.governance.approveAria", {
+                    reason: reasonText,
+                  })}
+                >
+                  {t("company.governance.approve")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => props.onResolve(escalation.id, false)}
+                  aria-label={t("company.governance.refuseAria", {
+                    reason: reasonText,
+                  })}
+                >
+                  {t("company.governance.refuse")}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

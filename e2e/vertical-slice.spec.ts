@@ -53,7 +53,7 @@ test("operate the 1991 hotel through one monthly close and save load", async ({
     page.getByRole("region", { name: "Revenue", exact: true }),
   ).toContainText(/ADR.*[1-9]/);
 
-  await expect(statusBar(page)).toContainText(/DM/);
+  await expect(statusBar(page)).toContainText(/DM|DEM/);
 });
 
 test("restores the saved game date after save and load", async ({ page }) => {

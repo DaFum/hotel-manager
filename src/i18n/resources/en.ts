@@ -922,16 +922,21 @@ export const en = {
   },
   commercial: {
     objective: {
+      awareness: "awareness",
       occupancy: "occupancy",
+      rate: "average rate",
+      segmentShift: "segment shift",
       revenue: "revenue",
       reputation: "reputation",
       brand: "brand",
-      awareness: "awareness",
     },
     channel: {
-      print: "print",
-      radio: "radio",
-      billboard: "billboard",
+      print: "print press",
+      radio: "radio broadcast",
+      billboard: "billboards",
+      directMail: "direct mail",
+      travelAgent: "travel agency",
+      onlineListing: "online directory",
       tv: "TV",
       digital: "digital",
       direct: "direct",
@@ -957,6 +962,16 @@ export const en = {
       employer: "employer",
       group: "group",
       brand: "brand",
+      media: "media",
+      channel: "channel",
+    },
+    effect: {
+      hotel: "guest demand for this house",
+      brand: "demand for every house flying the flag",
+      group: "cost of capital and seller willingness",
+      employer: "applicant pool and wage expectations",
+      media: "reach and amplification of operational incidents",
+      channel: "intermediary placement and commission terms",
     },
   },
   commercialDashboard: {
@@ -1000,6 +1015,32 @@ export const en = {
     connectivity:
       "Connectivity {index}/100 — rail, air, road and local transit, weighted by how much travel each carries.",
   },
+  narrative: {
+    "overbooking-scandal": {
+      title: "Guests turned away",
+      body: "The house was oversold and guests were sent elsewhere. The local press is asking about it.",
+      choice: {
+        compensate: "Compensate the displaced guests",
+        decline: "Say nothing",
+      },
+    },
+    "press-profile": {
+      title: "A travel writer is asking",
+      body: "A guide is preparing a profile of the house and would like a stay to write it up.",
+      choice: {
+        host: "Host the writer",
+        decline: "Decline the request",
+      },
+    },
+    "digital-bet": {
+      title: "A stake in an online agency",
+      body: "A small booking agency is looking for capital. Whether it is worth anything depends on how far this technology goes.",
+      choice: {
+        invest: "Take the stake",
+        decline: "Leave it",
+      },
+    },
+  },
   story: {
     inbox: {
       title: "Story inbox",
@@ -1017,8 +1058,73 @@ export const en = {
       "career-2026":
         "Thirty-five years after Frankfurt, the career reached 2026.",
     },
+    narrative: {
+      "overbooking-scandal": {
+        compensate: "The house paid for the guests it turned away.",
+        decline: "The house let the overbooking story stand.",
+      },
+      "press-profile": {
+        host: "The house hosted a travel writer.",
+        decline: "The house turned down a travel profile.",
+      },
+      "digital-bet": {
+        invest: "The company took a stake in an online booking agency.",
+        decline: "The company passed on an online booking agency.",
+      },
+    },
+    opportunity: {
+      "paid-off": "An old stake was sold at a profit.",
+      "written-off": "An old stake was written off.",
+    },
+    compliance: {
+      breach: {
+        regulation: {
+          de: {
+            accessibility: { standards: "Accessibility standards were breached." },
+            labor: { tariff_wage: "Tariff wage regulations were breached." },
+            safety: { fire: "Fire safety regulations were breached." },
+          },
+        },
+      },
+      remedy: {
+        regulation: {
+          de: {
+            accessibility: { standards: "Accessibility standards were restored." },
+            labor: { tariff_wage: "Tariff wage regulations were restored." },
+            safety: { fire: "Fire safety regulations were restored." },
+          },
+        },
+      },
+    },
+  },
+  brand: {
+    audit: {
+      failure: {
+        roomQuality: "room quality",
+        guestSatisfaction: "guest satisfaction",
+        stars: "star rating",
+      },
+    },
+  },
+  development: {
+    checklist: {
+      staff: "staffing",
+      suppliers: "suppliers",
+      inventory: "inventory",
+      technology: "technology",
+      sales: "sales channels",
+    },
   },
   company: {
+    operatingModel: {
+      owned: "owned",
+      lease: "leased",
+      franchise: "franchised",
+      management: "managed",
+    },
+    manager: {
+      unmanaged: "unmanaged",
+    },
     portfolio: {
       title: "Hotel portfolio",
       empty: "The group holds no hotels.",
@@ -1091,6 +1197,18 @@ export const en = {
       approveAria: "Approve {reason}",
       refuse: "Refuse",
       refuseAria: "Refuse {reason}",
+      reason: {
+        sellHotel: "Selling a hotel is never delegated",
+        repair: "Repair of {amount} exceeds limit of {limit}",
+        capex: "Capex of {amount} exceeds limit of {limit}",
+        recovery: "Service recovery of {amount} exceeds limit of {limit}",
+        hire: "Hiring at {amount} is not delegated",
+        reprice: "Repricing to {amount} is not delegated",
+        overtime: "Department {department} overtime ({hours}h) exceeds cap ({cap}h)",
+        reserve: "Department {department} available staff ({available}) is below reserve requirement ({reserve})",
+        budget: "Department {department} staffing spend ({actual}) exceeds budget ({budget})",
+        service: "Department {department} service level ({actual} bp) is below minimum ({min} bp)",
+      },
     },
   },
   alerts: { liquidityCritical: "Liquidity is critical" },

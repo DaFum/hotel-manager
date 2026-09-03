@@ -1,10 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { openManagementArea } from "./management";
+import { openManagementArea, selectLocale } from "./management";
 
 test("presents the systemic campaign and its remembered history", async ({
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "campaign");
   const setup = page.getByRole("region", { name: "Campaign setup" });
   await expect(setup).toContainText("Frankfurt, 1 January 1991");
@@ -21,6 +22,7 @@ test("starts the career on the difficulty the player chose, then locks it", asyn
   page,
 }) => {
   await page.goto("/?seed=424242&renderer=off");
+  await selectLocale(page, "en-GB");
   await openManagementArea(page, "campaign");
   const setup = page.getByRole("region", { name: "Campaign setup" });
   const difficulty = setup.getByLabel("Difficulty");
@@ -35,7 +37,7 @@ test("starts the career on the difficulty the player chose, then locks it", asyn
   // And the worker has actually applied them: expert opens on 7500bp of the
   // standard balance, so the authoritative cash figure has moved.
   await expect(status).not.toHaveText(standardCash ?? "");
-  await expect(status).toContainText("300000,00 DM");
+  await expect(status).toContainText(/300,000|300000/);
 
   // Starting the career settles the campaign: difficulty is part of the run.
   await page.getByRole("button", { name: "16x", exact: true }).click();

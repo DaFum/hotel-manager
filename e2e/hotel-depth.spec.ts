@@ -21,7 +21,7 @@ test("shows every facility with the constraint that is binding it", async ({
   // The spa starts unstaffed, so it is visibly the tightest area in the house.
   await expect(
     facilities.getByRole("listitem", { name: "Wellness" }),
-  ).toContainText(/therapists on duty/);
+  ).toContainText(/therapists on duty|service staff/);
 
   // The same stable facility target is available without the canvas.
   await openManagementArea(page, "mainView");

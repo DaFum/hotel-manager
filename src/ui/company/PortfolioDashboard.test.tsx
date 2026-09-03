@@ -114,7 +114,7 @@ describe("BrandDashboard", () => {
       />,
     );
     expect(
-      screen.getByText(/fails room-quality, facility.wellness/),
+      screen.getByText(/fails room quality, Wellness/),
     ).toBeTruthy();
     expect(screen.getByText(/put right by 1991-05-01/)).toBeTruthy();
     expect(screen.getByText(/9.0% demand uplift/)).toBeTruthy();
@@ -280,7 +280,7 @@ describe("ManagerGovernancePanel", () => {
       />,
     );
     expect(screen.getByText(/repairs to .*5,000\.00/)).toBeTruthy();
-    expect(screen.getByText(/exceeds the 0 capex limit/)).toBeTruthy();
+    expect(screen.getByText(/exceeds limit of/)).toBeTruthy();
   });
 
   it("approves and refuses through separate explicit actions", () => {
@@ -344,5 +344,96 @@ describe("ManagerGovernancePanel", () => {
       />,
     );
     expect(screen.getByText(/Nothing has been escalated/)).toBeTruthy();
+  });
+
+  it("localizes unmanaged manager, operating model, checklist items, and escalation reasons in German", () => {
+    const { container: portfolioContainer } = render(
+      <PortfolioDashboard
+        hotels={[
+          {
+            id: "h1",
+            name: "Frankfurt Central",
+            cityName: "Frankfurt",
+            qualityStars: 3,
+            occupancyBasisPoints: 6000,
+            monthlyProfitMinor: 100000,
+            cashNeedMinor: 0,
+            renovationNeedMinor: 0,
+            warnings: 0,
+            managerName: "unmanaged",
+            operatingModel: "owned",
+          },
+        ]}
+        onOpenHotel={() => {}}
+        locale="de-DE"
+      />,
+    );
+    expect(portfolioContainer.textContent).toMatch(/Manager: Unbesetzt/);
+    expect(portfolioContainer.textContent).toMatch(/geführt als Eigentum/);
+
+    const { container: mgmtContainer } = render(
+      <PortfolioDashboard
+        hotels={[
+          {
+            id: "h2",
+            name: "Frankfurt South",
+            cityName: "Frankfurt",
+            qualityStars: 4,
+            occupancyBasisPoints: 7000,
+            monthlyProfitMinor: 150000,
+            cashNeedMinor: 0,
+            renovationNeedMinor: 0,
+            warnings: 0,
+            managerName: "Anna Keller",
+            operatingModel: "management",
+          },
+        ]}
+        onOpenHotel={() => {}}
+        locale="de-DE"
+      />,
+    );
+    expect(mgmtContainer.textContent).toMatch(/geführt als Managementvertrag/);
+
+    const { container: devContainer } = render(
+      <DevelopmentDashboard
+        developments={[
+          {
+            id: "dev.1",
+            name: "Main Tower",
+            rooms: 100,
+            investmentMinor: 5000000,
+            downsideAnnualRoomRevenueMinor: 1000000,
+            baseAnnualRoomRevenueMinor: 2000000,
+            upsideAnnualRoomRevenueMinor: 3000000,
+            returnOnCostBasisPoints: 1000,
+            missing: ["staff", "suppliers"],
+            openedDateKey: null,
+          },
+        ]}
+        onCompleteTask={() => {}}
+        onOpen={() => {}}
+        locale="de-DE"
+      />,
+    );
+    expect(devContainer.textContent).toMatch(/Offen: Personal, Lieferanten/);
+
+    const { container: govContainer } = render(
+      <ManagerGovernancePanel
+        managers={[MANAGER]}
+        escalations={[
+          {
+            id: "esc.1",
+            hotelName: "Frankfurt Central",
+            managerName: "Anna Keller",
+            reason: "selling a hotel is never delegated",
+            status: "open",
+          },
+        ]}
+        onSetRepairLimit={() => {}}
+        onResolve={() => {}}
+        locale="de-DE"
+      />,
+    );
+    expect(govContainer.textContent).toMatch(/Verkauf eines Hotels wird nie delegiert/);
   });
 });

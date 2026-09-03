@@ -317,11 +317,32 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       let box = await staffTable.boundingBox();
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(375);
-      const hireBtn = page
-        .getByRole("button", { name: /hire applicant/i })
-        .first();
-      if (await hireBtn.isVisible()) {
-        await expect(hireBtn).toBeEnabled();
+
+      const staffRows = staffTable.locator("tbody tr");
+      const staffRowCount = await staffRows.count();
+      expect(staffRowCount).toBeGreaterThan(0);
+      const staffCells = staffRows
+        .first()
+        .locator("td[data-label], th[data-label]");
+      const staffCellCount = await staffCells.count();
+      expect(staffCellCount).toBeGreaterThan(0);
+      for (let i = 0; i < staffCellCount; i++) {
+        const cell = staffCells.nth(i);
+        await expect(cell).toBeVisible();
+        const cellBox = await cell.boundingBox();
+        expect(cellBox!.x).toBeGreaterThanOrEqual(0);
+        expect(cellBox!.x + cellBox!.width).toBeLessThanOrEqual(375);
+      }
+
+      const staffControls = page.locator(
+        "#management-staff button, #management-staff input, #management-staff select",
+      );
+      if ((await staffControls.count()) > 0) {
+        const ctrlBox = await staffControls.first().boundingBox();
+        if (ctrlBox) {
+          expect(ctrlBox.x).toBeGreaterThanOrEqual(0);
+          expect(ctrlBox.x + ctrlBox.width).toBeLessThanOrEqual(375);
+        }
       }
 
       // Revenue tab
@@ -331,6 +352,33 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       box = await revenueTable.boundingBox();
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+
+      const revenueRows = revenueTable.locator("tbody tr");
+      if ((await revenueRows.count()) > 0) {
+        const revCells = revenueRows
+          .first()
+          .locator("td[data-label], th[data-label]");
+        const revCellCount = await revCells.count();
+        expect(revCellCount).toBeGreaterThan(0);
+        for (let i = 0; i < revCellCount; i++) {
+          const cell = revCells.nth(i);
+          await expect(cell).toBeVisible();
+          const cellBox = await cell.boundingBox();
+          expect(cellBox!.x).toBeGreaterThanOrEqual(0);
+          expect(cellBox!.x + cellBox!.width).toBeLessThanOrEqual(375);
+        }
+      }
+
+      const revenueControls = page.locator(
+        "#management-revenue button, #management-revenue input",
+      );
+      if ((await revenueControls.count()) > 0) {
+        const ctrl = revenueControls.first();
+        await expect(ctrl).toBeVisible();
+        const ctrlBox = await ctrl.boundingBox();
+        expect(ctrlBox!.x).toBeGreaterThanOrEqual(0);
+        expect(ctrlBox!.x + ctrlBox!.width).toBeLessThanOrEqual(375);
+      }
 
       // Competitors section (Market tab)
       await openManagementArea(page, "market");
@@ -342,11 +390,42 @@ test.describe("Mobile and Breakpoint E2E Regressions", () => {
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(375);
 
+      const compRows = competitorTable.locator("tbody tr");
+      const compRowCount = await compRows.count();
+      expect(compRowCount).toBeGreaterThan(0);
+      for (let r = 0; r < Math.min(compRowCount, 3); r++) {
+        const compCells = compRows
+          .nth(r)
+          .locator("td[data-label], th[data-label]");
+        const compCellCount = await compCells.count();
+        expect(compCellCount).toBeGreaterThan(0);
+        for (let i = 0; i < compCellCount; i++) {
+          const cell = compCells.nth(i);
+          await expect(cell).toBeVisible();
+          const label = await cell.getAttribute("data-label");
+          expect(label).toBeTruthy();
+          const text = await cell.textContent();
+          expect(text?.trim().length).toBeGreaterThan(0);
+          const cellBox = await cell.boundingBox();
+          expect(cellBox!.x).toBeGreaterThanOrEqual(0);
+          expect(cellBox!.x + cellBox!.width).toBeLessThanOrEqual(375);
+        }
+      }
+
       // Loans / Borrowing section (Finance tab)
       await openManagementArea(page, "finance");
+      const loanDrawSubmit = page
+        .getByRole("button", { name: /draw loan|draw on credit/i })
+        .first();
+      await expect(loanDrawSubmit).toBeVisible();
+      await expect(loanDrawSubmit).toBeEnabled();
+      const drawBox = await loanDrawSubmit.boundingBox();
+      expect(drawBox!.x).toBeGreaterThanOrEqual(0);
+      expect(drawBox!.x + drawBox!.width).toBeLessThanOrEqual(375);
+
       const loansSection = page
         .locator(
-          '[aria-label*="loans" i], [aria-label*="darlehen" i], table.hm-responsive-table',
+          'table.register-table.hm-responsive-table, table.hm-responsive-table',
         )
         .first();
       await expect(loansSection).toBeVisible();

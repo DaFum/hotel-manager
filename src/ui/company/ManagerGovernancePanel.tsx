@@ -22,6 +22,16 @@ export interface EscalationRow {
   status: "open" | "approved" | "rejected";
 }
 
+function localizeDepartment(dept: string, locale: GameLocale): string {
+  const deptKey = `staff.department.${dept}`;
+  const translated = translateGame(locale, deptKey);
+  if (translated !== deptKey) return translated;
+  const roleKey = `staff.role.${dept}`;
+  const roleTranslated = translateGame(locale, roleKey);
+  if (roleTranslated !== roleKey) return roleTranslated;
+  return dept;
+}
+
 export function localizeEscalationReason(
   reason: string,
   locale: GameLocale,
@@ -62,7 +72,7 @@ export function localizeEscalationReason(
   );
   if (overtimeMatch) {
     const [, dept, hours, cap] = overtimeMatch;
-    const department = translateGame(locale, `staff.role.${dept}`);
+    const department = localizeDepartment(dept, locale);
     return translateGame(locale, "company.governance.reason.overtime", {
       department,
       hours,
@@ -75,7 +85,7 @@ export function localizeEscalationReason(
   );
   if (reserveMatch) {
     const [, dept, available, reserve] = reserveMatch;
-    const department = translateGame(locale, `staff.role.${dept}`);
+    const department = localizeDepartment(dept, locale);
     return translateGame(locale, "company.governance.reason.reserve", {
       department,
       available,
@@ -88,7 +98,7 @@ export function localizeEscalationReason(
   );
   if (budgetMatch) {
     const [, dept, actualStr, budgetStr] = budgetMatch;
-    const department = translateGame(locale, `staff.role.${dept}`);
+    const department = localizeDepartment(dept, locale);
     const actual = formatDm(Number(actualStr), locale);
     const budget = formatDm(Number(budgetStr), locale);
     return translateGame(locale, "company.governance.reason.budget", {
@@ -103,7 +113,7 @@ export function localizeEscalationReason(
   );
   if (serviceMatch) {
     const [, dept, actual, min] = serviceMatch;
-    const department = translateGame(locale, `staff.role.${dept}`);
+    const department = localizeDepartment(dept, locale);
     return translateGame(locale, "company.governance.reason.service", {
       department,
       actual,

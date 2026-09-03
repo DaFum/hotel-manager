@@ -349,6 +349,12 @@ export const en = {
     market: "Market",
     company: "Company",
     campaign: "Campaign",
+    category: {
+      operations: "Operations",
+      finance: "Finance",
+      strategy: "Strategy",
+      campaign: "Campaign",
+    },
   },
   revenue: {
     ui: {

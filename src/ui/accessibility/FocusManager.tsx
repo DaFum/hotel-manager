@@ -15,11 +15,15 @@ export function FocusManager({
   selected = 0,
   onSelect,
   targets,
+  areaIds,
+  categories,
 }: {
   labels: string[];
   selected?: number;
   onSelect?: (index: number) => void;
   targets?: string[];
+  areaIds?: string[];
+  categories?: string[];
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
@@ -45,6 +49,8 @@ export function FocusManager({
             refs.current[index] = el;
           }}
           role="tab"
+          data-area={areaIds?.[index]}
+          data-category={categories?.[index]}
           aria-controls={targets?.[index]}
           aria-selected={selected === index}
           tabIndex={selected === index ? 0 : -1}

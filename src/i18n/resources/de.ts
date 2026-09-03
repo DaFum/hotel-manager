@@ -352,6 +352,12 @@ export const de = {
     market: "Markt",
     company: "Unternehmen",
     campaign: "Kampagne",
+    category: {
+      operations: "Operativ",
+      finance: "Finanzen",
+      strategy: "Strategie",
+      campaign: "Kampagne",
+    },
   },
   revenue: {
     ui: {

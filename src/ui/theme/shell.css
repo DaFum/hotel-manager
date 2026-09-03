@@ -124,6 +124,50 @@
   box-shadow: -4px 0 20px rgba(0, 0, 0, 0.40);
 }
 
+.hm-messages__briefing-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--hm-space-3);
+  margin-bottom: var(--hm-space-4);
+  border-bottom: 1px solid var(--hm-rule-strong);
+}
+
+.hm-messages__briefing-title {
+  display: flex;
+  align-items: center;
+  gap: var(--hm-space-2);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  color: var(--hm-signal-bright);
+}
+
+.hm-messages__briefing-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  padding: 0 0.4rem;
+  border-radius: 10px;
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  font-weight: 700;
+  background: var(--hm-surface-raised);
+  color: var(--hm-ink-dim);
+  border: 1px solid var(--hm-rule-strong);
+}
+
+.hm-messages__briefing-badge[data-count]:not([data-count="0"]) {
+  background: var(--hm-warn-wash);
+  color: var(--hm-warn);
+  border-color: var(--hm-warn);
+  box-shadow: 0 0 8px var(--hm-warn-wash);
+}
+
 .hm-messages [data-empty="true"] > :is([role="log"], p) {
   font-size: var(--hm-text-xs);
   color: var(--hm-ink-faint);
@@ -381,6 +425,64 @@
 
 .hm-hotel-view__controls button {
   font-size: var(--hm-text-xs);
+}
+
+.hm-department-header {
+  display: flex;
+  align-items: center;
+  gap: var(--hm-space-3);
+  padding-bottom: var(--hm-space-3);
+  margin-bottom: var(--hm-space-4);
+  border-bottom: 1px solid var(--hm-rule-strong);
+  position: relative;
+}
+
+.hm-department-header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 5rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--hm-signal-bright), var(--hm-signal));
+  box-shadow: 0 0 10px var(--hm-signal-wash);
+}
+
+.hm-department-header__badge {
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--hm-radius);
+  font-family: var(--hm-font-data);
+  font-size: var(--hm-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--hm-tracking-label);
+  text-transform: uppercase;
+  background: var(--hm-surface-sunken);
+  color: var(--hm-signal-bright);
+  border: 1px solid var(--hm-signal-deep);
+}
+
+.hm-department-header__badge[data-category="operations"] {
+  color: var(--hm-steel);
+  border-color: rgba(116, 166, 212, 0.4);
+}
+
+.hm-department-header__badge[data-category="finance"] {
+  color: var(--hm-gain);
+  border-color: rgba(92, 201, 143, 0.4);
+}
+
+.hm-department-header__badge[data-category="strategy"] {
+  color: var(--hm-signal-bright);
+  border-color: rgba(232, 163, 61, 0.4);
+}
+
+.hm-department-header__title {
+  font-family: var(--hm-font-display);
+  font-size: var(--hm-text-xl);
+  font-weight: 700;
+  color: var(--hm-ink-bright);
+  letter-spacing: var(--hm-tracking-display);
+  text-transform: uppercase;
 }
 
 .hm-shell__panel {

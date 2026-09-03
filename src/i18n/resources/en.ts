@@ -293,6 +293,7 @@ export const en = {
   facility: {
     cause: {
       closed: "closed",
+      complianceRestriction: "compliance capacity restriction",
       demand: "current demand",
       seating: "seating",
       serviceStaff: "service staff",
@@ -471,6 +472,40 @@ export const en = {
       guestSatisfaction: "Guest satisfaction {score}% at close",
       supplyChoice: "Supply choice ({tier})",
       story: "Story: {cause}",
+    },
+    reason: {
+      morale: "morale at {score}",
+      "constant overtime": "constant overtime",
+      restructuring: "restructuring",
+      "gross misconduct": "gross misconduct",
+      "end of season": "end of season",
+      "dismissed by player": "dismissed by management",
+    },
+    course: {
+      customer_service_101: "Customer Service Basics",
+      advanced_hospitality: "Advanced Hospitality Management",
+      technical_maintenance: "Facility & Engineering Safety",
+      fnb_hygiene: "Food & Beverage Safety Standards",
+    },
+    supplyTier: {
+      standard: "standard",
+      regional: "regional",
+      sustainable: "sustainable",
+    },
+    rule: {
+      regulation: {
+        de: {
+          labor: {
+            tariff_wage: "Tariff wage agreement",
+          },
+          safety: {
+            fire: "Fire safety regulations",
+          },
+          accessibility: {
+            standards: "Accessibility standards",
+          },
+        },
+      },
     },
   },
   staff: {

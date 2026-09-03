@@ -49,6 +49,20 @@
 
 .hm-root .hm-topbar__card--location {
   flex: 0 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.hm-root .hm-topbar__name {
+  margin: 0;
+  font-family: var(--hm-font-display);
+  font-size: var(--hm-text-base);
+  font-weight: 700;
+  letter-spacing: var(--hm-tracking-display);
+  line-height: 1.1;
+  color: var(--hm-ink-bright);
+  white-space: nowrap;
 }
 
 .hm-root .hm-topbar__card--cash {
@@ -228,6 +242,26 @@
 .hm-root .hm-topbar__io {
   display: flex;
   gap: var(--hm-space-2);
+}
+
+/* Tool Buttons & Attention State */
+.hm-root .hm-topbar__tool[data-attention="true"] {
+  border-color: var(--hm-warn);
+  color: var(--hm-warn);
+  background: var(--hm-warn-wash);
+  box-shadow: 0 0 12px var(--hm-warn-wash);
+  animation: hm-attention-pulse 2s infinite ease-in-out;
+}
+
+@keyframes hm-attention-pulse {
+  0%, 100% {
+    border-color: var(--hm-warn);
+    box-shadow: 0 0 10px var(--hm-warn-wash);
+  }
+  50% {
+    border-color: var(--hm-signal-bright);
+    box-shadow: 0 0 18px var(--hm-signal-wash);
+  }
 }
 
 .hm-topbar__mobile-toggle {

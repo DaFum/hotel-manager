@@ -9,16 +9,14 @@
 .hm-panel {
   position: relative;
   padding: var(--hm-space-5) var(--hm-space-6);
-  border: 1px solid var(--hm-glass-border);
-  border-left: var(--hm-rail) solid var(--hm-signal-bright);
+  border: 1px solid var(--hm-rule-strong);
+  border-left: var(--hm-rail) solid var(--hm-signal);
   border-radius: var(--hm-radius-lg);
-  background: var(--hm-glass-surface);
-  backdrop-filter: var(--hm-glass-blur);
+  background: var(--hm-surface);
   box-shadow: var(--hm-shadow-panel);
   transition:
     border-color var(--hm-duration) var(--hm-ease),
-    box-shadow var(--hm-duration) var(--hm-ease),
-    transform var(--hm-duration) var(--hm-ease);
+    box-shadow var(--hm-duration) var(--hm-ease);
 }
 
 .hm-main > :is(section, aside):hover,
@@ -27,7 +25,7 @@
   border-left-color: var(--hm-signal-bright);
   box-shadow:
     var(--hm-shadow-panel),
-    0 0 20px var(--hm-signal-wash);
+    0 0 16px var(--hm-signal-wash);
 }
 
 /* Panel Header */

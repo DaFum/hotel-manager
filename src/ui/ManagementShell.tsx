@@ -103,7 +103,10 @@ export function ManagementShell({
                 className="hm-department-header__badge"
                 data-category={AREA_CATEGORIES[activeArea.id]}
               >
-                {AREA_CATEGORIES[activeArea.id].toUpperCase()}
+                {translateGame(
+                  locale,
+                  `management.category.${AREA_CATEGORIES[activeArea.id]}`,
+                ).toUpperCase()}
               </span>
               <span className="hm-department-header__title">
                 {labels[selected]}
